@@ -8,7 +8,7 @@ namespace SpawnDev.SpawnJS.Extensions
     /// Low level JSObject extension methods for invoking the JSObject or its properties.
     /// Prefer SpawnJSObjectReference / SpawnJSObject for normal use - these are for when you must work at the JSObject level.
     /// </summary>
-    internal static partial class JSObjectExtensions
+    public static partial class JSObjectExtensions
     {
         #region Invoke
         /// <summary>

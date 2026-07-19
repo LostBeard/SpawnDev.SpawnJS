@@ -1,0 +1,12 @@
+{
+  "wasmHostProperties": {
+    "mainAssembly": "WasmConsoleDemo.dll",
+    "perHostConfig": [
+      {
+        "name": "node",
+        "js-path": "main.mjs",
+        "host": "nodejs"
+      }
+    ]
+  }
+}

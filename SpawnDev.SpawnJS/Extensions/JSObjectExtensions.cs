@@ -10,7 +10,7 @@ namespace SpawnDev.SpawnJS.Extensions
     /// Adds extenion methods to JSObject
     /// </summary>
     [System.Runtime.Versioning.SupportedOSPlatform("browser")]
-    internal static partial class JSObjectExtensions
+    public static partial class JSObjectExtensions
     {
         static JSObject GlobalThis => JSHost.GlobalThis;
         /// <summary>

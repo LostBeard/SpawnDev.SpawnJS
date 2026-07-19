@@ -4,4 +4,5 @@
   <Project Path="SpawnDev.SpawnJS/SpawnDev.SpawnJS.csproj" Id="d5aca0bf-0dc1-499b-8248-a6219f1d85f8" />
   <Project Path="TestsShared/TestsShared.csproj" Id="66a9f756-ed07-495e-bce3-33ff92a5a26b" />
   <Project Path="WasmBrowserDemo/WasmBrowserDemo.csproj" Id="b79d1ebe-642c-4cf4-bbcc-882dd7dfa62d" />
+  <Project Path="WasmConsoleDemo/WasmConsoleDemo.csproj" Id="6b80766d-ff20-464b-abd7-2a18f593b440" />
 </Solution>
