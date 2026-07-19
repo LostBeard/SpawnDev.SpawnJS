@@ -42,18 +42,18 @@ namespace SpawnDev.SpawnJS
             if (Verbose) Console.WriteLine($"<< GetMarshaller: {type?.Name} {marshaller.GetType().Name}");
             return marshaller;
         }
-        internal object? JSToNet(Type type, JSObject jsParent, object jsKey)
+        internal object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
         {
             var marshaller = GetMarshaller(type);
-            return marshaller.JSToNet(type, jsParent, jsKey, this);
+            return marshaller.JSToNet(type, jsParent, jsKey);
         }
-        internal void NetToJS(JSObject jsParent, object jsKey, object? obj)
+        internal void NetToJS(SpawnJSHandle jsParent, object jsKey, object? obj)
         {
             var type = obj?.GetType();
             var marshaller = GetMarshaller(type);
-            marshaller.NetToJS(type, jsParent, jsKey, obj, this);
+            marshaller.NetToJS(type, jsParent, jsKey, obj);
         }
-        internal JSObject? NetArrayToJSArray(object?[]? args)
+        internal SpawnJSHandle? NetArrayToJSArray(object?[]? args)
         {
             if (args == null) return null;
             var ret = NewJSArray();
@@ -62,13 +62,17 @@ namespace SpawnDev.SpawnJS
                 var item = args[i];
                 var itemType = item?.GetType();
                 var marshaller = GetMarshaller(itemType);
-                marshaller.NetToJS(itemType, ret, i, item, this);
+                marshaller.NetToJS(itemType, ret, i, item);
             }
             return ret;
         }
         #endregion
         #region Sync NetRun
-        internal T NetRun<T>(string cmd, object?[]? args = null) => (T)NetRun(typeof(T), cmd, args)!;
+        internal T NetRun<T>(string cmd, object?[]? args = null)
+        {
+            var ret = NetRun(typeof(T), cmd, args)!;
+            return (T)ret;
+        }
         internal object? NetRun(Type type, string cmd, object?[]? args = null)
         {
             args ??= new object?[0];
@@ -76,7 +80,9 @@ namespace SpawnDev.SpawnJS
             // _netToJSCall always returns the [ret] wrapper array, so the result is never null
             using var ret = NetToJSCall(cmd, jsArgs)!;
             var marshaller = GetMarshaller(type);
-            var netRet = marshaller.JSToNet(type, ret, 0, this);
+            var netRet = marshaller.JSToNet(type, ret, 0);
+            if (netRet != null && netRet.GetType() != type)
+                throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {type.Name} got {netRet.GetType().Name}");
             return netRet;
         }
         internal void NetRunVoid(string cmd, object?[]? args = null)
@@ -95,7 +101,7 @@ namespace SpawnDev.SpawnJS
             // _netToJSCallAsync always resolves to the [ret] wrapper array, so the result is never null
             using var ret = (await NetToJSCallAsync(cmd, jsArgs))!;
             var marshaller = GetMarshaller(type);
-            var netRet = marshaller.JSToNet(type, ret, 0, this);
+            var netRet = marshaller.JSToNet(type, ret, 0);
             return netRet;
         }
         internal async Task NetRunVoidAsync(string cmd, object?[]? args = null)
@@ -107,17 +113,19 @@ namespace SpawnDev.SpawnJS
         #endregion
 
         #region NetToJS calls
-        internal void NetToJSCallVoid(string cmd, JSObject? args)
-            => Reflect.ApplyVoid(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args });
+        internal void NetToJSCallVoid(string cmd, SpawnJSHandle? args)
+            => Reflect.ApplyVoid(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args?.JSObject });
 
-        internal JSObject? NetToJSCall(string cmd, JSObject? args)
-            => Reflect.ApplyJSObject(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args });
+        internal SpawnJSHandle? NetToJSCall(string cmd, SpawnJSHandle? args)
+            => (SpawnJSHandle?)Reflect.ApplyJSObject(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args?.JSObject })!;
 
-        internal Task<JSObject?> NetToJSCallAsync(string cmd, JSObject? args)
-            => Reflect.ApplyJSObjectAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args });
+        internal async Task<SpawnJSHandle?> NetToJSCallAsync(string cmd, SpawnJSHandle? args)
+        {
+            return (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args?.JSObject }))!;
+        }
 
-        internal Task NetToJSCallVoidAsync(string cmd, JSObject? args)
-            => Reflect.ApplyVoidAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args });
+        internal Task NetToJSCallVoidAsync(string cmd, SpawnJSHandle? args)
+            => Reflect.ApplyVoidAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args?.JSObject });
         #endregion
     }
 }

@@ -14,9 +14,9 @@ namespace SpawnDev.SpawnJS.Marshallers
             return type != null && type.IsClass && !type.IsInterface && type != typeof(string);
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, JSObject jsParent, object jsKey, SpawnJSRuntime runtime)
+        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
         {
-            var jsObj = Reflect.GetJSObject(jsParent, jsKey);
+            using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsParent.JSObject, jsKey)!;
             if (jsObj == null) return null;
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var retObj = Activator.CreateInstance(type);
@@ -31,7 +31,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 object? value;
                 try
                 {
-                    value = runtime.JSToNet(pType, jsObj, propName);
+                    value = JS.JSToNet(pType, jsObj, propName);
                 }
                 catch (Exception ex)
                 {
@@ -54,29 +54,36 @@ namespace SpawnDev.SpawnJS.Marshallers
             return retObj;
         }
         /// <inheritdoc/>
-        public override void NetToJS(Type? type, JSObject jsParent, object jsKey, object? obj, SpawnJSRuntime runtime)
+        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? obj)
         {
-            if (type == null || obj == null) return;
-            var outObj = runtime.NewJSObject()!;
-            var classProps = type.GetTypeJsonProperties();
-            foreach (var prop in classProps)
+            if (type != null && obj != null)
             {
-                var propertyInfo = prop.PropertyInfo;
-                var fieldInfo = prop.FieldInfo;
-                var propName = prop.GetJsonName();
-                object? propValue = null;
-                if (propertyInfo != null)
+                using var outObj = JS.NewJSObject()!;
+                var classProps = type.GetTypeJsonProperties();
+                foreach (var prop in classProps)
                 {
-                    propValue = propertyInfo.GetValue(obj);
+                    var propertyInfo = prop.PropertyInfo;
+                    var fieldInfo = prop.FieldInfo;
+                    var propName = prop.GetJsonName();
+                    object? propValue = null;
+                    if (propertyInfo != null)
+                    {
+                        propValue = propertyInfo.GetValue(obj);
+                    }
+                    else if (fieldInfo != null)
+                    {
+                        propValue = fieldInfo.GetValue(obj);
+                    }
+                    if (!prop.GetShouldWrite(propValue)) continue;
+                    JS.NetToJS(outObj, propName, propValue);
                 }
-                else if (fieldInfo != null)
-                {
-                    propValue = fieldInfo.GetValue(obj);
-                }
-                if (!prop.GetShouldWrite(propValue)) continue;
-                runtime.NetToJS(outObj, propName, propValue);
+                Reflect.Set(jsParent.JSObject, jsKey, outObj.JSObject);
             }
-            Reflect.SetObject(jsParent, jsKey, outObj);
+            else
+            {
+                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+            }
+
         }
     }
 }

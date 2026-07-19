@@ -10,5 +10,9 @@
         /// </summary>
         /// <param name="jsObject"></param>
         public Window(SpawnJSObjectReference jsObject) : base(jsObject) { }
+        /// <summary>
+        /// Window origin
+        /// </summary>
+        public string Origin => JSRef!.Get<string>("origin");
     }
 }

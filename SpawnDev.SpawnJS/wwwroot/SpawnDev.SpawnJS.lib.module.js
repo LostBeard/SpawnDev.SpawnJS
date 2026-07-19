@@ -6,7 +6,7 @@
     class SpawnJSInterop {
         static instances = {};
         static _idNext = 0;
-        verbose = false;
+        verbose = true;
         id = '';
         dotnetRuntime = null;
         constructor(dotnetRuntime) {
@@ -125,7 +125,7 @@
         }
         _JSToNetCall() {
             // this method is a placeHolder and will be overwritten
-            // by SpawnJSRuntime immediately after constructed by it's method JSExport.
+            // by SpawnJSRuntime immediately after constructed by its own JSExport-ed method.
             // this placeholder is here for clarity.
         }
         jsToNetCall(/* string */ cmd, ...args) {

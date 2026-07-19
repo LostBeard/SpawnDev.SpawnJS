@@ -1,4 +1,6 @@
 using SpawnDev.SpawnJS.Native;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 
@@ -8,9 +10,36 @@ namespace SpawnDev.SpawnJS.Extensions
     /// Adds extenion methods to JSObject
     /// </summary>
     [System.Runtime.Versioning.SupportedOSPlatform("browser")]
-    public static partial class JSObjectExtensions
+    internal static partial class JSObjectExtensions
     {
         static JSObject GlobalThis => JSHost.GlobalThis;
+        /// <summary>
+        /// Create a new empty JavaScript Object
+        /// </summary>
+        /// <returns></returns>
+        public static JSObject NewJSObject() => GlobalThis.InvokePropertyConstructor("Object")!;
+        /// <summary>
+        /// Create a new empty JavaScript Array
+        /// </summary>
+        /// <returns></returns>
+        private static JSObject NewJSArray() => GlobalThis.InvokePropertyConstructor("Array")!;
+        private static Func<JSObject, IntPtr>? GetHandleDelegate;
+        /// <summary>
+        /// Gets the unique numeric ID assigned to this JSObject proxy.
+        /// </summary>
+        public static long GetId(this JSObject _this)
+        {
+            if (GetHandleDelegate == null)
+            {
+                FieldInfo? field = typeof(JSObject).GetField("_jsHandle", BindingFlags.NonPublic | BindingFlags.Instance) ?? typeof(JSObject).GetField("JSHandle", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field == null) throw new InvalidOperationException("Unsupported .NET WASM runtime version: tracking field missing.");
+                var instanceParam = Expression.Parameter(typeof(JSObject), "obj");
+                var fieldAccess = Expression.Field(instanceParam, field);
+                var lambda = Expression.Lambda<Func<JSObject, IntPtr>>(fieldAccess, instanceParam);
+                GetHandleDelegate = lambda.Compile();
+            }
+            return GetHandleDelegate(_this).ToInt64();
+        }
         #region GetProperty
         /// <summary>
         /// Get a nested property using a dot separated path (a trailing '?' on a segment short circuits to null when missing)
@@ -154,7 +183,6 @@ namespace SpawnDev.SpawnJS.Extensions
         /// <param name="identifier"></param>
         /// <returns></returns>
         public static bool? GetPropertyAsBooleanNullable(this JSObject _this, int identifier) => Reflect.GetBooleanNullable(_this, identifier);
-
         /// <summary>
         /// Get the property value as bool
         /// </summary>
@@ -215,17 +243,12 @@ namespace SpawnDev.SpawnJS.Extensions
         public static bool DeleteProperty(this JSObject _this, long identifier) => Reflect.DeletePropertyVoid(_this, identifier);
         #endregion
         #region As
-        
         /// <summary>
-        /// Create a new empty JavaScript Object
+        /// Clones a JSObject
         /// </summary>
+        /// <param name="_this"></param>
         /// <returns></returns>
-        public static JSObject NewJSObject() => GlobalThis.InvokePropertyConstructor("Object")!;
-        /// <summary>
-        /// Create a new empty JavaScript Array
-        /// </summary>
-        /// <returns></returns>
-        public static JSObject NewJSArray() => GlobalThis.InvokePropertyConstructor("Array")!;
+        public static JSObject Clone(this JSObject _this) => _this.AsJSObject();
         /// <summary>
         /// Marshal the JSObject and return as byte[]
         /// </summary>
@@ -239,87 +262,15 @@ namespace SpawnDev.SpawnJS.Extensions
             return ret;
         }
         /// <summary>
-        /// Marshal the JSObject and return as string
+        /// Marshal the JSObject and return as a new JSObject
         /// </summary>
         /// <param name="_this"></param>
         /// <returns></returns>
-        public static string? AsString(this JSObject _this)
+        public static JSObject AsJSObject(this JSObject _this)
         {
             using var array = NewJSArray();
             array.SetProperty(0, _this);
-            var ret = array.GetPropertyAsString(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as int
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static int AsInt32(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsInt32(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as double
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static double AsDouble(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsDouble(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as bool
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static bool AsBoolean(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsBoolean(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as nullable int
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static int? AsInt32Nullable(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsInt32Nullable(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as nullable double
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static double? AsDoubleNullable(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsDoubleNullable(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the JSObject and return as nullable bool
-        /// </summary>
-        /// <param name="_this"></param>
-        /// <returns></returns>
-        public static bool? AsBooleanNullable(this JSObject _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this);
-            var ret = GlobalThis.GetPropertyAsBooleanNullable(0);
+            var ret = array.GetPropertyAsJSObject(0)!;
             return ret;
         }
         /// <summary>
@@ -378,7 +329,7 @@ namespace SpawnDev.SpawnJS.Extensions
         /// <param name="value"></param>
         public static void SetPropertyArraySegmentByte(this JSObject _this, string identifier, ArraySegment<byte> value)
         {
-            Reflect.SetArraySegmentByte(_this, identifier, value);
+            Reflect.Set(_this, identifier, value);
         }
         /// <summary>
         /// Set the property to the specified value
@@ -388,9 +339,8 @@ namespace SpawnDev.SpawnJS.Extensions
         /// <param name="value"></param>
         public static void SetPropertySpanByte(this JSObject _this, string identifier, Span<byte> value)
         {
-            Reflect.SetSpanByte(_this, identifier, value);
+            Reflect.Set(_this, identifier, value);
         }
-
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
@@ -425,7 +375,7 @@ namespace SpawnDev.SpawnJS.Extensions
         /// <param name="_this"></param>
         /// <param name="identifier"></param>
         /// <param name="value"></param>
-        public static void SetProperty(this JSObject _this, int identifier, JSObject? value) => Reflect.SetJSObject(_this, identifier, value);
+        public static void SetProperty(this JSObject _this, int identifier, JSObject? value) => Reflect.Set(_this, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>

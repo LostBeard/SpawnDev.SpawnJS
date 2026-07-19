@@ -6,9 +6,13 @@
     public class SpawnJSObject : IDisposable
     {
         /// <summary>
-        /// Returns true if JSObject is null or disposed
+        /// Returns true if SpawnJSObjectReference is null or disposed
         /// </summary>
         public bool IsWrapperDisposed => JSRef?.IsDisposed != false;
+        /// <summary>
+        /// SpawnJSRuntime
+        /// </summary>
+        protected static SpawnJSRuntime JS => SpawnJSRuntime.Instance ?? throw new InvalidOperationException("SpawnJSRuntime has not been created.");
         /// <summary>
         /// The underlying SpawnJSObjectReference
         /// </summary>

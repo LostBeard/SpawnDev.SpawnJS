@@ -41,11 +41,11 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
 
             /// <inheritdoc/>
-            public override object? JSToNet(Type typeToConvert, JSObject jsParent, object jsKey, SpawnJSRuntime runtime)
+            public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsParent, object jsKey)
             {
                 // 1. Get raw double from JavaScript via your Reflect class
                 // Use Nullable read to catch 'null' or 'undefined' gracefully from JS
-                double? jsValue = Reflect.GetDoubleNullable(jsParent, jsKey);
+                double? jsValue = Reflect.GetDoubleNullable(jsParent.JSObject, jsKey);
                 if (jsValue == null) return null;
 
                 Type actualType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
@@ -93,11 +93,11 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
 
             /// <inheritdoc/>
-            public override void NetToJS(Type? typeToConvert, JSObject jsParent, object jsKey, object? value, SpawnJSRuntime runtime)
+            public override void NetToJS(Type? typeToConvert, SpawnJSHandle jsParent, object jsKey, object? value)
             {
                 if (value == null)
                 {
-                    Reflect.SetObject(jsParent, jsKey, null!);
+                    Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
                     return;
                 }
 
@@ -113,15 +113,14 @@ namespace SpawnDev.SpawnJS.Marshallers
                 }
                 else
                 {
-                    // Fallback using dynamic to let the runtime resolve custom explicit/implicit conversion operators
+                    // Fallback using dynamic to let the JS resolve custom explicit/implicit conversion operators
                     // This perfectly captures ILGPU.Half -> double conversion
                     doubleValue = (double)(dynamic)value;
                 }
 
                 // Push to JS via your strongly typed Reflect method signature
-                Reflect.Set(jsParent, jsKey, doubleValue);
+                Reflect.Set(jsParent.JSObject, jsKey, doubleValue);
             }
         }
     }
-
 }

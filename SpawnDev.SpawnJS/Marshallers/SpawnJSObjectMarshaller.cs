@@ -10,21 +10,21 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override bool CanMarshal(Type? type) => type != null && typeof(SpawnJSObject).IsAssignableFrom(type);
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, JSObject jsParent, object jsKey, SpawnJSRuntime runtime)
+        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
         {
-            var value = Reflect.GetJSObject(jsParent, jsKey);
-            return value == null ? null : new SpawnJSObject(new SpawnJSObjectReference(value));
+            var value = jsParent.GetPropertyAsJSObject(jsKey);
+            return value == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(value));
         }
         /// <inheritdoc/>
-        public override void NetToJS(Type? type, JSObject jsParent, object jsKey, object? value, SpawnJSRuntime runtime)
+        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value)
         {
             if (value is SpawnJSObject jsRef && jsRef.JSRef != null)
             {
-                Reflect.SetJSObject(jsParent, jsKey, jsRef.JSRef.JSObject);
+                Reflect.Set(jsParent.JSObject, jsKey, jsRef.JSRef.JSObject);
             }
             else
             {
-                Reflect.SetJSObject(jsParent, jsKey, null!);
+                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
             }
         }
     }

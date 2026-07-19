@@ -13,21 +13,21 @@ namespace SpawnDev.SpawnJS.Marshallers
             return true;
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, JSObject jsParent, object jsKey, SpawnJSRuntime runtime)
+        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
         {
-            var value = Reflect.GetObject(jsParent, jsKey);
+            var value = Reflect.GetObject(jsParent.JSObject, jsKey);
             return value ?? type.GetDefaultValue();
         }
         /// <inheritdoc/>
-        public override void NetToJS(Type? type, JSObject jsParent, object jsKey, object? obj, SpawnJSRuntime runtime)
+        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? obj)
         {
             if (obj == null || type == null)
             {
-                Reflect.Set(jsParent, jsKey, (string)null!);
+                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
             }
             else
             {
-                Reflect.SetObject(jsParent, jsKey, obj);
+                Reflect.SetObject(jsParent.JSObject, jsKey, obj);
             }
         }
     }
