@@ -123,6 +123,19 @@
         returnMe(/* any */ value) {
             return value;
         }
+        // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
+        registerCallback(id) {
+            return (...args) => {
+                var ret = this._JSToNetCall(id, args);
+                return ret == null || ret.length == 0 ? null : ret[0];
+            }
+        }
+        // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
+        registerCallbackVoid(id) {
+            return (...args) => {
+                this._JSToNetCall(id, args);
+            }
+        }
         _JSToNetCall() {
             // this method is a placeHolder and will be overwritten
             // by SpawnJSRuntime immediately after constructed by its own JSExport-ed method.

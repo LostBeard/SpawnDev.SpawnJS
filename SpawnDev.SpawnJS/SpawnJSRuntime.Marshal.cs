@@ -114,18 +114,16 @@ namespace SpawnDev.SpawnJS
 
         #region NetToJS calls
         internal void NetToJSCallVoid(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoid(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args?.JSObject });
+            => Reflect.ApplyVoid(_netToJSCall.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject });
 
         internal SpawnJSHandle? NetToJSCall(string cmd, SpawnJSHandle? args)
-            => (SpawnJSHandle?)Reflect.ApplyJSObject(_netToJSCall, SpawnJSInterop, new object?[] { cmd, args?.JSObject })!;
+            => (SpawnJSHandle?)Reflect.ApplyJSObject(_netToJSCall.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject })!;
 
         internal async Task<SpawnJSHandle?> NetToJSCallAsync(string cmd, SpawnJSHandle? args)
-        {
-            return (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args?.JSObject }))!;
-        }
+            => (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject }))!;
 
         internal Task NetToJSCallVoidAsync(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoidAsync(_netToJSCallAsync, SpawnJSInterop, new object?[] { cmd, args?.JSObject });
+            => Reflect.ApplyVoidAsync(_netToJSCallAsync.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject });
         #endregion
     }
 }

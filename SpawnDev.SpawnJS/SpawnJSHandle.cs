@@ -4,7 +4,7 @@ using System.Runtime.InteropServices.JavaScript;
 namespace SpawnDev.SpawnJS
 {
     /// <summary>
-    /// Holds a Javascript object automatically managing the JSObejct lifetime.
+    /// Holds a Javascript object automatically managing the JSObject lifetime.
     /// </summary>
     public sealed partial class SpawnJSHandle : IDisposable
     {

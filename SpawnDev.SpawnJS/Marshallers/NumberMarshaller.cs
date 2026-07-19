@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {

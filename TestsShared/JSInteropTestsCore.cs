@@ -83,5 +83,25 @@ namespace TestsShared
             var testString3 = window1.Origin;
             if (string.IsNullOrEmpty(testString3)) throw new Exception("Readback failed");
         }
+
+        public async Task JSToNetCallingTest()
+        {
+            JS.SetHandler("apples", new Func<string, string>((msg) => {
+
+                return $"ok1: {msg}";
+            }));
+
+        }
+
+        public async Task CallbackTest()
+        {
+            var func = new Func<string, string>((msg) =>
+            {
+
+                return $"ok2: {msg}";
+            });
+            var cb = new Callback(func);
+            JS.Set("_mb1", cb);
+        }
     }
 }

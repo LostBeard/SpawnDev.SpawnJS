@@ -1,5 +1,4 @@
-﻿using SpawnDev.SpawnJS.Extensions;
-using SpawnDev.SpawnJS.Marshallers;
+﻿using SpawnDev.SpawnJS.Marshallers;
 using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
 using System.Runtime.InteropServices.JavaScript;
 
@@ -22,15 +21,15 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// SpawnJSInterop Javascript instance
         /// </summary>
-        private JSObject SpawnJSInterop;
+        private SpawnJSHandle SpawnJSInterop;
         /// <summary>
         /// SpawnJSInterop._netToJSCall function handle
         /// </summary>
-        private JSObject _netToJSCall;
+        private SpawnJSHandle _netToJSCall;
         /// <summary>
         /// SpawnJSInterop._netToJSCallAsync function handle
         /// </summary>
-        private JSObject _netToJSCallAsync;
+        private SpawnJSHandle _netToJSCallAsync;
         /// <summary>
         /// JSObject marshallers used for marshalling data between .Net and Javasript
         /// </summary>
@@ -38,7 +37,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Create a new instance of SpawnJSRuntime
         /// </summary>
-        public SpawnJSRuntime() : base(JSHost.GlobalThis.Clone())
+        public SpawnJSRuntime() : base(JSHost.GlobalThis)
         {
             if (Instance != null) throw new Exception("Already exists");
             // add built-in marshallers
@@ -56,14 +55,16 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new StructMarshaller());
             Marshallers.Add(new JSToNetInvokerMarshaller());
             Marshallers.Add(new DelegateMarshaller());
+            Marshallers.Add(new IMarshalOutByJSHandleMarshaller());
+            Marshallers.Add(new SpawnJSHandleMarshaller());
             // create a new instance of SpawnJSInterop Javascript class for interop with this isntance of .Net
-            SpawnJSInterop = JSObject.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
+            SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
             // get _netToJSCall function in SpawnJSInterop
-            _netToJSCall = SpawnJSInterop.GetPropertyAsJSObject("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
+            _netToJSCall = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
             // get _netToJSCallAsync function in SpawnJSInterop
-            _netToJSCallAsync = SpawnJSInterop.GetPropertyAsJSObject("_netToJSCallAsync") ?? throw new Exception("SpawnJSInterop._netToJSCallAsync not found");
+            _netToJSCallAsync = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCallAsync") ?? throw new Exception("SpawnJSInterop._netToJSCallAsync not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
-            Reflect.Set(SpawnJSInterop, "_JSToNetCall", _JSToNetCall);
+            Reflect.Set(SpawnJSInterop.JSObject, "_JSToNetCall", _JSToNetCall);
             Initializing = false;
             Instance = this;
         }
@@ -90,13 +91,12 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// JS ➡️ .Net method
         /// </summary>
-        /// <param name="cmd"></param>
-        /// <param name="argsArray"></param>
-        /// <returns></returns>
         private JSObject _JSToNetCall(string cmd, JSObject argsArray)
         {
             Console.WriteLine("_JSToNetCall called!!!!!!!!!!");
-            return null!;
+            using var argsArrayHandle = argsArray == null ? null : new SpawnJSHandle(argsArray);
+            var ret = JSToNetDispatch(cmd, argsArrayHandle!);
+            return ret?.JSObject!;
         }
         /// <summary>
         /// Create a new Javascript Object as JSObject

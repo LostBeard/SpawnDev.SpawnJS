@@ -8,6 +8,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// </summary>
     public class DelegateMarshaller : JSMarshaller
     {
+
+        ///<inheritdoc/>
         public override bool CanMarshal(Type? typeToConvert)
         {
             if (JS.Initializing)
