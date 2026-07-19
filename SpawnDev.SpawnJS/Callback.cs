@@ -3,7 +3,7 @@
     /// <summary>
     /// Callback wraps action and function to pass to JS
     /// </summary>
-    public class Callback : IDisposable, IMarshalOutByJSHandle
+    public class Callback : IMarshalOutByJSHandle, IDisposable
     {
         /// <summary>
         /// SpawnJSRuntime

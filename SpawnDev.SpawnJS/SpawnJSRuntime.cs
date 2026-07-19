@@ -53,7 +53,6 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new SpawnJSObjectMarshaller());
             Marshallers.Add(new JSObjectMarshaller());
             Marshallers.Add(new StructMarshaller());
-            Marshallers.Add(new JSToNetInvokerMarshaller());
             Marshallers.Add(new DelegateMarshaller());
             Marshallers.Add(new IMarshalOutByJSHandleMarshaller());
             Marshallers.Add(new SpawnJSHandleMarshaller());

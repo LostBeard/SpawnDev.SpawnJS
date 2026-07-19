@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS
 {
@@ -61,8 +60,6 @@ namespace SpawnDev.SpawnJS
             if (Verbose) Console.WriteLine($"<< JSToNetDispatch: {cmd}");
             return retArray;
         }
-
-
         #endregion
     }
 }

@@ -95,12 +95,15 @@ namespace TestsShared
 
         public async Task CallbackTest()
         {
+            var cnt = 0;
+            Callback? cb = null;
             var func = new Func<string, string>((msg) =>
             {
-
-                return $"ok2: {msg}";
+                cnt++;
+                if (cnt == 2) cb.Dispose();
+                return $"ok2: {cnt} {msg}";
             });
-            var cb = new Callback(func);
+            cb = new Callback(func);
             JS.Set("_mb1", cb);
         }
     }
