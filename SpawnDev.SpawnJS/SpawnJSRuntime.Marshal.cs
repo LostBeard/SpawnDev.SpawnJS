@@ -1,3 +1,4 @@
+using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Marshallers;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices.JavaScript;
@@ -283,21 +284,32 @@ namespace SpawnDev.SpawnJS
         }
         #endregion
         #region Async NetRun
-        internal async Task<T> NetRunAsync<T>(string cmd, object?[]? args = null) => (T)(await NetRunAsync(typeof(T), cmd, args))!;
+        // There is no async dispatcher. An async command is just a SYNCHRONOUS call that happens to return
+        // a Promise, so it goes over the same flat buffer stack as everything else and gets the same "only
+        // primitives cross" property. The Promise is then turned into a Task the way SpawnDev.BlazorJS has
+        // always done it - then(resolve, reject) with .Net callbacks - rather than by asking the runtime to
+        // marshal a Task across the boundary.
+        //
+        // That is what lets the buffer be a stack at all. A real async binding could not use one: the call
+        // has not finished when it returns, so its region could not be released in order. Here the
+        // synchronous part finishes immediately and the region unwinds; the eventual value arrives later
+        // through the callback channel, which has its own storage.
+        internal async Task<T> NetRunAsync<T>(string cmd, object?[]? args = null)
+        {
+            using var promise = NetRun<Promise>(cmd, args);
+            return await promise.ThenAsync<T>();
+        }
+
         internal async Task<object?> NetRunAsync(Type type, string cmd, object?[]? args = null)
         {
-            args ??= new object?[0];
-            using var jsArgs = MarshallNetArrayToJSArray(args);
-            // _netToJSCallAsync always resolves to the [ret] wrapper array, so the result is never null
-            using var ret = (await NetToJSCallAsync(cmd, jsArgs))!;
-            var netRet = MarshallJSToNet(type, ret, 0);
-            return netRet;
+            using var promise = NetRun<Promise>(cmd, args);
+            return await promise.ThenAsync(type);
         }
+
         internal async Task NetRunVoidAsync(string cmd, object?[]? args = null)
         {
-            args ??= new object?[0];
-            using var jsArgs = MarshallNetArrayToJSArray(args);
-            await NetToJSCallVoidAsync(cmd, jsArgs);
+            using var promise = NetRun<Promise>(cmd, args);
+            await promise.ThenAsync();
         }
         #endregion
         #region NetToJS calls
@@ -309,11 +321,6 @@ namespace SpawnDev.SpawnJS
         private void NetToJSCall(string cmd, int offset, int length)
             => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, (double)offset, (double)length });
 
-        private async Task<SpawnJSHandle?> NetToJSCallAsync(string cmd, SpawnJSHandle? args)
-            => (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired }))!;
-
-        private Task NetToJSCallVoidAsync(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoidAsync(_netToJSCallAsync.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired });
         #endregion
     }
 }

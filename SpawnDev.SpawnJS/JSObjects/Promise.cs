@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {
@@ -284,6 +284,58 @@ namespace SpawnDev.SpawnJS.JSObjects
                     }
                 });
             }
+            return t.Task;
+        }
+        /// <summary>
+        /// Asynchronously wait for a Promise to resolve, marshalling the result as the given type.<br/>
+        /// The generic <see cref="ThenAsync{TResult}(int)"/> is the one to use when the type is known at
+        /// compile time; this exists for the dispatcher, which only has a runtime Type. The resolved value
+        /// arrives as a handle and is marshalled through the registry, so it costs no more than the typed
+        /// form and needs no generic instantiation per return type.
+        /// </summary>
+        public Task<object?> ThenAsync(Type resultType, int timeoutMS = 0)
+        {
+            var t = new TaskCompletionSource<object?>();
+            var callbacks = new CallbackGroup();
+            var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
+            ThenCatch(callbacks.Add(Callback.Create<SpawnJSHandle>((result) =>
+            {
+                object? value;
+                try
+                {
+                    value = result == null ? null : JS.MarshallJSToNet(resultType, result);
+                }
+                catch (Exception ex)
+                {
+                    if (t.TrySetException(ex))
+                    {
+                        cancellationTokenSource?.Dispose();
+                        callbacks.Dispose();
+                    }
+                    return;
+                }
+                if (t.TrySetResult(value))
+                {
+                    cancellationTokenSource?.Dispose();
+                    callbacks.Dispose();
+                }
+            })), callbacks.Add(Callback.Create((Error? error) =>
+            {
+                if (t.TrySetException(UnknownErrorToException(error)))
+                {
+                    cancellationTokenSource?.Dispose();
+                    callbacks.Dispose();
+                }
+            })));
+            cancellationTokenSource?.Token.Register(() =>
+            {
+                if (t.TrySetException(new Exception("Timed out")))
+                {
+                    cancellationTokenSource?.Dispose();
+                    callbacks.Dispose();
+                }
+            });
+            cancellationTokenSource?.CancelAfter(timeoutMS);
             return t.Task;
         }
         /// <summary>

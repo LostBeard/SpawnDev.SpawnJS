@@ -36,10 +36,6 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private SpawnJSHandle _netToJSCall;
         /// <summary>
-        /// SpawnJSInterop._netToJSCallAsync function handle
-        /// </summary>
-        private SpawnJSHandle _netToJSCallAsync;
-        /// <summary>
         /// SpawnJSInterop.netToJSBuffer - the flat stack that carries arguments over and results back for
         /// every synchronous call. Held for the life of the runtime, so no object reference is marshalled
         /// per call; only the command name, an offset and a length cross the boundary.
@@ -79,8 +75,6 @@ namespace SpawnDev.SpawnJS
             SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
             // get _netToJSCall function in SpawnJSInterop
             _netToJSCall = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
-            // get _netToJSCallAsync function in SpawnJSInterop
-            _netToJSCallAsync = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCallAsync") ?? throw new Exception("SpawnJSInterop._netToJSCallAsync not found");
             // One handle to the call buffer, held for the life of the runtime
             _netToJSBuffer = SpawnJSInterop.GetPropertyAsJSHandle("netToJSBuffer") ?? throw new Exception("SpawnJSInterop.netToJSBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance

@@ -308,13 +308,9 @@
             // hand the result back in the first slot of the caller's own region
             a[offset] = ret;
         }
-        async _netToJSCallAsync(/* string */ cmd, /* Array */ argArray) {
-            if (this.verbose) console.log(">> _netToJSCallAsync::", cmd, argArray);
-            var ret = await this[cmd](...argArray);
-            if (this.verbose) console.log("<< _netToJSCallAsync::", ret);
-            // package the results in an array so it can be read as a JSObject and then pulled into as needed wit hthe correct typing and marshalling
-            return [ret];
-        }
+        // There is no _netToJSCallAsync. An async command is just a synchronous call that returns a
+        // Promise, which .Net turns into a Task with then(resolve, reject) - so async rides the same flat
+        // buffer stack as everything else, and no Task ever has to be marshalled across the boundary.
     }
     globalThis.SpawnJSInterop = SpawnJSInterop;
 })()
