@@ -14,6 +14,50 @@ Its API is modeled to be compatible with the Blazor WASM `IJSInProcessRuntime` /
 - **Drop the Blazor dependency.** SpawnJS uses only the runtime interop primitives, so libraries built on it can reach .NET WASM apps that are not Blazor - for example Avalonia, satisfying [LostBeard/SpawnDev.BlazorJS.WebWorkers#28](https://github.com/LostBeard/SpawnDev.BlazorJS.WebWorkers/issues/28).
 - **Simplify Web Worker startup.** SpawnDev.BlazorJS.WebWorkers currently has to build a fake `window` environment to boot a Blazor app inside a worker. Without the Blazor interop layer, that shim is no longer needed.
 
+## Measured against SpawnDev.BlazorJS
+
+Both runtimes in one Blazor app, hitting the same Javascript object with the same operation, so the only
+variable is the interop path. 20,000 iterations per case.
+
+| operation | BlazorJS | SpawnJS | |
+|---|---:|---:|---:|
+| read an int from a held object | 1585 ms | **38 ms** | **41.8x** |
+| read a string from a held object | 1638 ms | **37 ms** | **43.8x** |
+| write an int to a held object | 1218 ms | **42 ms** | **29.2x** |
+| read a string by path from globalThis | 1497 ms | **278 ms** | **5.4x** |
+| read an int by path from globalThis | 1424 ms | **291 ms** | **4.9x** |
+| write an int by path from globalThis | 1087 ms | **280 ms** | **3.9x** |
+| take a handle to an object | 2505 ms | **901 ms** | **2.8x** |
+| call a method on a held object | 1793 ms | **765 ms** | **2.3x** |
+| call a method by path | 1659 ms | **1090 ms** | **1.5x** |
+
+The two shapes differ because they take different routes. A **held object reference with a simple key**
+resolves to a single typed `Reflect` binding - one call across the boundary, nothing allocated. A **dotted
+path** has to be resolved at each call, so it goes through the general dispatcher. Most interop in a real
+library is the first shape: hold a `GPUDevice` or an `HTMLCanvasElement`, then read and write its
+properties.
+
+Where the difference comes from:
+
+- **Nothing is serialized.** There is no JSON encode or parse on either side.
+- **Nothing is allocated per call.** Arguments and results share one flat buffer, and a call carries only
+  a command name, an offset and a length - no Javascript object reference crosses at all.
+- **One Javascript function per delegate.** A `Callback` shares its function with every other Callback over
+  the same .NET method rather than registering a new one.
+- **Async is a synchronous call that returns a Promise**, converted to a Task with `then`, so no Task is
+  marshalled across the boundary and async uses the same buffer as everything else.
+
+Reproduce it:
+
+```
+dotnet run --project BlazorBrowserDemo -c Release --urls http://localhost:5199
+dotnet run --project SpawnJS.TestRunner -- --url "http://localhost:5199/?bench" --verbose
+```
+
+Read the ratios rather than the absolute times. The run above is an interpreted WASM build with no AOT, so
+the absolute numbers are much higher than a published app would see, and each case ran once. Run-to-run
+variance on the dispatcher cases was a few tens of percent; the held-reference figures were stable.
+
 ## Complex return values just work
 
 This is the biggest practical win over Blazor interop, and it is about correctness, not only speed.
