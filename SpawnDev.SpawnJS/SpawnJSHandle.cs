@@ -103,6 +103,33 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// The Javascript Array we use to store our JSObject for retrieval when needed
         /// </summary>
+        /// <summary>
+        /// One Javascript object that holds the value of EVERY owned handle, each under its own key.<br/>
+        /// Each handle used to construct its own single element Array to park its value in. That is a
+        /// Javascript object construction, a boundary crossing and a JSObject proxy per handle - paid on
+        /// every handle that owns its storage, which is every handle returned from a typed read. One
+        /// shared object costs that once for the whole process.<br/>
+        /// Keys are never reused. The allocator only ever increments, so a disposed handle's key can never
+        /// be handed to a new handle and resurrect a stale value.<br/>
+        /// Not synchronized, for the same reason PtrRefCounts is not: the .Net WASM runtime is single
+        /// threaded and the finalizer runs on that same thread.
+        /// </summary>
+        static JSObject? _store;
+        static JSObject Store => _store ??= JSHost.GlobalThis.InvokePropertyConstructor("Object")!;
+        // double, not long: a boxed Int64 cannot cross as an Any-marshalled key ("ToJSNotImplemented,
+        // System.Int64"), and a Javascript number IS a double. Exact integers up to 2^53 is far more slots
+        // than a process will ever allocate.
+        static double _nextSlot;
+        /// <summary>
+        /// How many slots are currently held in the shared store. Diagnostics only - it should track the
+        /// number of live owning handles, so a number that only ever climbs means slots are being leaked.
+        /// </summary>
+        public static long LiveSlotCount => _liveSlots;
+        static long _liveSlots;
+        /// <summary>
+        /// True when this handle owns a slot in the shared store and must release it on dispose
+        /// </summary>
+        private bool _ownsSlot;
         private JSObject? _ownedParent;
         /// <summary>
         /// This holds the parent store when we don't own it
@@ -204,11 +231,15 @@ namespace SpawnDev.SpawnJS
             _jsObject = jsObject;
             _jsValue = jsObject;
             IsObject = true;
-            JSKey = 0;
+            // its own slot key in the shared store. Never reused, so a disposed handle's key can
+            // never be handed out again and resurrect a stale value.
+            JSKey = _nextSlot++;
             Resolved = true;
             Ptr = _jsObject?.GetId() ?? -1;
             // store the JSObject in a JS array we own so that if the JSObject gets Dispsoed elsewhere we can get a fresh JSObject
-            _ownedParent = JSHost.GlobalThis.InvokePropertyConstructor("Array")!;
+            _ownedParent = Store;
+            _ownsSlot = true;
+            _liveSlots++;
             Reflect.Set(_ownedParent, JSKey, _jsObject);
         }
         /// <summary>
@@ -228,9 +259,13 @@ namespace SpawnDev.SpawnJS
             else
             {
                 // copy into our own storage
-                JSKey = 0;
+                // its own slot key in the shared store. Never reused, so a disposed handle's key can
+                // never be handed out again and resurrect a stale value.
+                JSKey = _nextSlot++;
                 // store the JSObject in a JS array we own so that if the JSObject gets Dispsoed elsewhere we can get a fresh JSObject
-                _ownedParent = JSHost.GlobalThis.InvokePropertyConstructor("Array")!;
+                _ownedParent = Store;
+                _ownsSlot = true;
+                _liveSlots++;
                 JS.CopyProperty(jsParent.JSObject!, jsKey, _ownedParent, JSKey);
             }
         }
@@ -322,8 +357,15 @@ namespace SpawnDev.SpawnJS
             // SpawnJSHandle still points at this proxy, so we never dispose one a sibling is still using.
             var lastReference = PtrRelease(_ptr);
             _ptr = -1;
-            // _ownedParent is the JS Array we created to hold the value, so it is ours to dispose.
-            _ownedParent?.Dispose();
+            // The store is shared and outlives every handle, so it is never disposed - only this
+            // handle's slot in it is removed. Leaving the slot behind would keep the Javascript value
+            // alive for the life of the process.
+            if (_ownsSlot)
+            {
+                _ownsSlot = false;
+                _liveSlots--;
+                Reflect.DeletePropertyVoid(Store, JSKey);
+            }
             // _unownedParent belongs to whoever handed it to us - that is what Volatile means.
             // Disposing it here would tear down the caller's handle out from under them.
             _unownedParent = null;
