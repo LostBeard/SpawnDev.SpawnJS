@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS
 {
@@ -11,7 +11,8 @@ namespace SpawnDev.SpawnJS
         /// <typeparam name="T"></typeparam>
         /// <param name="identifier"></param>
         /// <returns></returns>
-        public T Get<T>(string identifier) => JS.NetRun<T>("getProperty", new object[] { JSObject, identifier });
+        public T Get<T>(string identifier)
+            => TryGetFast<T>(identifier, out T fast) ? fast : JS.NetRun<T>("getProperty", new object[] { JSObject, identifier });
         /// <summary>
         /// Get object property as T
         /// </summary>
@@ -52,7 +53,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="identifier"></param>
         /// <param name="value"></param>
-        public void Set(string identifier, object? value) => JS.NetRunVoid("setProperty", new object[] { JSObject, identifier, value! });
+        public void Set(string identifier, object? value)
+        {
+            if (TrySetFast(identifier, value)) return;
+            JS.NetRunVoid("setProperty", new object[] { JSObject, identifier, value! });
+        }
 
         /// <summary>
         /// Delete an object property
