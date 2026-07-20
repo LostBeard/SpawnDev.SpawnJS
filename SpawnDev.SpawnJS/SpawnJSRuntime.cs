@@ -1,4 +1,4 @@
-﻿using SpawnDev.SpawnJS.Marshallers;
+using SpawnDev.SpawnJS.Marshallers;
 using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
 using System.Runtime.InteropServices.JavaScript;
 
@@ -40,6 +40,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private SpawnJSHandle _netToJSCallAsync;
         /// <summary>
+        /// SpawnJSInterop._retStore - where synchronous results are parked by key instead of being
+        /// returned wrapped in a freshly allocated array. Held for the life of the runtime.
+        /// </summary>
+        private SpawnJSHandle _retStore;
+        /// <summary>
         /// JSObject marshallers used for marshalling data between .Net and Javasript
         /// </summary>
         public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
@@ -75,6 +80,9 @@ namespace SpawnDev.SpawnJS
             _netToJSCall = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
             // get _netToJSCallAsync function in SpawnJSInterop
             _netToJSCallAsync = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCallAsync") ?? throw new Exception("SpawnJSInterop._netToJSCallAsync not found");
+            // One handle to the return store, held for the life of the runtime. Synchronous results are
+            // parked in it by key instead of coming back wrapped in a freshly allocated array.
+            _retStore = SpawnJSInterop.GetPropertyAsJSHandle("_retStore") ?? throw new Exception("SpawnJSInterop._retStore not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
             Initializing = false;

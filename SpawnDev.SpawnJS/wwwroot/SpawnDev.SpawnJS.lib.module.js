@@ -280,12 +280,18 @@
             var ret = this._JSToNetCall(cmd, args);
             return ret;
         }
-        _netToJSCall(/* string */ cmd, /* Array */ argArray) {
+        // Results are parked here rather than returned wrapped in a fresh array. .Net holds ONE handle to
+        // this store for the life of the process and reads a slot through a volatile handle, so a
+        // synchronous call now allocates nothing on the way back either.
+        // Indexed by the caller's call DEPTH, which .Net already tracks for its argument arrays, so a
+        // nested call cannot overwrite the slot an outer call has not read yet.
+        _retStore = [];
+        _netToJSCall(/* string */ cmd, /* Array */ argArray, /* number */ retKey) {
             if (this.verbose) console.log(">> _netToJSCall::", cmd, argArray);
             var ret = this[cmd](...argArray);
             if (this.verbose) console.log("<< _netToJSCall::", ret);
-            // package the results in an array so it can be read as a JSObject and then pulled into as needed wit hthe correct typing and marshalling
-            return [ret];
+            // retKey below zero means the caller is discarding the result, so do not hold a reference to it
+            if (retKey >= 0) this._retStore[retKey] = ret;
         }
         async _netToJSCallAsync(/* string */ cmd, /* Array */ argArray) {
             if (this.verbose) console.log(">> _netToJSCallAsync::", cmd, argArray);
