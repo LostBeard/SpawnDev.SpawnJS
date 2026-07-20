@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// SHA-384<br/>
         /// SHA-512
         /// </summary>
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
         /// <summary>
         /// An ArrayBuffer, a TypedArray, or a DataView. The HKDF specification states that adding salt "adds significantly to the strength of HKDF". Ideally, the salt is a random or pseudo-random value with the same length as the output of the digest function. Unlike the input key material passed into deriveKey(), salt does not need to be kept secret.
         /// </summary>

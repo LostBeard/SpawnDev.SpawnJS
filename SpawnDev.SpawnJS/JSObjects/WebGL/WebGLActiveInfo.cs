@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The name of the requested variable.
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// The size of the requested variable.
         /// </summary>

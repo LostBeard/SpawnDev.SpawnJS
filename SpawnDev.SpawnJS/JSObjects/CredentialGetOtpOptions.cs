@@ -14,6 +14,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An object containing transport type hints. Causes the get() call to initiate a request for the retrieval of an OTP. See the WebOTP API section below for more details.
         /// </summary>
-        public CredentialGetOtp Otp { get; set; }
+        public CredentialGetOtp? Otp { get; set; }
     }
 }

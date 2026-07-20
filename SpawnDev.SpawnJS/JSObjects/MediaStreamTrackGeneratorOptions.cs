@@ -16,6 +16,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// "audio"<br/>
         /// "video"
         /// </summary>
-        public string Kind { get; set; }
+        public string? Kind { get; set; }
     }
 }

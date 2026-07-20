@@ -16,11 +16,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// An array of LockInfo objects for held locks.
         /// </summary>
         [JsonPropertyName("held")]
-        public LockInfo[] Held { get; set; }
+        public LockInfo[]? Held { get; set; }
         /// <summary>
         /// An array of LockInfo objects for pending lock requests.
         /// </summary>
         [JsonPropertyName("pending")]
-        public LockInfo[] Pending { get; set; }
+        public LockInfo[]? Pending { get; set; }
     }
 }

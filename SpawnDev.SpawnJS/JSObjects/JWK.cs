@@ -116,7 +116,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// This member MUST be present in a JWK.
         /// </summary>
         [JsonPropertyName("kty")]
-        public string KeyType { get; set; }
+        public string? KeyType { get; set; }
         /// <summary>
         /// "use" (Public Key Use) Parameter<br/>
         /// The "use" (public key use) parameter identifies the intended use of the public key.<br/>

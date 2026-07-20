@@ -14,7 +14,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The required format of texture views bound to this binding.
         /// </summary>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// The access mode for this binding, indicating readability and writability.

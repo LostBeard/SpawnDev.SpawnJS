@@ -57,7 +57,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An object describing the relying party that requested the credential creation. It can contain the following properties:
         /// </summary>
-        public RelyingParty Rp { get; set; }
+        public RelyingParty? Rp { get; set; }
         /// <summary>
         /// A numerical hint, in milliseconds, which indicates the time the caller is willing to wait for the creation operation to complete. This hint may be overridden by the browser.
         /// </summary>
@@ -66,7 +66,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An object describing the user account for which the credential is generated
         /// </summary>
-        public CredentialUser User { get; set; }
+        public CredentialUser? User { get; set; }
         /// <summary>
         /// An array of strings providing hints as to what authentication UI the user-agent should provide for the user.<br/>
         /// The values can be any of the following:<br/>

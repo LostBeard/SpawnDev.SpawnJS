@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An array of HIDDeviceFilter objects used to filter the requested devices.
         /// </summary>
-        public IEnumerable<HIDDeviceFilter> Filters { get; set; }
+        public IEnumerable<HIDDeviceFilter>? Filters { get; set; }
 
         /// <summary>
         /// An optional array of HIDDeviceFilter objects used to exclude devices from the requested devices.

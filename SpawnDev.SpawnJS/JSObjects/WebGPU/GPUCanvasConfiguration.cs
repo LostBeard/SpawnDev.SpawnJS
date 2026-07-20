@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The GPUDevice that the rendering information for the context will come from.
         /// </summary>
-        public GPUDevice Device { get; set; }
+        public GPUDevice? Device { get; set; }
 
         /// <summary>
         /// The format that textures returned by getCurrentTexture() will have. This can be bgra8unorm, rgba8unorm, or rgba16float. 
@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Using this is recommended — if you don't use the preferred format when configuring the canvas context, 
         /// you may incur additional overhead, such as additional texture copies, depending on the platform.
         /// </summary>
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// The GPUTextureUsage flags for textures returned by getCurrentTexture().

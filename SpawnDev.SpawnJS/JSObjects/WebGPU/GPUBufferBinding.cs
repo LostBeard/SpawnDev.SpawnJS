@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The GPUBuffer to bind.
         /// </summary>
-        public GPUBuffer Buffer { get; set; }
+        public GPUBuffer? Buffer { get; set; }
 
         /// <summary>
         /// The offset, in bytes, from the beginning of buffer to the beginning of the range exposed to the shader by the buffer binding.

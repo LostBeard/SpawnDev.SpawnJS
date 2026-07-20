@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing the platform (ecosystem or operating system) the related app is associated with
         /// </summary>
-        public string Platform { get; set; }
+        public string? Platform { get; set; }
         /// <summary>
         /// A string representing the URL associated with the app. This is usually where you can read information about it and install it.
         /// </summary>

@@ -14,6 +14,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// An array of GPUBindGroupLayout objects (which are in turn created via calls to GPUDevice.createBindGroupLayout()). 
         /// Each one corresponds to a @group attribute in the shader code contained in the GPUShaderModule used in a related pipeline.
         /// </summary>
-        public IEnumerable<GPUBindGroupLayout> BindGroupLayouts { get; set; }
+        public IEnumerable<GPUBindGroupLayout>? BindGroupLayouts { get; set; }
     }
 }

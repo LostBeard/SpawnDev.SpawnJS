@@ -12,10 +12,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An array of objects, each describing one of the codecs supported by the RTCRtpSender.
         /// </summary>
-        public List<RTCRtpTransceiverCodec> Codecs { get; set; }
+        public List<RTCRtpTransceiverCodec>? Codecs { get; set; }
         /// <summary>
         /// An array of objects, each providing the URI of a supported RTP header extension.
         /// </summary>
-        public List<RTCRtpSenderCapabilityHeaderExtension> HeaderExtensions { get; set; }
+        public List<RTCRtpSenderCapabilityHeaderExtension>? HeaderExtensions { get; set; }
     }
 }

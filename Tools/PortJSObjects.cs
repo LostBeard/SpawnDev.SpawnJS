@@ -110,6 +110,12 @@ for (var i = 0; i < args.Length - 1; i++)
 }
 bool IsTypeArg(string a) => !a.StartsWith("-") && !flagValues.Contains(a);
 
+// Every wrapper type name the source tree defines. Used to tell a reference-typed property from a
+// value-typed one when deciding what may safely be made nullable.
+var WrapperTypeNames = new HashSet<string>(
+    Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories).Select(Path.GetFileNameWithoutExtension)!,
+    StringComparer.Ordinal);
+
 var mode = args.FirstOrDefault() ?? "";
 if (mode == "--list") { Report(); return 0; }
 if (mode == "--missing") { Missing(); return 0; }
@@ -309,6 +315,7 @@ string Transform(string text)
     // Toolbox holds the support types wrappers reach for by simple name (HeapView and friends), the same
     // way they do in SpawnDev.BlazorJS.
     var usings = PortedMarker + "\r\nusing SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\nusing SpawnDev.SpawnJS.Toolbox;\r\n";
+    text = MakeDataShapePropertiesNullable(text, WrapperTypeNames);
     text = DocumentConstants(text);
     // a `global using` must precede every non-global using, so insert after any leading global usings.
     // A global using alias can span lines (the WebIDL union typedefs are written one arm per line), so
@@ -474,4 +481,57 @@ static string DocumentConstants(string text)
         output.Add(line);
     }
     return string.Join("\r\n", output);
+}
+
+// Makes the properties of a data shape nullable.
+//
+// An options bag or descriptor is a plain object whose members are all optional - Javascript simply omits
+// the ones you do not set - so a non-nullable reference-typed property is a lie, and the compiler says so
+// with CS8618 ("must contain a non-null value when exiting constructor"). BlazorJS is inconsistent about
+// it even within one file: CredentialCreateFederated declares IconURL as string? and Id as string.
+//
+// The discriminator is exact rather than heuristic. A data shape uses an AUTO-property; a wrapper property
+// is backed by JSRef accessors:
+//     public string Id { get; set; }                                        <- data shape
+//     public string Href { get => JSRef!.Get<string>("href"); set => ... }  <- wrapper
+// so "{ get; set; }" identifies the first and never the second.
+//
+// Only types known to be reference types are touched. Adding ? to a value type would change its meaning,
+// and CS8618 never fires for one anyway.
+static string MakeDataShapePropertiesNullable(string text, HashSet<string> wrapperTypeNames)
+{
+    // modifiers have to be captured separately or they end up inside the type ("override string")
+    var property = new Regex(@"^(?<indent>\s*)public (?<mods>(?:override |virtual |new |sealed )*)(?<type>[\w<>,\[\]\. ]+?) (?<name>\w+) \{ get; set; \}\s*$");
+    var lines = text.Replace("\r\n", "\n").Split('\n');
+    var changed = false;
+
+    for (var i = 0; i < lines.Length; i++)
+    {
+        var m = property.Match(lines[i]);
+        if (!m.Success) continue;
+        var type = m.Groups["type"].Value.Trim();
+        if (type.EndsWith("?", StringComparison.Ordinal)) continue;
+        // An override does not get to redeclare nullability - the member it overrides defines the
+        // contract, and changing it here earns CS8765 plus a cascade of CS8604/CS8602 at every caller
+        // that now sees a nullable value. Same for virtual, whose overrides live in other files.
+        var mods = m.Groups["mods"].Value;
+        if (mods.Contains("override", StringComparison.Ordinal) || mods.Contains("virtual", StringComparison.Ordinal)) continue;
+
+        var isReferenceType =
+            type == "string"
+            || type == "object"
+            || type.EndsWith("[]", StringComparison.Ordinal)
+            || type.StartsWith("List<", StringComparison.Ordinal)
+            || type.StartsWith("Dictionary<", StringComparison.Ordinal)
+            || type.StartsWith("IEnumerable<", StringComparison.Ordinal)
+            // Deliberately NOT extended to Union, EnumString or the Callback family. Making those
+            // properties nullable is right for the declaration but wrong overall: their consumers assume
+            // non-null, so it trades 33 CS8618 for 45 CS8604 plus 11 CS8602. Measured, then reverted.
+            || wrapperTypeNames.Contains(type.Split('<')[0]);
+        if (!isReferenceType) continue;
+
+        lines[i] = $"{m.Groups["indent"].Value}public {m.Groups["mods"].Value}{type}? {m.Groups["name"].Value} {{ get; set; }}";
+        changed = true;
+    }
+    return changed ? string.Join("\r\n", lines) : text;
 }

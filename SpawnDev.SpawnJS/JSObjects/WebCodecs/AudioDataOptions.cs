@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// "s32-planar"<br/>
         /// "f32-planar"
         /// </summary>
-        public string Format { get; set; }
+        public string? Format { get; set; }
         /// <summary>
         /// A decimal containing the sample rate in Hz.
         /// </summary>
@@ -43,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A typed array of the audio data for this sample.
         /// </summary>
-        public TypedArray Data { get; set; }
+        public TypedArray? Data { get; set; }
         /// <summary>
         /// An array of ArrayBuffers that AudioData will detach and take ownership of. If the array contains the ArrayBuffer backing data, AudioData will use that buffer directly instead of copying from it.
         /// </summary>

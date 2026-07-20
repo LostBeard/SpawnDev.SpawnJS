@@ -12,6 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing the name of the digest function to use. You can pass any of SHA-256, SHA-384, or SHA-512 here
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Describes the color space and encoding used to encode data into the destination texture.<br/>
         /// This may result in values outside of the range [0, 1] being written to the target texture, if its format can represent them. Otherwise, the results are clamped to the target texture format’s range.
         /// </summary>
-        public PredefinedColorSpace ColorSpace { get; set; }
+        public PredefinedColorSpace? ColorSpace { get; set; }
         /// <summary>
         /// Describes whether the data written into the texture should have its RGB channels premultiplied by the alpha channel, or not.<br/>
         /// If this option is set to true and the source is also premultiplied, the source RGB values must be preserved even if they exceed their corresponding alpha values.

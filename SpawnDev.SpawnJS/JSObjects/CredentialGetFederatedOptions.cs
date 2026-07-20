@@ -14,6 +14,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An object containing requirements for a requested credential from a federated identify provider. Bear in mind that the Federated Credential Management API (the identity credential type) supersedes this credential type. See the Credential Management API section below for more details.
         /// </summary>
-        public CredentialGetFederated Federated { get; set; }
+        public CredentialGetFederated? Federated { get; set; }
     }
 }

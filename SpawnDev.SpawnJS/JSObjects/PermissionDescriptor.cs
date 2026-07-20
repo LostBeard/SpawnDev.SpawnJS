@@ -18,7 +18,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Chromium values <a href="https://chromium.googlesource.com/chromium/src/+/refs/heads/main/third_party/blink/renderer/modules/permissions/permission_descriptor.idl">here.</a>
         /// WebKit values <a href="https://github.com/WebKit/WebKit/blob/main/Source/WebCore/Modules/permissions/PermissionName.idl">here.</a>
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// (Push only, not supported in Firefox — see the Browser Support section below) Indicates whether you want to show a notification for every message or be able to send silent push notifications. The default is false.
         /// </summary>

@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// SHA-384<br/>
         /// SHA-512
         /// </summary>
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
         /// <summary>
         /// An ArrayBuffer, a TypedArray, or a DataView. This should be a random or pseudo-random value of at least 16 bytes. Unlike the input key material passed into deriveKey(), salt does not need to be kept secret.
         /// </summary>

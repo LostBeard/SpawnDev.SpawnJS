@@ -13,6 +13,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Indicates the required type of a sampler bound to this bindings.
         /// Options are "filtering", "non-filtering", "comparison"
         /// </summary>
-        public string Type { get; set; }
+        public string? Type { get; set; }
     }
 }

@@ -12,11 +12,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string containing a human-readable description of the item, which may be displayed to the user.
         /// </summary>
-        public string Label { get; set; }
+        public string? Label { get; set; }
         /// <summary>
         /// A PaymentCurrencyAmount object (see total > Value).
         /// </summary>
-        public PaymentCurrencyAmount Amount { get; set; }
+        public PaymentCurrencyAmount? Amount { get; set; }
         /// <summary>
         /// A boolean. When set to true it means that the amount member is not final. This is commonly used to show items such as shipping or tax amounts that depend upon selection of shipping address or shipping option.
         /// </summary>

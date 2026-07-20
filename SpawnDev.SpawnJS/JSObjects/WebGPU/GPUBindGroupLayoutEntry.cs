@@ -25,7 +25,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Each set bit indicates that a GPUBindGroupLayoutEntry’s resource will be accessible from the associated shader stage.
         /// </summary>
         [JsonPropertyName("visibility")]
-        public GPUShaderStageFlags Visibility { get; set; }
+        public GPUShaderStageFlags? Visibility { get; set; }
 
         /// <summary>
         /// Exactly one of these members must be set, indicating the binding type. The contents of the member specify options specific to that type.

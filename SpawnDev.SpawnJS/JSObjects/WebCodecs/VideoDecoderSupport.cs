@@ -21,6 +21,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The configuration that is supported.
         /// </summary>
         [JsonPropertyName("config")]
-        public VideoDecoderConfig Config { get; set; }
+        public VideoDecoderConfig? Config { get; set; }
     }
 }

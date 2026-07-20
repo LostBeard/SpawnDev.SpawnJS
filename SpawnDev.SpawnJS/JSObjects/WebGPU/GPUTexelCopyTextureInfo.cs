@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Texture to copy to/from.
         /// </summary>
-        public GPUTexture Texture { get; set; }
+        public GPUTexture? Texture { get; set; }
         /// <summary>
         /// Mip-map level of the texture to copy to/from.
         /// </summary>

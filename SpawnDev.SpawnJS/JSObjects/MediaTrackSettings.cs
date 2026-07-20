@@ -22,7 +22,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// DeviceId
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string DeviceId { get; set; }
+        public string? DeviceId { get; set; }
         /// <summary>
         /// A string indicating the current value of the groupId property. The group ID is a browsing session-unique string identifying the source group of the track. Two devices (as identified by the deviceId) are considered part of the same group if they are from the same physical device. For instance, the audio input and output devices for the speaker and microphone built into a phone would share the same group ID, since they're part of the same physical device. The microphone on a headset would have a different ID, though. This value is specific to the source of the track's data and is not usable for setting constraints; it can, however, be used for initially selecting media when calling MediaDevices.getUserMedia().
         /// </summary>
@@ -30,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// GroupId
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string GroupId { get; set; }
+        public string? GroupId { get; set; }
 
         // Instance properties of audio tracks
         // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings#instance_properties_of_audio_tracks

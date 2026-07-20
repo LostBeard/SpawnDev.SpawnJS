@@ -21,6 +21,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// SHA-1: selects the SHA-1 algorithm.<br/>
         /// Warning: SHA-1 is supported here but the SHA-1 algorithm is considered vulnerable and should no longer be used.
         /// </summary>
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
     }
 }

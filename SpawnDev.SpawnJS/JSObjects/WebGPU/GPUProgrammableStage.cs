@@ -17,7 +17,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A GPUShaderModule object containing the WGSL code that this programmable stage will execute.
         /// </summary>
         [JsonPropertyName("module")]
-        public GPUShaderModule Module { get; set; }
+        public GPUShaderModule? Module { get; set; }
 
         /// <summary>
         /// The name of the function in the module that this stage will use to perform its work.The corresponding shader 

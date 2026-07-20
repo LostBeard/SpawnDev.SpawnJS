@@ -23,6 +23,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// P-521
         /// </summary>
         [JsonPropertyName("namedCurve")]
-        public string NamedCurve { get; set; }
+        public string? NamedCurve { get; set; }
     }
 }

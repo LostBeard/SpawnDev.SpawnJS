@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A string containing the codec string.
         /// </summary>
         [JsonPropertyName("codec")]
-        public string Codec { get; set; }
+        public string? Codec { get; set; }
 
         /// <summary>
         /// An integer representing the width of the video frame.

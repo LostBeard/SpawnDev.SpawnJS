@@ -18,7 +18,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// this GPUBindGroupLayout object as a template.
         /// </summary>
         [JsonPropertyName("entries")]
-        public IEnumerable<GPUBindGroupLayoutEntry> Entries { get; set; }
+        public IEnumerable<GPUBindGroupLayoutEntry>? Entries { get; set; }
 
     }
 }

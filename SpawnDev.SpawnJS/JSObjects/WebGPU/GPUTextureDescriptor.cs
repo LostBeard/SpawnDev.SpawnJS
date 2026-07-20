@@ -15,17 +15,17 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A GPUExtent3D dictionary defining the size of the texture. 
         /// </summary>
         [JsonPropertyName("size")]
-        public IEnumerable<int> Size { get; set; }
+        public IEnumerable<int>? Size { get; set; }
         /// <summary>
         /// A GPUTextureDescriptor specifying the format of the texture. 
         /// </summary>
         [JsonPropertyName("format")]
-        public string Format { get; set; }
+        public string? Format { get; set; }
         /// <summary>
         /// A GPUTextureUsageFlags describing how the texture will be used. 
         /// </summary>
         [JsonPropertyName("usage")]
-        public GPUTextureUsage Usage { get; set; }
+        public GPUTextureUsage? Usage { get; set; }
 
         /// <summary>
         /// The number of mipmap levels in the texture. 
@@ -53,6 +53,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("viewFormats")]
-        public IEnumerable<string> ViewFormats { get; set; }
+        public IEnumerable<string>? ViewFormats { get; set; }
     }
 }

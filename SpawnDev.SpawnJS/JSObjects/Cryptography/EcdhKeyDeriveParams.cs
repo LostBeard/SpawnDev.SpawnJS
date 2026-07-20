@@ -19,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A CryptoKey object representing the public key of the other entity.
         /// </summary>
-        public CryptoKey Public { get; set; }
+        public CryptoKey? Public { get; set; }
     }
 }

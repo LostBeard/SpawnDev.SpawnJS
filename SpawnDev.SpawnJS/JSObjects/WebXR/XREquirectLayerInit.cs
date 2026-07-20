@@ -44,7 +44,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An XRSpace object defining the layer's spatial relationship with the user's physical environment.
         /// </summary>
-        public XRSpace Space { get; set; }
+        public XRSpace? Space { get; set; }
         /// <summary>
         /// A number specifying the pixel width of the layer view.
         /// </summary>

@@ -28,6 +28,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The bitwise flags representing the allowed usages for the GPUBuffer. The possible values are in the GPUBuffer.usage value table.
         /// </summary>
         [JsonPropertyName("usage")]
-        public GPUBufferUsage Usage { get; set; }
+        public GPUBufferUsage? Usage { get; set; }
     }
 }

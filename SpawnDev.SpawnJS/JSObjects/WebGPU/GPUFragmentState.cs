@@ -17,6 +17,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// colors output by the fragment shader stage.
         /// </summary>
         [JsonPropertyName("targets")]
-        public IEnumerable<GPUColorTargetState> Targets { get; set; }
+        public IEnumerable<GPUColorTargetState>? Targets { get; set; }
     }
 }

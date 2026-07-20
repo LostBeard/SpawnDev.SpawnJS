@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string specifying the input profile name of the transient input source that will be used to compute hit test results.
         /// </summary>
-        public string Profile { get; set; }
+        public string? Profile { get; set; }
         /// <summary>
         /// point - A hit test trackable of type "point" indicates that the hit test results will be computed based on the feature points detected by the underlying Augmented Reality system.<br/>
         /// plane - A hit test trackable of type "plane" indicates that the hit test results will be computed based on the planes detected by the underlying Augmented Reality system.<br/>

@@ -17,7 +17,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// See the specification's Texture Formats section for all the available format values.
         /// </summary>
         [JsonPropertyName("format")]
-        public string Format { get; set; }
+        public string? Format { get; set; }
 
         /// <summary>
         /// GPUCompareFunction specifies the behavior of a comparison sampler. If a comparison sampler is used in a shader, 

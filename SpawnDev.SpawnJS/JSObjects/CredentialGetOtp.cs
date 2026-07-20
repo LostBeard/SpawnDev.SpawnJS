@@ -14,6 +14,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An array of strings representing transport hints for how the OTP should ideally be transmitted. This will always contain a single hint — "sms". Unknown values will be ignored.
         /// </summary>
-        public IEnumerable<string> Transport { get; set; }
+        public IEnumerable<string>? Transport { get; set; }
     }
 }

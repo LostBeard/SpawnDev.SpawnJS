@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The GPUQuerySet, of type "timestamp", that the query results will be written to.
         /// </summary>
         [JsonPropertyName("querySet")]
-        public GPUQuerySet QuerySet { get; set; }
+        public GPUQuerySet? QuerySet { get; set; }
 
         /// <summary>
         /// If defined, indicates the query index in querySet into which the timestamp at the beginning of the compute pass will be written.

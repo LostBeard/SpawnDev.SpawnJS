@@ -17,7 +17,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// that will be output to when executing this render pass.
         /// </summary>
         [JsonPropertyName("colorAttachments")]
-        public GPURenderPassColorAttachment[] ColorAttachments { get; set; }
+        public GPURenderPassColorAttachment[]? ColorAttachments { get; set; }
 
         /// <summary>
         /// The GPURenderPassDepthStencilAttachment value that defines the depth/stencil attachment that will be output to and tested against when executing this render pass.
@@ -61,7 +61,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The GPUQuerySet to write timestamp values to.
         /// </summary>
         [JsonPropertyName("querySet")]
-        public GPUQuerySet QuerySet { get; set; }
+        public GPUQuerySet? QuerySet { get; set; }
 
         /// <summary>
         /// The index of the query in the query set at which to write the beginning timestamp.

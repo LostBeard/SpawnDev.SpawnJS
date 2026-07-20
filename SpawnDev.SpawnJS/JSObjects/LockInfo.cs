@@ -16,16 +16,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The name of the lock.
         /// </summary>
         [JsonPropertyName("name")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         /// <summary>
         /// The mode of the lock, either "exclusive" (the default) or "shared".
         /// </summary>
         [JsonPropertyName("mode")]
-        public string Mode { get; set; }
+        public string? Mode { get; set; }
         /// <summary>
         /// The unique ID of the client holding the lock.
         /// </summary>
         [JsonPropertyName("clientId")]
-        public string ClientId { get; set; }
+        public string? ClientId { get; set; }
     }
 }

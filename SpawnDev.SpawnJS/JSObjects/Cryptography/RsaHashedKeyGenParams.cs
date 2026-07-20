@@ -25,7 +25,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A Uint8Array. The public exponent. Unless you have a good reason to use something else, specify 65537 here ([0x01, 0x00, 0x01]).
         /// </summary>
         [JsonPropertyName("publicExponent")]
-        public byte[] PublicExponent { get; set; }
+        public byte[]? PublicExponent { get; set; }
         /// <summary>
         /// A string representing the name of the digest function to use. You can pass any of SHA-256, SHA-384, or SHA-512 here.<br/>
         /// MDN Docs state this is a string, which works when generating a key, but<br/>

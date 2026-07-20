@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string indicating the codec's MIME media type and subtype. The MIME type strings used by RTP differ from those used elsewhere. See RFC 3555, section 4 for the complete IANA registry of these types. Also see Codecs used by WebRTC for details about potential codecs that might be referenced here.
         /// </summary>
-        public string MimeType { get; set; }
+        public string? MimeType { get; set; }
         /// <summary>
         /// A string giving the format specific parameters field from the a=fmtp line in the SDP which corresponds to the codec, if such a line exists. If there is no parameters field, this property is left out.
         /// </summary>

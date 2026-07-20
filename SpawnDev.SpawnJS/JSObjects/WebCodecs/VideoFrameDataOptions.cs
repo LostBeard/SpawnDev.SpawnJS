@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A string representing the video pixel format. One of the following strings, which are fully described on the page for the format property:<br/>
         /// I420, I420A, I422, I444, NV12, RGBA, RGBX, BGRA, BGRX
         /// </summary>
-        public string Format { get; set; }
+        public string? Format { get; set; }
         /// <summary>
         /// Width of the VideoFrame in pixels, potentially including non-visible padding, and prior to considering potential ratio adjustments.
         /// </summary>

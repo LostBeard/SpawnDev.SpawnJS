@@ -13,6 +13,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A buffer which either contains texel data to be copied or will store the texel data being copied, depending on the method it is being passed to.
         /// </summary>
-        public GPUBuffer Buffer { get; set; }
+        public GPUBuffer? Buffer { get; set; }
     }
 }

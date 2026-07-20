@@ -15,6 +15,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Audio decoder configuration.
         /// </summary>
         [JsonPropertyName("decoderConfig")]
-        public AudioDecoderConfig DecoderConfig { get; set; }
+        public AudioDecoderConfig? DecoderConfig { get; set; }
     }
 }

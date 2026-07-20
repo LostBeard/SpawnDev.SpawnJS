@@ -15,12 +15,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The GPUBindGroupLayout the entries of this bind group will conform to.
         /// </summary>
         [JsonPropertyName("layout")]
-        public GPUBindGroupLayout Layout { get; set; }
+        public GPUBindGroupLayout? Layout { get; set; }
 
         /// <summary>
         /// A list of entries describing the resources to expose to the shader for each binding described by the layout.
         /// </summary>
         [JsonPropertyName("entries")]
-        public IEnumerable<GPUBindGroupEntry> Entries { get; set; }
+        public IEnumerable<GPUBindGroupEntry>? Entries { get; set; }
     }
 }

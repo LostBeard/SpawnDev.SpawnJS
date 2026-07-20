@@ -20,6 +20,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A string representing the name of the digest function to use. The can take a value of SHA-256, SHA-384, or SHA-512
         /// </summary>
         [JsonPropertyName("hash")]
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
     }
 }

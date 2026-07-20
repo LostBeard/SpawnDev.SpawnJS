@@ -20,7 +20,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing a unique ID for the credential.
         /// </summary>
-        public string Id { get; set; }
+        public string? Id { get; set; }
         /// <summary>
         /// A string representing the credential username.
         /// </summary>
@@ -29,7 +29,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing the credential's origin. FederatedCredential objects are origin-bound, which means that they will only be usable on the specified origin they were intended to be used on.
         /// </summary>
-        public string Origin { get; set; }
+        public string? Origin { get; set; }
         /// <summary>
         /// A string representing the protocol of the credentials' federated identity provider (for example, "openidconnect").
         /// </summary>
@@ -38,6 +38,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing the credentials' federated identity provider (for example "https://www.facebook.com" or "https://accounts.google.com").
         /// </summary>
-        public string Provider { get; set; }
+        public string? Provider { get; set; }
     }
 }

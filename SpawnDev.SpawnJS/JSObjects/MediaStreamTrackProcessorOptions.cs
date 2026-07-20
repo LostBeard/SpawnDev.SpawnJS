@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The MediaStreamTrack to be processed.
         /// </summary>
-        public MediaStreamTrack Track { get; set; }
+        public MediaStreamTrack? Track { get; set; }
         /// <summary>
         /// An integer specifying the maximum number of media frames to be buffered.
         /// </summary>

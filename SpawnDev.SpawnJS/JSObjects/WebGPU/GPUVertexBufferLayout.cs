@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An array defining the layout of the vertex attributes within each element.
         /// </summary>
-        public IEnumerable<GPUVertexAttribute> Attributes { get; set; }
+        public IEnumerable<GPUVertexAttribute>? Attributes { get; set; }
 
         /// <summary>
         /// The byte offset between the start of consecutive vertex attributes. 

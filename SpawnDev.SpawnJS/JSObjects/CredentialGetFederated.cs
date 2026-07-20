@@ -13,10 +13,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An array of strings representing the protocols of the requested credentials' federated identity providers (for example, "openidconnect").
         /// </summary>
-        public IEnumerable<string> Protocols { get; set; }
+        public IEnumerable<string>? Protocols { get; set; }
         /// <summary>
         /// An array of strings representing the credentials' federated identity providers (for example "https://www.facebook.com" or "https://accounts.google.com").
         /// </summary>
-        public IEnumerable<string> Providers { get; set; }
+        public IEnumerable<string>? Providers { get; set; }
     }
 }

@@ -13,6 +13,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string representing the WGSL source code for the shader module.
         /// </summary>
-        public string Code { get; set; }
+        public string? Code { get; set; }
     }
 }

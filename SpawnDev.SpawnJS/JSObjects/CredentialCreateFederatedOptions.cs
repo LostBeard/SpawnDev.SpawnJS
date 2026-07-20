@@ -13,6 +13,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// An object containing requirements for creating a federated identify provider credential. Bear in mind that the Federated Credential Management API (FedCM) supersedes this credential type. See the Credential Management API section below for more details.
         /// </summary>
-        public CredentialCreateFederated Federated { get; set; }
+        public CredentialCreateFederated? Federated { get; set; }
     }
 }

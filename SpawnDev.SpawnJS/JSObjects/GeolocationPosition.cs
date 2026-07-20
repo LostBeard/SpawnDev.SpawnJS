@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a GeolocationCoordinates object defining the current location.
         /// </summary>
-        public GeolocationCoordinates Coords { get; set; }
+        public GeolocationCoordinates? Coords { get; set; }
         /// <summary>
         /// Returns a timestamp, given as Unix time in milliseconds, representing the time at which the location was retrieved.
         /// </summary>

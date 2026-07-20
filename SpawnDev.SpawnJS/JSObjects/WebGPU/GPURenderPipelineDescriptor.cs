@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// An object describing the vertex shader entry point of the pipeline and its input buffer layouts.
         /// </summary>
         [JsonPropertyName("vertex")]
-        public GPUVertexState Vertex { get; set; }
+        public GPUVertexState? Vertex { get; set; }
 
         /// <summary>
         /// An object describing how a pipeline constructs and rasterizes primitives from its vertex inputs.

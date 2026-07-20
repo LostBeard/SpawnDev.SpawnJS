@@ -15,6 +15,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Describes the compute shader entry point of the pipeline.
         /// </summary>
         [JsonPropertyName("compute")]
-        public GPUProgrammableStage Compute { get; set; }
+        public GPUProgrammableStage? Compute { get; set; }
     }
 }

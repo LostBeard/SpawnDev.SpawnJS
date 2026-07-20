@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The XRSpace that will be tracked by the hit test source.
         /// </summary>
-        public XRSpace Space { get; set; }
+        public XRSpace? Space { get; set; }
         /// <summary>
         /// point - A hit test trackable of type "point" indicates that the hit test results will be computed based on the feature points detected by the underlying Augmented Reality system.<br/>
         /// plane - A hit test trackable of type "plane" indicates that the hit test results will be computed based on the planes detected by the underlying Augmented Reality system.<br/>
