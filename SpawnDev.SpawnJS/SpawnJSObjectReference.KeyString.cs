@@ -20,16 +20,28 @@ namespace SpawnDev.SpawnJS
         /// <returns></returns>
         public Task<T> GetAsync<T>(string identifier) => JS.NetRunAsync<T>("getProperty", new object[] { JSObject, identifier });
         /// <summary>
-        /// Check if an object has a property with the specified identifier
+        /// Check if an object has a property with the specified identifier.<br/>
+        /// Resolves dotted paths and null-conditionals the same way Get, Set and Call do, so
+        /// <c>Has("navigator.gpu")</c> answers the question you actually asked.
         /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="useIn"></param>
-        /// <returns></returns>
+        /// <param name="identifier">Property name, or a dotted path such as "navigator.gpu"</param>
+        /// <param name="useIn">If true uses the `in` operator (walks the prototype chain), otherwise hasOwnProperty</param>
         public bool Has(string identifier, bool useIn = true)
+            => JS.NetRun<bool>("hasProperty", new object[] { JSObject, identifier, useIn });
+
+        /// <summary>
+        /// Check if an object has a property with the exact specified key, treating the identifier as
+        /// a literal property name rather than a path.<br/>
+        /// This is the `in` operator (or hasOwnProperty), so <c>HasDirect("a.b")</c> asks whether a
+        /// property literally named "a.b" exists - it does not walk into <c>a</c>.
+        /// </summary>
+        /// <param name="identifier">A literal property name, never treated as a path</param>
+        /// <param name="useIn">If true uses the `in` operator (walks the prototype chain), otherwise hasOwnProperty</param>
+        public bool HasDirect(string identifier, bool useIn = true)
             => useIn ? JS.NetRun<bool>("_in", new object[] { identifier, JSObject }) : JS.NetRun<bool>("hasOwnPropertySafe", new object[] { JSObject, identifier });
 
         /// <summary>
-        /// Alias for !Has
+        /// Alias for !Has. Resolves dotted paths.
         /// </summary>
         /// <param name="identifier"></param>
         /// <returns></returns>

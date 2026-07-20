@@ -65,6 +65,25 @@
                 target,         // any
             };
         }
+        // Existence check that resolves dotted paths and null-conditionals exactly the way
+        // getProperty/setProperty/invokeProperty do, so `Has` agrees with `Get`.
+        // `_in` deliberately stays literal - it is meant to be the `in` operator, and teaching it
+        // about dotted paths would break that contract.
+        hasProperty(/* object */ target, /* any */ identifier, /* bool */ useIn) {
+            var pathInfo;
+            try {
+                pathInfo = this.pathObjectInfo(target, identifier);
+            } catch {
+                // an ancestor in the path is missing, so the property cannot exist. An existence
+                // check answers false here rather than throwing the way a read would.
+                return false;
+            }
+            if (pathInfo.shortCircuit) return false;
+            if (pathInfo.parent === null || pathInfo.parent === void 0) return false;
+            return useIn
+                ? this._in(pathInfo.propertyName, pathInfo.parent)
+                : this.hasOwnPropertySafe(pathInfo.parent, pathInfo.propertyName);
+        }
         hasOwnPropertySafe(obj, key) {
             if (obj === null || obj === undefined) return false;
             try {

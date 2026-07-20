@@ -18,6 +18,38 @@ namespace TestsShared
             var readBack = JS.Get<string>("_my_test_value");
             if (readBack != testString) throw new Exception("Readback failed");
         }
+        /// <summary>
+        /// Has must resolve dotted paths like Get/Set/Call do. It used to compile to
+        /// <c>'a.b' in globalThis</c>, so a capability check such as Has("navigator.gpu") answered
+        /// false on a host that has it - silently, with no exception. HasDirect keeps the literal
+        /// `in` behaviour, which is what the raw operator means.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task HasResolvesDottedPathTest()
+        {
+            var root = "_spawnjs_has_test";
+            var child = JS.New("Object");
+            child.Set("inner", "value");
+            JS.Set(root, child);
+            try
+            {
+                if (!JS.Has(root)) throw new Exception("Has failed on a plain property");
+                if (!JS.Has($"{root}.inner")) throw new Exception("Has did not resolve a dotted path");
+                if (JS.Has($"{root}.missing")) throw new Exception("Has returned true for a missing dotted path");
+                if (JS.Has("_spawnjs_absent.inner")) throw new Exception("Has returned true for a path whose root is absent");
+                // IsUndefined is defined as !Has, so it inherits path resolution
+                if (JS.IsUndefined($"{root}.inner")) throw new Exception("IsUndefined said a present dotted path was undefined");
+                if (!JS.IsUndefined($"{root}.missing")) throw new Exception("IsUndefined said a missing dotted path was defined");
+                // HasDirect is the `in` operator: "root.inner" is a literal key that does not exist
+                if (JS.HasDirect($"{root}.inner")) throw new Exception("HasDirect resolved a dotted path; it must stay literal");
+                if (!JS.HasDirect(root)) throw new Exception("HasDirect failed on a literal property name");
+            }
+            finally
+            {
+                JS.Delete(root);
+            }
+        }
+
         [SpawnJSTest]
         public async Task SpawnJSObjectMarshallerTest()
         {
