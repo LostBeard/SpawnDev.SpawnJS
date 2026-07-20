@@ -25,7 +25,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// Given a JS parent object, and the JS property key: read the value.<br/>
         /// Returns null when the JS value is null/undefined or the target type's default value is null.
         /// </summary>
-        public abstract object? JSToNet(Type typeToConvert, SpawnJSHandle jsParent, object jsKey);
+        public abstract object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle);
         /// <summary>
         /// Given a JS parent object, the JS property key, and the .Net value: write the value.<br/>
         /// <paramref name="typeToConvert"/> and <paramref name="value"/> may be null when the .Net value being marshalled is null.

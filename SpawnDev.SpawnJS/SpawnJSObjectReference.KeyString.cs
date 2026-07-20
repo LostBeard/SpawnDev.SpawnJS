@@ -29,6 +29,13 @@ namespace SpawnDev.SpawnJS
             => useIn ? JS.NetRun<bool>("_in", new object[] { identifier, JSObject }) : JS.NetRun<bool>("hasOwnPropertySafe", new object[] { JSObject, identifier });
 
         /// <summary>
+        /// Alias for !Has
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
+        public bool IsUndefined(string identifier) => !Has(identifier);
+
+        /// <summary>
         /// Set an object property to the specified value
         /// </summary>
         /// <param name="identifier"></param>

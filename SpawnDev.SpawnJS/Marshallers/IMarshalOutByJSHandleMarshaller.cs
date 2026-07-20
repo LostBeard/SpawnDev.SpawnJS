@@ -12,7 +12,7 @@
             return typeToConvert != null && typeToConvert.IsAssignableTo(typeof(IMarshalOutByJSHandle));
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle)
         {
             throw new NotImplementedException();
         }
@@ -20,7 +20,12 @@
         public override void NetToJS(Type? typeToConvert, SpawnJSHandle jsParent, object jsKey, object? value)
         {
             if (value is IMarshalOutByJSHandle byJSHandle)
+            {
                 jsParent.SetProperty(jsKey, byJSHandle.JSHandle.JSObject);
+            } else
+            {
+                jsParent.SetProperty(jsKey, (string)null!);
+            }
         }
     }
 }

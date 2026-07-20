@@ -6,15 +6,13 @@
     class SpawnJSInterop {
         static instances = {};
         static _idNext = 0;
-        verbose = true;
+        verbose = false;
         id = '';
         dotnetRuntime = null;
         constructor(dotnetRuntime) {
             this.dotnetRuntime = dotnetRuntime;
-            //this.username = username;
             this.id = `_${++SpawnJSInterop._idNext}`;
             SpawnJSInterop.instances[this.id] = this;
-            if (this.verbose) console.log('new SpawnJSInterop', this.id, dotnetRuntime);
         }
         _in(key, obj) {
             if (obj === null || obj === void 0) return false;
@@ -118,10 +116,40 @@
         }
         moveProperty(srcObj, srcKey, destObj, destKey) {
             destObj[destKey] = srcObj[srcKey];
-            delete destObj[destKey];
+            delete srcObj[srcKey];
         }
         returnMe(/* any */ value) {
             return value;
+        }
+        // full ? strict equality : loose equality
+        objectEquals(obj1, obj2, full) {
+            return full ? obj1 === obj2 : obj1 == obj2;
+        }
+        // returns string
+        getPropertyTypeInfo(parent, key) {
+            var value = parent[key];
+            var jsClass = Object.prototype.toString.call(value).split(' ')[1].slice(0, -1);
+            var jsType = typeof (value);
+            return `${jsType} ${jsClass}`;
+        }
+        // returns string[]
+        getPropertyConstructorNames(parent, key) {
+            return this.getConstructorNames(parent[key]);
+        }
+        // returns string[]
+        getConstructorNames(obj) {
+            var constructorNames = [];
+            if (obj === void 0 || obj === null) return constructorNames;
+            var o = obj;
+            var cName;
+            while (1) {
+                o = Object.getPrototypeOf(o);
+                cName = o?.constructor?.name;
+                if (!cName) break;
+                if (constructorNames.indexOf(cName) !== -1) continue;
+                constructorNames.push(cName);
+            }
+            return constructorNames;
         }
         // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
         registerCallback(id) {

@@ -8,7 +8,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class StringMarshaller : JSMarshaller<string>
     {
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey) => jsParent.GetPropertyAsString(jsKey);
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsString();
         /// <inheritdoc/>
         public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => jsParent.SetProperty(jsKey, (string)value!);
     }

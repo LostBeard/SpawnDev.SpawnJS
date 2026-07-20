@@ -8,7 +8,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class BooleanMarshaller : JSMarshaller<bool>
     {
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey) => Reflect.GetBoolean(jsParent.JSObject, jsKey);
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsBoolean();
         /// <inheritdoc/>
         public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => Reflect.Set(jsParent.JSObject, jsKey, (bool)value!);
     }

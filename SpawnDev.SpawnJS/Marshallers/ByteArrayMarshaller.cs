@@ -8,7 +8,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class ByteArrayMarshaller : JSMarshaller<byte[]>
     {
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)=> Reflect.GetByteArray(jsParent.JSObject, jsKey);
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsByteArray();
         /// <inheritdoc/>
         public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => Reflect.Set(jsParent.JSObject, jsKey, (byte[])value!);
     }

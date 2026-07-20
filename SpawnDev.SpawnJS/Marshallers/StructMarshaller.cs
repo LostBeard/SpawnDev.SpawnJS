@@ -14,9 +14,9 @@ namespace SpawnDev.SpawnJS.Marshallers
             return type != null && type.IsValueType && !type.IsEnum && !type.IsPrimitive;
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsParent.JSObject, jsKey)!;
+            using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsHandle.JSParent, jsHandle.JSKey)!;
             if (jsObj == null) return type.GetDefaultValue();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var retObj = Activator.CreateInstance(type);
@@ -31,7 +31,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 object? value;
                 try
                 {
-                    value = JS.JSToNet(pType, jsObj, propName);
+                    value = JS.MarshallJSToNet(pType, jsObj, propName);
                 }
                 catch (Exception ex)
                 {
@@ -75,7 +75,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                         propValue = fieldInfo.GetValue(obj);
                     }
                     if (!prop.GetShouldWrite(propValue)) continue;
-                    JS.NetToJS(outObj, propName, propValue);
+                    JS.MarshallNetToJS(outObj, propName, propValue);
                 }
                 Reflect.Set(jsParent.JSObject, jsKey, outObj.JSObject);
             }

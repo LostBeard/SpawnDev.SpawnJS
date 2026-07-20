@@ -11,6 +11,65 @@ namespace SpawnDev.SpawnJS
     [System.Runtime.Versioning.SupportedOSPlatform("browser")]
     public static partial class SpawnJSHandleExtensions
     {
+        #region As
+        /// <summary>
+        /// Get as object
+        /// </summary>
+        public static object? AsObject(this SpawnJSHandle _this) => Reflect.GetObject(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as nullable int
+        /// </summary>
+        public static int? AsInt32Nullable(this SpawnJSHandle _this) => Reflect.GetInt32Nullable(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as nullable double
+        /// </summary>
+        public static double? AsDoubleNullable(this SpawnJSHandle _this) => Reflect.GetDoubleNullable(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as nullable bool
+        /// </summary>
+        public static bool? AsBooleanNullable(this SpawnJSHandle _this) => Reflect.GetBooleanNullable(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as bool
+        /// </summary>
+        public static bool AsBoolean(this SpawnJSHandle _this) => Reflect.GetBoolean(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as int
+        /// </summary>
+        public static int AsInt32(this SpawnJSHandle _this) => Reflect.GetInt32(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as double
+        /// </summary>his SpawnJSHandle _this) => Reflect.GetDouble(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as string
+        /// </summary>
+        public static string? AsString(this SpawnJSHandle _this) => Reflect.GetString(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as JSObject
+        /// </summary>
+        public static JSObject? AsJSObject(this SpawnJSHandle _this) => Reflect.GetJSObject(_this.JSParent, _this.JSKey);
+        /// <summary>
+        /// Get as JSObject
+        /// </summary>
+        public static SpawnJSHandle? AsJSHandle(this SpawnJSHandle _this) => (SpawnJSHandle?)Reflect.GetJSObject(_this.JSParent, _this.JSKey)!;
+        /// <summary>
+        /// Marshal the SpawnJSHandle and return as byte[]
+        /// </summary>
+        public static byte[]? AsByteArray(this SpawnJSHandle _this) => _this.JSParent.GetPropertyAsByteArray(_this.JSKey);
+        /// <summary>
+        /// Marshal the SpawnJSHandle and return as T using JSON seriliazation
+        /// </summary>
+        public static T AsJson<T>(this SpawnJSHandle _this)
+        {
+            return _this.JSParent.GetPropertyAsJson<T>(_this.JSKey);
+        }
+        /// <summary>
+        /// Marshal the SpawnJSHandle and return as T using JSON seriliazation
+        /// </summary>
+        public static T AsJson<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions)
+        {
+            return _this.JSParent.GetPropertyAsJson<T>(_this.JSKey, jsonSerializerOptions);
+        }
+        #endregion
         static JSObject GlobalThis => JSHost.GlobalThis;
         /// <summary>
         /// Create a new empty JavaScript Object
@@ -26,15 +85,6 @@ namespace SpawnDev.SpawnJS
         /// Returns true if the proeprty exists
         /// </summary>
         public static bool HasProperty(this SpawnJSHandle _this, object identifier) => Reflect.Has(_this.JSObject, identifier);
-        /// <summary>
-        /// Returns strings like: '[object String]'<br/>
-        /// USes: Object.prototype.toString.call
-        /// </summary>
-        public static string GetTypeOfProperty(this SpawnJSHandle _this, object identifier)
-        {
-            using var jsObject = _this.GetPropertyAsJSObject(identifier);
-            return Reflect.TypeOf(jsObject!);
-        }
         #region GetProperty
         /// <summary>
         /// Returns the property value
@@ -56,6 +106,10 @@ namespace SpawnDev.SpawnJS
         /// Returns the property value
         /// </summary>
         public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, object identifier) => Reflect.GetJSObject(_this.JSObject, identifier)!;
+        /// <summary>
+        /// Get the property value as object
+        /// </summary>
+        public static object? GetPropertyAsObject(this SpawnJSHandle _this, object identifier) => Reflect.GetObject(_this.JSObject, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
@@ -106,6 +160,40 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, string identifier) => Reflect.GetByteArray(_this.JSObject, identifier);
         /// <summary>
+        /// Get the property value as T using JSON seriliazation
+        /// </summary>
+        public static T GetPropertyAsJson<T>(this SpawnJSHandle _this, string identifier)
+        {
+            using var jsObject = _this.GetPropertyAsJSObject(identifier);
+            var json = jsObject == null ? null : JSON.Stringify(jsObject);
+            return json == null ? default! : JsonSerializer.Deserialize<T>(json)!;
+        }
+        /// <summary>
+        /// Get the property value as T using JSON seriliazation
+        /// </summary>
+        public static T GetPropertyAsJson<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions, string identifier)
+        {
+            using var jsObject = _this.GetPropertyAsJSObject(identifier);
+            var json = jsObject == null ? null : JSON.Stringify(jsObject);
+            return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
+        }
+        /// <summary>
+        /// Get the property value as object
+        /// </summary>
+        public static object? GetPropertyAsObject(this SpawnJSHandle _this, string identifier) => Reflect.GetObject(_this.JSObject, identifier);
+        /// <summary>
+        /// Get the property value as nullable int
+        /// </summary>
+        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32Nullable(_this.JSObject, identifier);
+        /// <summary>
+        /// Get the property value as nullable double
+        /// </summary>
+        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetDoubleNullable(_this.JSObject, identifier);
+        /// <summary>
+        /// Get the property value as nullable bool
+        /// </summary>
+        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetBooleanNullable(_this.JSObject, identifier);
+        /// <summary>
         /// Get a nested property using a dot separated path (a trailing '?' on a segment short circuits to null when missing)
         /// </summary>
         public static SpawnJSHandle? Deep(this SpawnJSHandle _this, string identifier)
@@ -151,40 +239,6 @@ namespace SpawnDev.SpawnJS
             var json = jsObject == null ? null : JSON.Stringify(jsObject);
             return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
         }
-        /// <summary>
-        /// Get the property value as T using JSON seriliazation
-        /// </summary>
-        public static T GetPropertyAsJson<T>(this SpawnJSHandle _this, string identifier)
-        {
-            using var jsObject = _this.GetPropertyAsJSObject(identifier);
-            var json = jsObject == null ? null : JSON.Stringify(jsObject);
-            return json == null ? default! : JsonSerializer.Deserialize<T>(json)!;
-        }
-        /// <summary>
-        /// Get the property value as T using JSON seriliazation
-        /// </summary>
-        public static T GetPropertyAsJson<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions, string identifier)
-        {
-            using var jsObject = _this.GetPropertyAsJSObject(identifier);
-            var json = jsObject == null ? null : JSON.Stringify(jsObject);
-            return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
-        }
-        /// <summary>
-        /// Get the property value as object
-        /// </summary>
-        public static object? GetPropertyAsObject(this SpawnJSHandle _this, string identifier) => Reflect.GetObject(_this.JSObject, identifier);
-        /// <summary>
-        /// Get the property value as nullable int
-        /// </summary>
-        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32Nullable(_this.JSObject, identifier);
-        /// <summary>
-        /// Get the property value as nullable double
-        /// </summary>
-        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetDoubleNullable(_this.JSObject, identifier);
-        /// <summary>
-        /// Get the property value as nullable bool
-        /// </summary>
-        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetBooleanNullable(_this.JSObject, identifier);
         /// <summary>
         /// Get the property value as object
         /// </summary>
@@ -239,34 +293,6 @@ namespace SpawnDev.SpawnJS
         /// Delete the property
         /// </summary>
         public static bool DeleteProperty(this SpawnJSHandle _this, long identifier) => Reflect.DeletePropertyVoid(_this.JSObject, identifier);
-        #endregion
-        #region As
-        /// <summary>
-        /// Marshal the SpawnJSHandle and return as byte[]
-        /// </summary>
-        public static byte[]? AsByteArray(this SpawnJSHandle _this)
-        {
-            using var array = NewJSArray();
-            array.SetProperty(0, _this.JSObject);
-            var ret = array.GetPropertyAsByteArray(0);
-            return ret;
-        }
-        /// <summary>
-        /// Marshal the SpawnJSHandle and return as T using JSON seriliazation
-        /// </summary>
-        public static T AsJson<T>(this SpawnJSHandle _this)
-        {
-            var json = JSON.Stringify(_this.JSObject);
-            return json == null ? default! : JsonSerializer.Deserialize<T>(json)!;
-        }
-        /// <summary>
-        /// Marshal the SpawnJSHandle and return as T using JSON seriliazation
-        /// </summary>
-        public static T AsJson<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions)
-        {
-            var json = JSON.Stringify(_this.JSObject);
-            return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
-        }
         #endregion
         #region SetProperty
         /// <summary>

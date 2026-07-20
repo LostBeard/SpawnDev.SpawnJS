@@ -754,6 +754,21 @@ namespace SpawnDev.SpawnJS
         /// <param name="identifier"></param>
         /// <param name="args"></param>
         public Task<T> CallApplyAsync<T>(int identifier, object?[] args) => JS.NetRunAsync<T>("invokeProperty", new object[] { JSObject, identifier, args });
+
+        /// <summary>
+        /// The Javascript `typeof` the referenced object
+        /// </summary>
+        public string TypeOf() => JSHandle.JSType;
+
+        /// <summary>
+        /// The Javascript prototype chain constructor names, nearest first
+        /// </summary>
+        public string[] ConstructorNames() => JSHandle.ConstructorNames;
+
+        /// <summary>
+        /// The referenced Javascript object's constructor.name, or null if it has none
+        /// </summary>
+        public string? ConstructorName() => JSHandle.ConstructorNames.FirstOrDefault();
         #endregion
     }
 }

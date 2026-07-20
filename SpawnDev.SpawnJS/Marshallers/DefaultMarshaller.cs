@@ -13,9 +13,9 @@ namespace SpawnDev.SpawnJS.Marshallers
             return true;
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            var value = Reflect.GetObject(jsParent.JSObject, jsKey);
+            var value = jsHandle.JSValue;
             return value ?? type.GetDefaultValue();
         }
         /// <inheritdoc/>

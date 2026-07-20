@@ -6,16 +6,21 @@
     public class SpawnJSHandleMarshaller : JSMarshaller<SpawnJSHandle>
     {
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            var value = Reflect.GetJSObject(jsParent.JSObject, jsKey);
-            return value == null ? null : new SpawnJSHandle(value);
+            return jsHandle.AsJSHandle();
         }
         /// <inheritdoc/>
         public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value)
         {
-            if (value is SpawnJSHandle jsHandle) Reflect.Set(jsParent.JSObject, jsKey, jsHandle.JSObject);
-            else Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+            if (value is SpawnJSHandle jsHandle)
+            {
+                jsHandle.CopyTo(jsParent, jsKey);
+            }
+            else
+            {
+                Reflect.Set(jsParent.JSObject!, jsKey, (string)null!);
+            }
         }
     }
 }

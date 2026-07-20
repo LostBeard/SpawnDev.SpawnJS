@@ -13,7 +13,16 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Set to true to see verbose debugging messages
         /// </summary>
-        public static bool Verbose = false;
+        public bool Verbose
+        {
+            get => _verbose;
+            set
+            {
+                _verbose = value;
+                if (SpawnJSInterop?.IsDisposed == false) SpawnJSInterop.SetProperty("verbose", value);
+            }
+        }
+        bool _verbose = false;
         /// <summary>
         /// SpawnJSRuntime instance
         /// </summary>
@@ -63,7 +72,7 @@ namespace SpawnDev.SpawnJS
             // get _netToJSCallAsync function in SpawnJSInterop
             _netToJSCallAsync = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCallAsync") ?? throw new Exception("SpawnJSInterop._netToJSCallAsync not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
-            Reflect.Set(SpawnJSInterop.JSObject, "_JSToNetCall", _JSToNetCall);
+            Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
             Initializing = false;
             Instance = this;
         }
@@ -92,9 +101,8 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private JSObject _JSToNetCall(string cmd, JSObject argsArray)
         {
-            Console.WriteLine("_JSToNetCall called!!!!!!!!!!");
             using var argsArrayHandle = argsArray == null ? null : new SpawnJSHandle(argsArray);
-            var ret = JSToNetDispatch(cmd, argsArrayHandle!);
+            var ret = Callback.JSToNetDispatch(cmd, argsArrayHandle!);
             return ret?.JSObject!;
         }
         /// <summary>

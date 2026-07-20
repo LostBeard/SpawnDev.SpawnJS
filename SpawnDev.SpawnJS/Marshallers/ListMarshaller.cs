@@ -16,16 +16,16 @@ namespace SpawnDev.SpawnJS.Marshallers
             return genericType == typeof(List<>) || genericType == typeof(IList<>) || genericType == typeof(IEnumerable<>);
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            using var array = jsParent.GetPropertyAsJSHandle(jsKey);
+            using var array = jsHandle.AsJSHandle();
             if (array == null) return null;
             var elementType = type.GetGenericArguments()[0];
             var length = array.GetPropertyAsInt32("length");
             var retList = (IList)Activator.CreateInstance(type)!;
             for (var i = 0; i < length; i++)
             {
-                var value = JS.JSToNet(elementType, array, i);
+                var value = JS.MarshallJSToNet(elementType, array, i);
                 retList.Add(value);
             }
             return retList;
@@ -44,7 +44,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 for (var i = 0; i < objects.Count; i++)
                 {
                     var item = objects[i];
-                    JS.NetToJS(outArray, i, item);
+                    JS.MarshallNetToJS(outArray, i, item);
                 }
                 Reflect.Set(jsParent.JSObject, jsKey, outArray.JSObject);
             }

@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             return typeToConvert != null && typeToConvert.IsAssignableTo(typeof(Delegate));
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle)
         {
             throw new NotImplementedException();
         }

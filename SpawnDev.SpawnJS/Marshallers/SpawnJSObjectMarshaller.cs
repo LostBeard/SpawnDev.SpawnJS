@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-
-namespace SpawnDev.SpawnJS.Marshallers
+﻿namespace SpawnDev.SpawnJS.Marshallers
 {
     /// <summary>
     /// Marshalls SpawnJSObject and types that derive from SpawnJSObject
@@ -10,9 +8,9 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override bool CanMarshal(Type? type) => type != null && typeof(SpawnJSObject).IsAssignableFrom(type);
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
+        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            var value = jsParent.GetPropertyAsJSObject(jsKey);
+            var value = jsHandle.AsJSObject();
             return value == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(value));
         }
         /// <inheritdoc/>

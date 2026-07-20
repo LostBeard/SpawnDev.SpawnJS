@@ -40,11 +40,11 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
 
             /// <inheritdoc/>
-            public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsParent, object jsKey)
+            public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle)
             {
                 // 1. Get raw double from JavaScript via your Reflect class
                 // Use Nullable read to catch 'null' or 'undefined' gracefully from JS
-                double? jsValue = Reflect.GetDoubleNullable(jsParent.JSObject, jsKey);
+                double? jsValue = Reflect.GetDoubleNullable(jsHandle.JSParent, jsHandle.JSKey);
                 if (jsValue == null) return null;
 
                 Type actualType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
