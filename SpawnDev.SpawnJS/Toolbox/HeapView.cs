@@ -5,38 +5,11 @@ using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.Toolbox
 {
-    public class HeapViewInit
-    {
-        [JsonPropertyName("_heapViewInfo")]
-        public HeapViewInfo HeapViewInfo { get; set; }
-        public HeapViewInit() { }
-        public HeapViewInit(string viewType, long address, long byteLength, long heapSize = 0)
-        {
-            HeapViewInfo = new HeapViewInfo(viewType, address, byteLength, heapSize);
-        }
-    }
-    public class HeapViewInfo
-    {
-        [JsonPropertyName("viewType")]
-        public string ViewType { get; set; }
-
-        [JsonPropertyName("address")]
-        public long Address { get; set; }
-
-        [JsonPropertyName("byteLength")]
-        public long ByteLength { get; set; }
-
-        [JsonPropertyName("heapSize")]
-        public long HeapSize { get; set; }
-        public HeapViewInfo() { }
-        public HeapViewInfo(string viewType, long address, long byteLength, long heapSize = 0)
-        {
-            ViewType = viewType;
-            Address = address;
-            ByteLength = byteLength;
-            HeapSize = heapSize;
-        }
-    }
+    // The HeapViewInit / HeapViewInfo descriptor pair was removed on the port. They existed only to build
+    // the {_heapViewInfo:{viewType,address,byteLength}} payload that SpawnDev.BlazorJS serialises to
+    // Javascript, where a hook keyed on that property name swaps it for a TypedArray. SpawnJS builds the
+    // view directly from an address and a length (SpawnJSRuntime.CreateHeapView, backed by the heapView
+    // Javascript primitive), so nothing referenced them and no JSON crosses the zero copy path.
     /// <inheritdoc/>
     public sealed class HeapView<TElement> : HeapView where TElement : struct
     {

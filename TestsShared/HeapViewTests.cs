@@ -29,6 +29,13 @@ namespace TestsShared
             if (System.Array.IndexOf(chain, "Uint8Array") < 0)
                 throw new Exception($"The view is a [{string.Join(",", chain)}], expected a real Uint8Array");
             if (view.Length != 4) throw new Exception($"The view has length {view.Length}, expected 4");
+
+            // and it is a view over the .Net heap itself, not over some other buffer that merely holds a
+            // copy - the view's backing buffer must be the very same object the runtime hands out
+            using var wasmMemory = JS.WasmMemoryBuffer();
+            using var viewBuffer = view.JSRef!.Get<SpawnJSObjectReference>("buffer");
+            if (!JS.ObjectEquals(viewBuffer.JSObject, wasmMemory.JSObject, true))
+                throw new Exception("The view's buffer is not the WebAssembly heap, so it is not a view over .Net memory");
         }
 
         /// <summary>

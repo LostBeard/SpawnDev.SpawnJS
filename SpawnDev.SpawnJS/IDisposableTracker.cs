@@ -7,19 +7,46 @@ namespace SpawnDev.SpawnJS
     /// </summary>
     public class IDisposableTracker
     {
+        /// <summary>
+        /// True when either verbose mode is on, so callers can skip the tracking work entirely when it is off
+        /// </summary>
         public static bool Enabled => CreatedHandleVerboseMode || UndisposedHandleVerboseMode;
+        /// <summary>
+        /// The type name of the tracked disposable
+        /// </summary>
         public required string Type { get; set; }
+        /// <summary>
+        /// The stack trace these instances were all created from. This is the key the tracker groups by.
+        /// </summary>
         public required string Trace { get; set; }
+        /// <summary>
+        /// How many instances have been created from this stack trace
+        /// </summary>
         public ulong Created { get; set; }
+        /// <summary>
+        /// How many were disposed explicitly. Created minus DisposedProper minus DisposedFinalizer is the live count.
+        /// </summary>
         public ulong DisposedProper { get; set; }
+        /// <summary>
+        /// How many were reclaimed by a finalizer rather than disposed. A non zero count here is the leak signal.
+        /// </summary>
         public ulong DisposedFinalizer { get; set; }
+        /// <summary>
+        /// How many instances from this stack trace are still alive
+        /// </summary>
         public int AliveCount => Alive.Count;
+        /// <summary>
+        /// Ids of the instances from this stack trace that are still alive
+        /// </summary>
         [JsonIgnore]
         public HashSet<ulong> Alive { get; } = new HashSet<ulong>();
         /// <summary>
         /// Contains tracking information for JSObjects created with the same stack trace. This is used for diagnostics purposes to track where JSObjects are being created and disposed, and can be used to identify potential leaks. This will likely be removed in future releases.
         /// </summary>
         public static Dictionary<string, IDisposableTracker> JSObjectTraces { get; } = new Dictionary<string, IDisposableTracker>();
+        /// <summary>
+        /// Records that a tracked disposable was released, either explicitly or by its finalizer
+        /// </summary>
         public static void DisposableDisposed((IDisposableTracker? disposableTracker, ulong disposableId) tracker, bool disposing)
         {
             if (tracker.disposableTracker != null && tracker.disposableTracker.Alive.Contains(tracker.disposableId))
@@ -39,6 +66,9 @@ namespace SpawnDev.SpawnJS
                 }
             }
         }
+        /// <summary>
+        /// When true, every creation is traced. Diagnostics only - it costs a stack trace per instance.
+        /// </summary>
         public static bool CreatedHandleVerboseMode
         {
             get => _CreatedHandleVerboseMode;
@@ -50,6 +80,9 @@ namespace SpawnDev.SpawnJS
             }
         }
         private static bool _CreatedHandleVerboseMode { get; set; }
+        /// <summary>
+        /// When true, instances reclaimed by a finalizer rather than disposed are reported
+        /// </summary>
         public static bool UndisposedHandleVerboseMode
         {
             get => _UndisposedHandleVerboseMode;
@@ -66,7 +99,7 @@ namespace SpawnDev.SpawnJS
         {
             if (_beenInit) return;
             _beenInit = true;
-            SpawnJSRuntime.Instance.Set(nameof(IDisposableTracker), new
+            (SpawnJSRuntime.Instance ?? throw new InvalidOperationException("SpawnJSRuntime has not been created.")).Set(nameof(IDisposableTracker), new
             {
                 created = Callback.Create(() => IDisposableTracker.JSObjectTraces.Values.OrderByDescending(o => o.Created).ToList()),
                 disposedProper = Callback.Create(() => IDisposableTracker.JSObjectTraces.Values.OrderByDescending(o => o.DisposedProper).Where(o => o.DisposedProper > 0).ToList()),
@@ -76,6 +109,9 @@ namespace SpawnDev.SpawnJS
             });
         }
         static ulong _totalCreated = 0;
+        /// <summary>
+        /// Records the creation of a tracked disposable and returns the handle used to report its release
+        /// </summary>
         public static (IDisposableTracker? disposableTracker, ulong disposableId) DisposableCreated(IDisposable disposable)
         {
             if (!Enabled) return (null, 0);

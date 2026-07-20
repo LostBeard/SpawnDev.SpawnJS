@@ -36,7 +36,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// JSObject that points to the JAvascript data
         /// </summary>
-        public JSObject JSObject => JSHandle.JSObject;
+        public JSObject JSObject => JSHandle.JSObjectRequired;
         /// <summary>
         /// Create a new instance of SpawnJSObject to wrap a JSObject
         /// </summary>
