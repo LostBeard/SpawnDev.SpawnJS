@@ -1,4 +1,4 @@
-﻿using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.JSObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -230,78 +230,78 @@ namespace SpawnDev.SpawnJS
                 callback.Dispose();
             }
         }
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns>A Callback or null</returns>
-        //public static ActionCallback? CallbackGet(this Action _this, bool allowCreate = false)
-        //    => (ActionCallback?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0>? CallbackGet<T0>(this Action<T0> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1>? CallbackGet<T0, T1>(this Action<T0, T1> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1, T2>? CallbackGet<T0, T1, T2>(this Action<T0, T1, T2> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1, T2>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1, T2, T3>? CallbackGet<T0, T1, T2, T3>(this Action<T0, T1, T2, T3> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1, T2, T3>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1, T2, T3, T4>? CallbackGet<T0, T1, T2, T3, T4>(this Action<T0, T1, T2, T3, T4> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1, T2, T3, T4>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1, T2, T3, T4, T5>? CallbackGet<T0, T1, T2, T3, T4, T5>(this Action<T0, T1, T2, T3, T4, T5> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1, T2, T3, T4, T5>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
-        ///// <summary>
-        ///// Gets or creates a Callback attached to this method.<br/>
-        ///// The attached Callback can be disposed using this.DisposeJS()
-        ///// </summary>
-        ///// <param name="_this">This method</param>
-        ///// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
-        ///// <returns></returns>
-        //public static ActionCallback<T0, T1, T2, T3, T4, T5, T6>? CallbackGet<T0, T1, T2, T3, T4, T5, T6>(this Action<T0, T1, T2, T3, T4, T5, T6> _this, bool allowCreate = false)
-        //    => (ActionCallback<T0, T1, T2, T3, T4, T5, T6>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns>A Callback or null</returns>
+        public static ActionCallback? CallbackGet(this Action _this, bool allowCreate = false)
+            => (ActionCallback?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0>? CallbackGet<T0>(this Action<T0> _this, bool allowCreate = false)
+            => (ActionCallback<T0>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1>? CallbackGet<T0, T1>(this Action<T0, T1> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1, T2>? CallbackGet<T0, T1, T2>(this Action<T0, T1, T2> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1, T2>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1, T2, T3>? CallbackGet<T0, T1, T2, T3>(this Action<T0, T1, T2, T3> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1, T2, T3>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1, T2, T3, T4>? CallbackGet<T0, T1, T2, T3, T4>(this Action<T0, T1, T2, T3, T4> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1, T2, T3, T4>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1, T2, T3, T4, T5>? CallbackGet<T0, T1, T2, T3, T4, T5>(this Action<T0, T1, T2, T3, T4, T5> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1, T2, T3, T4, T5>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
+        /// <summary>
+        /// Gets or creates a Callback attached to this method.<br/>
+        /// The attached Callback can be disposed using this.DisposeJS()
+        /// </summary>
+        /// <param name="_this">This method</param>
+        /// <param name="allowCreate">If true and the Callback does not already exist, it will be created</param>
+        /// <returns></returns>
+        public static ActionCallback<T0, T1, T2, T3, T4, T5, T6>? CallbackGet<T0, T1, T2, T3, T4, T5, T6>(this Action<T0, T1, T2, T3, T4, T5, T6> _this, bool allowCreate = false)
+            => (ActionCallback<T0, T1, T2, T3, T4, T5, T6>?)(!_callbacks.TryGetValue(_this, out Callback? ret) && allowCreate ? _callbacks[_this] = ret = Callback.Create(_this) : ret);
         /// <summary>
         /// Returns the attached Function or null
         /// </summary>

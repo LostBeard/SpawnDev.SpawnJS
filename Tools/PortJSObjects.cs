@@ -62,8 +62,9 @@ var NativeTypes = new HashSet<string>(
 // the reason travels with the skip and the entry is trivially removed once the decision is made.
 var deferred = new Dictionary<string, string>(StringComparer.Ordinal)
 {
-    ["ReadableStreamDefaultSource"] = "assigns a Func/Action straight to a FuncCallback/ActionCallback property, which needs the implicit delegate-to-Callback conversions. Those and their CallbackGet backing are deliberately commented out in SpawnJS (ActionCallback.cs, FuncCallback.cs, ActionExtensions.cs) - an implicit conversion that creates a Callback raises the question of who disposes it, and Callback disposal is manual by design.",
-    ["ReadableByteStreamSource"] = "same as ReadableStreamDefaultSource - needs the parked implicit delegate-to-Callback conversions.",
+    // empty. ReadableStreamDefaultSource and ReadableByteStreamSource were here while the implicit
+    // delegate-to-Callback conversions and their CallbackGet backing were still commented out - that was
+    // waiting on code which has since been ported, not on a design decision.
 };
 
 // patterns that mean the wrapper needs design work, not a mechanical copy
