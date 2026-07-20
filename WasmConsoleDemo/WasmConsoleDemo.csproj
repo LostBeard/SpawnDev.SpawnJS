@@ -10,6 +10,14 @@
 		<CompressionEnabled>false</CompressionEnabled>
 	</PropertyGroup>
 	<ItemGroup>
+		<!-- A console wasm app is Microsoft.NET.Sdk, not Microsoft.NET.Sdk.WebAssembly, so it never
+		     processes static web assets and the SpawnJS interop script is not deployed automatically
+		     the way it is for a browser app (where the WebAssembly SDK loads *.lib.module.js as a JS
+		     initializer). Deploy it explicitly and import it from main.mjs. -->
+		<WasmExtraFilesToDeploy Include="..\SpawnDev.SpawnJS\wwwroot\SpawnDev.SpawnJS.lib.module.js" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\SpawnDev.SpawnJS\SpawnDev.SpawnJS.csproj" />
 		<ProjectReference Include="..\TestsShared\TestsShared.csproj" />
 	</ItemGroup>

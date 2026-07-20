@@ -18,6 +18,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task PortedLocationTest()
         {
+            HostCapabilities.RequireBrowser();
             using var location = JS.Get<Location>("location");
             if (string.IsNullOrEmpty(location.Href)) throw new Exception("Location.Href was empty");
             if (string.IsNullOrEmpty(location.Origin)) throw new Exception("Location.Origin was empty");
@@ -35,6 +36,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task PortedStorageTest()
         {
+            HostCapabilities.RequireBrowser();
             using var storage = JS.Get<Storage>("localStorage");
             var key = "_spawnjs_ported_storage_test";
             var value = "round trip";
@@ -59,6 +61,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task PortedHistoryTest()
         {
+            HostCapabilities.RequireBrowser();
             using var history = JS.Get<History>("history");
             if (history.Length < 1) throw new Exception($"History.Length was {history.Length}");
         }
@@ -70,6 +73,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task PortedBaseTypeSurfaceTest()
         {
+            HostCapabilities.RequireBrowser();
             using var location = JS.Get<Location>("location");
             if (!location.JSRefIs("Location")) throw new Exception($"JSRefIs('Location') was false, constructor is '{location.JSRef!.ConstructorName()}'");
             if (location.JSRefIs("Storage")) throw new Exception("JSRefIs('Storage') was true for a Location");
@@ -103,6 +107,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task PortedJSRefCopyTest()
         {
+            HostCapabilities.RequireBrowser();
             using var location = JS.Get<Location>("location");
             var copy = location.JSRefCopy<Location>();
             copy.Dispose();

@@ -21,6 +21,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task SpawnJSObjectMarshallerTest()
         {
+            HostCapabilities.RequireBrowser();
             using var window = JS.Get<Window>("window");
             var testString = window.Origin;
             if (string.IsNullOrEmpty(testString)) throw new Exception("Readback failed");
@@ -57,6 +58,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task JSObjectHandleTest()
         {
+            HostCapabilities.RequireBrowser();
             using var window1 = JS.Get<Window>("window");
             var jsType = window1.JSRef!.JSHandle.JSType;
             var jsClass = window1.JSRef!.JSHandle.JSClass;
@@ -95,6 +97,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task HandleRefCountTest()
         {
+            HostCapabilities.RequireBrowser();
             using var window = JS.Get<Window>("window");
             var handle1 = window.JSRef!.JSHandle;
             var before = SpawnJSHandle.LiveObjectCount;
@@ -109,6 +112,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task ConstructorNamesTests()
         {
+            HostCapabilities.RequireBrowser();
             using var window = JS.Get<Window>("window");
             var constructorNames = window.JSRef!.JSHandle.ConstructorNames;
             if (!constructorNames.SequenceEqual(["Window", "EventTarget", "Object"])) throw new Exception("Failed");
@@ -129,6 +133,7 @@ namespace TestsShared
         [SpawnJSTest(Timeout = 30000)]
         public async Task PromiseTest()
         {
+            HostCapabilities.RequireGlobal("waitForTask");
             var value = "hello!";
             using var promise = new Promise(async (Function resolve, Function reject) =>
             {
