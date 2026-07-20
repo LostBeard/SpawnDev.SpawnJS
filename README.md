@@ -12,6 +12,12 @@ Its API is modeled to be compatible with the Blazor WASM `IJSInProcessRuntime` /
 
 - **Kill the JSON boundary.** Blazor's `IJSInProcessRuntime` routes every value through a JSON serialize/parse on both ends. That cost is invisible on bulk data (which already goes zero-copy) but real on orchestration traffic - the thousands of small property reads, property writes, and method calls that make up normal interop. SpawnJS removes the serializer entirely.
 - **Drop the Blazor dependency.** SpawnJS uses only the runtime interop primitives, so libraries built on it can reach .NET WASM apps that are not Blazor - for example Avalonia, satisfying [LostBeard/SpawnDev.BlazorJS.WebWorkers#28](https://github.com/LostBeard/SpawnDev.BlazorJS.WebWorkers/issues/28).
+- **Make browser GPU compute faster.** [SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) and
+  SpawnDev.ILGPU.ML run real GPU compute in the browser across WebGPU, WebGL and Wasm, and they are
+  interop-heavy by nature: every kernel launch plumbs buffers, bind groups and parameters across the
+  boundary before any work reaches the GPU. A measured WebGPU kernel launch costs **15 interop calls** -
+  nothing for a single kernel, but a model forward pass runs thousands of launches, and that is where the
+  cost concentrates. Those libraries were a large part of the reason this one was written.
 - **Simplify Web Worker startup.** SpawnDev.BlazorJS.WebWorkers currently has to build a fake `window` environment to boot a Blazor app inside a worker. Without the Blazor interop layer, that shim is no longer needed.
 
 ## Measured against SpawnDev.BlazorJS
@@ -53,6 +59,11 @@ Reproduce it:
 dotnet run --project BlazorBrowserDemo -c Release --urls http://localhost:5199
 dotnet run --project SpawnJS.TestRunner -- --url "http://localhost:5199/?bench" --verbose
 ```
+
+For an interop-heavy consumer the per-call figures are the ones that matter. A SpawnDev.ILGPU WebGPU kernel
+launch was measured at 15 interop calls, so the saving scales with launch count rather than with data size -
+irrelevant for one kernel, potentially dominant across a graph with thousands of nodes. That end-to-end
+number has not been measured yet and is not claimed here.
 
 Read the ratios rather than the absolute times. The run above is an interpreted WASM build with no AOT, so
 the absolute numbers are much higher than a published app would see, and each case ran once. Run-to-run
