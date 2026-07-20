@@ -46,7 +46,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                     var item = objects[i];
                     JS.MarshallNetToJS(outArray, i, item);
                 }
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, outArray.JSObjectRequired);
+                jsParent.SetProperty(jsKey, outArray);
             }
             else
             {

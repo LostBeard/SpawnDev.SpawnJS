@@ -436,7 +436,11 @@ namespace SpawnDev.SpawnJS
         /// <param name="args"></param>
         /// <returns></returns>
         public T CallApply<T>(string identifier, object?[] args)
-            => TryCallFast<T>(identifier, args, out T fast) ? fast : JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
+        {
+            if (TryInvokeBySlot<T>(identifier, args, out var slotResult)) return slotResult;
+            if (TryCallFast<T>(identifier, args, out T fast)) return fast;
+            return JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
+        }
         #endregion
 
         #region CallVoid
@@ -550,7 +554,12 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="identifier"></param>
         /// <param name="args"></param>
-        public void CallVoidApply(string identifier, object?[] args) => JS.NetRunVoid("invokeProperty", new object[] { JSObject, identifier, args });
+        public void CallVoidApply(string identifier, object?[] args)
+        {
+            if (TryInvokeVoidBySlot(identifier, args)) return;
+            if (TryCallVoidFast(identifier, args)) return;
+            JS.NetRunVoid("invokeProperty", new object[] { JSObject, identifier, args });
+        }
         #endregion
 
         #region CallVoidAsync

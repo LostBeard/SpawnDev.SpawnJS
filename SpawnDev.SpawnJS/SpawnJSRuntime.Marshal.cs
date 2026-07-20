@@ -227,6 +227,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         internal void MarshallNetToJS(SpawnJSHandle jsParent, object jsKey, object? obj)
         {
+            if (CountCalls) CountCall("marshal:netToJS");
             var type = obj?.GetType();
             var marshaller = GetMarshaller(type);
             marshaller.NetToJS(type, jsParent, jsKey, obj);
@@ -236,6 +237,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         internal object? MarshallJSToNet(Type type, SpawnJSHandle jsParent, object jsKey)
         {
+            if (CountCalls) CountCall("marshal:jsToNet");
             var marshaller = GetMarshaller(type);
             using var jsHandle = new SpawnJSHandle(jsParent, jsKey, true);
             return marshaller.JSToNet(type, jsHandle);
@@ -249,6 +251,27 @@ namespace SpawnDev.SpawnJS
             return marshaller.JSToNet(type, jsHandle);
         }
         #endregion
+        #region Call counting
+        /// <summary>
+        /// Set true to count generic-dispatcher calls by command name. Off by default; the check is a
+        /// single bool read on the call path.<br/>
+        /// This exists because "which calls does a workload actually make" is otherwise guesswork, and
+        /// guessing sent an optimisation at the wrong shape once already.
+        /// </summary>
+        public static bool CountCalls { get; set; }
+        /// <summary>
+        /// Generic-dispatcher calls by command name since the last <see cref="ResetCallCounts"/>.
+        /// </summary>
+        public static Dictionary<string, long> CallCounts { get; } = new();
+        /// <summary>
+        /// Clears <see cref="CallCounts"/>.
+        /// </summary>
+        public static void ResetCallCounts() { lock (CallCounts) CallCounts.Clear(); }
+        internal static void CountCall(string cmd)
+        {
+            lock (CallCounts) CallCounts[cmd] = CallCounts.TryGetValue(cmd, out var n) ? n + 1 : 1;
+        }
+        #endregion
         #region Sync NetRun
         internal T NetRun<T>(string cmd, object?[]? args = null)
         {
@@ -257,6 +280,7 @@ namespace SpawnDev.SpawnJS
         }
         internal object? NetRun(Type type, string cmd, object?[]? args = null)
         {
+            if (CountCalls) CountCall(cmd);
             args ??= new object?[0];
             var offset = WriteArgs(args);
             try
@@ -275,6 +299,7 @@ namespace SpawnDev.SpawnJS
         }
         internal void NetRunVoid(string cmd, object?[]? args = null)
         {
+            if (CountCalls) CountCall(cmd);
             args ??= new object?[0];
             var offset = WriteArgs(args);
             try

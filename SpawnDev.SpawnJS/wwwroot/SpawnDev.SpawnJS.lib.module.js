@@ -169,6 +169,20 @@
         // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
         // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the
         // handful of own properties it happens to carry.
+        // Assigns a record (a plain object of string keys) built .Net-side onto parent[key].
+        // The .Net runtime tags every JS object it proxies with an enumerable Symbol key. WebIDL converts
+        // a record<USVString, V> by enumerating EVERY own key and converting each to a string, and a
+        // Symbol cannot be converted - so handing a proxied object straight to such an API throws
+        // "Cannot convert a Symbol value to a string" (WebGPU createComputePipeline, constants).
+        // Object.entries yields only own enumerable STRING keys, so the rebuilt object is clean, and
+        // because it is created here and assigned here it is never proxied back and never re-tagged.
+        assignRecord(parent, key, source) {
+            if (source === void 0 || source === null) {
+                parent[key] = source;
+                return;
+            }
+            parent[key] = Object.fromEntries(Object.entries(source));
+        }
         objectKeys(target, hasOwnProperty) {
             if (target === void 0 || target === null) return [];
             if (hasOwnProperty) return Object.keys(target);
@@ -314,3 +328,66 @@
     }
     globalThis.SpawnJSInterop = SpawnJSInterop;
 })()
+
+// ---------------------------------------------------------------------------------------------
+// SPIKE: slot-based object references.
+// Holds Javascript values in a JS-side table addressed by an integer, so .Net can reference a JS
+// object without the runtime creating a JSObject proxy for it. Every proxy costs a GC handle, a
+// proxy-table entry and an enumerable Symbol tag on the object - measured at 21us to create an
+// object and 7.4us to wrap one, against 1.4us for a scalar property write. Since the marshallers
+// already move one value at a time, the proxy buys nothing outside startup.
+// Free list keeps slot ids dense so the table does not grow without bound.
+// Keys are allocated monotonically and NEVER reused, and the table is an object so a freed key is
+// deleted rather than leaving a hole. Reuse would be denser, but it would mean a disposed handle that
+// still touched its key would read whatever value now occupies that slot - silently wrong data instead
+// of undefined. ReleasedSlotKeyIsNotReusedTest locks this down; do not "optimise" it into a free list.
+globalThis.__sjsSlots = {};
+globalThis.__sjsNextSlot = 1;
+globalThis.__sjsAlloc = function (value) {
+    var slot = globalThis.__sjsNextSlot++;
+    globalThis.__sjsSlots[slot] = value;
+    return slot;
+};
+globalThis.__sjsAllocEmpty = function () { return globalThis.__sjsAlloc(void 0); };
+globalThis.__sjsNewObject = function () { return globalThis.__sjsAlloc({}); };
+globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
+globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
+globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+globalThis.__sjsSetString = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+globalThis.__sjsSetBoolean = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+globalThis.__sjsGetDouble = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
+globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlots[slot][key] = globalThis.__sjsSlots[valueSlot]; };
+
+// Slot-native invocation. `this`, the method, and the argument array all live in Javascript, so a call
+// makes NO .Net proxy at all - the only things crossing are a slot number, a name, and a slot number.
+// The old path had to materialise a JSObject for the target AND the arguments just to hand them over,
+// which is why building a descriptor cheaply in slots still ended up creating proxies at call time.
+globalThis.__sjsInvokeVoid = function (slot, name, argsSlot) {
+    var target = globalThis.__sjsSlots[slot];
+    target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+};
+globalThis.__sjsInvokeDouble = function (slot, name, argsSlot) {
+    var target = globalThis.__sjsSlots[slot];
+    return target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+};
+globalThis.__sjsInvokeString = function (slot, name, argsSlot) {
+    var target = globalThis.__sjsSlots[slot];
+    var r = target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+    return r === void 0 || r === null ? null : r;
+};
+globalThis.__sjsInvokeBoolean = function (slot, name, argsSlot) {
+    var target = globalThis.__sjsSlots[slot];
+    return !!target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+};
+// Returns the RESULT IN A NEW SLOT, so an object-returning call still never becomes a proxy unless the
+// caller genuinely needs one.
+globalThis.__sjsInvokeSlot = function (slot, name, argsSlot) {
+    var target = globalThis.__sjsSlots[slot];
+    return globalThis.__sjsAlloc(target[name].apply(target, globalThis.__sjsSlots[argsSlot]));
+};
+// typeof of a slot's value, so .Net can tell "returned an object" from "returned a primitive" without
+// dragging the value across.
+globalThis.__sjsTypeOf = function (slot) {
+    var v = globalThis.__sjsSlots[slot];
+    return v === null ? "null" : typeof v;
+};

@@ -10,6 +10,6 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsBoolean();
         /// <inheritdoc/>
-        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => Reflect.Set(jsParent.JSObjectRequired, jsKey, (bool)value!);
+        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => jsParent.SetProperty(jsKey, (bool)value!);
     }
 }

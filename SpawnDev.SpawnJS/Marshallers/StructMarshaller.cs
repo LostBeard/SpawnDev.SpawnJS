@@ -77,7 +77,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                     if (!prop.GetShouldWrite(propValue)) continue;
                     JS.MarshallNetToJS(outObj, propName, propValue);
                 }
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, outObj.JSObjectRequired);
+                jsParent.SetProperty(jsKey, outObj);
             }
             else
             {

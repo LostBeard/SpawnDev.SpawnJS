@@ -24,9 +24,27 @@ namespace SpawnDev.SpawnJS
         }
         bool _verbose = false;
         /// <summary>
-        /// SpawnJSRuntime instance
+        /// SpawnJSRuntime instance.<br/>
+        /// Creating it on first access rather than returning null makes the runtime independent of
+        /// startup ordering. A library that reaches for the runtime (SpawnDev.ILGPU asking for
+        /// <c>navigator</c>, for example) cannot know whether the app has constructed one yet, and
+        /// when this returned null the failure surfaced as a NullReferenceException deep inside that
+        /// library - usually swallowed by a catch and reported as "feature not available".<br/>
+        /// An app that wants to configure the runtime still constructs it itself at startup, exactly
+        /// as before; this only covers the case where something asks first.
         /// </summary>
-        public static SpawnJSRuntime? Instance { get; private set; }
+        public static SpawnJSRuntime Instance => _instance ??= new SpawnJSRuntime();
+        // Deliberately the backing field and NOT the property everywhere inside this class: reading
+        // Instance during construction would recurse into the constructor.
+        static SpawnJSRuntime? _instance;
+
+        /// <summary>
+        /// True once the runtime exists.<br/>
+        /// Reading <see cref="Instance"/> creates it, so that property cannot be used to ask whether it
+        /// is there - the question would answer itself. This asks without creating, which is what code
+        /// running at shutdown, in a diagnostic, or on a path that must not force initialisation needs.
+        /// </summary>
+        public static bool IsCreated => _instance != null;
         /// <summary>
         /// SpawnJSInterop Javascript instance
         /// </summary>
@@ -50,12 +68,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public SpawnJSRuntime() : base(JSHost.GlobalThis)
         {
-            if (Instance != null) throw new Exception("Already exists");
+            if (_instance != null) throw new Exception("Already exists");
             // add built-in marshallers
             Marshallers.Add(new DefaultMarshaller());
             Marshallers.Add(new ObjectMarshaller());
             Marshallers.Add(new ArrayMarshaller());
             Marshallers.Add(new ListMarshaller());
+            Marshallers.Add(new DictionaryMarshaller());
             Marshallers.Add(new ByteArrayMarshaller());
             Marshallers.Add(new StringMarshaller());
             Marshallers.Add(new BooleanMarshaller());
@@ -68,6 +87,7 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new IMarshalOutByJSHandleMarshaller());
             Marshallers.Add(new SpawnJSHandleMarshaller());
             Marshallers.Add(new UnionMarshaller());
+            Marshallers.Add(new EnumMarshaller());
             Marshallers.Add(new EnumStringMarshaller());
             Marshallers.Add(new DateTimeMarshaller());
             Marshallers.Add(new EpochDateTimeMarshaller());
@@ -80,7 +100,7 @@ namespace SpawnDev.SpawnJS
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
             Initializing = false;
-            Instance = this;
+            _instance = this;
         }
         /// <summary>
         /// Returns true while the runtime is initializing
@@ -115,12 +135,22 @@ namespace SpawnDev.SpawnJS
         /// Create a new Javascript Object as JSObject
         /// </summary>
         /// <returns></returns>
-        public SpawnJSHandle NewJSObject() => JSHandle.InvokePropertyConstructor("Object")!;
+        public SpawnJSHandle NewJSObject()
+        {
+            if (CountCalls) CountCall("js:newObject");
+            // Javascript creates the object and hands back its slot. The old path built it through the
+            // generic dispatcher AND made a JSObject proxy for it: 21us against 1.3us, for `{}`.
+            return new SpawnJSHandle(SlotInterop.NewObject());
+        }
         /// <summary>
         /// Create a new Javascript Array as JSObject
         /// </summary>
         /// <returns></returns>
-        public SpawnJSHandle NewJSArray() => JSHandle.InvokePropertyConstructor("Array")!;
+        public SpawnJSHandle NewJSArray()
+        {
+            if (CountCalls) CountCall("js:newArray");
+            return new SpawnJSHandle(SlotInterop.NewArray());
+        }
         /// <summary>
         /// Create a new Javascript Promise as JSObject with `resolve` and `reject` attached as properties
         /// </summary>

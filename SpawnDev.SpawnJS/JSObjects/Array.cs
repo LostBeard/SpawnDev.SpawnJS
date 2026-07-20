@@ -1,4 +1,4 @@
-﻿namespace SpawnDev.SpawnJS.JSObjects
+namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// Represents a Javascript Array
@@ -10,6 +10,14 @@
         /// </summary>
         /// <param name="jsObject"></param>
         public Array(SpawnJSObjectReference jsObject) : base(jsObject) { }
+        /// <summary>
+        /// Creates a new, empty Javascript Array
+        /// </summary>
+        public Array() : base(JS.New(nameof(Array))) { }
+        /// <summary>
+        /// Creates a new Javascript Array of the given length
+        /// </summary>
+        public Array(int length) : base(JS.New(nameof(Array), length)) { }
 
         /// <summary>
         /// Removes the first element from the array and returns it as type T

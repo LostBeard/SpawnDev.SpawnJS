@@ -118,7 +118,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 }
 
                 // Push to JS via your strongly typed Reflect method signature
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, doubleValue);
+                jsParent.SetProperty(jsKey, doubleValue);
             }
         }
     }

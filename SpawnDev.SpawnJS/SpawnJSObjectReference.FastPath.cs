@@ -21,6 +21,7 @@ namespace SpawnDev.SpawnJS
         {
             value = default!;
             if (identifier.Contains('.')) return false;
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:get");
             var target = JSObject;
 
             if (typeof(T) == typeof(int)) { value = (T)(object)Reflect.GetInt32(target, identifier); return true; }
@@ -40,6 +41,7 @@ namespace SpawnDev.SpawnJS
         private bool TrySetFast(string identifier, object? value)
         {
             if (identifier.Contains('.')) return false;
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:set");
             var target = JSObject;
 
             switch (value)
@@ -76,6 +78,7 @@ namespace SpawnDev.SpawnJS
             if (typeof(T) != typeof(int) && typeof(T) != typeof(double)
                 && typeof(T) != typeof(bool) && typeof(T) != typeof(string)) return false;
 
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:call");
             using var function = new SpawnJSHandle(JSHandle, identifier, true);
             var fn = function.JSObject;
             if (fn == null) return false;
@@ -85,9 +88,42 @@ namespace SpawnDev.SpawnJS
             var target = JSObject;
 
             if (typeof(T) == typeof(int)) { value = (T)(object)Reflect.ApplyInt32(fn, target, argsObject); return true; }
+            // (the remaining primitive returns follow)
             if (typeof(T) == typeof(double)) { value = (T)(object)Reflect.ApplyDouble(fn, target, argsObject); return true; }
             if (typeof(T) == typeof(bool)) { value = (T)(object)Reflect.ApplyBoolean(fn, target, argsObject); return true; }
             value = (T)(object)Reflect.ApplyString(fn, target, argsObject)!;
+            return true;
+        }
+
+        /// <summary>
+        /// Calls a method that returns nothing, without going through the generic dispatcher.
+        /// Returns false when the key is not eligible or names no function, in which case the caller takes
+        /// the normal path.<br/>
+        /// <br/>
+        /// This is the shape that dominates real work. A GPU dispatch is a burst of void calls -
+        /// setPipeline, setBindGroup, dispatchWorkgroups, end, submit, writeBuffer - and none of them
+        /// could use the fast path while it only accepted primitive RETURN types, so the layer built to
+        /// make interop cheap was sitting out the calls that matter. Measured against SpawnDev.BlazorJS,
+        /// SpawnDev.ILGPU was SLOWER per kernel launch for exactly this reason.<br/>
+        /// <br/>
+        /// The generic path costs an object[] for the dispatcher arguments plus the caller's argument
+        /// array marshalled inside it, then a command-name dispatch on the Javascript side. Applying the
+        /// function directly needs only the argument array.
+        /// </summary>
+        private bool TryCallVoidFast(string identifier, object?[] args)
+        {
+            if (identifier.Contains('.')) return false;
+
+            // Volatile handle: it shares its parent's storage instead of taking a slot, and reference
+            // counts the proxy. Taking a raw JSObject and disposing it would kill any sibling holding the
+            // same Javascript function, because the runtime interns proxies. Same reasoning as TryCallFast.
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:callVoid");
+            using var function = new SpawnJSHandle(JSHandle, identifier, true);
+            var fn = function.JSObject;
+            if (fn == null) return false;
+
+            using var jsArgs = JS.MarshallNetArrayToJSArray(args);
+            Reflect.ApplyVoid(fn, JSObject, jsArgs!.JSObjectRequired);
             return true;
         }
     }

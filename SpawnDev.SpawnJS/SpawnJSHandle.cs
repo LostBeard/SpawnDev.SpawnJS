@@ -115,7 +115,12 @@ namespace SpawnDev.SpawnJS
         /// threaded and the finalizer runs on that same thread.
         /// </summary>
         static JSObject? _store;
-        static JSObject Store => _store ??= JSHost.GlobalThis.InvokePropertyConstructor("Object")!;
+        /// <summary>
+        /// The shared slot table, which lives in Javascript. It is the SAME table
+        /// <see cref="SlotInterop"/> allocates from, so a value created JS-side and a value parked by a
+        /// handle are addressed the same way and either can be handed to the other.
+        /// </summary>
+        static JSObject Store => _store ??= Reflect.GetJSObject(JSHost.GlobalThis, "__sjsSlots")!;
         // double, not long: a boxed Int64 cannot cross as an Any-marshalled key ("ToJSNotImplemented,
         // System.Int64"), and a Javascript number IS a double. Exact integers up to 2^53 is far more slots
         // than a process will ever allocate.
@@ -226,6 +231,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public SpawnJSHandle(JSObject jsObject)
         {
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("handle:fromJSObject");
             if (jsObject == null) throw new NullReferenceException(nameof(jsObject));
             if (jsObject.IsDisposed) throw new ObjectDisposedException(nameof(jsObject));
             _jsObject = jsObject;
@@ -233,7 +239,7 @@ namespace SpawnDev.SpawnJS
             IsObject = true;
             // its own slot key in the shared store. Never reused, so a disposed handle's key can
             // never be handed out again and resurrect a stale value.
-            JSKey = _nextSlot++;
+            JSKey = SlotInterop.AllocEmpty();
             Resolved = true;
             Ptr = _jsObject?.GetId() ?? -1;
             // store the JSObject in a JS array we own so that if the JSObject gets Dispsoed elsewhere we can get a fresh JSObject
@@ -243,10 +249,26 @@ namespace SpawnDev.SpawnJS
             Reflect.Set(_ownedParent, JSKey, _jsObject);
         }
         /// <summary>
+        /// Adopts a slot that Javascript already holds a value in.<br/>
+        /// No JSObject proxy is created. The proxy is what costs - measured at 21us to create an object
+        /// through the proxy path against 1.3us to create it in Javascript and take its slot - and most
+        /// intermediate objects (a descriptor being assembled, an argument array) never need one at all.
+        /// If something does ask for <see cref="JSObject"/>, UpdateHandleCheck materialises it then.
+        /// </summary>
+        internal SpawnJSHandle(double slot)
+        {
+            JSKey = slot;
+            _ownedParent = Store;
+            _ownsSlot = true;
+            _liveSlots++;
+            // deliberately NOT Resolved: nothing has asked for a proxy, so do not make one
+        }
+        /// <summary>
         /// Creates a volatile Javascript handle from a parent and its key
         /// </summary>
         public SpawnJSHandle(SpawnJSHandle jsParent, object jsKey, bool unsafeUse = false)
         {
+            if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("handle:fromParentKey");
             if (jsParent == null) throw new NullReferenceException(nameof(jsParent));
             if (jsParent.IsDisposed) throw new ObjectDisposedException(nameof(jsParent));
             Volatile = unsafeUse;
@@ -261,7 +283,7 @@ namespace SpawnDev.SpawnJS
                 // copy into our own storage
                 // its own slot key in the shared store. Never reused, so a disposed handle's key can
                 // never be handed out again and resurrect a stale value.
-                JSKey = _nextSlot++;
+                JSKey = SlotInterop.AllocEmpty();
                 // store the JSObject in a JS array we own so that if the JSObject gets Dispsoed elsewhere we can get a fresh JSObject
                 _ownedParent = Store;
                 _ownsSlot = true;
@@ -364,7 +386,7 @@ namespace SpawnDev.SpawnJS
             {
                 _ownsSlot = false;
                 _liveSlots--;
-                Reflect.DeletePropertyVoid(Store, JSKey);
+                SlotInterop.Free(Convert.ToDouble(JSKey));
             }
             // _unownedParent belongs to whoever handed it to us - that is what Volatile means.
             // Disposing it here would tear down the caller's handle out from under them.
