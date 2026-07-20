@@ -140,6 +140,31 @@
         returnMe(/* any */ value) {
             return value;
         }
+        // Builds a TypedArray or DataView directly over the .Net heap - a real Javascript view, not a copy.
+        // SpawnDev.BlazorJS achieved this by JSON serializing a {_heapViewInfo:{...}} descriptor and having
+        // a Javascript hook recognise that property name. There is no descriptor here: the address and
+        // length come straight across as numbers and the view is constructed from them, so the zero copy
+        // path costs no serialization at all.
+        // viewType is a global constructor name: Uint8Array, Float32Array, DataView, and so on.
+        heapView(viewType, address, byteLength) {
+            var ctor = globalThis[viewType];
+            if (typeof ctor !== 'function') throw new Error(`SpawnJSInterop: '${viewType}' is not a constructor`);
+            var buffer = this.wasmMemoryBuffer();
+            if (address < 0 || address + byteLength > buffer.byteLength) {
+                throw new RangeError(`SpawnJSInterop: heap view [${address}, ${address + byteLength}) is outside the ${buffer.byteLength} byte heap`);
+            }
+            // DataView is constructed in bytes; a TypedArray takes an ELEMENT count, so the byte length has
+            // to be divided by the target's element size. Sizing a cross type view by the source's element
+            // size instead is a real bug that has been shipped before - it builds an oversized view and
+            // throws RangeError only when the tail is touched.
+            if (viewType === 'DataView') return new ctor(buffer, address, byteLength);
+            var elementSize = ctor.BYTES_PER_ELEMENT;
+            if (!elementSize) throw new Error(`SpawnJSInterop: '${viewType}' has no BYTES_PER_ELEMENT`);
+            if (byteLength % elementSize !== 0) {
+                throw new RangeError(`SpawnJSInterop: ${byteLength} bytes is not a whole number of ${viewType} elements (${elementSize} bytes each)`);
+            }
+            return new ctor(buffer, address, byteLength / elementSize);
+        }
         // returns string[] of the target's property names.
         // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
         // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the

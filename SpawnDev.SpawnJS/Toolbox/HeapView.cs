@@ -698,7 +698,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             // byteLength must be sized by the TARGET view's element size, not the HeapView's source ElementSize -
             // they differ for cross-type views (e.g. HeapView<double>.As<Uint8Array>()). Using the source size
             // over-sized the descriptor (elementCount * 8 instead of * 1) -> reviver built an oversized/OOB view.
-            var typedArray = JS.ReturnMe<TTypedArray>(new HeapViewInit(viewType, Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize<TTypedArray>()));
+            var typedArray = JS.CreateHeapView<TTypedArray>(viewType, Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize<TTypedArray>());
             ToDispose(typedArray);
             return typedArray;
         }
@@ -714,7 +714,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         {
             var viewType = typedArrayType.Name;
             // byteLength sized by the TARGET view's element size, not the HeapView's source ElementSize (see As<TTypedArray> above).
-            var typedArray = (TypedArray)JS.ReturnMe(typedArrayType, new HeapViewInit(viewType, Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize(typedArrayType)))!;
+            var typedArray = (TypedArray)JS.CreateHeapView(typedArrayType, viewType, Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize(typedArrayType))!;
             ToDispose(typedArray);
             return typedArray;
         }
@@ -727,7 +727,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// </summary>
         public DataView AsDataView(long byteOffset, long byteLength)
         {
-            var jsView = JS.ReturnMe<DataView>(new HeapViewInit(typeof(DataView).Name, Address + byteOffset, byteLength))!;
+            var jsView = JS.CreateHeapView<DataView>(typeof(DataView).Name, Address + byteOffset, byteLength)!;
             ToDispose(jsView);
             return jsView;
         }
