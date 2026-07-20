@@ -435,7 +435,8 @@ namespace SpawnDev.SpawnJS
         /// <param name="identifier"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public T CallApply<T>(string identifier, object?[] args) => JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
+        public T CallApply<T>(string identifier, object?[] args)
+            => TryCallFast<T>(identifier, args, out T fast) ? fast : JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
         #endregion
 
         #region CallVoid

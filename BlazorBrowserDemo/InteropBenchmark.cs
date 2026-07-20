@@ -85,6 +85,10 @@ namespace BlazorBrowserDemo
                 () => { for (var i = 0; i < iterations; i++) blazorRef.JSRef!.Set("number", i); },
                 () => { for (var i = 0; i < iterations; i++) spawnRef.JSRef!.Set("number", i); });
 
+            Measure("call method (obj ref)", iterations,
+                () => { for (var i = 0; i < iterations; i++) _ = blazorRef.JSRef!.Call<int>("method", i); },
+                () => { for (var i = 0; i < iterations; i++) _ = spawnRef.JSRef!.Call<int>("method", i); });
+
             Console.WriteLine("BENCH-DONE");
         }
 

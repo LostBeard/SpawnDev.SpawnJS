@@ -53,5 +53,42 @@ namespace SpawnDev.SpawnJS
                 default: return false;
             }
         }
+
+        /// <summary>
+        /// Calls a method with a primitive return type without going through the generic dispatcher.
+        /// Returns false when this return type or key is not eligible.<br/>
+        /// <br/>
+        /// CallApply costs three Javascript array allocations: NetRun marshals its own arguments into one,
+        /// the caller's argument array becomes a second inside it, and the result comes back wrapped in a
+        /// third. Applying the function directly with a typed Reflect binding needs only the argument
+        /// array - the typed binding returns the value itself, so there is no wrapper to allocate or
+        /// unwrap.<br/>
+        /// <br/>
+        /// The function is reached through a VOLATILE handle, which shares its parent's storage rather
+        /// than taking a slot of its own, and which reference counts the underlying proxy. Taking a raw
+        /// JSObject and disposing it would be wrong: the runtime interns proxies, so disposing ours would
+        /// kill any sibling holding the same Javascript function.
+        /// </summary>
+        private bool TryCallFast<T>(string identifier, object?[] args, out T value)
+        {
+            value = default!;
+            if (identifier.Contains('.')) return false;
+            if (typeof(T) != typeof(int) && typeof(T) != typeof(double)
+                && typeof(T) != typeof(bool) && typeof(T) != typeof(string)) return false;
+
+            using var function = new SpawnJSHandle(JSHandle, identifier, true);
+            var fn = function.JSObject;
+            if (fn == null) return false;
+
+            using var jsArgs = JS.MarshallNetArrayToJSArray(args);
+            var argsObject = jsArgs!.JSObjectRequired;
+            var target = JSObject;
+
+            if (typeof(T) == typeof(int)) { value = (T)(object)Reflect.ApplyInt32(fn, target, argsObject); return true; }
+            if (typeof(T) == typeof(double)) { value = (T)(object)Reflect.ApplyDouble(fn, target, argsObject); return true; }
+            if (typeof(T) == typeof(bool)) { value = (T)(object)Reflect.ApplyBoolean(fn, target, argsObject); return true; }
+            value = (T)(object)Reflect.ApplyString(fn, target, argsObject)!;
+            return true;
+        }
     }
 }
