@@ -309,6 +309,7 @@ string Transform(string text)
     // Toolbox holds the support types wrappers reach for by simple name (HeapView and friends), the same
     // way they do in SpawnDev.BlazorJS.
     var usings = PortedMarker + "\r\nusing SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\nusing SpawnDev.SpawnJS.Toolbox;\r\n";
+    text = DocumentConstants(text);
     // a `global using` must precede every non-global using, so insert after any leading global usings.
     // A global using alias can span lines (the WebIDL union typedefs are written one arm per line), so
     // the match has to run to the terminating semicolon rather than to the end of the line - matching
@@ -432,4 +433,45 @@ static string? FindUp(string start, Func<string, bool> match)
         dir = Path.GetDirectoryName(dir) ?? "";
     }
     return null;
+}
+
+// Documents undocumented public constants. WebGLConstants.cs alone carries 632 of them, and an
+// undocumented public member is a CS1591 each.
+//
+// The doc states facts rather than restating the name: which spec group the constant belongs to (taken
+// from the #region it sits in) and its value. That is what is actually useful at a call site - "which
+// family is this and what number does it send to WebGL" - and it is information the name alone does not
+// carry. A generated "Gets the COLOR_BUFFER_BIT constant" would be noise and is not worth writing.
+static string DocumentConstants(string text)
+{
+    if (!text.Contains("public const ", StringComparison.Ordinal)) return text;
+    var lines = text.Replace("\r\n", "\n").Split('\n');
+    var output = new List<string>(lines.Length);
+    var region = "";
+    var constant = new Regex(@"^(\s*)public const (\w+) (\w+)\s*=\s*([^;]+);");
+
+    foreach (var line in lines)
+    {
+        var regionMatch = Regex.Match(line, @"^\s*#region\s+(.+?)\s*$");
+        if (regionMatch.Success) region = regionMatch.Groups[1].Value;
+        if (Regex.IsMatch(line, @"^\s*#endregion")) region = "";
+
+        var m = constant.Match(line);
+        if (m.Success)
+        {
+            // skip if it already carries a doc comment
+            var previous = output.Count > 0 ? output[^1].TrimStart() : "";
+            if (!previous.StartsWith("///", StringComparison.Ordinal))
+            {
+                var indent = m.Groups[1].Value;
+                var value = m.Groups[4].Value.Trim();
+                var where = region.Length > 0 ? $"{region}. " : "";
+                output.Add($"{indent}/// <summary>");
+                output.Add($"{indent}/// {where}Value {value}.");
+                output.Add($"{indent}/// </summary>");
+            }
+        }
+        output.Add(line);
+    }
+    return string.Join("\r\n", output);
 }

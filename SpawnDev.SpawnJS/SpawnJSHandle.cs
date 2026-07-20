@@ -1,4 +1,4 @@
-﻿using SpawnDev.SpawnJS.Extensions;
+using SpawnDev.SpawnJS.Extensions;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS
@@ -154,9 +154,17 @@ namespace SpawnDev.SpawnJS
                         _jsValue = tmpJSO;
                         Ptr = _jsObject?.GetId() ?? -1;
                     }
-                    catch
+                    catch (JSException)
                     {
-                        var nmt = true;
+                        // Expected, not exceptional: the value is not a Javascript object, so the runtime
+                        // refuses to marshal it as a JSObject ("JSObject proxy of number is not supported").
+                        // A string, a number, a boolean, null or undefined all land here. Resolved stays
+                        // false, so the block below reads it as a plain value through GetObject instead -
+                        // that fallback IS the handling.
+                        //
+                        // Only JSException is caught, which is the one the runtime raises for this. Anything
+                        // else - a disposed parent, a null reference - is a real fault and propagates rather
+                        // than being silently turned into an unresolved handle.
                     }
                 }
                 if (!Resolved && !IsObject)
