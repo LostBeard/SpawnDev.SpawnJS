@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Numerics;
 using System.Reflection;
 
@@ -96,7 +96,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 if (value == null)
                 {
-                    Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+                    Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
                     return;
                 }
 
@@ -118,7 +118,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 }
 
                 // Push to JS via your strongly typed Reflect method signature
-                Reflect.Set(jsParent.JSObject, jsKey, doubleValue);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, doubleValue);
             }
         }
     }

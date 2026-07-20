@@ -69,6 +69,19 @@ namespace SpawnDev.SpawnJS
             }
         }
         /// <summary>
+        /// The JSObject this handle points at, throwing if there is not one.<br/>
+        /// Every Reflect entry point takes a non-nullable JSObject, so passing the nullable
+        /// <see cref="JSObject"/> straight in only defers the failure: the null travels into the interop
+        /// boundary and surfaces as a NullReferenceException with no indication of which handle was bad.
+        /// This fails at the call instead, naming the cause - the handle is disposed, or its value is not
+        /// an object (a string, a number or null on the Javascript side).
+        /// </summary>
+        public JSObject JSObjectRequired => JSObject
+            ?? throw new InvalidOperationException(IsDisposed
+                ? $"{nameof(SpawnJSHandle)} is disposed"
+                : $"{nameof(SpawnJSHandle)} does not hold a Javascript object (JSType '{JSType}')");
+
+        /// <summary>
         /// This will be a JSObject or a Javascript value type
         /// </summary>
         public object? JSValue

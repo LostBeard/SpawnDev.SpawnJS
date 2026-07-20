@@ -119,7 +119,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 JS.MarshallNetToJS(jsParent, jsKey, union.Value);
                 return;
             }
-            Reflect.Set(jsParent.JSObject, jsKey, (string?)null);
+            Reflect.Set(jsParent.JSObjectRequired, jsKey, (string?)null);
         }
 
         /// <inheritdoc/>

@@ -14,10 +14,10 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value is EpochDateTime epoch)
             {
-                Reflect.Set(jsParent.JSObject, jsKey, (double)epoch.ValueEpoch);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, (double)epoch.ValueEpoch);
                 return;
             }
-            Reflect.Set(jsParent.JSObject, jsKey, (string?)null);
+            Reflect.Set(jsParent.JSObjectRequired, jsKey, (string?)null);
         }
 
         /// <inheritdoc/>
@@ -47,10 +47,10 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value is DateTime dateTime)
             {
-                Reflect.Set(jsParent.JSObject, jsKey, dateTime.ToString("O", CultureInfo.InvariantCulture));
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, dateTime.ToString("O", CultureInfo.InvariantCulture));
                 return;
             }
-            Reflect.Set(jsParent.JSObject, jsKey, (string?)null);
+            Reflect.Set(jsParent.JSObjectRequired, jsKey, (string?)null);
         }
 
         /// <inheritdoc/>

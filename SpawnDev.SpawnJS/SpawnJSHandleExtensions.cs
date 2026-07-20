@@ -84,44 +84,44 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns true if the proeprty exists
         /// </summary>
-        public static bool HasProperty(this SpawnJSHandle _this, object identifier) => Reflect.Has(_this.JSObject, identifier);
+        public static bool HasProperty(this SpawnJSHandle _this, object identifier) => Reflect.Has(_this.JSObjectRequired, identifier);
         #region GetProperty
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, object identifier) => Reflect.GetBoolean(_this.JSObject, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, object identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, object identifier) => Reflect.GetInt32(_this.JSObject, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, object identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, object identifier) => Reflect.GetDouble(_this.JSObject, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, object identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, object identifier) => Reflect.GetString(_this.JSObject, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, object identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, object identifier) => Reflect.GetJSObject(_this.JSObject, identifier)!;
+        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, object identifier) => Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
         /// <summary>
         /// Get the property value as object
         /// </summary>
-        public static object? GetPropertyAsObject(this SpawnJSHandle _this, object identifier) => Reflect.GetObject(_this.JSObject, identifier);
+        public static object? GetPropertyAsObject(this SpawnJSHandle _this, object identifier) => Reflect.GetObject(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, object identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObject, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, object identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, object identifier) => Reflect.GetByteArray(_this.JSObject, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, object identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns true if the proeprty exists
         /// </summary>
-        public static bool HasProperty(this SpawnJSHandle _this,string identifier) => Reflect.Has(_this.JSObject, identifier);
+        public static bool HasProperty(this SpawnJSHandle _this,string identifier) => Reflect.Has(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns strings like: '[object String]'<br/>
         /// USes: Object.prototype.toString.call
@@ -134,31 +134,31 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, string identifier) => Reflect.GetBoolean(_this.JSObject, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, string identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32(_this.JSObject, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, string identifier) => Reflect.GetDouble(_this.JSObject, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, string identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, string identifier) => Reflect.GetString(_this.JSObject, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, string identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, string identifier) => Reflect.GetJSObject(_this.JSObject, identifier)!;
+        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, string identifier) => Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, string identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObject, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, string identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, string identifier) => Reflect.GetByteArray(_this.JSObject, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, string identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as T using JSON seriliazation
         /// </summary>
@@ -180,19 +180,19 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get the property value as object
         /// </summary>
-        public static object? GetPropertyAsObject(this SpawnJSHandle _this, string identifier) => Reflect.GetObject(_this.JSObject, identifier);
+        public static object? GetPropertyAsObject(this SpawnJSHandle _this, string identifier) => Reflect.GetObject(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable int
         /// </summary>
-        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32Nullable(_this.JSObject, identifier);
+        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32Nullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable double
         /// </summary>
-        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetDoubleNullable(_this.JSObject, identifier);
+        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetDoubleNullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable bool
         /// </summary>
-        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetBooleanNullable(_this.JSObject, identifier);
+        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, string identifier) => Reflect.GetBooleanNullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get a nested property using a dot separated path (a trailing '?' on a segment short circuits to null when missing)
         /// </summary>
@@ -242,87 +242,87 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get the property value as object
         /// </summary>
-        public static object? GetPropertyAsObject(this SpawnJSHandle _this, int identifier) => Reflect.GetObject(_this.JSObject, identifier);
+        public static object? GetPropertyAsObject(this SpawnJSHandle _this, int identifier) => Reflect.GetObject(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable int
         /// </summary>
-        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, int identifier) => Reflect.GetInt32Nullable(_this.JSObject, identifier);
+        public static int? GetPropertyAsInt32Nullable(this SpawnJSHandle _this, int identifier) => Reflect.GetInt32Nullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable double
         /// </summary>
-        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, int identifier) => Reflect.GetDoubleNullable(_this.JSObject, identifier);
+        public static double? GetPropertyAsDoubleNullable(this SpawnJSHandle _this, int identifier) => Reflect.GetDoubleNullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as nullable bool
         /// </summary>
-        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, int identifier) => Reflect.GetBooleanNullable(_this.JSObject, identifier);
+        public static bool? GetPropertyAsBooleanNullable(this SpawnJSHandle _this, int identifier) => Reflect.GetBooleanNullable(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as bool
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, int identifier) => Reflect.GetBoolean(_this.JSObject, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, int identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as int
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, int identifier) => Reflect.GetInt32(_this.JSObject, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, int identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as double
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, int identifier) => Reflect.GetDouble(_this.JSObject, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, int identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as string
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, int identifier) => Reflect.GetString(_this.JSObject, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, int identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as JSObject
         /// </summary>
-        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, int identifier) => Reflect.GetJSObject(_this.JSObject, identifier);
+        public static JSObject? GetPropertyAsJSObject(this SpawnJSHandle _this, int identifier) => Reflect.GetJSObject(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Get the property value as JSObject
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, int identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObject, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, int identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
         /// <summary>
         /// Get the property value as byte[]
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, int identifier) => Reflect.GetByteArray(_this.JSObject, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, int identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
         #endregion
         #region DeleteProperty
         /// <summary>
         /// Delete the property
         /// </summary>
-        public static bool DeleteProperty(this SpawnJSHandle _this, string identifier) => Reflect.DeletePropertyVoid(_this.JSObject, identifier);
+        public static bool DeleteProperty(this SpawnJSHandle _this, string identifier) => Reflect.DeletePropertyVoid(_this.JSObjectRequired, identifier);
         /// <summary>
         /// Delete the property
         /// </summary>
-        public static bool DeleteProperty(this SpawnJSHandle _this, long identifier) => Reflect.DeletePropertyVoid(_this.JSObject, identifier);
+        public static bool DeleteProperty(this SpawnJSHandle _this, long identifier) => Reflect.DeletePropertyVoid(_this.JSObjectRequired, identifier);
         #endregion
         #region SetProperty
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, bool value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, bool value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, int value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, int value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, double value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, double value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, string? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, string? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, JSObject? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, JSObject? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObject, identifier, value?.JSObject);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObjectRequired, identifier, value?.JSObjectRequired);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, string identifier, byte[]? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, string identifier, byte[]? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value using JSON seriliazation
         /// </summary>
@@ -335,44 +335,44 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyObject(this SpawnJSHandle _this, string identifier, object? value) => Reflect.SetObject(_this.JSObject, identifier, value);
+        public static void SetPropertyObject(this SpawnJSHandle _this, string identifier, object? value) => Reflect.SetObject(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, string identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, string identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertySpanByte(this SpawnJSHandle _this, string identifier, Span<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertySpanByte(this SpawnJSHandle _this, string identifier, Span<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
 
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, bool value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, bool value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, int value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, int value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, double value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, double value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, string? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, string? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, JSObject? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, JSObject? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObject, identifier, value?.JSObject);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObjectRequired, identifier, value?.JSObjectRequired);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, int identifier, byte[]? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, int identifier, byte[]? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value using JSON seriliazation
         /// </summary>
@@ -385,44 +385,44 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyObject(this SpawnJSHandle _this, int identifier, object? value) => Reflect.SetObject(_this.JSObject, identifier, value);
+        public static void SetPropertyObject(this SpawnJSHandle _this, int identifier, object? value) => Reflect.SetObject(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, int identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, int identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertySpanByte(this SpawnJSHandle _this, int identifier, Span<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertySpanByte(this SpawnJSHandle _this, int identifier, Span<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
 
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, bool value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, bool value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, int value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, int value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, double value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, double value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, string? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, string? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, JSObject? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, JSObject? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObject, identifier, value?.JSObject);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, SpawnJSHandle? value) => Reflect.Set(_this.JSObjectRequired, identifier, value?.JSObjectRequired);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetProperty(this SpawnJSHandle _this, object identifier, byte[]? value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetProperty(this SpawnJSHandle _this, object identifier, byte[]? value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value using JSON seriliazation
         /// </summary>
@@ -435,15 +435,15 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyObject(this SpawnJSHandle _this, object identifier, object? value) => Reflect.SetObject(_this.JSObject, identifier, value);
+        public static void SetPropertyObject(this SpawnJSHandle _this, object identifier, object? value) => Reflect.SetObject(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, object identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertyArraySegmentByte(this SpawnJSHandle _this, object identifier, ArraySegment<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         /// <summary>
         /// Set the property to the specified value
         /// </summary>
-        public static void SetPropertySpanByte(this SpawnJSHandle _this, object identifier, Span<byte> value) => Reflect.Set(_this.JSObject, identifier, value);
+        public static void SetPropertySpanByte(this SpawnJSHandle _this, object identifier, Span<byte> value) => Reflect.Set(_this.JSObjectRequired, identifier, value);
         #endregion
     }
 }

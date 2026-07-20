@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -45,11 +45,11 @@ namespace SpawnDev.SpawnJS.Marshallers
                     var item = objects[i];
                     JS.MarshallNetToJS(outArray, i, item);
                 }
-                Reflect.Set(jsParent.JSObject, jsKey, outArray.JSObject);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, outArray.JSObjectRequired);
             }
             else
             {
-                Reflect.Set(jsParent.JSObject, jsKey, (string?)null);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string?)null);
             }
         }
     }

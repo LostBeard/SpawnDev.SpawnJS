@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
@@ -77,11 +77,11 @@ namespace SpawnDev.SpawnJS.Marshallers
                     if (!prop.GetShouldWrite(propValue)) continue;
                     JS.MarshallNetToJS(outObj, propName, propValue);
                 }
-                Reflect.Set(jsParent.JSObject, jsKey, outObj.JSObject);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, outObj.JSObjectRequired);
             }
             else
             {
-                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
             }
 
         }

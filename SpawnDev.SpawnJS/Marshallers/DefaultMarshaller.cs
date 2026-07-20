@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -23,11 +23,11 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (obj == null || type == null)
             {
-                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
             }
             else
             {
-                Reflect.SetObject(jsParent.JSObject, jsKey, obj);
+                Reflect.SetObject(jsParent.JSObjectRequired, jsKey, obj);
             }
         }
     }

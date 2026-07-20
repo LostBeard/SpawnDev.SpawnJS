@@ -1,4 +1,4 @@
-﻿namespace SpawnDev.SpawnJS.Marshallers
+namespace SpawnDev.SpawnJS.Marshallers
 {
     /// <summary>
     /// Marshalls SpawnJSObject and types that derive from SpawnJSObject
@@ -18,11 +18,11 @@
         {
             if (value is SpawnJSObject jsRef && jsRef.JSRef != null)
             {
-                Reflect.Set(jsParent.JSObject, jsKey, jsRef.JSRef.JSObject);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, jsRef.JSRef.JSObject);
             }
             else
             {
-                Reflect.Set(jsParent.JSObject, jsKey, (string)null!);
+                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
             }
         }
     }

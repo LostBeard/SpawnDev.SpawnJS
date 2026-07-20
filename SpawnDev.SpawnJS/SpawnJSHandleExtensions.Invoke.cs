@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle as a constructor (new) - pass the arguments as an array.
         /// </summary>
-        public static SpawnJSHandle InvokeConstructorApply(this SpawnJSHandle _this, object?[] args) => (SpawnJSHandle)Reflect.ConstructJSObject(_this.JSObject, args)!;
+        public static SpawnJSHandle InvokeConstructorApply(this SpawnJSHandle _this, object?[] args) => (SpawnJSHandle)Reflect.ConstructJSObject(_this.JSObjectRequired, args)!;
         /// <summary>
         /// Invoke the SpawnJSHandle as a constructor (new)
         /// </summary>
@@ -61,7 +61,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle - pass the arguments as an array.
         /// </summary>
-        public static void InvokeVoidApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyVoid(_this.JSObject, null, args);
+        public static void InvokeVoidApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyVoid(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle
         /// </summary>
@@ -109,7 +109,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as SpawnJSHandle - pass the arguments as an array.
         /// </summary>
-        public static SpawnJSHandle? InvokeJSObjectApply(this SpawnJSHandle _this, object?[] args) => (SpawnJSHandle)Reflect.ApplyJSObject(_this.JSObject, null!, args)!;
+        public static SpawnJSHandle? InvokeJSObjectApply(this SpawnJSHandle _this, object?[] args) => (SpawnJSHandle)Reflect.ApplyJSObject(_this.JSObjectRequired, null!, args)!;
         /// <summary>
         /// Invoke the SpawnJSHandle and return as SpawnJSHandle
         /// </summary>
@@ -157,7 +157,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as object - pass the arguments as an array.
         /// </summary>
-        public static object? InvokeObjectApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyObject(_this.JSObject, null, args);
+        public static object? InvokeObjectApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyObject(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as object
         /// </summary>
@@ -205,7 +205,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as byte[] - pass the arguments as an array.
         /// </summary>
-        public static byte[]? InvokeByteArrayApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyByteArray(_this.JSObject, null, args);
+        public static byte[]? InvokeByteArrayApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyByteArray(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as byte[]
         /// </summary>
@@ -253,7 +253,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as string - pass the arguments as an array.
         /// </summary>
-        public static string? InvokeStringApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyString(_this.JSObject, null, args);
+        public static string? InvokeStringApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyString(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as string
         /// </summary>
@@ -301,7 +301,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as int - pass the arguments as an array.
         /// </summary>
-        public static int InvokeInt32Apply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyInt32(_this.JSObject, null, args);
+        public static int InvokeInt32Apply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyInt32(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as int
         /// </summary>
@@ -349,7 +349,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as double - pass the arguments as an array.
         /// </summary>
-        public static double InvokeDoubleApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyDouble(_this.JSObject, null, args);
+        public static double InvokeDoubleApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyDouble(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as double
         /// </summary>
@@ -397,7 +397,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as bool - pass the arguments as an array.
         /// </summary>
-        public static bool InvokeBooleanApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyBoolean(_this.JSObject, null, args);
+        public static bool InvokeBooleanApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyBoolean(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as bool
         /// </summary>
@@ -445,7 +445,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable int - pass the arguments as an array.
         /// </summary>
-        public static int? InvokeInt32NullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyInt32Nullable(_this.JSObject, null, args);
+        public static int? InvokeInt32NullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyInt32Nullable(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable int
         /// </summary>
@@ -493,7 +493,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable double - pass the arguments as an array.
         /// </summary>
-        public static double? InvokeDoubleNullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyDoubleNullable(_this.JSObject, null, args);
+        public static double? InvokeDoubleNullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyDoubleNullable(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable double
         /// </summary>
@@ -541,7 +541,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable bool - pass the arguments as an array.
         /// </summary>
-        public static bool? InvokeBooleanNullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyBooleanNullable(_this.JSObject, null, args);
+        public static bool? InvokeBooleanNullableApply(this SpawnJSHandle _this, object?[] args) => Reflect.ApplyBooleanNullable(_this.JSObjectRequired, null, args);
         /// <summary>
         /// Invoke the SpawnJSHandle and return as nullable bool
         /// </summary>
@@ -591,7 +591,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static T InvokeJsonApply<T>(this SpawnJSHandle _this, object?[] args)
         {
-            using var jsObject = Reflect.ApplyJSObject(_this.JSObject, null, args);
+            using var jsObject = Reflect.ApplyJSObject(_this.JSObjectRequired, null, args);
             var json = jsObject == null ? null : JSON.Stringify(jsObject);
             return json == null ? default! : JsonSerializer.Deserialize<T>(json)!;
         }
@@ -644,7 +644,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static T InvokeJsonApply<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions, object?[] args)
         {
-            using var jsObject = Reflect.ApplyJSObject(_this.JSObject, null, args);
+            using var jsObject = Reflect.ApplyJSObject(_this.JSObjectRequired, null, args);
             var json = jsObject == null ? null : JSON.Stringify(jsObject);
             return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
         }
@@ -700,7 +700,7 @@ namespace SpawnDev.SpawnJS
         public static SpawnJSHandle InvokePropertyConstructorApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            var jsObj = (SpawnJSHandle)Reflect.ConstructJSObject(property!.JSObject, args)!;
+            var jsObj = (SpawnJSHandle)Reflect.ConstructJSObject(property!.JSObjectRequired, args)!;
             return jsObj;
         }
         /// <summary>
@@ -756,7 +756,7 @@ namespace SpawnDev.SpawnJS
         public static void InvokePropertyVoidApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            Reflect.ApplyVoid(property!.JSObject, _this.JSObject, args);
+            Reflect.ApplyVoid(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property
@@ -812,7 +812,7 @@ namespace SpawnDev.SpawnJS
         public static async Task InvokePropertyVoidApplyAsync(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            await Reflect.ApplyVoidAsync(property!.JSObject, _this.JSObject, args);
+            await Reflect.ApplyVoidAsync(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property asynchronously
@@ -868,7 +868,7 @@ namespace SpawnDev.SpawnJS
         public static object? InvokePropertyObjectApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyObject(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyObject(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as object
@@ -924,7 +924,7 @@ namespace SpawnDev.SpawnJS
         public static SpawnJSHandle? InvokePropertyJSHandleApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return (SpawnJSHandle)Reflect.ApplyJSObject(property!.JSObject, _this.JSObject, args)!;
+            return (SpawnJSHandle)Reflect.ApplyJSObject(property!.JSObjectRequired, _this.JSObjectRequired, args)!;
         }
         /// <summary>
         /// Invoke the property and return as SpawnJSHandle
@@ -980,7 +980,7 @@ namespace SpawnDev.SpawnJS
         public static async Task<SpawnJSHandle> InvokePropertyJSHandleApplyAsync(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return (SpawnJSHandle)(await Reflect.ApplyJSObjectAsync(property!.JSObject, _this.JSObject, args))!;
+            return (SpawnJSHandle)(await Reflect.ApplyJSObjectAsync(property!.JSObjectRequired, _this.JSObjectRequired, args))!;
         }
         /// <summary>
         /// Invoke the property asynchronously and return as SpawnJSHandle
@@ -1032,7 +1032,7 @@ namespace SpawnDev.SpawnJS
         public static byte[]? InvokePropertyByteArrayApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyByteArray(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyByteArray(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as byte[]
@@ -1084,7 +1084,7 @@ namespace SpawnDev.SpawnJS
         public static string? InvokePropertyStringApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyString(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyString(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as string
@@ -1136,7 +1136,7 @@ namespace SpawnDev.SpawnJS
         public static int InvokePropertyInt32Apply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyInt32(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyInt32(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as int
@@ -1188,7 +1188,7 @@ namespace SpawnDev.SpawnJS
         public static double InvokePropertyDoubleApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyDouble(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyDouble(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as double
@@ -1240,7 +1240,7 @@ namespace SpawnDev.SpawnJS
         public static bool InvokePropertyBooleanApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyBoolean(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyBoolean(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as bool
@@ -1292,7 +1292,7 @@ namespace SpawnDev.SpawnJS
         public static int? InvokePropertyInt32NullableApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyInt32Nullable(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyInt32Nullable(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as nullable int
@@ -1344,7 +1344,7 @@ namespace SpawnDev.SpawnJS
         public static double? InvokePropertyDoubleNullableApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyDoubleNullable(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyDoubleNullable(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as nullable double
@@ -1396,7 +1396,7 @@ namespace SpawnDev.SpawnJS
         public static bool? InvokePropertyBooleanNullableApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            return Reflect.ApplyBooleanNullable(property!.JSObject, _this.JSObject, args);
+            return Reflect.ApplyBooleanNullable(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
         /// <summary>
         /// Invoke the property and return as nullable bool
@@ -1448,7 +1448,7 @@ namespace SpawnDev.SpawnJS
         public static T InvokePropertyJsonApply<T>(this SpawnJSHandle _this, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            using var jsObject = Reflect.ApplyJSObject(property!.JSObject, _this.JSObject, args);
+            using var jsObject = Reflect.ApplyJSObject(property!.JSObjectRequired, _this.JSObjectRequired, args);
             var json = jsObject == null ? null : JSON.Stringify(jsObject);
             return json == null ? default! : JsonSerializer.Deserialize<T>(json)!;
         }
@@ -1508,7 +1508,7 @@ namespace SpawnDev.SpawnJS
         public static T InvokePropertyJsonApply<T>(this SpawnJSHandle _this, JsonSerializerOptions jsonSerializerOptions, string identifier, object?[] args)
         {
             using var property = _this.GetPropertyAsJSHandle(identifier);
-            using var jsObject = Reflect.ApplyJSObject(property!.JSObject, _this.JSObject, args);
+            using var jsObject = Reflect.ApplyJSObject(property!.JSObjectRequired, _this.JSObjectRequired, args);
             var json = jsObject == null ? null : JSON.Stringify(jsObject);
             return json == null ? default! : JsonSerializer.Deserialize<T>(json, jsonSerializerOptions)!;
         }

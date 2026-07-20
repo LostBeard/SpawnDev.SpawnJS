@@ -1,4 +1,4 @@
-﻿using SpawnDev.SpawnJS.Marshallers;
+using SpawnDev.SpawnJS.Marshallers;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices.JavaScript;
 
@@ -256,16 +256,16 @@ namespace SpawnDev.SpawnJS
         #endregion
         #region NetToJS calls
         private void NetToJSCallVoid(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoid(_netToJSCall.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject });
+            => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired });
 
         private SpawnJSHandle? NetToJSCall(string cmd, SpawnJSHandle? args)
-            => (SpawnJSHandle?)Reflect.ApplyJSObject(_netToJSCall.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject })!;
+            => (SpawnJSHandle?)Reflect.ApplyJSObject(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired })!;
 
         private async Task<SpawnJSHandle?> NetToJSCallAsync(string cmd, SpawnJSHandle? args)
-            => (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject }))!;
+            => (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired }))!;
 
         private Task NetToJSCallVoidAsync(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoidAsync(_netToJSCallAsync.JSObject, SpawnJSInterop.JSObject, new object?[] { cmd, args?.JSObject });
+            => Reflect.ApplyVoidAsync(_netToJSCallAsync.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired });
         #endregion
     }
 }

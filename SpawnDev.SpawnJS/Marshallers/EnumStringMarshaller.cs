@@ -26,7 +26,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override void NetToJS(Type? typeToConvert, SpawnJSHandle jsParent, object jsKey, object? value)
         {
             // write the Javascript string the enum member maps to, which is all Javascript ever sees
-            Reflect.Set(jsParent.JSObject, jsKey, value is EnumString enumString ? enumString.String : null);
+            Reflect.Set(jsParent.JSObjectRequired, jsKey, value is EnumString enumString ? enumString.String : null);
         }
 
         /// <inheritdoc/>
