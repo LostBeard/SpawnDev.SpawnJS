@@ -2,6 +2,7 @@ using BlazorBrowserDemo;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
+using SpawnDev.SpawnJS;
 using TestsShared;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -9,16 +10,17 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddSingleton(sp => (IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>());
 
-builder.Services.AddSingleton<JSInteropTestsCore>();
-
 var app = builder.Build();
 
-var testService = app.Services.GetRequiredService<JSInteropTestsCore>();
+// SpawnJSRuntime.Instance is the singleton the whole library reads through, so it has to exist
+// before a test touches a marshaller.
+var JS = new SpawnJSRuntime();
+JS.Verbose = false;
 
 try
 {
-    await testService.RunAsync();
-    Console.WriteLine("Success");
+    // `?filter=Name` in the url runs only the matching tests
+    await TestSuiteRunner.RunAllAsync(TestSuiteRunner.FilterFromLocation());
 }
 catch (Exception ex)
 {

@@ -1,7 +1,9 @@
 using SpawnDev.SpawnJS;
 using TestsShared;
 
-SpawnJSRuntime.Verbose = true;
 var JS = new SpawnJSRuntime();
-var tests = new JSInteropTestsCore(JS);
-await tests.RunAsync();
+JS.Verbose = false;
+
+// `?filter=Name` in the url runs only the matching tests, so a single page load can be scoped
+// from the address bar or by the SpawnJS.TestRunner harness.
+await TestSuiteRunner.RunAllAsync(TestSuiteRunner.FilterFromLocation());
