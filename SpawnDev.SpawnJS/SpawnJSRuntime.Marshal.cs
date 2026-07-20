@@ -170,46 +170,36 @@ namespace SpawnDev.SpawnJS
             return marshaller;
         }
         /// <summary>
-        /// Reusable argument arrays, one per call depth.<br/>
-        /// Every .Net to Javascript call used to construct a fresh Javascript Array to carry its
-        /// arguments - a boundary crossing, a Javascript object, a JSObject proxy and a handle slot, per
-        /// call. The arrays are now kept and refilled.<br/>
-        /// Indexed by call DEPTH rather than shared outright, because marshalling an argument can itself
-        /// make a call (a marshaller reading a property, say). A single shared array would be refilled by
-        /// the nested call before the outer one had fired. Depth gives each nesting level its own array,
-        /// and nesting is only ever a handful deep.<br/>
-        /// Sync only. An async call has not finished when it returns, so its array cannot be handed back
-        /// yet and the depth counter would unwind in the wrong order.
+        /// Top of the shared call buffer. Arguments are appended here and the top unwinds when the call
+        /// completes, so it behaves as a stack: a nested call - a marshaller reading a property while an
+        /// argument is being marshalled - writes above the outer call's region and cannot disturb it.
+        /// <br/>
+        /// Sync only. An async call has not finished when it returns, so its region cannot be released yet
+        /// and the top would unwind out of order.
         /// </summary>
-        readonly List<SpawnJSHandle> _argsArrays = new List<SpawnJSHandle>();
-        int _callDepth;
+        int _bufferTop;
 
         /// <summary>
-        /// Fills and returns the argument array for the current call depth. Pair every call with
-        /// <see cref="ReleaseArgsArray"/> in a finally.
+        /// Writes the arguments into the shared buffer and returns the offset they start at. Pair every
+        /// call with <see cref="ReleaseArgs"/> in a finally.
         /// </summary>
-        SpawnJSHandle RentArgsArray(object?[] args)
+        int WriteArgs(object?[] args)
         {
-            var depth = _callDepth++;
-            while (_argsArrays.Count <= depth) _argsArrays.Add(NewJSArray());
-            var array = _argsArrays[depth];
-            // Set length first so anything left over from a longer previous call at this depth is dropped.
-            // Javascript truncates the array on a shorter length, and grows it with holes on a longer one,
-            // which the fill below then writes over.
-            Reflect.Set(array.JSObjectRequired, "length", args.Length);
+            var offset = _bufferTop;
+            _bufferTop += args.Length;
             for (var i = 0; i < args.Length; i++)
             {
                 var item = args[i];
                 var itemType = item?.GetType();
-                GetMarshaller(itemType).NetToJS(itemType, array, i, item);
+                GetMarshaller(itemType).NetToJS(itemType, _netToJSBuffer, (double)(offset + i), item);
             }
-            return array;
+            return offset;
         }
 
         /// <summary>
-        /// Gives the current depth's argument array back for reuse
+        /// Releases the current call's region of the buffer
         /// </summary>
-        void ReleaseArgsArray() => _callDepth--;
+        void ReleaseArgs(int offset) => _bufferTop = offset;
 
         /// <summary>
         /// Marshall object?[]? args to a Javascript Array
@@ -263,34 +253,32 @@ namespace SpawnDev.SpawnJS
         internal object? NetRun(Type type, string cmd, object?[]? args = null)
         {
             args ??= new object?[0];
-            // the depth this call will use; the same key names its slot in the return store, so a nested
-            // call (which runs at depth + 1) can never overwrite a result this one has not read yet
-            var retKey = (double)_callDepth;
-            var jsArgs = RentArgsArray(args);
+            var offset = WriteArgs(args);
             try
             {
-                NetToJSCall(cmd, jsArgs, retKey);
-                var netRet = MarshallJSToNet(type, _retStore!, retKey);
+                NetToJSCall(cmd, offset, args.Length);
+                // the result comes back in the first slot of this call's own region
+                var netRet = MarshallJSToNet(type, _netToJSBuffer, (double)offset);
                 if (netRet != null && netRet.GetType() != type)
                     throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {type.Name} got {netRet.GetType().Name}");
                 return netRet;
             }
             finally
             {
-                ReleaseArgsArray();
+                ReleaseArgs(offset);
             }
         }
         internal void NetRunVoid(string cmd, object?[]? args = null)
         {
             args ??= new object?[0];
-            var jsArgs = RentArgsArray(args);
+            var offset = WriteArgs(args);
             try
             {
-                NetToJSCallVoid(cmd, jsArgs);
+                NetToJSCall(cmd, offset, args.Length);
             }
             finally
             {
-                ReleaseArgsArray();
+                ReleaseArgs(offset);
             }
         }
         #endregion
@@ -314,19 +302,12 @@ namespace SpawnDev.SpawnJS
         #endregion
         #region NetToJS calls
         /// <summary>
-        /// Runs a synchronous command and discards its result. The -1 return key tells the Javascript side
-        /// not to hold a reference to a value nobody is going to read.
+        /// Runs a synchronous command. Only primitives cross: the command name, the offset its arguments
+        /// start at in the shared buffer, and how many there are. The result is left in the first slot of
+        /// that region.
         /// </summary>
-        private void NetToJSCallVoid(string cmd, SpawnJSHandle? args)
-            => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired, -1d });
-
-        /// <summary>
-        /// Runs a synchronous command and parks its result in the return store under retKey, rather than
-        /// returning it wrapped in a freshly allocated array. The caller reads the slot through a volatile
-        /// handle, so the round trip allocates nothing.
-        /// </summary>
-        private void NetToJSCall(string cmd, SpawnJSHandle? args, double retKey)
-            => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired, retKey });
+        private void NetToJSCall(string cmd, int offset, int length)
+            => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, (double)offset, (double)length });
 
         private async Task<SpawnJSHandle?> NetToJSCallAsync(string cmd, SpawnJSHandle? args)
             => (SpawnJSHandle?)(await Reflect.ApplyJSObjectAsync(_netToJSCallAsync.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, args?.JSObjectRequired }))!;

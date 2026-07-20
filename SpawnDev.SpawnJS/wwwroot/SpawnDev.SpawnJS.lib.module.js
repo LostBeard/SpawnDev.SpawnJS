@@ -280,18 +280,33 @@
             var ret = this._JSToNetCall(cmd, args);
             return ret;
         }
-        // Results are parked here rather than returned wrapped in a fresh array. .Net holds ONE handle to
-        // this store for the life of the process and reads a slot through a volatile handle, so a
-        // synchronous call now allocates nothing on the way back either.
-        // Indexed by the caller's call DEPTH, which .Net already tracks for its argument arrays, so a
-        // nested call cannot overwrite the slot an outer call has not read yet.
-        _retStore = [];
-        _netToJSCall(/* string */ cmd, /* Array */ argArray, /* number */ retKey) {
-            if (this.verbose) console.log(">> _netToJSCall::", cmd, argArray);
-            var ret = this[cmd](...argArray);
+        // Arguments and results both live in this one flat buffer, so a synchronous call carries only
+        // primitives across the boundary: the command name, an offset and a length. No Javascript object
+        // reference is marshalled at all, which is the cost that survived pooling the argument arrays.
+        //
+        // .Net appends its arguments at the current top, calls, reads the result back out of the FIRST
+        // slot it wrote (the arguments there have already been consumed), then unwinds the top. That makes
+        // it a stack: a nested call - a marshaller reading a property while marshalling an argument -
+        // writes above the outer call's region and cannot disturb it.
+        netToJSBuffer = [];
+        _netToJSCall(/* string */ cmd, /* number */ offset, /* number */ length) {
+            var a = this.netToJSBuffer;
+            if (this.verbose) console.log(">> _netToJSCall::", cmd, offset, length);
+            // Dispatch by arity rather than spreading a slice. Every command takes four arguments or
+            // fewer, so the spread path is a fallback that should never run - and it is the only branch
+            // here that would allocate.
+            var ret;
+            switch (length) {
+                case 0: ret = this[cmd](); break;
+                case 1: ret = this[cmd](a[offset]); break;
+                case 2: ret = this[cmd](a[offset], a[offset + 1]); break;
+                case 3: ret = this[cmd](a[offset], a[offset + 1], a[offset + 2]); break;
+                case 4: ret = this[cmd](a[offset], a[offset + 1], a[offset + 2], a[offset + 3]); break;
+                default: ret = this[cmd](...a.slice(offset, offset + length)); break;
+            }
             if (this.verbose) console.log("<< _netToJSCall::", ret);
-            // retKey below zero means the caller is discarding the result, so do not hold a reference to it
-            if (retKey >= 0) this._retStore[retKey] = ret;
+            // hand the result back in the first slot of the caller's own region
+            a[offset] = ret;
         }
         async _netToJSCallAsync(/* string */ cmd, /* Array */ argArray) {
             if (this.verbose) console.log(">> _netToJSCallAsync::", cmd, argArray);
