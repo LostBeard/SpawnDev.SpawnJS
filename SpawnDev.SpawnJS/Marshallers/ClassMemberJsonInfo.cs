@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -77,11 +77,12 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <summary>
         /// Get's the Json version of the Property/Field name
         /// </summary>
-        public string GetJsonName()
-        {
-            if (JsonPropertyNameAttribute != null) return JsonPropertyNameAttribute.Name;
-            return JsonNamingPolicy.CamelCase.ConvertName(Name);
-        }
+        public string GetJsonName() => _jsonName ??=
+            JsonPropertyNameAttribute?.Name ?? JsonNamingPolicy.CamelCase.ConvertName(Name);
+        // A member's Javascript name cannot change, but this ran on every property of every marshal and
+        // ConvertName allocates a fresh string each time. Types carrying an explicit JsonPropertyName hid
+        // the cost; most wrapper types do not have one, so they paid it on every single object marshalled.
+        string? _jsonName;
     }
     
 }

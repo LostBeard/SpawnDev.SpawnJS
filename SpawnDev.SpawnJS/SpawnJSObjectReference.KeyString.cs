@@ -56,6 +56,15 @@ namespace SpawnDev.SpawnJS
         public void Set(string identifier, object? value)
         {
             if (TrySetFast(identifier, value)) return;
+            // Marshal straight into this object at the key. The marshallers already write into a handle
+            // at a key, so when this target is slotted nothing needs the generic dispatcher - and the
+            // dispatcher is the whole cost here: an EMPTY object cost 36.8us through it against 2.1us
+            // for a primitive, all of it setup rather than marshalling.
+            if (!identifier.Contains('.') && JSHandle.TryGetSlot(out _))
+            {
+                JS.MarshallNetToJS(JSHandle, identifier, value);
+                return;
+            }
             JS.NetRunVoid("setProperty", new object[] { JSObject, identifier, value! });
         }
 
