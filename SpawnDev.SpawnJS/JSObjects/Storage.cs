@@ -1,5 +1,5 @@
 using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.SpawnJSObjects;
+using SpawnDev.SpawnJS.JSObjects;
 using System.Text.Json;
 
 namespace SpawnDev.SpawnJS.JSObjects

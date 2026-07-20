@@ -1,5 +1,5 @@
 using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.SpawnJSObjects;
+using SpawnDev.SpawnJS.JSObjects;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>

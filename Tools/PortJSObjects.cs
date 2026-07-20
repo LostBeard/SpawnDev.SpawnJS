@@ -28,16 +28,25 @@ if (!Directory.Exists(source))
 }
 Directory.CreateDirectory(dest);
 
+// SpawnJS's own hand-written wrapper types live directly in JSObjects/ (Error, Promise, Function,
+// Array, Window, JSException...). They are what the runtime itself is built against, so a ported
+// BlazorJS wrapper of the same name must never overwrite one. Captured before anything is written.
+var NativeTypes = new HashSet<string>(
+    Directory.GetFiles(dest, "*.cs", SearchOption.TopDirectoryOnly).Select(Path.GetFileNameWithoutExtension)!,
+    StringComparer.Ordinal);
+
 // patterns that mean the wrapper needs design work, not a mechanical copy
 var blockers = new (string Name, Regex Pattern)[]
 {
     ("ElementRef", new Regex(@"\bElementReference\b")),
-    ("Events",     new Regex(@"\bActionEvent\b|\bJSEventCallback\b")),
+    // ActionEvent/FuncEvent/CallbackEvent/CallbackRef are ported, so event-bearing wrappers are no
+    // longer blocked on the substrate. JSEventCallback has no SpawnJS equivalent yet.
+    ("JSEventCallback", new Regex(@"\bJSEventCallback\b")),
     ("Union",      new Regex(@"\bUnion<")),
     // NOT a blocker: SpawnJSObjectReference already carries CallAsync/GetAsync/CallVoidAsync, so
     // Task-returning wrapper members port unchanged. Verified by porting and building the
     // AsyncIterator/Iterator/IteratorResult closure. Kept out of the list deliberately.
-    ("Callback",   new Regex(@"\bCallback\b|\bActionCallback\b|\bFuncCallback\b")),
+    // Callback/ActionCallback/FuncCallback/CallbackGroup all exist in SpawnJS, so not a blocker.
     ("DateTime",   new Regex(@"\bDateTime\b")),
     ("EnumString", new Regex(@"\bEnumString\b")),
     ("Undefinable",new Regex(@"\bUndefinable\b")),
@@ -78,12 +87,29 @@ if (mode == "--port-ready")
         foreach (var name in batch)
         {
             var src = Directory.GetFiles(source, name + ".cs", SearchOption.AllDirectories).First();
-            File.WriteAllText(Path.Combine(dest, name + ".cs"), Transform(File.ReadAllText(src)));
+            Emit(src);
         }
         Console.WriteLine($"pass {pass}: ported {batch.Count} ({string.Join(", ", batch.Take(12))}{(batch.Count > 12 ? ", ..." : "")})");
         total += batch.Count;
     }
     Console.WriteLine($"\nported {total} wrappers");
+    return 0;
+}
+
+if (mode == "--port-all")
+{
+    // port every blocker-free wrapper in one pass. The remaining wrappers form a cyclic dependency
+    // graph (Element <-> Node <-> Document), so a "port only what has zero unported deps" rule can
+    // never move them. Port the lot and let the compiler name whatever is genuinely missing.
+    var count = 0;
+    foreach (var f in Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories))
+    {
+        var text = File.ReadAllText(f);
+        if (blockers.Any(b => b.Pattern.IsMatch(text))) continue;
+        Emit(f);
+        count++;
+    }
+    Console.WriteLine($"ported {count} wrappers");
     return 0;
 }
 
@@ -129,7 +155,7 @@ if (mode == "--closure")
     foreach (var name in closure)
     {
         var src = Directory.GetFiles(source, name + ".cs", SearchOption.AllDirectories).First();
-        File.WriteAllText(Path.Combine(dest, name + ".cs"), Transform(File.ReadAllText(src)));
+        Emit(src);
     }
     Console.WriteLine($"ported closure of {string.Join(", ", seeds)}: {closure.Count} types");
     foreach (var chunk in closure.Order(StringComparer.Ordinal).Chunk(6)) Console.WriteLine("  " + string.Join(", ", chunk));
@@ -161,12 +187,33 @@ foreach (var name in names)
         Console.WriteLine($"  SKIP  {name} needs design work: {string.Join(",", hits)}");
         continue;
     }
-    File.WriteAllText(Path.Combine(dest, name + ".cs"), Transform(text));
+    Emit(file);
     Console.WriteLine($"  PORT  {name}");
     ported++;
 }
 Console.WriteLine($"\nported {ported} of {names.Length}");
 return 0;
+
+// mirrors the BlazorJS JSObjects/ subfolder layout (WebGPU/, WebRTC/, DOM/, ...) rather than
+// flattening ~1000 wrappers into one directory
+string DestPathFor(string sourceFile)
+{
+    var relative = Path.GetRelativePath(source, sourceFile);
+    var target = Path.Combine(dest, relative);
+    Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+    return target;
+}
+
+void Emit(string sourceFile)
+{
+    var name = Path.GetFileNameWithoutExtension(sourceFile);
+    if (NativeTypes.Contains(name))
+    {
+        Console.WriteLine($"  SKIP  {name} - SpawnJS has its own implementation");
+        return;
+    }
+    File.WriteAllText(DestPathFor(sourceFile), Transform(File.ReadAllText(sourceFile)));
+}
 
 string Transform(string text)
 {
@@ -183,7 +230,7 @@ string Transform(string text)
     text = Regex.Replace(text, @"\.InvokeVoid\(", ".CallVoid(");
     // SpawnJS's own wrapper types (Error, Promise, Function, Array, Window...) live in a different
     // namespace than the ported ones, so ported files need both.
-    var usings = "using SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.SpawnJSObjects;\r\n";
+    var usings = "using SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\n";
     // a `global using` must precede every non-global using, so insert after any leading global usings
     var lastGlobal = Regex.Matches(text, @"^global using [^\r\n]*;\s*\r?\n", RegexOptions.Multiline).LastOrDefault();
     if (lastGlobal != null)
@@ -222,7 +269,7 @@ void Report()
     var available = Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories)
         .GroupBy(Path.GetFileNameWithoutExtension).ToDictionary(g => g.Key!, g => g.First());
     var have = new HashSet<string>(StringComparer.Ordinal);
-    foreach (var dir in new[] { dest, Path.Combine(repoRoot, "SpawnDev.SpawnJS", "SpawnJSObjects") })
+    foreach (var dir in new[] { dest, Path.Combine(repoRoot, "SpawnDev.SpawnJS") })
         if (Directory.Exists(dir))
             foreach (var f in Directory.GetFiles(dir, "*.cs")) have.Add(Path.GetFileNameWithoutExtension(f)!);
 
@@ -255,7 +302,7 @@ List<string> Ready(bool printOnly)
     var available = Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories)
         .GroupBy(Path.GetFileNameWithoutExtension).ToDictionary(g => g.Key!, g => g.First());
     var have = new HashSet<string>(StringComparer.Ordinal);
-    foreach (var dir in new[] { dest, Path.Combine(repoRoot, "SpawnDev.SpawnJS", "SpawnJSObjects") })
+    foreach (var dir in new[] { dest, Path.Combine(repoRoot, "SpawnDev.SpawnJS") })
         if (Directory.Exists(dir))
             foreach (var f in Directory.GetFiles(dir, "*.cs")) have.Add(Path.GetFileNameWithoutExtension(f)!);
 
@@ -284,7 +331,7 @@ void Missing()
 {
     if (!Directory.Exists(dest)) { Console.WriteLine("nothing ported yet"); return; }
     var have = new HashSet<string>(Directory.GetFiles(dest, "*.cs").Select(Path.GetFileNameWithoutExtension)!);
-    foreach (var f in Directory.GetFiles(Path.Combine(repoRoot, "SpawnDev.SpawnJS", "SpawnJSObjects"), "*.cs"))
+    foreach (var f in Directory.GetFiles(Path.Combine(repoRoot, "SpawnDev.SpawnJS"), "*.cs"))
         have.Add(Path.GetFileNameWithoutExtension(f));
     var available = new HashSet<string>(Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories).Select(Path.GetFileNameWithoutExtension)!);
     var referenced = new SortedSet<string>();

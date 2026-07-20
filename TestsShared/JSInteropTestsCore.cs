@@ -1,7 +1,7 @@
 using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.SpawnJSObjects;
+using SpawnDev.SpawnJS.JSObjects;
 
-using Function = SpawnDev.SpawnJS.SpawnJSObjects.Function;
+using Function = SpawnDev.SpawnJS.JSObjects.Function;
 
 namespace TestsShared
 {

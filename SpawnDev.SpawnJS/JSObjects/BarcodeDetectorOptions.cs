@@ -1,0 +1,19 @@
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using System.Text.Json.Serialization;
+
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// An options object containing a series of BarcodeFormats to search for in the subsequent detect() calls.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/BarcodeDetector/BarcodeDetector#options
+    /// </summary>
+    public class BarcodeDetectorOptions
+    {
+        /// <summary>
+        /// An Array of barcode formats as strings. To see a full list of supported formats see the Barcode Detection API.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<string>? Formats { get; set; }
+    }
+}
