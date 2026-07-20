@@ -15,7 +15,7 @@ namespace TestsShared
         /// <summary>
         /// The test classes that make up the suite. Add new test classes here.
         /// </summary>
-        public static Type[] TestTypes { get; } = new[] { typeof(JSInteropTestsCore), typeof(JSToNetTests), typeof(PortedJSObjectTests), typeof(EventTests), typeof(UnionTests), typeof(CallbackSharingTests), typeof(MarshallerTests), typeof(WasmMemoryTests), typeof(MemoryViewTests), typeof(HeapViewTests), typeof(CallbackConversionTests) };
+        public static Type[] TestTypes { get; } = new[] { typeof(JSInteropTestsCore), typeof(JSToNetTests), typeof(PortedJSObjectTests), typeof(EventTests), typeof(UnionTests), typeof(CallbackSharingTests), typeof(MarshallerTests), typeof(WasmMemoryTests), typeof(MemoryViewTests), typeof(HeapViewTests), typeof(CallbackConversionTests), typeof(GlobalsProbeTests) };
         /// <summary>
         /// Milliseconds a test may run before it is reported as timed out. Overridable per test.
         /// </summary>
@@ -25,8 +25,15 @@ namespace TestsShared
         /// Runs every test whose name contains <paramref name="filter"/> (null or empty runs all).<br/>
         /// Returns the number of failed tests.
         /// </summary>
+        /// <summary>
+        /// The filter the current run was started with, or null. Diagnostics that would flood a normal run
+        /// use this to stay skipped unless they were asked for by name.
+        /// </summary>
+        public static string? CurrentFilter { get; private set; }
+
         public static async Task<int> RunAllAsync(string? filter = null)
         {
+            CurrentFilter = filter;
             var JS = SpawnJSRuntime.Instance ?? throw new InvalidOperationException("SpawnJSRuntime has not been created.");
             var passed = 0;
             var failed = 0;

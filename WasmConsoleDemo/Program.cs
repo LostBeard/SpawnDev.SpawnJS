@@ -46,17 +46,8 @@ if (args.Length > 0 && args[0] == "--probe-host")
 // rather than classified by hand.
 if (args.Length > 0 && args[0] == "--probe-globals")
 {
-    var wrapperTypes = typeof(SpawnJSObject).Assembly.GetTypes()
-        .Where(t => t.IsPublic && !t.IsAbstract && t.Namespace != null && t.Namespace.StartsWith("SpawnDev.SpawnJS.JSObjects"))
-        .Select(t => t.Name)
-        .Where(n => !n.Contains('`'))
-        .Distinct()
-        .OrderBy(n => n, StringComparer.Ordinal);
-    foreach (var name in wrapperTypes)
-    {
-        Console.WriteLine($"GLOBAL: {name}|{(JS.Has(name) ? "yes" : "no")}");
-    }
-    Console.WriteLine("PROBE-DONE");
+    // shared with the browser probe (TestsShared/GlobalsProbe.cs) so the two hosts cannot drift
+    GlobalsProbe.Emit(JS);
     return 0;
 }
 
