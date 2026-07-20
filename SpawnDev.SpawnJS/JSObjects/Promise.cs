@@ -33,10 +33,13 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
                 else
                 {
+                    // the task has finished, so read the result synchronously. GetResult awaits and hands
+                    // back a Task, which would resolve the Javascript promise with a marshalled .Net Task
+                    // object instead of the value.
                     if (t.GetType().IsGenericType)
                     {
-                        var result = t.GetResult();
-                        resolveFunc.ApplyVoid(null, new object[] { result });
+                        var result = t.GetCompletedResult();
+                        resolveFunc.ApplyVoid(null, new object?[] { result });
                     }
                     else
                     {
@@ -65,10 +68,13 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
                 else
                 {
-                    if (task.GetType().IsGenericType)
+                    // the task has finished, so read the result synchronously. GetResult awaits and hands
+                    // back a Task, which would resolve the Javascript promise with a marshalled .Net Task
+                    // object instead of the value.
+                    if (t.GetType().IsGenericType)
                     {
-                        var result = task.GetResult();
-                        resolveFunc.ApplyVoid(null, new object[] { result });
+                        var result = t.GetCompletedResult();
+                        resolveFunc.ApplyVoid(null, new object?[] { result });
                     }
                     else
                     {

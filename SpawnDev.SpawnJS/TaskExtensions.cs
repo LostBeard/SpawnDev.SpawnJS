@@ -9,7 +9,33 @@ namespace SpawnDev.SpawnJS
     public static class TaskExtensions
     {
         /// <summary>
-        /// Returns the result of a Task
+        /// Result property per Task type, resolved once
+        /// </summary>
+        private static readonly Dictionary<Type, PropertyInfo?> ResultProperties = new Dictionary<Type, PropertyInfo?>();
+        /// <summary>
+        /// Returns the result of an ALREADY COMPLETED Task, or null if the Task is not generic and so has
+        /// no result.<br/>
+        /// This is the synchronous counterpart to <see cref="GetResult"/>, which awaits and therefore
+        /// returns a Task rather than a value. Use this one from inside a continuation, where the Task is
+        /// known to be finished - calling GetResult there hands back the Task object itself, which then
+        /// gets marshalled to Javascript in place of the actual result.
+        /// </summary>
+        public static object? GetCompletedResult(this Task _this)
+        {
+            var typeofTask = _this.GetType();
+            if (!typeofTask.IsGenericType) return null;
+            if (!ResultProperties.TryGetValue(typeofTask, out var resultProperty))
+            {
+                resultProperty = typeofTask.GetProperty("Result");
+                ResultProperties[typeofTask] = resultProperty;
+            }
+            return resultProperty?.GetValue(_this, null);
+        }
+
+        /// <summary>
+        /// Awaits the Task and returns its result, or null if the Task is not generic.<br/>
+        /// Note this returns a Task: it has to await before it can read a result. From inside a
+        /// continuation, where the Task has already finished, use <see cref="GetCompletedResult"/>.
         /// </summary>
         /// <param name="_this"></param>
         /// <returns></returns>

@@ -44,8 +44,16 @@ bool IsPorted(string text)
     // which Transform emits verbatim and no hand-written wrapper starts with
     || Regex.IsMatch(text, @"\A﻿?using SpawnDev\.SpawnJS;\r?\nusing SpawnDev\.SpawnJS\.JSObjects;");
 
+// Scanned across the WHOLE project, not just JSObjects/. A ported wrapper lands in
+// SpawnDev.SpawnJS.JSObjects while the hand-written types live in SpawnDev.SpawnJS, and every ported
+// file imports both namespaces - so a ported wrapper sharing a name with a core type (Reflect, Union,
+// Callback...) makes that name ambiguous in every file that uses it, which the namespaces alone do not
+// prevent.
+var projectDir = Path.GetFullPath(Path.Combine(dest, ".."));
 var NativeTypes = new HashSet<string>(
-    Directory.GetFiles(dest, "*.cs", SearchOption.AllDirectories)
+    Directory.GetFiles(projectDir, "*.cs", SearchOption.AllDirectories)
+        .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                 && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
         .Where(f => !IsPorted(File.ReadAllText(f)))
         .Select(Path.GetFileNameWithoutExtension)!,
     StringComparer.Ordinal);
@@ -53,7 +61,8 @@ var NativeTypes = new HashSet<string>(
 // patterns that mean the wrapper needs design work, not a mechanical copy
 var blockers = new (string Name, Regex Pattern)[]
 {
-    ("ElementRef", new Regex(@"\bElementReference\b")),
+    // NOT a blocker: ElementReference members are stripped by Transform and reinstated as extension
+    // methods in SpawnDev.SpawnJS.Blazor. Keeping the Blazor type out of core is the point, not a gap.
     // ActionEvent/FuncEvent/CallbackEvent/CallbackRef are ported, so event-bearing wrappers are no
     // longer blocked on the substrate. JSEventCallback has no SpawnJS equivalent yet.
     ("JSEventCallback", new Regex(@"\bJSEventCallback\b")),
@@ -64,14 +73,18 @@ var blockers = new (string Name, Regex Pattern)[]
     // Task-returning wrapper members port unchanged. Verified by porting and building the
     // AsyncIterator/Iterator/IteratorResult closure. Kept out of the list deliberately.
     // Callback/ActionCallback/FuncCallback/CallbackGroup all exist in SpawnJS, so not a blocker.
-    ("DateTime",   new Regex(@"\bDateTime\b")),
-    ("EnumString", new Regex(@"\bEnumString\b")),
+    // NOT a blocker: DateTimeMarshaller and EpochDateTimeMarshaller are registered, and EpochDateTime
+    // plus its DateTime extensions are ported.
+    // NOT a blocker: EnumString and EnumStringMarshaller are both in SpawnJS. An EnumString is just the
+    // Javascript string naming an enum member, so it marshals as a string - it never needed the Json
+    // converter it carried in BlazorJS.
     ("Undefinable",new Regex(@"\bUndefinable\b")),
-    // couples to the Blazor runtime itself rather than to a wrapper - never a mechanical port
-    ("BlazorJSRuntime", new Regex(@"\bBlazorJSRuntime\b")),
-    // BlazorJS support types that live outside JSObjects/ and have no SpawnJS equivalent yet
-    ("EpochDateTime", new Regex(@"\bEpochDateTime\b")),
-    ("GPUCoord",   new Regex(@"\bGPUIntegerCoordinate\b|\bGPUSize\d+\b")),
+    // NOT a blocker: every use is either the `static BlazorJSRuntime JS => BlazorJSRuntime.JS;` ambient
+    // accessor or a `BlazorJSRuntime.JS?.IsUndefined(...)` capability probe. Both map straight onto
+    // SpawnJSRuntime / SpawnJSRuntime.Instance and are rewritten by Transform.
+    // NOT a blocker: GPUIntegerCoordinate, GPUFlagsConstant, GPUSize32 and friends are not types at all,
+    // they are `global using X = System.UInt32;` aliases in JSObjects/WebGPU/GPUTypeDefinitions.cs. That
+    // file matched the pattern naming its own aliases, so it blocked itself and every file using them.
 };
 
 // --allow <Blocker> drops a blocker from the list so its wrappers can be attempted.
@@ -235,6 +248,13 @@ bool Emit(string sourceFile)
 string Transform(string text)
 {
     text = Regex.Replace(text, @"^using Microsoft\.JSInterop;\s*\r?\n", "", RegexOptions.Multiline);
+    // ElementReference is Microsoft.AspNetCore.Components - a Blazor type. SpawnJS core has no Blazor
+    // dependency by design, which is what lets it run under Avalonia, a console host or a raw worker.
+    // The members that take one are pure convenience (a constructor and two explicit conversions per
+    // element wrapper, all single line and each preceded by its doc comment), so they are stripped here
+    // and reinstated as extension methods in SpawnDev.SpawnJS.Blazor, where the dependency is legal.
+    text = Regex.Replace(text, @"^using Microsoft\.AspNetCore\.Components;\s*\r?\n", "", RegexOptions.Multiline);
+    text = Regex.Replace(text, @"(?:^[ \t]*///[^\r\n]*\r?\n)*^[ \t]*public[^\r\n]*\bElementReference\b[^\r\n]*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"^using SpawnDev\.BlazorJS[^\r\n]*;\s*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"namespace SpawnDev\.BlazorJS(\.\w+)*", "namespace SpawnDev.SpawnJS.JSObjects");
     // fully qualified references survive the namespace rewrite above, which only touches the declaration.
@@ -242,6 +262,20 @@ string Transform(string text)
     text = Regex.Replace(text, @"\bSpawnDev\.BlazorJS\.JSObjects\b", "SpawnDev.SpawnJS.JSObjects");
     text = Regex.Replace(text, @"\bSpawnDev\.BlazorJS\b", "SpawnDev.SpawnJS");
     text = Regex.Replace(text, @"\bIJSInProcessObjectReference\b", "SpawnJSObjectReference");
+    // Enum wrappers carry [JsonConverter(typeof(EnumStringConverterFactory))] so System.Text.Json knows
+    // how to write them. SpawnJS marshals an EnumString through EnumStringMarshaller instead, and there
+    // is no Json converter to point at, so the attribute goes. The [JsonPropertyName] attributes on the
+    // enum MEMBERS stay - EnumString reads those reflectively to learn each member's Javascript string.
+    text = Regex.Replace(text, @"^[ \t]*\[JsonConverter\(typeof\((?:JsonConverters\.)?EnumStringConverterFactory\)\)\][ \t]*\r?\n", "", RegexOptions.Multiline);
+    // BlazorJSRuntime is SpawnJSRuntime here, and its ambient `JS` singleton is SpawnJSRuntime.Instance.
+    // The accessor shape is rewritten first so it throws like the rest of the codebase rather than
+    // silently handing back a null runtime.
+    text = Regex.Replace(text,
+        @"(?<prefix>(?:private |protected |internal |public )?static )BlazorJSRuntime JS => BlazorJSRuntime\.JS;",
+        "${prefix}SpawnJSRuntime JS => SpawnJSRuntime.Instance ?? throw new InvalidOperationException(\"SpawnJSRuntime has not been created.\");");
+    // remaining uses are null conditional capability probes: BlazorJSRuntime.JS?.IsUndefined("...")
+    text = Regex.Replace(text, @"\bBlazorJSRuntime\.JS\b", "SpawnJSRuntime.Instance");
+    text = Regex.Replace(text, @"\bBlazorJSRuntime\b", "SpawnJSRuntime");
     // JSObject is BlazorJS's wrapper base type; SpawnJSObject is ours. \b will not match the JSObjects
     // namespace segment, so this is safe to apply to the whole file rather than only the base type
     // position - wrappers also take and return JSObject as a plain type (ProxyHandler alone does it 68
