@@ -1,0 +1,43 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The WritableStream interface of the Streams API provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/WritableStream<br/>
+    /// https://streams.spec.whatwg.org/#writablestream<br/>
+    /// </summary>
+    [Transferable(TransferRequired = true)]
+    public class WritableStream : SpawnJSObject
+    {
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
+        public WritableStream(SpawnJSObjectReference _ref) : base(_ref) { }
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        /// <param name="sink"></param>
+        public WritableStream(UnderlyingSink? sink = null) : base(sink == null ? JS.New(nameof(WritableStream)) : JS.New(nameof(WritableStream), sink)) { }
+        /// <summary>
+        /// A boolean indicating whether the WritableStream is locked to a writer.
+        /// </summary>
+        public bool Locked => JSRef!.Get<bool>("locked");
+        /// <summary>
+        /// Aborts the stream, signaling that the producer can no longer successfully write to the stream and it is to be immediately moved to an error state, with any queued writes discarded.
+        /// </summary>
+        public Task Abort(string? reason = null) => reason == null ? JSRef!.CallVoidAsync("abort") : JSRef!.CallVoidAsync("abort", reason);
+        /// <summary>
+        /// Closes the stream.
+        /// </summary>
+        public Task Close() => JSRef!.CallVoidAsync("close");
+        /// <summary>
+        /// Returns a new instance of WritableStreamDefaultWriter and locks the stream to that instance. While the stream is locked, no other writer can be acquired until this one is released.
+        /// </summary>
+        /// <returns></returns>
+        public WritableStreamDefaultWriter GetWriter() => JSRef!.Call<WritableStreamDefaultWriter>("getWriter");
+    }
+}

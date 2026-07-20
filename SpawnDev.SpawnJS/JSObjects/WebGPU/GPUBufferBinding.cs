@@ -1,0 +1,32 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+using System.Text.Json.Serialization;
+
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// A GPUBufferBinding describes a buffer and optional range to bind as a resource.
+    /// https://www.w3.org/TR/webgpu/#dictdef-gpubufferbinding
+    /// </summary>
+    public class GPUBufferBinding 
+    {
+        /// <summary>
+        /// The GPUBuffer to bind.
+        /// </summary>
+        public GPUBuffer Buffer { get; set; }
+
+        /// <summary>
+        /// The offset, in bytes, from the beginning of buffer to the beginning of the range exposed to the shader by the buffer binding.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public GPUSize64? Offset { get; set; }
+
+        /// <summary>
+        /// The size, in bytes, of the buffer binding. If not provided, specifies the range starting at offset and ending at the end of buffer.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public GPUSize64? Size { get; set; }
+    }
+}

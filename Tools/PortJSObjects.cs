@@ -58,6 +58,14 @@ var NativeTypes = new HashSet<string>(
         .Select(Path.GetFileNameWithoutExtension)!,
     StringComparer.Ordinal);
 
+// Wrappers held back on a named, open design decision rather than a missing type. Listed explicitly so
+// the reason travels with the skip and the entry is trivially removed once the decision is made.
+var deferred = new Dictionary<string, string>(StringComparer.Ordinal)
+{
+    ["ReadableStreamDefaultSource"] = "assigns a Func/Action straight to a FuncCallback/ActionCallback property, which needs the implicit delegate-to-Callback conversions. Those and their CallbackGet backing are deliberately commented out in SpawnJS (ActionCallback.cs, FuncCallback.cs, ActionExtensions.cs) - an implicit conversion that creates a Callback raises the question of who disposes it, and Callback disposal is manual by design.",
+    ["ReadableByteStreamSource"] = "same as ReadableStreamDefaultSource - needs the parked implicit delegate-to-Callback conversions.",
+};
+
 // patterns that mean the wrapper needs design work, not a mechanical copy
 var blockers = new (string Name, Regex Pattern)[]
 {
@@ -241,6 +249,11 @@ bool Emit(string sourceFile)
         Console.WriteLine($"  SKIP  {name} - SpawnJS has its own implementation");
         return false;
     }
+    if (deferred.TryGetValue(name, out var reason))
+    {
+        Console.WriteLine($"  DEFER {name} - {reason}");
+        return false;
+    }
     File.WriteAllText(DestPathFor(sourceFile), Transform(File.ReadAllText(sourceFile)));
     return true;
 }
@@ -281,13 +294,20 @@ string Transform(string text)
     // position - wrappers also take and return JSObject as a plain type (ProxyHandler alone does it 68
     // times) and those uses have to move too.
     text = Regex.Replace(text, @"\bJSObject\b", "SpawnJSObject");
+    // The pre-built-argument-array escape hatch is spelled Void-before-Apply in SpawnJS
+    // (CallVoidApply) and Void-after-Apply in BlazorJS (CallApplyVoid). Same method, same arguments.
+    // \b will not match CallApplyVoidAsync when rewriting CallApplyVoid, so the order here is safe.
+    text = Regex.Replace(text, @"\bCallApplyVoidAsync\b", "CallVoidApplyAsync");
+    text = Regex.Replace(text, @"\bCallApplyVoid\b", "CallVoidApply");
     // Microsoft's IJSInProcessObjectReference.Invoke/InvokeVoid are the same operation as
     // SpawnJS's Call/CallVoid. Normalize rather than carry a legacy alias on the reference type.
     text = Regex.Replace(text, @"\.Invoke<", ".Call<");
     text = Regex.Replace(text, @"\.InvokeVoid\(", ".CallVoid(");
     // SpawnJS's own wrapper types (Error, Promise, Function, Array, Window...) live in a different
     // namespace than the ported ones, so ported files need both.
-    var usings = PortedMarker + "\r\nusing SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\n";
+    // Toolbox holds the support types wrappers reach for by simple name (HeapView and friends), the same
+    // way they do in SpawnDev.BlazorJS.
+    var usings = PortedMarker + "\r\nusing SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\nusing SpawnDev.SpawnJS.Toolbox;\r\n";
     // a `global using` must precede every non-global using, so insert after any leading global usings.
     // A global using alias can span lines (the WebIDL union typedefs are written one arm per line), so
     // the match has to run to the terminating semicolon rather than to the end of the line - matching

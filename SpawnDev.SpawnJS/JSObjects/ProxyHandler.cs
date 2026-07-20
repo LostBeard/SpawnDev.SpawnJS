@@ -1,0 +1,235 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+using System.Text.Json.Serialization;
+
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// An object whose properties are functions that define the behavior of the proxy when an operation is performed on it.
+    /// </summary>
+    public class ProxyHandler : IDisposable
+    {
+        #region Apply
+        /// <summary>
+        /// The handler.apply() method is a trap for the [[Call]] object internal method, which is used by operations such as function calls.<br/>
+        /// target - The target callable object.<br/>
+        /// thisArg - The this argument for the call.<br/>
+        /// argumentsList - The list of arguments for the call.<br/>
+        /// Returns:<br/>
+        /// The apply() method can return any value.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, SpawnJSObject, Array<SpawnJSObject?>, object?>? Apply
+        {
+            get => _Apply;
+            set
+            {
+                _Apply = value;
+                _ApplyCallback?.Dispose();
+                _ApplyCallback = _Apply == null ? null : new FuncCallback<SpawnJSObject, SpawnJSObject, Array<SpawnJSObject?>, object?>(_Apply);
+            }
+        }
+        /// <summary>
+        /// The handler.apply() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("apply")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, SpawnJSObject, Array<SpawnJSObject?>, object?>? ApplyCallback => _ApplyCallback;
+        private Func<SpawnJSObject, SpawnJSObject, Array<SpawnJSObject?>, object?>? _Apply = null;
+        private FuncCallback<SpawnJSObject, SpawnJSObject, Array<SpawnJSObject?>, object?>? _ApplyCallback = null;
+        #endregion
+        #region Get
+        /// <summary>
+        /// The handler.get() method is a trap for the [[Get]] object internal method, which is used by operations such as property accessors.<br/>
+        /// target - The target object.<br/>
+        /// property - The name or Symbol of the property to get.<br/>
+        /// receiver - Either the proxy or an object that inherits from the proxy.<br/>
+        /// Returns:<br/>
+        /// The get() method can return any value.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, SpawnJSObject, SpawnJSObject, object?>? Get
+        {
+            get => _Get;
+            set
+            {
+                _Get = value;
+                _GetCallback?.Dispose();
+                _GetCallback = _Get == null ? null : new FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, object?>(_Get);
+            }
+        }
+        /// <summary>
+        /// The handler.get() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("get")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, object?>? GetCallback => _GetCallback;
+        private Func<SpawnJSObject, SpawnJSObject, SpawnJSObject, object?>? _Get = null;
+        private FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, object?>? _GetCallback = null;
+        #endregion
+        #region Construct
+        /// <summary>
+        /// The handler.construct() method is a trap for the [[Construct]] object internal method, which is used by operations such as the new operator. In order for the new operation to be valid on the resulting Proxy object, the target used to initialize the proxy must itself be a valid constructor.<br/>
+        /// target - The target object.<br/>
+        /// argumentsList - The list of arguments for the constructor.<br/>
+        /// newTarget - The constructor that was originally called.<br/>
+        /// Returns:<br/>
+        /// The construct method must return an object.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, Array<SpawnJSObject?>, SpawnJSObject, object?>? Construct
+        {
+            get => _Construct;
+            set
+            {
+                _Construct = value;
+                _ConstructCallback?.Dispose();
+                _ConstructCallback = _Construct == null ? null : new FuncCallback<SpawnJSObject, Array<SpawnJSObject?>, SpawnJSObject, object?>(_Construct);
+            }
+        }
+        /// <summary>
+        /// The handler.construct() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("construct")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, Array<SpawnJSObject?>, SpawnJSObject, object?>? ConstructCallback => _ConstructCallback;
+        private Func<SpawnJSObject, Array<SpawnJSObject?>, SpawnJSObject, object?>? _Construct = null;
+        private FuncCallback<SpawnJSObject, Array<SpawnJSObject?>, SpawnJSObject, object?>? _ConstructCallback = null;
+        #endregion
+        #region Set
+        /// <summary>
+        /// The handler.set() method is a trap for the [[Set]] object internal method, which is used by operations such as using property accessors to set a property's value.<br/>
+        /// target - The target object.<br/>
+        /// property - The name or Symbol of the property to set.<br/>
+        /// value - The new value of the property to set.<br/>
+        /// receiver - The object to which the assignment was originally directed. This is usually the proxy itself. But a set() handler can also be called indirectly, via the prototype chain or various other ways.<br/>
+        /// Returns:<br/>
+        /// The set() method should return a boolean value.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, SpawnJSObject, SpawnJSObject, bool>? Set
+        {
+            get => _Set;
+            set
+            {
+                _Set = value;
+                _SetCallback?.Dispose();
+                _SetCallback = _Set == null ? null : new FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, bool>(_Set);
+            }
+        }
+        /// <summary>
+        /// The handler.set() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("set")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, bool>? SetCallback => _SetCallback;
+        private Func<SpawnJSObject, SpawnJSObject, SpawnJSObject, bool>? _Set = null;
+        private FuncCallback<SpawnJSObject, SpawnJSObject, SpawnJSObject, bool>? _SetCallback = null;
+        #endregion
+        #region Has
+        /// <summary>
+        /// The handler.has() method is a trap for the [[HasProperty]] object internal method, which is used by operations such as the in operator.<br/>
+        /// target - The target object.<br/>
+        /// prop - The name or Symbol of the property to check for existence.<br/>
+        /// Returns:<br/>
+        /// The has() method must return a boolean value.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, SpawnJSObject, bool>? Has
+        {
+            get => _Has;
+            set
+            {
+                _Has = value;
+                _HasCallback?.Dispose();
+                _HasCallback = _Has == null ? null : new FuncCallback<SpawnJSObject, SpawnJSObject, bool>(_Has);
+            }
+        }
+        /// <summary>
+        /// The handler.has() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("has")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, SpawnJSObject, bool>? HasCallback => _HasCallback;
+        private Func<SpawnJSObject, SpawnJSObject, bool>? _Has = null;
+        private FuncCallback<SpawnJSObject, SpawnJSObject, bool>? _HasCallback = null;
+        #endregion
+        #region OwnKeys
+        /// <summary>
+        /// The handler.ownKeys() method is a trap for the [[OwnPropertyKeys]] object internal method, which is used by operations such as Object.keys(), Reflect.ownKeys(), etc.<br/>
+        /// target - The target object.<br/>
+        /// Returns:<br/>
+        /// The ownKeys() method must return an enumerable object.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, IEnumerable<Union<Symbol, string>>>? OwnKeys
+        {
+            get => _OwnKeys;
+            set
+            {
+                _OwnKeys = value;
+                _OwnKeysCallback?.Dispose();
+                _OwnKeysCallback = _OwnKeys == null ? null : new FuncCallback<SpawnJSObject, IEnumerable<Union<Symbol, string>>>(_OwnKeys);
+            }
+        }
+        /// <summary>
+        /// The handler.ownKeys() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("ownKeys")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, IEnumerable<Union<Symbol, string>>>? OwnKeysCallback => _OwnKeysCallback;
+        private Func<SpawnJSObject, IEnumerable<Union<Symbol, string>>>? _OwnKeys = null;
+        private FuncCallback<SpawnJSObject, IEnumerable<Union<Symbol, string>>>? _OwnKeysCallback = null;
+        #endregion
+        #region DeleteProperty
+        /// <summary>
+        /// The handler.DeleteProperty() method is a trap for the [[Delete]] object internal method, which is used by operations such as the delete operator.<br/>
+        /// target - The target object.<br/>
+        /// property - The name or Symbol of the property to delete.<br/>
+        /// Returns:<br/>
+        /// The DeleteProperty() method must return a boolean value indicating whether or not the property has been successfully deleted.
+        /// </summary>
+        [JsonIgnore]
+        public Func<SpawnJSObject, SpawnJSObject, bool>? DeleteProperty
+        {
+            get => _DeleteProperty;
+            set
+            {
+                _DeleteProperty = value;
+                _DeletePropertyCallback?.Dispose();
+                _DeletePropertyCallback = _DeleteProperty == null ? null : new FuncCallback<SpawnJSObject, SpawnJSObject, bool>(_DeleteProperty);
+            }
+        }
+        /// <summary>
+        /// The handler.deleteProperty() callback.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("deleteProperty")]
+        [JsonInclude]
+        public FuncCallback<SpawnJSObject, SpawnJSObject, bool>? DeletePropertyCallback => _DeletePropertyCallback;
+        private Func<SpawnJSObject, SpawnJSObject, bool>? _DeleteProperty = null;
+        private FuncCallback<SpawnJSObject, SpawnJSObject, bool>? _DeletePropertyCallback = null;
+        #endregion
+
+        /// <summary>
+        /// Disposes all callbacks
+        /// </summary>
+        public void Dispose()
+        {
+            Apply = null;
+            Get = null;
+            Construct = null;
+            Set = null;
+            Has = null;
+            OwnKeys = null;
+        }
+    }
+}

@@ -1,0 +1,27 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+using System.Text.Json.Serialization;
+
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// A GPUBindGroupEntry describes a single resource to be bound in a GPUBindGroup
+    /// https://www.w3.org/TR/webgpu/#dictdef-gpubindgroupentry
+    /// </summary>
+    public class GPUBindGroupEntry
+    {
+        /// <summary>
+        /// A unique identifier for a resource binding within the GPUBindGroup, corresponding to a GPUBindGroupLayoutEntry.binding and a @binding attribute in the GPUShaderModule.
+        /// </summary>
+        [JsonPropertyName("binding")]
+        public GPUIndex32 Binding { get; set; }
+
+        /// <summary>
+        /// The resource to bind, which may be a GPUSampler, GPUTexture, GPUTextureView, GPUBuffer, GPUBufferBinding, or GPUExternalTexture.
+        /// </summary>
+        [JsonPropertyName("resource")]
+        public GPUBindingResource Resource { get; set; }
+    }
+}

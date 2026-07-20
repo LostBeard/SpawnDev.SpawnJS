@@ -140,6 +140,19 @@
         returnMe(/* any */ value) {
             return value;
         }
+        // returns string[] of the target's property names.
+        // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
+        // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the
+        // handful of own properties it happens to carry.
+        objectKeys(target, hasOwnProperty) {
+            if (target === void 0 || target === null) return [];
+            if (hasOwnProperty) return Object.keys(target);
+            var keys = [];
+            for (var key in target) {
+                if (keys.indexOf(key) === -1) keys.push(key);
+            }
+            return keys;
+        }
         // full ? strict equality : loose equality
         objectEquals(obj1, obj2, full) {
             return full ? obj1 === obj2 : obj1 == obj2;

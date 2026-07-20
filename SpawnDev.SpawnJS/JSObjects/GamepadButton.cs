@@ -1,10 +1,12 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// The GamepadButton interface defines an individual button of a gamepad or other controller, allowing access to the current state of different types of buttons available on the control device.<br/>
-    /// GamepadButton, when serialized via JSON.stringify(), returns and empty object {} so a JSObject is used even though the values are static<br/>
+    /// GamepadButton, when serialized via JSON.stringify(), returns and empty object {} so a SpawnJSObject is used even though the values are static<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/API/GamepadButton
     /// </summary>
     public class GamepadButton : SpawnJSObject

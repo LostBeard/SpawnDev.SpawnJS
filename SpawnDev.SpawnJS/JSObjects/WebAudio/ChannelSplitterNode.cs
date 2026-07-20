@@ -1,0 +1,16 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The ChannelSplitterNode interface, often used in conjunction with its opposite, ChannelMergerNode, separates the different channels of an audio source into a set of mono outputs. This is useful for accessing each channel separately, e.g. for performing channel mixing where a separate gain must be controlled on each channel.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/ChannelSplitterNode
+    /// </summary>
+    public class ChannelSplitterNode : AudioNode
+    {
+        /// <inheritdoc/>
+        public ChannelSplitterNode(SpawnJSObjectReference _ref) : base(_ref) { }
+    }
+}

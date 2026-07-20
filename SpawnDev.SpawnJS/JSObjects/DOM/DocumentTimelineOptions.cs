@@ -1,5 +1,7 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
 using System.Text.Json.Serialization;
 /// <summary>
 /// An object specifying options for the new timeline.

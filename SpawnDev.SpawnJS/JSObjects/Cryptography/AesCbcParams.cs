@@ -1,0 +1,22 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The AesCbcParams dictionary of the Web Crypto API represents the object that should be passed as the algorithm parameter into SubtleCrypto.encrypt(), SubtleCrypto.decrypt(), SubtleCrypto.wrapKey(), or SubtleCrypto.unwrapKey(), when using the AES-CBC algorithm.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/AesCbcParams
+    /// </summary>
+    public class AesCbcParams : EncryptParams
+    {
+        /// <summary>
+        /// A string. This should be set to AES-CBC.
+        /// </summary>
+        public override string Name { get; set; } = "AES-CBC";
+        /// <summary>
+        /// An ArrayBuffer, a TypedArray, or a DataView. The initialization vector. Must be 16 bytes, unpredictable, and preferably cryptographically random. However, it need not be secret (for example, it may be transmitted unencrypted along with the ciphertext).
+        /// </summary>
+        public BufferSource? Iv { get; set; }
+    }
+}

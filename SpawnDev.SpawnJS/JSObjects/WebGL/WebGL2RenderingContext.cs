@@ -1,0 +1,1616 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The WebGL2RenderingContext interface provides the OpenGL ES 3.0 rendering context for the drawing surface of an HTML canvas element.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext
+    /// TODO - Finish implementing this class.<br/>
+    /// </summary>
+    public partial class WebGL2RenderingContext : WebGLRenderingContext
+    {
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
+        public WebGL2RenderingContext(SpawnJSObjectReference _ref) : base(_ref) { }
+
+        #region State information - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#state_information
+        /// <summary>
+        /// The WebGL2RenderingContext.getIndexedParameter() method of the WebGL 2 API returns indexed information about a given target.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the target for which to return information. Possible values:<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER_BINDING: Returns a WebGLBuffer.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER_SIZE: Returns a GLsizeiptr.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER_START: Returns a GLintptr.<br/>
+        /// gl.UNIFORM_BUFFER_BINDING: Returns a WebGLBuffer.<br/>
+        /// gl.UNIFORM_BUFFER_SIZE: Returns a GLsizeiptr.<br/>
+        /// gl.UNIFORM_BUFFER_START: Returns a GLintptr.
+        /// </param>
+        /// <param name="index">A GLuint specifying the index of the target that is queried.</param>
+        /// <returns></returns>
+        public GLuint GetIndexedParameter(GLenum target, GLuint index) => JSRef!.Call<GLuint>("getIndexedParameter", target, index);
+        #endregion
+
+        #region Buffers - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#buffers
+        /// <summary>
+        /// The WebGL2RenderingContext.bufferData() method of the WebGL API creates and initializes the buffer object's data store.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="size">A GLsizeiptr setting the size in bytes of the buffer object's data store. One of size and srcData must be provided.</param>
+        /// <param name="usage">
+        /// A GLenum specifying the intended usage pattern of the data store for optimization purposes.<br/>
+        /// Possible values:<br/>
+        /// gl.STATIC_DRAW - The contents are intended to be specified once by the application, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.DYNAMIC_DRAW - The contents are intended to be respecified repeatedly by the application, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STREAM_DRAW - The contents are intended to be specified once by the application, and used at most a few times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STATIC_READ - The contents are intended to be specified once by reading data from WebGL, and queried many times by the application.<br/>
+        /// gl.DYNAMIC_READ - The contents are intended to be respecified repeatedly by reading data from WebGL, and queried many times by the application.<br/>
+        /// gl.STREAM_READ - The contents are intended to be specified once by reading data from WebGL, and queried at most a few times by the application<br/>
+        /// gl.STATIC_COPY - The contents are intended to be specified once by reading data from WebGL, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.DYNAMIC_COPY - The contents are intended to be respecified repeatedly by reading data from WebGL, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STREAM_COPY - The contents are intended to be specified once by reading data from WebGL, and used at most a few times as the source for WebGL drawing and image specification commands.
+        /// </param>
+        public void BufferData(GLenum target, GLsizeiptr size, GLenum usage) => JSRef!.CallVoid("bufferData", target, size, usage);
+        /// <summary>
+        /// The WebGL2RenderingContext.bufferData() method of the WebGL API creates and initializes the buffer object's data store.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="sourceData">A TypedArray or a DataView that views an ArrayBuffer or SharedArrayBuffer that will be copied into the data store. If null, a data store is still created, but the content is uninitialized and undefined. One of size and srcData must be provided.</param>
+        /// <param name="usage">
+        /// A GLenum specifying the intended usage pattern of the data store for optimization purposes.<br/>
+        /// Possible values:<br/>
+        /// gl.STATIC_DRAW - The contents are intended to be specified once by the application, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.DYNAMIC_DRAW - The contents are intended to be respecified repeatedly by the application, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STREAM_DRAW - The contents are intended to be specified once by the application, and used at most a few times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STATIC_READ - The contents are intended to be specified once by reading data from WebGL, and queried many times by the application.<br/>
+        /// gl.DYNAMIC_READ - The contents are intended to be respecified repeatedly by reading data from WebGL, and queried many times by the application.<br/>
+        /// gl.STREAM_READ - The contents are intended to be specified once by reading data from WebGL, and queried at most a few times by the application<br/>
+        /// gl.STATIC_COPY - The contents are intended to be specified once by reading data from WebGL, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.DYNAMIC_COPY - The contents are intended to be respecified repeatedly by reading data from WebGL, and used many times as the source for WebGL drawing and image specification commands.<br/>
+        /// gl.STREAM_COPY - The contents are intended to be specified once by reading data from WebGL, and used at most a few times as the source for WebGL drawing and image specification commands.
+        /// </param>
+        /// <param name="srcOffset">A GLuint specifying the element index offset where to start reading the buffer. Only allowed if srcData is provided.</param>
+        /// <param name="length">A GLuint defaulting to 0. Only allowed if srcOffset is given.</param>
+        public void BufferData(GLenum target, Union<TypedArray, DataView, byte[]> sourceData, GLenum usage, GLuint srcOffset = 0, GLuint length = 0)
+        {
+            if (length == 0) JSRef!.CallVoid("bufferData", target, sourceData, usage, srcOffset);
+            else JSRef!.CallVoid("bufferData", target, sourceData, usage, srcOffset, length);
+        }
+        /// <summary>
+        /// The WebGL2RenderingContext.bufferSubData() method of the WebGL API updates a subset of a buffer object's data store.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="dstByteOffset">A GLintptr specifying an offset in bytes where the data replacement will start.</param>
+        /// <param name="sourceData">A TypedArray or a DataView that views an ArrayBuffer or SharedArrayBuffer that will be copied into the data store.</param>
+        /// <param name="srcOffset">A GLuint specifying the element index offset where to start reading the buffer.</param>
+        /// <param name="length">A GLuint defaulting to 0, where 0 means bufferSubData should calculate the length.</param>
+        public void BufferSubData(GLenum target, GLsizeiptr dstByteOffset, Union<TypedArray, DataView, byte[]> sourceData, GLuint srcOffset = 0, GLuint length = 0)
+        {
+            if (length == 0) JSRef!.CallVoid("bufferSubData", target, dstByteOffset, sourceData, srcOffset);
+            else JSRef!.CallVoid("bufferSubData", target, dstByteOffset, sourceData, srcOffset, length);
+        }
+        /// <summary>
+        /// The WebGL2RenderingContext.copyBufferSubData() method of the WebGL 2 API copies part of the data of a buffer to another buffer.
+        /// </summary>
+        /// <param name="readTarget">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="writeTarget">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="readOffset">A GLintptr specifying the byte offset from which to start reading from or writing to the buffer.</param>
+        /// <param name="writeOffset">A GLintptr specifying the byte offset from which to start reading from or writing to the buffer.</param>
+        /// <param name="size">A GLsizei in bytes specifying the size of the data to be copied from readTarget to writeTarget.</param>
+        public void CopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizei size)
+            => JSRef!.CallVoid("copyBufferSubData", readTarget, writeTarget, readOffset, writeOffset, size);
+        /// <summary>
+        /// The WebGL2RenderingContext.getBufferSubData() method of the WebGL 2 API reads data from a buffer binding point and writes them to an ArrayBuffer or SharedArrayBuffer.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="srcByteOffset">A GLintptr specifying the byte offset from which to start reading from the buffer.</param>
+        /// <param name="dstData">A TypedArray or a DataView object to copy the data to. If dstData is a DataView then dstOffset and length are interpreted in bytes, otherwise dstData's element type is used.</param>
+        /// <param name="dstOffset">A GLuint specifying the element index offset to start writing in dstData.</param>
+        /// <param name="length">A GLuint specifying the number of elements to copy. If this is 0 or not specified, getBufferSubData will copy until the end of dstData.</param>
+        public void GetBufferSubData(GLenum target, GLintptr srcByteOffset, Union<TypedArray, DataView> dstData, GLuint dstOffset = 0, GLuint length = 0)
+            => JSRef!.CallVoid("getBufferSubData", target, srcByteOffset, dstData, dstOffset, length);
+        /// <summary>
+        /// The WebGL2RenderingContext.getBufferSubData() method of the WebGL 2 API reads data from a buffer binding point and writes them to an ArrayBuffer or SharedArrayBuffer.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the binding point (target).<br/>
+        /// Possible values:<br/>
+        /// gl.ARRAY_BUFFER - Buffer containing vertex attributes, such as vertex coordinates, texture coordinate data, or vertex color data.<br/>
+        /// gl.ELEMENT_ARRAY_BUFFER - Buffer used for element indices.<br/>
+        /// gl.COPY_READ_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.COPY_WRITE_BUFFER - Buffer for copying from one buffer object to another.<br/>
+        /// gl.TRANSFORM_FEEDBACK_BUFFER - Buffer for transform feedback operations.<br/>
+        /// gl.UNIFORM_BUFFER - Buffer used for storing uniform blocks.<br/>
+        /// gl.PIXEL_PACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// gl.PIXEL_UNPACK_BUFFER - Buffer used for pixel transfer operations.<br/>
+        /// </param>
+        /// <param name="srcByteOffset">A GLintptr specifying the byte offset from which to start reading from the buffer.</param>
+        /// <param name="dstData">A TypedArray or a DataView object to copy the data to. If dstData is a DataView then dstOffset and length are interpreted in bytes, otherwise dstData's element type is used.</param>
+        /// <param name="dstOffset">A GLuint specifying the element index offset to start writing in dstData.</param>
+        /// <param name="length">A GLuint specifying the number of elements to copy. If this is 0 or not specified, getBufferSubData will copy until the end of dstData.</param>
+        public void GetBufferSubData(GLenum target, GLintptr srcByteOffset, byte[] dstData, GLuint dstOffset = 0, GLuint length = 0)
+        {
+            // pin the array using HeapView so it doesn't get moved by the GC while we're working with it 
+            using var heapView = new HeapView<byte>(dstData);
+            JSRef!.CallVoid("getBufferSubData", target, srcByteOffset, heapView, dstOffset, length);
+        }
+        #endregion
+
+        #region Framebuffers - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#framebuffers
+        /// <summary>
+        /// The WebGL2RenderingContext.blitFramebuffer() method of the WebGL 2 API transfers a block of pixels from the read framebuffer to the draw framebuffer. Read and draw framebuffers are bound using WebGLRenderingContext.bindFramebuffer().
+        /// </summary>
+        /// <param name="srcX0">A GLint specifying the bounds of the source rectangle.</param>
+        /// <param name="srcY0">A GLint specifying the bounds of the source rectangle.</param>
+        /// <param name="srcX1">A GLint specifying the bounds of the source rectangle.</param>
+        /// <param name="srcY1">A GLint specifying the bounds of the source rectangle.</param>
+        /// <param name="dstX0">A GLint specifying the bounds of the destination rectangle.</param>
+        /// <param name="dstY0">A GLint specifying the bounds of the destination rectangle.</param>
+        /// <param name="dstX1">A GLint specifying the bounds of the destination rectangle.</param>
+        /// <param name="dstY1">A GLint specifying the bounds of the destination rectangle.</param>
+        /// <param name="mask">A GLbitfield specifying a bitwise OR mask indicating which buffers are to be copied. Possible values:<br/>
+        /// gl.COLOR_BUFFER_BIT<br/>
+        /// gl.DEPTH_BUFFER_BIT<br/>
+        /// gl.STENCIL_BUFFER_BIT
+        /// </param>
+        /// <param name="filter">A GLenum specifying the interpolation to be applied if the image is stretched. Possible values:<br/>
+        /// gl.NEAREST<br/>
+        /// gl.LINEAR</param>
+        public void BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) => JSRef!.CallVoid("blitFramebuffer", srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+        /// <summary>
+        /// The WebGL2RenderingContext.framebufferTextureLayer() method of the WebGL 2 API attaches a single layer of a texture to a framebuffer.<br/>
+        /// This method is similar to WebGLRenderingContext.framebufferTexture2D(), but only a given single layer of the texture level is attached to the attachment point.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target). Possible values:<br/>
+        /// gl.FRAMEBUFFER: Collection buffer data storage of color, alpha, depth and stencil buffers used to render an image.<br/>
+        /// gl.DRAW_FRAMEBUFFER: Equivalent to gl.FRAMEBUFFER.<br/>
+        /// gl.READ_FRAMEBUFFER: Used as a source for reading operations.
+        /// </param>
+        /// <param name="attachment">A GLenum specifying the attachment point for the texture. Possible values:<br/>
+        /// gl.COLOR_ATTACHMENT{0-15}: Attaches the texture to one of the framebuffer's color buffers.<br/>
+        /// gl.DEPTH_ATTACHMENT: Attaches the texture to the framebuffer's depth buffer.<br/>
+        /// gl.STENCIL_ATTACHMENT: Attaches the texture to the framebuffer's stencil buffer.<br/>
+        /// gl.DEPTH_STENCIL_ATTACHMENT: depth and stencil buffer.
+        /// </param>
+        /// <param name="texture">A WebGLTexture object whose image to attach.</param>
+        /// <param name="level">A GLint specifying the mipmap level of the texture image to attach.</param>
+        /// <param name="layer">A GLint specifying the layer of the texture image to attach.</param>
+        public void FramebufferTextureLayer(GLenum target, GLenum attachment, WebGLTexture texture, GLint level, GLint layer) => JSRef!.CallVoid("framebufferTextureLayer", target, attachment, texture, level, layer);
+        /// <summary>
+        /// The WebGL2RenderingContext.invalidateFramebuffer() method of the WebGL 2 API invalidates the contents of attachments in a framebuffer.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target). Possible values:<br/>
+        /// gl.FRAMEBUFFER: Collection buffer data storage of color, alpha, depth and stencil buffers used to render an image.<br/>
+        /// gl.DRAW_FRAMEBUFFER: Equivalent to gl.FRAMEBUFFER.<br/>
+        /// gl.READ_FRAMEBUFFER: Used as a source for reading operations.
+        /// </param>
+        /// <param name="attachments">An Array of GLenum specifying the attachment points to invalidate. Possible values:<br/>
+        /// gl.COLOR_ATTACHMENT{0-15}: Attaches the texture to one of the framebuffer's color buffers.<br/>
+        /// gl.DEPTH_ATTACHMENT: Attaches the texture to the framebuffer's depth buffer.<br/>
+        /// gl.STENCIL_ATTACHMENT: Attaches the texture to the framebuffer's stencil buffer.<br/>
+        /// gl.DEPTH_STENCIL_ATTACHMENT: depth and stencil buffer.
+        /// </param>
+        public void InvalidateFramebuffer(GLenum target, GLenum[] attachments) => JSRef!.CallVoid("invalidateFramebuffer", target, attachments);
+        /// <summary>
+        /// The WebGL2RenderingContext.invalidateSubFramebuffer() method of the WebGL 2 API invalidates portions of the contents of attachments in a framebuffer.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target). Possible values:<br/>
+        /// gl.FRAMEBUFFER: Collection buffer data storage of color, alpha, depth and stencil buffers used to render an image.<br/>
+        /// gl.DRAW_FRAMEBUFFER: Equivalent to gl.FRAMEBUFFER.<br/>
+        /// gl.READ_FRAMEBUFFER: Used as a source for reading operations.
+        /// </param>
+        /// <param name="attachments">An Array of GLenum specifying the attachment points to invalidate. Possible values:<br/>
+        /// gl.COLOR_ATTACHMENT{0-15}: Attaches the texture to one of the framebuffer's color buffers.<br/>
+        /// gl.DEPTH_ATTACHMENT: Attaches the texture to the framebuffer's depth buffer.<br/>
+        /// gl.STENCIL_ATTACHMENT: Attaches the texture to the framebuffer's stencil buffer.<br/>
+        /// gl.DEPTH_STENCIL_ATTACHMENT: depth and stencil buffer.
+        /// </param>
+        /// <param name="x">A GLint specifying the left origin of the pixel rectangle to invalidate.</param>
+        /// <param name="y">A GLint specifying the bottom origin of the pixel rectangle to invalidate.</param>
+        /// <param name="width">A GLsizei specifying the width of the pixel rectangle to invalidate.</param>
+        /// <param name="height">A GLsizei specifying the height of the pixel rectangle to invalidate.</param>
+        public void InvalidateSubFramebuffer(GLenum target, GLenum[] attachments, GLint x, GLint y, GLsizei width, GLsizei height) => JSRef!.CallVoid("invalidateSubFramebuffer", target, attachments, x, y, width, height);
+        /// <summary>
+        /// The WebGL2RenderingContext.readBuffer() method of the WebGL 2 API selects a color buffer as the source for pixels for subsequent calls to copyTexImage2D, copyTexSubImage2D, copyTexSubImage3D or readPixels.
+        /// </summary>
+        /// <param name="source">A GLenum specifying a color buffer. Possible values:<br/>
+        /// gl.BACK - Reads from the back color buffer.
+        /// gl.NONE - Reads from no color buffer.
+        /// gl.COLOR_ATTACHMENT{0 - 15} - Reads from one of the 16 color attachment buffers.</param>
+        public void ReadBuffer(GLenum source) => JSRef!.CallVoid("readBuffer", source);
+        #endregion
+
+        #region Renderbuffers - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#renderbuffers
+        /// <summary>
+        /// The WebGL2RenderingContext.getInternalformatParameter() method of the WebGL 2 API returns information about implementation-dependent support for internal formats.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target renderbuffer object. Possible values:<br/>
+        ///  gl.RENDERBUFFER - Buffer data storage for single images in a renderable internal format.</param>
+        /// <param name="internalformat">A GLenum specifying the internal format about which to retrieve information (must be a color-renderable, depth-renderable or stencil-renderable format).</param>
+        /// <param name="pname">A GLenum specifying the type of information to query. Possible values:<br/>
+        /// gl.SAMPLES - Returns an Int32Array containing sample counts supported for internalformat in descending order.</param>
+        public Int32Array GetInternalformatParameter(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<Int32Array>("getInternalformatParameter", target, internalformat, pname);
+        /// <summary>
+        /// The WebGL2RenderingContext.getInternalformatParameter() method of the WebGL 2 API returns information about implementation-dependent support for internal formats.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target renderbuffer object. Possible values:<br/>
+        ///  gl.RENDERBUFFER - Buffer data storage for single images in a renderable internal format.</param>
+        /// <param name="internalformat">A GLenum specifying the internal format about which to retrieve information (must be a color-renderable, depth-renderable or stencil-renderable format).</param>
+        /// <param name="pname">A GLenum specifying the type of information to query. Possible values:<br/>
+        /// gl.SAMPLES - Returns an Int32Array containing sample counts supported for internalformat in descending order.</param>
+        public T GetInternalformatParameter<T>(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<T>("getInternalformatParameter", target, internalformat, pname);
+        /// <summary>
+        /// The WebGL2RenderingContext.renderbufferStorageMultisample() method of the WebGL 2 API returns creates and initializes a renderbuffer object's data store and allows specifying a number of samples to be used.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target renderbuffer object. Possible values:<br/>
+        ///  gl.RENDERBUFFER - Buffer data storage for single images in a renderable internal format.</param>
+        /// <param name="samples">A GLsizei specifying the number of samples to be used for the renderbuffer storage.</param>
+        /// <param name="internalFormat">A GLenum specifying the internal format of the renderbuffer. Possible values (gl.DEPTH_STENCIL is not supported):<br/>
+        /// gl.R8<br/>
+        /// gl.R8UI<br/>
+        /// gl.R8I<br/>
+        /// gl.R16UI<br/>
+        /// gl.R16I<br/>
+        /// gl.R32UI<br/>
+        /// gl.R32I<br/>
+        /// gl.RG8<br/>
+        /// gl.RG8UI<br/>
+        /// gl.RG8I<br/>
+        /// gl.RG16UI<br/>
+        /// gl.RG16I<br/>
+        /// gl.RG32UI<br/>
+        /// gl.RG32I<br/>
+        /// gl.RGB8<br/>
+        /// gl.RGBA8<br/>
+        /// gl.SRGB8_ALPHA8<br/>
+        /// gl.RGBA4<br/>
+        /// gl.RGB565<br/>
+        /// gl.RGB5_A1<br/>
+        /// gl.RGB10_A2<br/>
+        /// gl.RGBA8UI<br/>
+        /// gl.RGBA8I<br/>
+        /// gl.RGB10_A2UI<br/>
+        /// gl.RGBA16UI<br/>
+        /// gl.RGBA16I<br/>
+        /// gl.RGBA32I<br/>
+        /// gl.RGBA32UI<br/>
+        /// gl.DEPTH_COMPONENT16<br/>
+        /// gl.DEPTH_COMPONENT24<br/>
+        /// gl.DEPTH_COMPONENT32F<br/>
+        /// gl.DEPTH_STENCIL<br/>
+        /// gl.DEPTH24_STENCIL8<br/>
+        /// gl.DEPTH32F_STENCIL8<br/>
+        /// gl.STENCIL_INDEX8
+        /// </param>
+        /// <param name="width">A GLsizei specifying the width of the renderbuffer in pixels.</param>
+        /// <param name="height">A GLsizei specifying the height of the renderbuffer in pixels.</param>
+        public void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height) => JSRef!.CallVoid("renderbufferStorageMultisample", target, samples, internalFormat, width, height);
+        #endregion
+
+        #region Textures - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#textures
+        /// <summary>
+        /// The texStorage2D() method of the WebGL2RenderingContext of the WebGL API specifies all levels of two-dimensional texture storage.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_2D: A two-dimensional texture.<br/>
+        /// gl.TEXTURE_CUBE_MAP: A cube-mapped texture.</param>
+        /// <param name="levels">A GLint specifying the number of texture levels.</param>
+        /// <param name="internalformat">A GLenum specifying the texture store format. Possible values:<br/>
+        /// gl.R8<br/>
+        /// gl.R8_SNORM<br/>
+        /// gl.R16F<br/>
+        /// gl.R32F<br/>
+        /// gl.R8UI<br/>
+        /// gl.R8I<br/>
+        /// gl.R16UI<br/>
+        /// gl.R16I<br/>
+        /// gl.R32UI<br/>
+        /// gl.R32I<br/>
+        /// gl.RG8<br/>
+        /// gl.RG8_SNORM<br/>
+        /// gl.RG16F<br/>
+        /// gl.RG32F<br/>
+        /// gl.RG8UI<br/>
+        /// gl.RG8I<br/>
+        /// gl.RG16UI<br/>
+        /// gl.RG16I<br/>
+        /// gl.RG32UI<br/>
+        /// gl.RG32I<br/>
+        /// gl.RGB8<br/>
+        /// gl.SRGB8<br/>
+        /// gl.RGB565<br/>
+        /// gl.RGB8_SNORM<br/>
+        /// gl.R11F_G11F_B10F<br/>
+        /// gl.RGB9_E5<br/>
+        /// gl.RGB16F<br/>
+        /// gl.RGB32F<br/>
+        /// gl.RGB8UI<br/>
+        /// gl.RGB8I<br/>
+        /// gl.RGB16UI<br/>
+        /// gl.RGB16I<br/>
+        /// gl.RGB32UI<br/>
+        /// gl.RGB32I<br/>
+        /// gl.RGBA8<br/>
+        /// gl.SRGB8_ALPHA8<br/>
+        /// gl.RGBA8_SNORM<br/>
+        /// gl.RGB5_A1<br/>
+        /// gl.RGBA4<br/>
+        /// gl.RGB10_A2<br/>
+        /// gl.RGBA16F<br/>
+        /// gl.RGBA32F<br/>
+        /// gl.RGBA8UI<br/>
+        /// gl.RGBA8I<br/>
+        /// gl.RGB10_A2UI<br/>
+        /// gl.RGBA16UI<br/>
+        /// gl.RGBA16I<br/>
+        /// gl.RGBA32UI<br/>
+        /// gl.RGBA32I<br/>
+        /// gl.DEPTH_COMPONENT16<br/>
+        /// gl.DEPTH_COMPONENT24<br/>
+        /// gl.DEPTH_COMPONENT32F<br/>
+        /// gl.DEPTH24_STENCIL8<br/>
+        /// gl.DEPTH32F_STENCIL8
+        /// </param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        public void TexStorage2D(GLenum target, GLint levels, GLenum internalformat, GLsizei width, GLsizei height) => JSRef!.CallVoid("texStorage2D", target, levels, internalformat, width, height);
+        /// <summary>
+        /// The texStorage3D() method of the WebGL2RenderingContext of the WebGL API specifies all levels of three-dimensional texture storage.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="levels">A GLint specifying the number of texture levels.</param>
+        /// <param name="internalformat">A GLenum specifying the texture store format. For a list of possible values, see WebGL2RenderingContext.texStorage2D().</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        public void TexStorage3D(GLenum target, GLint levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth) => JSRef!.CallVoid("texStorage3D", target, levels, internalformat, width, height, depth);
+        /// <summary>
+        /// The texImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying how the texture should be stored after it's loaded.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data.</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data. Its type must match the type parameter; see WebGLRenderingContext.texImage2D(). When type is FLOAT_32_UNSIGNED_INT_24_8_REV, srcData must be null.</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        public void TexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
+            => JSRef!.CallVoid("texImage3D", target, level, internalformat, width, height, depth, border, format, type, srcData, srcOffset);
+        /// <summary>
+        /// The texImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying how the texture should be stored after it's loaded.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data.</param>
+        /// <param name="source">Read from a DOM pixel source</param>
+        public void TexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, Union<ImageBitmap, ImageData, HTMLImageElement, HTMLCanvasElement, HTMLVideoElement, OffscreenCanvas, VideoFrame> source)
+            => JSRef!.CallVoid("texImage3D", target, level, internalformat, width, height, depth, border, format, type, source);
+        /// <summary>
+        /// The texImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying how the texture should be stored after it's loaded.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data.</param>
+        /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
+        public void TexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, GLintptr offset)
+            => JSRef!.CallVoid("texImage3D", target, level, internalformat, width, height, depth, border, format, type, offset);
+
+        /// <summary>
+        /// The texSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data. For the combinations of format and type available, see WebGLRenderingContext.texSubImage2D().</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data. Its type must match the type parameter; see WebGLRenderingContext.texImage2D().</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
+            => JSRef!.CallVoidApply("texSubImage3D", new object[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, srcData, srcOffset });
+        /// <summary>
+        /// The texSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data. For the combinations of format and type available, see WebGLRenderingContext.texSubImage2D().</param>
+        /// <param name="source">Read from a DOM pixel source</param>
+        public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Union<ImageBitmap, ImageData, HTMLImageElement, HTMLCanvasElement, HTMLVideoElement, OffscreenCanvas, VideoFrame> source)
+            => JSRef!.CallVoid("texSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, source);
+        /// <summary>
+        /// The texSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying how each integer element in the raw texel data should be interpreted as color components.</param>
+        /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data. For the combinations of format and type available, see WebGLRenderingContext.texSubImage2D().</param>
+        /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
+        public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint offset)
+            => JSRef!.CallVoid("texSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, offset);
+        /// <summary>
+        /// The copyTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API copies pixels from the current WebGLFramebuffer into a 3D texture sub-image.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the texture image.</param>
+        /// <param name="x">A GLint specifying the x coordinate of the lower left corner where to start copying.</param>
+        /// <param name="y">A GLint specifying the y coordinate of the lower left corner where to start copying.</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        public void CopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+            => JSRef!.CallVoid("copyTexSubImage3D", target, level, xoffset, yoffset, zoffset, x, y, width, height);
+        /// <summary>
+        /// The compressedTexImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image in a compressed format.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="imageSize">A GLsizei specifying the size of the image data in bytes.</param>
+        /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
+        public void CompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, GLintptr offset)
+            => JSRef!.CallVoid("compressedTexImage3D", target, level, internalformat, width, height, depth, border, imageSize, offset);
+        /// <summary>
+        /// The compressedTexImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image in a compressed format.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data.</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        public void CompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
+            => JSRef!.CallVoid("compressedTexImage3D", target, level, internalformat, width, height, depth, border, srcData, srcOffset);
+        /// <summary>
+        /// The compressedTexImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image in a compressed format.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="internalformat">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="width">A GLsizei specifying the width of the texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="border">A GLint specifying the width of the border. Must be 0.</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data.</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        /// <param name="srcLengthOverride">An integer specifying the number of elements in srcData to read. Defaults to srcData.length - srcOffset.</param>
+        public void CompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, Union<TypedArray, DataView> srcData, GLint srcOffset, GLintptr srcLengthOverride)
+            => JSRef!.CallVoid("compressedTexImage3D", target, level, internalformat, width, height, depth, border, srcData, srcOffset, srcLengthOverride);
+        /// <summary>
+        /// The compressedTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image in a compressed format.<br/>
+        /// Compressed image formats are only available via some WebGL extension.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the compressed texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the compressed texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the compressed texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the compressed texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the compressed texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="imageSize">A GLsizei specifying the size of the image data in bytes.</param>
+        /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
+        public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, GLintptr offset)
+            => JSRef!.CallVoid("compressedTexSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, offset);
+        /// <summary>
+        /// The compressedTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image in a compressed format.<br/>
+        /// Compressed image formats are only available via some WebGL extension.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the compressed texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the compressed texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the compressed texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the compressed texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the compressed texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data.</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
+            => JSRef!.CallVoid("compressedTexSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset);
+        /// <summary>
+        /// The compressedTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image in a compressed format.<br/>
+        /// Compressed image formats are only available via some WebGL extension.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the binding point (target) of the active texture. Possible values:<br/>
+        /// gl.TEXTURE_3D: A three-dimensional texture.
+        /// gl.TEXTURE_2D_ARRAY: A two-dimensional array texture.</param>
+        /// <param name="level">A GLint specifying the level of detail. Level 0 is the base image level and level n is the n-th mipmap reduction level.</param>
+        /// <param name="xoffset">A GLint specifying the x offset within the compressed texture image.</param>
+        /// <param name="yoffset">A GLint specifying the y offset within the compressed texture image.</param>
+        /// <param name="zoffset">A GLint specifying the z offset within the compressed texture image.</param>
+        /// <param name="width">A GLsizei specifying the width of the compressed texture in texels.</param>
+        /// <param name="height">A GLsizei specifying the height of the compressed texture in texels.</param>
+        /// <param name="depth">A GLsizei specifying the depth of the texture/the number of textures in a TEXTURE_2D_ARRAY.</param>
+        /// <param name="format">A GLenum specifying the compressed image format. For a list of possible values, see WebGLRenderingContext.compressedTexImage2D().</param>
+        /// <param name="srcData">A TypedArray or DataView containing the compressed texture data.</param>
+        /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
+        /// <param name="srcLengthOverride">An integer specifying the number of elements in srcData to read. Defaults to srcData.length - srcOffset.</param>
+        public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, Union<TypedArray, DataView> srcData, GLint srcOffset, GLint srcLengthOverride)
+            => JSRef!.CallVoidApply("compressedTexSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset, srcLengthOverride });
+        #endregion
+
+        #region Programs and shaders - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#programs_and_shaders
+        /// <summary>
+        /// The WebGL2RenderingContext.getFragDataLocation() method of the WebGL 2 API returns the binding of color numbers to user-defined varying out variables.
+        /// </summary>
+        /// <param name="program">A WebGLProgram to query.</param>
+        /// <param name="name">A string specifying the name of the user-defined varying out variable.</param>
+        /// <returns>A GLint indicating the assigned color number binding, or -1 otherwise.</returns>
+        public GLint GetFragDataLocation(WebGLProgram program, string name) => JSRef!.Call<GLint>("getFragDataLocation", program, name);
+        #endregion
+
+        #region Uniforms and attributes - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#uniforms_and_attributes
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1ui(WebGLUniformLocation location, uint v0) => JSRef!.CallVoid("uniform1ui", location, v0);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2ui(WebGLUniformLocation location, uint v0, uint v1) => JSRef!.CallVoid("uniform2ui", location, v0, v1);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3ui(WebGLUniformLocation location, uint v0, uint v1, uint v2) => JSRef!.CallVoid("uniform3ui", location, v0, v1, v2);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4ui(WebGLUniformLocation location, uint v0, uint v1, uint v2, uint v3) => JSRef!.CallVoid("uniform4ui", location, v0, v1, v2, v3);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1fv(WebGLUniformLocation location, float[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform1fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1fv(WebGLUniformLocation location, float[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2fv(WebGLUniformLocation location, float[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform2fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2fv(WebGLUniformLocation location, float[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3fv(WebGLUniformLocation location, float[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform3fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3fv(WebGLUniformLocation location, float[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4fv(WebGLUniformLocation location, float[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform4fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4fv(WebGLUniformLocation location, float[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4fv", location, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1fv(WebGLUniformLocation location, Float32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform1fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1fv(WebGLUniformLocation location, Float32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2fv(WebGLUniformLocation location, Float32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform2fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2fv(WebGLUniformLocation location, Float32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3fv(WebGLUniformLocation location, Float32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform3fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3fv(WebGLUniformLocation location, Float32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3fv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4fv(WebGLUniformLocation location, Float32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform4fv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4fv(WebGLUniformLocation location, Float32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4fv", location, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1iv(WebGLUniformLocation location, int[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform1iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1iv(WebGLUniformLocation location, int[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2iv(WebGLUniformLocation location, int[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform2iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2iv(WebGLUniformLocation location, int[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3iv(WebGLUniformLocation location, int[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform3iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3iv(WebGLUniformLocation location, int[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4iv(WebGLUniformLocation location, int[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform4iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4iv(WebGLUniformLocation location, int[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4iv", location, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1iv(WebGLUniformLocation location, Int32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform1iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1iv(WebGLUniformLocation location, Int32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2iv(WebGLUniformLocation location, Int32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform2iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2iv(WebGLUniformLocation location, Int32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3iv(WebGLUniformLocation location, Int32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform3iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3iv(WebGLUniformLocation location, Int32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3iv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4iv(WebGLUniformLocation location, Int32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform4iv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4iv(WebGLUniformLocation location, Int32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4iv", location, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1uiv(WebGLUniformLocation location, uint[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform1uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1uiv(WebGLUniformLocation location, uint[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2uiv(WebGLUniformLocation location, uint[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform2uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2uiv(WebGLUniformLocation location, uint[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3uiv(WebGLUniformLocation location, uint[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform3uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3uiv(WebGLUniformLocation location, uint[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4uiv(WebGLUniformLocation location, uint[] data, int srcOffset = 0) => JSRef!.CallVoid("uniform4uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4uiv(WebGLUniformLocation location, uint[] data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4uiv", location, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform1uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform1uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform1uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform2uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform2uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform2uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform3uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform3uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform3uiv", location, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset = 0) => JSRef!.CallVoid("uniform4uiv", location, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniform[1234][uif][v]() methods of the WebGL API specify values of uniform variables.
+        /// </summary>
+        public void Uniform4uiv(WebGLUniformLocation location, Uint32Array data, int srcOffset, int srcLength) => JSRef!.CallVoid("uniform4uiv", location, data, srcOffset, srcLength);
+
+        #region Matrix uniforms
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3x2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3x2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4x2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x2fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4x2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2x3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2x3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4x3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x3fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4x3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2x4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2x4fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3x4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3x4fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4fv(WebGLUniformLocation location, GLboolean transpose, float[] data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4fv", location, transpose, data, srcOffset, srcLength);
+
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3x2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3x2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4x2fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x2fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4x2fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2x3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2x3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4x3fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4x3fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4x3fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix2x4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix2x4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix2x4fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix3x4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix3x4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix3x4fv", location, transpose, data, srcOffset, srcLength);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset = 0)
+            => JSRef!.CallVoid("uniformMatrix4fv", location, transpose, data, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformMatrix[234]x[234]fv() methods of the WebGL 2 API specify matrix values for uniform variables.
+        /// </summary>
+        public void UniformMatrix4fv(WebGLUniformLocation location, GLboolean transpose, Float32Array data, int srcOffset, int srcLength)
+            => JSRef!.CallVoid("uniformMatrix4fv", location, transpose, data, srcOffset, srcLength);
+        #endregion
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4i(GLuint index, int v0, int v1, int v2, int v3) => JSRef!.CallVoid("vertexAttribI4i", index, v0, v1, v2, v3);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4ui(GLuint index, uint v0, uint v1, uint v2, uint v3) => JSRef!.CallVoid("vertexAttribI4ui", index, v0, v1, v2, v3);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4iv(GLuint index, Int32Array value) => JSRef!.CallVoid("vertexAttribI4iv", index, value);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4iv(GLuint index, int[] value) => JSRef!.CallVoid("vertexAttribI4iv", index, value);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4uiv(GLuint index, Uint32Array value) => JSRef!.CallVoid("vertexAttribI4uiv", index, value);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribI4[u]i[v]() methods of the WebGL 2 API specify integer values for generic vertex attributes.
+        /// </summary>
+        public void VertexAttribI4uiv(GLuint index, uint[] value) => JSRef!.CallVoid("vertexAttribI4uiv", index, value);
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribIPointer() method of the WebGL 2 API specifies integer data formats and locations of vertex attributes in a vertex attributes array.
+        /// </summary>
+        /// <param name="index">A GLuint specifying the index of the vertex attribute that is to be modified.</param>
+        /// <param name="size">A GLint specifying the number of components per vertex attribute. Must be 1, 2, 3, or 4.</param>
+        /// <param name="type">A GLenum specifying the data type of each component in the array. Must be one of: gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.INT, or gl.UNSIGNED_INT.</param>
+        /// <param name="stride">A GLsizei specifying the offset in bytes between the beginning of consecutive vertex attributes.</param>
+        /// <param name="offset">A GLintptr specifying an offset in bytes of the first component in the vertex attribute array. Must be a multiple of type.</param>
+        public void VertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset) => JSRef!.CallVoid("vertexAttribIPointer", index, size, type, stride, offset);
+        #endregion
+
+        #region Color spaces - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#color_spaces
+        /// <summary>
+        /// The WebGL2RenderingContext.drawingBufferColorSpace property specifies the color space of the WebGL drawing buffer. Along with the default (srgb), the display-p3 color space can be used.<br/>
+        /// This property can have the following values:<br/>
+        /// "srgb" selects the sRGB color space. This is the default value.<br/>
+        /// "display-p3" selects the display-p3 color space.
+        /// </summary>
+        public string DrawingBufferColorSpace { get => JSRef!.Get<string>("drawingBufferColorSpace"); set => JSRef!.Set("drawingBufferColorSpace", value); }
+        /// <summary>
+        /// The WebGL2RenderingContext.unpackColorSpace property specifies the color space to convert to when importing textures. Along with the default (srgb), the display-p3 color space can be used.<br/>
+        /// This property can have the following values:<br/>
+        /// "srgb" selects the sRGB color space. This is the default value.<br/>
+        /// "display-p3" selects the display-p3 color space.
+        /// </summary>
+        public string UnpackColorSpace { get => JSRef!.Get<string>("unpackColorSpace"); set => JSRef!.Set("unpackColorSpace", value); }
+        #endregion
+
+        #region Drawing buffers - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#drawing_buffers
+        /// <summary>
+        /// The WebGL2RenderingContext.vertexAttribDivisor() method of the WebGL 2 API modifies the rate at which generic vertex attributes advance when rendering multiple instances of primitives with gl.drawArraysInstanced() and gl.drawElementsInstanced().
+        /// </summary>
+        /// <param name="index">A GLuint specifying the index of the generic vertex attributes.</param>
+        /// <param name="divisor">A GLuint specifying the number of instances that will pass between updates of the generic attribute.</param>
+        public void VertexAttribDivisor(GLuint index, GLuint divisor) => JSRef!.CallVoid("vertexAttribDivisor", index, divisor);
+        /// <summary>
+        /// The WebGL2RenderingContext.drawArraysInstanced() method of the WebGL 2 API renders primitives from array data like the gl.drawArrays() method. In addition, it can execute multiple instances of the range of elements.
+        /// </summary>
+        /// <param name="mode">A GLenum specifying the type primitive to render. Possible values are:<br/>
+        /// gl.POINTS: Draws a single dot.<br/>
+        /// gl.LINE_STRIP: Draws a straight line to the next vertex.<br/>
+        /// gl.LINE_LOOP: Draws a straight line to the next vertex, and connects the last vertex back to the first.<br/>
+        /// gl.LINES: Draws a line between a pair of vertices.<br/>
+        /// gl.TRIANGLE_STRIP<br/>
+        /// gl.TRIANGLE_FAN<br/>
+        /// gl.TRIANGLES: Draws a triangle for a group of three vertices.</param>
+        /// <param name="first">A GLint specifying the starting index in the array of vector points.</param>
+        /// <param name="count">A GLsizei specifying the number of indices to be rendered.</param>
+        /// <param name="instanceCount">A GLsizei specifying the number of instances of the range of elements to execute.</param>
+        public void DrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount) => JSRef!.CallVoid("drawArraysInstanced", mode, first, count, instanceCount);
+        /// <summary>
+        /// The WebGL2RenderingContext.drawElementsInstanced() method of the WebGL 2 API renders primitives from array data like the gl.drawElements() method. In addition, it can execute multiple instances of a set of elements.
+        /// </summary>
+        /// <param name="mode">A GLenum specifying the type primitive to render. Possible values are:<br/>
+        /// gl.POINTS: Draws a single dot.<br/>
+        /// gl.LINE_STRIP: Draws a straight line to the next vertex.<br/>
+        /// gl.LINE_LOOP: Draws a straight line to the next vertex, and connects the last vertex back to the first.<br/>
+        /// gl.LINES: Draws a line between a pair of vertices.<br/>
+        /// gl.TRIANGLE_STRIP<br/>
+        /// gl.TRIANGLE_FAN<br/>
+        /// gl.TRIANGLES: Draws a triangle for a group of three vertices.</param>
+        /// <param name="count">A GLsizei specifying the number of elements to be rendered.</param>
+        /// <param name="type">A GLenum specifying the type of the values in the element array buffer. Possible values are:<br/>
+        ///gl.UNSIGNED_BYTE<br/>
+        ///gl.UNSIGNED_SHORT<br/>
+        ///gl.UNSIGNED_INT When using the OES_element_index_uint extension.</param>
+        /// <param name="offset">A GLintptr specifying an offset in the element array buffer. Must be a valid multiple of the size of the given type.</param>
+        /// <param name="instanceCount">A GLsizei specifying the number of instances of the set of elements to execute.</param>
+        public void DrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, GLintptr offset, GLsizei instanceCount) => JSRef!.CallVoid("drawElementsInstanced", mode, count, type, offset, instanceCount);
+        /// <summary>
+        /// The WebGL2RenderingContext.drawRangeElements() method of the WebGL API renders primitives from array data in a given range.
+        /// </summary>
+        /// <param name="mode">A GLenum specifying the type primitive to render. Possible values are:<br/>
+        /// gl.POINTS: Draws a single dot.<br/>
+        /// gl.LINE_STRIP: Draws a straight line to the next vertex.<br/>
+        /// gl.LINE_LOOP: Draws a straight line to the next vertex, and connects the last vertex back to the first.<br/>
+        /// gl.LINES: Draws a line between a pair of vertices.<br/>
+        /// gl.TRIANGLE_STRIP<br/>
+        /// gl.TRIANGLE_FAN<br/>
+        /// gl.TRIANGLES: Draws a triangle for a group of three vertices.</param>
+        /// <param name="start">A GLuint specifying the minimum array index contained in offset.</param>
+        /// <param name="end">A GLuint specifying the maximum array index contained in offset.</param>
+        /// <param name="count">A GLsizei specifying the number of elements to be rendered.</param>
+        /// <param name="type">A GLenum specifying the type of the values in the element array buffer. Possible values are:<br/>
+        /// gl.UNSIGNED_BYTE<br/>
+        /// gl.UNSIGNED_SHORT<br/>
+        /// gl.UNSIGNED_INT</param>
+        /// <param name="offset">A GLintptr specifying an offset in the element array buffer. Must be a valid multiple of the size of the given type.</param>
+        public void DrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, GLintptr offset) => JSRef!.CallVoid("drawRangeElements", mode, start, end, count, type, offset);
+        /// <summary>
+        /// The WebGL2RenderingContext.drawBuffers() method of the WebGL 2 API defines draw buffers to which fragment colors are written into. The draw buffer settings are part of the state of the currently bound framebuffer or the drawing buffer if no framebuffer is bound.
+        /// </summary>
+        /// <param name="buffers">An Array of GLenum specifying the buffers into which fragment colors will be written. Possible values are:<br/>
+        /// gl.NONE - Fragment shader output is not written into any color buffer.<br/>
+        /// gl.BACK - Fragment shader output is written into the back color buffer.<br/>
+        /// gl.COLOR_ATTACHMENT{0 - 15} - Fragment shader output is written in the nth color attachment of the current framebuffer.</param>
+        public void DrawBuffers(GLenum[] buffers) => JSRef!.CallVoid("drawBuffers", buffers);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferfv(GLenum buffer, GLint drawbuffer, float[] values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferfv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferuiv(GLenum buffer, GLint drawbuffer, uint[] values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferuiv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferiv(GLenum buffer, GLint drawbuffer, int[] values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferiv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferfv(GLenum buffer, GLint drawbuffer, Float32Array values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferfv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferuiv(GLenum buffer, GLint drawbuffer, Uint32Array values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferuiv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferiv(GLenum buffer, GLint drawbuffer, Int32Array values, int srcOffset = 0) => JSRef!.CallVoid("clearBufferiv", buffer, drawbuffer, values, srcOffset);
+        /// <summary>
+        /// The WebGL2RenderingContext.clearBuffer[fiuv]() methods of the WebGL 2 API clear buffers from the currently bound framebuffer.
+        /// </summary>
+        public void ClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) => JSRef!.CallVoid("clearBufferiv", buffer, drawbuffer, depth, stencil);
+        #endregion
+
+        #region Query objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#query_objects
+        /// <summary>
+        /// The WebGL2RenderingContext.beginQuery() method of the WebGL 2 API starts an asynchronous query. The target parameter indicates which kind of query to begin.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the target of the query.<br/>
+        /// Possible values:<br/>
+        /// gl.ANY_SAMPLES_PASSED - Specifies an occlusion query: these queries detect whether an object is visible(whether the scoped drawing commands pass the depth test and if so, how many samples pass).<br/>
+        /// gl.ANY_SAMPLES_PASSED_CONSERVATIVE - Same as above, but less accurate and faster version.<br/>
+        /// gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN - Number of primitives that are written to transform feedback buffers.<br/>
+        /// </param>
+        /// <param name="query">A WebGLQuery object for which to start the querying.</param>
+        public void BeginQuery(GLenum target, WebGLQuery query) => JSRef!.CallVoid("beginQuery", target, query);
+        /// <summary>
+        /// The WebGL2RenderingContext.endQuery() method of the WebGL 2 API marks the end of a given query target.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the target of the query.<br/>
+        /// Possible values:<br/>
+        /// gl.ANY_SAMPLES_PASSED - Specifies an occlusion query: these queries detect whether an object is visible(whether the scoped drawing commands pass the depth test and if so, how many samples pass).<br/>
+        /// gl.ANY_SAMPLES_PASSED_CONSERVATIVE - Same as above, but less accurate and faster version.<br/>
+        /// gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN - Number of primitives that are written to transform feedback buffers.<br/>
+        /// </param>
+        public void EndQuery(GLenum target) => JSRef!.CallVoid("endQuery", target);
+        /// <summary>
+        /// The WebGL2RenderingContext.createQuery() method of the WebGL 2 API creates and initializes WebGLQuery objects, which provide ways to asynchronously query for information.
+        /// </summary>
+        /// <returns></returns>
+        public WebGLQuery CreateQuery() => JSRef!.Call<WebGLQuery>("createQuery");
+        /// <summary>
+        /// The WebGL2RenderingContext.deleteQuery() method of the WebGL 2 API deletes a given WebGLQuery object.
+        /// </summary>
+        /// <param name="query"></param>
+        public void DeleteQuery(WebGLQuery query) => JSRef!.CallVoid("deleteQuery", query);
+        /// <summary>
+        /// The WebGL2RenderingContext.isQuery() method of the WebGL 2 API returns true if the passed object is a valid WebGLQuery object.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public bool IsQuery(WebGLQuery query) => JSRef!.Call<bool>("isQuery", query);
+        /// <summary>
+        /// The WebGL2RenderingContext.getQuery() method of the WebGL 2 API returns the currently active WebGLQuery for the target, or null.
+        /// </summary>
+        /// <param name="target">
+        /// A GLenum specifying the target of the query.<br/>
+        /// Possible values:<br/>
+        /// gl.ANY_SAMPLES_PASSED - Specifies an occlusion query: these queries detect whether an object is visible(whether the scoped drawing commands pass the depth test and if so, how many samples pass).<br/>
+        /// gl.ANY_SAMPLES_PASSED_CONSERVATIVE - Same as above, but less accurate and faster version.<br/>
+        /// gl.TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN - Number of primitives that are written to transform feedback buffers.<br/>
+        /// </param>
+        /// <param name="pname">A GLenum specifying the query object target. Must be gl.CURRENT_QUERY.</param>
+        /// <returns></returns>
+        public WebGLQuery GetQuery(GLenum target, GLenum pname) => JSRef!.Call<WebGLQuery>("getQuery", target, pname);
+        /// <summary>
+        /// The WebGL2RenderingContext.getQueryParameter() method of the WebGL 2 API returns parameter information of a WebGLQuery object.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="query">A WebGLQuery object.</param>
+        /// <param name="pname">
+        /// A GLenum specifying which information to return. <br/>
+        /// Possible values:<br/>
+        /// gl.QUERY_RESULT - Returns a GLuint containing the query result.<br/>
+        /// gl.QUERY_RESULT_AVAILABLE - Returns a GLboolean indicating whether or not a query result is available.<br/>
+        /// </param>
+        /// <returns>Depends on the pname parameter, either a GLuint or a GLboolean.</returns>
+        public T GetQueryParameter<T>(WebGLQuery query, GLenum pname) => JSRef!.Call<T>("getQueryParameter", query, pname);
+        /// <summary>
+        /// Returns true if the query parameter is available.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public GLboolean GetQueryParameterAvailable(WebGLQuery query) => JSRef!.Call<GLboolean>("getQueryParameter", query, GL.QUERY_RESULT_AVAILABLE);
+        /// <summary>
+        /// Returns the query result.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public GLuint GetQueryParameterResult(WebGLQuery query) => JSRef!.Call<GLuint>("getQueryParameter", query, GL.QUERY_RESULT);
+        #endregion
+
+        #region Sampler objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sampler_objects
+        /// <summary>
+        /// The WebGL2RenderingContext.createSampler() method of the WebGL 2 API creates and initializes WebGLSampler objects.
+        /// </summary>
+        /// <returns></returns>
+        public WebGLSampler CreateSampler() => JSRef!.Call<WebGLSampler>("createSampler");
+        /// <summary>
+        /// The WebGL2RenderingContext.deleteSampler() method of the WebGL 2 API deletes a given WebGLSampler object.
+        /// </summary>
+        /// <param name="sampler">A WebGLSampler object to delete.</param>
+        public void DeleteSampler(WebGLSampler sampler) => JSRef!.CallVoid("deleteSampler", sampler);
+        /// <summary>
+        /// The WebGL2RenderingContext.bindSampler() method of the WebGL 2 API binds a passed WebGLSampler object to the texture unit at the passed index.
+        /// </summary>
+        /// <param name="unit">A GLuint specifying the index of the texture unit to which to bind the sampler to.</param>
+        /// <param name="sampler">A WebGLSampler object to bind.</param>
+        public void BindSampler(GLuint unit, WebGLSampler sampler) => JSRef!.CallVoid("bindSampler", unit, sampler);
+        /// <summary>
+        /// The WebGL2RenderingContext.isSampler() method of the WebGL 2 API returns true if the passed object is a valid WebGLSampler object.
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <returns></returns>
+        public GLboolean IsSampler(WebGLSampler sampler) => JSRef!.Call<GLboolean>("isSampler", sampler);
+        /// <summary>
+        /// The WebGL2RenderingContext.samplerParameter[if]() methods of the WebGL 2 API set WebGLSampler parameters.
+        /// </summary>
+        /// <param name="sampler">A WebGLSampler object.</param>
+        /// <param name="pname">A GLenum specifying which parameter to set. Possible values:<br/>
+        /// gl.TEXTURE_COMPARE_FUNC - A GLenum specifying the texture comparison function.<br/>
+        /// gl.TEXTURE_COMPARE_MODE - A GLenum specifying the texture comparison mode.<br/>
+        /// gl.TEXTURE_MAG_FILTER - A GLenum specifying the texture magnification filter.<br/>
+        /// gl.TEXTURE_MAX_LOD - A GLfloat specifying the maximum level-of-detail value.<br/>
+        /// gl.TEXTURE_MIN_FILTER - A GLenum specifying the texture minification filter.<br/>
+        /// gl.TEXTURE_MIN_LOD - A GLfloat specifying the minimum level-of-detail value.<br/>
+        /// gl.TEXTURE_WRAP_R - A GLenum specifying the texture wrapping function for the texture coordinate r.<br/>
+        /// gl.TEXTURE_WRAP_S - A GLenum specifying the texture wrapping function for the texture coordinate s.<br/>
+        /// gl.TEXTURE_WRAP_T - A GLenum specifying the texture wrapping function for the texture coordinate t.</param>
+        /// <param name="param">A GLint (samplerParameteri) or a GLfloat (samplerParameterf) specifying a value for pname.</param>
+        public void SamplerParameteri(WebGLSampler sampler, GLenum pname, GLint param) => JSRef!.CallVoid("samplerParameteri", sampler, pname, param);
+        /// <summary>
+        /// The WebGL2RenderingContext.samplerParameter[if]() methods of the WebGL 2 API set WebGLSampler parameters.
+        /// </summary>
+        /// <param name="sampler">A WebGLSampler object.</param>
+        /// <param name="pname">A GLenum specifying which parameter to set. Possible values:<br/>
+        /// gl.TEXTURE_COMPARE_FUNC - A GLenum specifying the texture comparison function.<br/>
+        /// gl.TEXTURE_COMPARE_MODE - A GLenum specifying the texture comparison mode.<br/>
+        /// gl.TEXTURE_MAG_FILTER - A GLenum specifying the texture magnification filter.<br/>
+        /// gl.TEXTURE_MAX_LOD - A GLfloat specifying the maximum level-of-detail value.<br/>
+        /// gl.TEXTURE_MIN_FILTER - A GLenum specifying the texture minification filter.<br/>
+        /// gl.TEXTURE_MIN_LOD - A GLfloat specifying the minimum level-of-detail value.<br/>
+        /// gl.TEXTURE_WRAP_R - A GLenum specifying the texture wrapping function for the texture coordinate r.<br/>
+        /// gl.TEXTURE_WRAP_S - A GLenum specifying the texture wrapping function for the texture coordinate s.<br/>
+        /// gl.TEXTURE_WRAP_T - A GLenum specifying the texture wrapping function for the texture coordinate t.</param>
+        /// <param name="param">A GLint (samplerParameteri) or a GLfloat (samplerParameterf) specifying a value for pname.</param>
+        public void SamplerParameterf(WebGLSampler sampler, GLenum pname, GLfloat param) => JSRef!.CallVoid("samplerParameteri", sampler, pname, param);
+        /// <summary>
+        /// The WebGL2RenderingContext.getSamplerParameter() method of the WebGL 2 API returns parameter information of a WebGLSampler object.
+        /// </summary>
+        /// <param name="sampler"></param>
+        /// <param name="pname">A GLenum specifying which parameter to set. Possible values:<br/>
+        /// gl.TEXTURE_COMPARE_FUNC - A GLenum specifying the texture comparison function.<br/>
+        /// gl.TEXTURE_COMPARE_MODE - A GLenum specifying the texture comparison mode.<br/>
+        /// gl.TEXTURE_MAG_FILTER - A GLenum specifying the texture magnification filter.<br/>
+        /// gl.TEXTURE_MAX_LOD - A GLfloat specifying the maximum level-of-detail value.<br/>
+        /// gl.TEXTURE_MIN_FILTER - A GLenum specifying the texture minification filter.<br/>
+        /// gl.TEXTURE_MIN_LOD - A GLfloat specifying the minimum level-of-detail value.<br/>
+        /// gl.TEXTURE_WRAP_R - A GLenum specifying the texture wrapping function for the texture coordinate r.<br/>
+        /// gl.TEXTURE_WRAP_S - A GLenum specifying the texture wrapping function for the texture coordinate s.<br/>
+        /// gl.TEXTURE_WRAP_T - A GLenum specifying the texture wrapping function for the texture coordinate t.</param>
+        /// <returns>Depends on the pname parameter, either a GLenum or a GLfloat.</returns>
+        public float GetSamplerParameter(WebGLSampler sampler, GLenum pname) => JSRef!.Call<float>("getSamplerParameter", sampler, pname);
+        #endregion
+
+        #region Sync objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sync_objects
+        /// <summary>
+        /// The WebGL2RenderingContext.fenceSync() method of the WebGL 2 API creates a new WebGLSync object and inserts it into the GL command stream.
+        /// </summary>
+        /// <param name="condition">A GLenum specifying the condition that must be met to set the sync object's state to signaled. Must be gl.SYNC_GPU_COMMANDS_COMPLETE.</param>
+        /// <param name="flags">A GLbitfield specifying a bitwise combination of flags controlling the behavior of the sync object. Must be 0 (exists for extensions only).</param>
+        /// <returns>A WebGLSync object.</returns>
+        public WebGLSync FenceSync(GLenum condition, GLbitfield flags) => JSRef!.Call<WebGLSync>("fenceSync", condition, flags);
+        /// <summary>
+        /// The WebGL2RenderingContext.isSync() method of the WebGL 2 API returns true if the passed object is a valid WebGLSync object.
+        /// </summary>
+        /// <param name="sync"></param>
+        /// <returns></returns>
+        public GLboolean IsSync(WebGLSync sync) => JSRef!.Call<GLboolean>("isSync", sync);
+        /// <summary>
+        /// The WebGL2RenderingContext.deleteSync() method of the WebGL 2 API deletes a given WebGLSync object.
+        /// </summary>
+        /// <param name="sync"></param>
+        public void DeleteSync(WebGLSync sync) => JSRef!.CallVoid("deleteSync", sync);
+        /// <summary>
+        /// The WebGL2RenderingContext.clientWaitSync() method of the WebGL 2 API blocks and waits for a WebGLSync object to become signaled or a given timeout to be passed.
+        /// </summary>
+        /// <param name="sync">A WebGLSync object on which to wait on.</param>
+        /// <param name="flags">A GLbitfield specifying a bitwise combination of flags controlling the flushing behavior. May be gl.SYNC_FLUSH_COMMANDS_BIT.</param>
+        /// <param name="timeout">A GLint64 specifying a timeout (in nanoseconds) for which to wait for the sync object to become signaled. Must not be larger than gl.MAX_CLIENT_WAIT_TIMEOUT_WEBGL.</param>
+        /// <returns>A GLenum indicating the sync object's status.<br/>
+        /// gl.ALREADY_SIGNALED: Indicates that the sync object was signaled when this method was called.<br/>
+        /// gl.TIMEOUT_EXPIRED: Indicates that the timeout time passed and that the sync object did not become signaled.<br/>
+        /// gl.CONDITION_SATISFIED: Indicates that the sync object was signaled before the timeout expired.<br/>
+        /// gl.WAIT_FAILED: Indicates that an error occurred during the execution.</returns>
+        public GLenum clientWaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.Call<GLenum>("clientWaitSync", sync, flags, timeout);
+        /// <summary>
+        /// The WebGL2RenderingContext.waitSync() method of the WebGL 2 API returns immediately, but waits on the GL server until the given WebGLSync object is signaled.<br/>
+        /// The method is a no-op in the absence of the possibility of synchronizing between multiple GL contexts.
+        /// </summary>
+        /// <param name="sync">A WebGLSync object on which to wait on.</param>
+        /// <param name="flags">A GLbitfield specifying a bitwise combination of flags controlling the flushing behavior. Must be 0 (exists for extensions only).</param>
+        /// <param name="timeout">A GLint64 specifying a timeout the server should wait before continuing. Must be gl.TIMEOUT_IGNORED.</param>
+        public void WaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.CallVoid("waitSync", sync, flags, timeout);
+        /// <summary>
+        /// The WebGL2RenderingContext.getSyncParameter() method of the WebGL 2 API returns parameter information of a WebGLSync object.
+        /// </summary>
+        /// <param name="sync">A WebGLSync object.</param>
+        /// <param name="pname">A GLenum specifying which information to return. Possible values:<br/>
+        ///  gl.OBJECT_TYPE -  Returns a GLenum indicating the type of the sync object (always gl.SYNC_FENCE).<br/>
+        ///  gl.SYNC_STATUS - Returns a GLenum indicating the status of the sync object (gl.SIGNALED or gl.UNSIGNALED).<br/>
+        ///  gl.SYNC_CONDITION - Returns a GLenum indicating the sync objects' condition (always gl.SYNC_GPU_COMMANDS_COMPLETE).<br/>
+        ///  gl.SYNC_FLAGS - Returns a GLenum indicating the flags with which the sync object was created(always 0 as no flags are supported).</param>
+        /// <returns>Depends on the pname parameter, either a GLenum or a GLbitfield.</returns>
+        public uint GetSyncParameter(WebGLSync sync, GLenum pname) => JSRef!.Call<uint>("getSyncParameter", sync, pname);
+        #endregion
+
+        #region Transform feedback - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#transform_feedback
+        /// <summary>
+        /// The WebGL2RenderingContext.createTransformFeedback() method of the WebGL 2 API creates and initializes WebGLTransformFeedback objects.
+        /// </summary>
+        /// <returns></returns>
+        public WebGLTransformFeedback CreateTransformFeedback() => JSRef!.Call<WebGLTransformFeedback>("createTransformFeedback");
+        /// <summary>
+        /// The WebGL2RenderingContext.deleteTransformFeedback() method of the WebGL 2 API deletes a given WebGLTransformFeedback object.
+        /// </summary>
+        /// <param name="transformFeedback">A WebGLTransformFeedback object to delete.</param>
+        public void DeleteTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.CallVoid("deleteTransformFeedback", transformFeedback);
+        /// <summary>
+        /// The WebGL2RenderingContext.isTransformFeedback() method of the WebGL 2 API returns true if the passed object is a valid WebGLTransformFeedback object.
+        /// </summary>
+        /// <param name="transformFeedback">A WebGLTransformFeedback object to test.</param>
+        /// <returns>A GLboolean indicating whether the given object is a valid WebGLTransformFeedback object (true) or not (false).</returns>
+        public bool IsTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.Call<bool>("isTransformFeedback", transformFeedback);
+        /// <summary>
+        /// The WebGL2RenderingContext.bindTransformFeedback() method of the WebGL 2 API binds a passed WebGLTransformFeedback object to the current GL state.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target (binding point). Must be gl.TRANSFORM_FEEDBACK.</param>
+        /// <param name="transformFeedback">A WebGLTransformFeedback object to bind.</param>
+        public void BindTransformFeedback(GLenum target, WebGLTransformFeedback? transformFeedback) => JSRef!.CallVoid("bindTransformFeedback", target, transformFeedback);
+        /// <summary>
+        /// The WebGL2RenderingContext.beginTransformFeedback() method of the WebGL 2 API starts a transform feedback operation.
+        /// </summary>
+        /// <param name="primitiveMode">
+        /// A GLenum specifying the output type of the primitives that will be recorded into the buffer objects that are bound for transform feedback. Possible values:<br/>
+        /// gl.POINTS<br/>
+        /// gl.LINES<br/>
+        /// gl.TRIANGLES</param>
+        public void BeginTransformFeedback(GLenum primitiveMode) => JSRef!.CallVoid("beginTransformFeedback", primitiveMode);
+        /// <summary>
+        /// The WebGL2RenderingContext.endTransformFeedback() method of the WebGL 2 API ends a transform feedback operation.
+        /// </summary>
+        public void EndTransformFeedback() => JSRef!.CallVoid("endTransformFeedback");
+        /// <summary>
+        /// The WebGL2RenderingContext.transformFeedbackVaryings() method of the WebGL 2 API specifies values to record in WebGLTransformFeedback buffers.
+        /// </summary>
+        /// <param name="program">A WebGLProgram.</param>
+        /// <param name="varyings">An Array of string specifying the names of the varying variables to use.</param>
+        /// <param name="bufferMode">A GLenum specifying the mode to use when capturing the varying variables. Either:<br/>
+        /// gl.INTERLEAVED_ATTRIBS<br/>
+        /// gl.SEPARATE_ATTRIBS.</param>
+        public void TransformFeedbackVaryings(WebGLProgram program, string[] varyings, GLenum bufferMode)
+            => JSRef!.CallVoid("transformFeedbackVaryings", program, varyings, bufferMode);
+        /// <summary>
+        /// The WebGL2RenderingContext.getTransformFeedbackVarying() method of the WebGL 2 API returns information about varying variables from WebGLTransformFeedback buffers.
+        /// </summary>
+        /// <param name="program">A WebGLProgram.</param>
+        /// <param name="index">A GLuint specifying the index of the varying variable whose information to retrieve.</param>
+        /// <returns>A WebGLActiveInfo object.</returns>
+        public WebGLActiveInfo GetTransformFeedbackVarying(WebGLProgram program, GLuint index)
+            => JSRef!.Call<WebGLActiveInfo>("getTransformFeedbackVarying", program, index);
+        /// <summary>
+        /// The WebGL2RenderingContext.pauseTransformFeedback() method of the WebGL 2 API pauses a transform feedback operation.
+        /// </summary>
+        public void PauseTransformFeedback() => JSRef!.CallVoid("pauseTransformFeedback");
+        /// <summary>
+        /// The WebGL2RenderingContext.resumeTransformFeedback() method of the WebGL 2 API resumes a transform feedback operation.
+        /// </summary>
+        public void ResumeTransformFeedback() => JSRef!.CallVoid("resumeTransformFeedback");
+        #endregion
+
+        #region Uniform buffer objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#uniform_buffer_objects
+        /// <summary>
+        /// The WebGL2RenderingContext.bindBufferBase() method of the WebGL 2 API binds a given WebGLBuffer to a given binding point (target) at a given index.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target for the bind operation. Possible values:
+        /// gl.TRANSFORM_FEEDBACK_BUFFER
+        /// gl.UNIFORM_BUFFER</param>
+        /// <param name="index">A GLuint specifying the index of the target.</param>
+        /// <param name="buffer">A WebGLBuffer which to bind to the binding point (target).</param>
+        public void BindBufferBase(GLenum target, GLuint index, WebGLBuffer buffer) => JSRef!.CallVoid("bindBufferBase", target, index, buffer);
+        /// <summary>
+        /// The WebGL2RenderingContext.bindBufferRange() method of the WebGL 2 API binds a range of a given WebGLBuffer to a given binding point (target) at a given index.
+        /// </summary>
+        /// <param name="target">A GLenum specifying the target for the bind operation. Possible values:
+        /// gl.TRANSFORM_FEEDBACK_BUFFER
+        /// gl.UNIFORM_BUFFER</param>
+        /// <param name="index">A GLuint specifying the index of the target.</param>
+        /// <param name="buffer">A WebGLBuffer which to bind to the binding point (target).</param>
+        /// <param name="offset">A GLintptr specifying the starting offset.</param>
+        /// <param name="size">A GLsizeiptr specifying the amount of data that can be read from the buffer.</param>
+        public void BindBufferRange(GLenum target, GLuint index, WebGLBuffer buffer, GLintptr offset, GLsizeiptr size)
+            => JSRef!.CallVoid("bindBufferRange", target, index, buffer, offset, size);
+        /// <summary>
+        /// The WebGL2RenderingContext.getUniformIndices() method of the WebGL 2 API retrieves the indices of a number of uniforms within a WebGLProgram.
+        /// </summary>
+        /// <param name="program">A WebGLProgram containing uniforms whose indices to query.</param>
+        /// <param name="uniformNames">An Array of string specifying the names of the uniforms to query.</param>
+        public GLuint[] GetUniformIndices(WebGLProgram program, string[] uniformNames)
+            => JSRef!.Call<GLuint[]>("getUniformIndices", program, uniformNames);
+        /// <summary>
+        /// The WebGL2RenderingContext.getActiveUniforms() method of the WebGL 2 API retrieves information about active uniforms within a WebGLProgram.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="program">A WebGLProgram containing the active uniforms.</param>
+        /// <param name="uniformIndices">An Array of GLuint specifying the indices of the active uniforms to query.</param>
+        /// <param name="pname">
+        /// A GLenum specifying which information to query.Possible values:<br/>
+        /// gl.UNIFORM_TYPE - Returns an Array of GLenum indicating the types of the uniforms.<br/>
+        /// gl.UNIFORM_SIZE - Returns an Array of GLuint indicating the sizes of the uniforms.<br/>
+        /// gl.UNIFORM_BLOCK_INDEX - Returns an Array of GLint indicating the block indices of the uniforms.<br/>
+        /// gl.UNIFORM_OFFSET - Returns an Array of GLint indicating the uniform buffer offsets.<br/>
+        /// gl.UNIFORM_ARRAY_STRIDE - Returns an Array of GLint indicating the strides between the elements.<br/>
+        /// gl.UNIFORM_MATRIX_STRIDE - Returns an Array of GLint indicating the strides between columns of a column-major matrix or a row-major matrix.<br/>
+        /// gl.UNIFORM_IS_ROW_MAJOR - Returns an Array of GLboolean indicating whether each of the uniforms is a row-major matrix or not.</param>
+        /// <returns>Depends on which information is requested using the pname parameter.</returns>
+        public T[] GetActiveUniforms<T>(WebGLProgram program, GLuint[] uniformIndices, GLenum pname) where T : struct
+            => JSRef!.Call<T[]>("getActiveUniforms", program, uniformIndices, pname);
+        /// <summary>
+        /// The WebGL2RenderingContext.getUniformBlockIndex() method of the WebGL 2 API retrieves the index of a uniform block within a WebGLProgram.
+        /// </summary>
+        /// <param name="program">A WebGLProgram containing the uniform block.</param>
+        /// <param name="uniformBlockName">A string specifying the name of the uniform block to whose index to retrieve.</param>
+        /// <returns>A GLuint indicating the uniform block index.</returns>
+        public GLuint GetUniformBlockIndex(WebGLProgram program, string uniformBlockName)
+            => JSRef!.Call<GLuint>("getUniformBlockIndex", program, uniformBlockName);
+        /// <summary>
+        /// The WebGL2RenderingContext.getActiveUniformBlockParameter() method of the WebGL 2 API retrieves information about an active uniform block within a WebGLProgram.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="program">A WebGLProgram containing the active uniform block.</param>
+        /// <param name="uniformBlockIndex">A GLuint specifying the index of the active uniform block within the program.</param>
+        /// <param name="pname">
+        /// A GLenum specifying which information to query. Possible values:<br/>
+        /// gl.UNIFORM_BLOCK_BINDING - Returns a GLuint indicating the uniform buffer binding point.<br/>
+        /// gl.UNIFORM_BLOCK_DATA_SIZE - Returns a GLuint indicating the minimum total buffer object size.<br/>
+        /// gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS  - Returns a GLuint indicating the number of active uniforms in the uniform block.<br/>
+        /// gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES - Returns a Uint32Array indicating the list of active uniforms in the uniform block.<br/>
+        /// gl.UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER - Returns a GLboolean indicating whether the uniform block is referenced by the vertex shader.<br/>
+        /// gl.UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER - Returns a GLboolean indicating whether the uniform block is referenced by the fragment shader.
+        /// </param>
+        /// <returns>Depends on which information is requested using the pname parameter. If an error occurs, null is returned.</returns>
+        public T? GetActiveUniformBlockParameter<T>(WebGLProgram program, GLuint uniformBlockIndex, GLenum pname) where T : struct
+            => JSRef!.Call<T>("getActiveUniformBlockParameter", program, uniformBlockIndex, pname);
+        /// <summary>
+        /// The WebGL2RenderingContext.getActiveUniformBlockName() method of the WebGL 2 API retrieves the name of the active uniform block at a given index within a WebGLProgram.
+        /// </summary>
+        /// <param name="program">A WebGLProgram containing the uniform block.</param>
+        /// <param name="uniformBlockIndex">A GLuint specifying the index of the uniform block to whose name to retrieve.</param>
+        /// <returns>A string indicating the active uniform block name.</returns>
+        public string GetActiveUniformBlockName(WebGLProgram program, GLuint uniformBlockIndex)
+            => JSRef!.Call<string>("getActiveUniformBlockName", program, uniformBlockIndex);
+        /// <summary>
+        /// The WebGL2RenderingContext.uniformBlockBinding() method of the WebGL 2 API assigns binding points for active uniform blocks.
+        /// </summary>
+        /// <param name="program">A WebGLProgram containing the active uniform block whose binding to assign.</param>
+        /// <param name="uniformBlockIndex">A GLuint specifying the index of the active uniform block within the program.</param>
+        /// <param name="uniformBlockBinding">A GLuint specifying the binding point to which to bind the uniform block.</param>
+        public void UniformBlockBinding(WebGLProgram program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
+            => JSRef!.CallVoid("uniformBlockBinding", program, uniformBlockIndex, uniformBlockBinding);
+        #endregion
+
+        #region Vertex array objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#vertex_array_objects
+        /// <summary>
+        /// The WebGL2RenderingContext.createVertexArray() method of the WebGL 2 API creates and initializes a WebGLVertexArrayObject object that represents a vertex array object (VAO) pointing to vertex array data and which provides names for different sets of vertex data.
+        /// </summary>
+        /// <returns>A WebGLVertexArrayObject representing a vertex array object (VAO) which points to vertex array data.</returns>
+        public WebGLVertexArrayObject CreateVertexArray() => JSRef!.Call<WebGLVertexArrayObject>("createVertexArray");
+        /// <summary>
+        /// The WebGL2RenderingContext.deleteVertexArray() method of the WebGL 2 API deletes a given WebGLVertexArrayObject object.
+        /// </summary>
+        /// <param name="vertexArray">A WebGLVertexArrayObject (VAO) object to delete.</param>
+        public void DeleteVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.CallVoid("deleteVertexArray", vertexArray);
+        /// <summary>
+        /// The WebGL2RenderingContext.isVertexArray() method of the WebGL API returns true if the passed object is a valid WebGLVertexArrayObject object.
+        /// </summary>
+        /// <param name="vertexArray">A WebGLVertexArrayObject (VAO) object to test.</param>
+        /// <returns>A GLboolean indicating whether the given object is a valid WebGLVertexArrayObject object (true) or not (false).</returns>
+        public bool IsVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.Call<bool>("isVertexArray", vertexArray);
+        /// <summary>
+        /// The WebGL2RenderingContext.bindVertexArray() method of the WebGL 2 API binds a passed WebGLVertexArrayObject object to the buffer.
+        /// </summary>
+        /// <param name="vertexArray">A WebGLVertexArrayObject (VAO) object to bind.</param>
+        public void BindVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.CallVoid("bindVertexArray", vertexArray);
+        #endregion
+    }
+}

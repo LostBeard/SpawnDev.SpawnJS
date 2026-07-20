@@ -1,0 +1,74 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The ServiceWorkerContainer interface of the Service Worker API provides an object representing the service worker as an overall unit in the network ecosystem, including facilities to register, unregister and update service workers, and access the state of service workers and their registrations.<br/>
+    /// https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerContainer
+    /// </summary>
+    public class ServiceWorkerContainer : EventTarget
+    {
+        #region Constructors
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        /// <param name="_ref"></param>
+        public ServiceWorkerContainer(SpawnJSObjectReference _ref) : base(_ref) { }
+        #endregion
+        #region Properties
+        /// <summary>
+        /// Returns a ServiceWorker object if its state is activating or activated (the same object returned by ServiceWorkerRegistration.active). This property returns null during a force-refresh request (Shift + refresh) or if there is no active worker.
+        /// </summary>
+        public ServiceWorker? Controller => JSRef!.Get<ServiceWorker?>("controller");
+        /// <summary>
+        /// Provides a way of delaying code execution until a service worker is active. It returns a Promise that will never reject, and which waits indefinitely until the ServiceWorkerRegistration associated with the current page has an ServiceWorkerRegistration.active worker. Once that condition is met, it resolves with the ServiceWorkerRegistration.
+        /// </summary>
+        public Task<ServiceWorkerRegistration> Ready => JSRef!.GetAsync<ServiceWorkerRegistration>("ready");
+        #endregion
+        #region Methods
+        /// <summary>
+        /// Returns all ServiceWorkerRegistration objects associated with a ServiceWorkerContainer in an array. The method returns a Promise that resolves to an array of ServiceWorkerRegistration.
+        /// </summary>
+        /// <returns></returns>
+        public Task<ServiceWorkerRegistration[]> GetRegistrations() => JSRef!.CallAsync<ServiceWorkerRegistration[]>("getRegistrations");
+        /// <summary>
+        /// Gets a ServiceWorkerRegistration object whose scope matches the provided document URL. The method returns a Promise that resolves to a ServiceWorkerRegistration or undefined.
+        /// </summary>
+        /// <returns></returns>
+        public Task<ServiceWorkerRegistration?> GetRegistration() => JSRef!.CallAsync<ServiceWorkerRegistration?>("getRegistration");
+        /// <summary>
+        /// Explicitly starts the flow of messages being dispatched from a service worker to pages under its control (e.g. sent via Client.postMessage()). This can be used to react to sent messages earlier, even before that page's content has finished loading.
+        /// </summary>
+        public void StartMessages() => JSRef!.CallVoid("startMessages");
+        /// <summary>
+        /// Gets a ServiceWorkerRegistration object whose scope matches the provided document URL. The method returns a Promise that resolves to a ServiceWorkerRegistration or undefined.
+        /// </summary>
+        /// <param name="clientUrl"></param>
+        /// <returns></returns>
+        public Task<ServiceWorkerRegistration?> GetRegistration(string clientUrl) => JSRef!.CallAsync<ServiceWorkerRegistration?>("getRegistration", clientUrl);
+        /// <summary>
+        /// Creates or updates a ServiceWorkerRegistration for the given scriptURL.
+        /// </summary>
+        /// <param name="scriptURL"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public Task<ServiceWorkerRegistration> Register(string scriptURL, ServiceWorkerRegistrationOptions? options = null) => options == null ? JSRef!.CallAsync<ServiceWorkerRegistration>("register", scriptURL) : JSRef!.CallAsync<ServiceWorkerRegistration>("register", scriptURL, options);
+        #endregion
+        #region Events
+        /// <summary>
+        /// Occurs when the document's associated ServiceWorkerRegistration acquires a new active worker.
+        /// </summary>
+        public ActionEvent<Event> OnControllerChange { get => new ActionEvent<Event>("controllerchange", AddEventListener, RemoveEventListener); set { } }
+        /// <summary>
+        /// Occurs when incoming messages are received by the ServiceWorkerContainer object (e.g. via a MessagePort.postMessage() call).
+        /// </summary>
+        public ActionEvent<MessageEvent> OnMessage { get => new ActionEvent<MessageEvent>("message", AddEventListener, RemoveEventListener); set { } }
+        /// <summary>
+        /// Fired when incoming messages can not deserialized by the ServiceWorkerContainer object (e.g. via a MessagePort.postMessage() call).
+        /// </summary>
+        public ActionEvent<MessageEvent> OnMessageError { get => new ActionEvent<MessageEvent>("messageerror", AddEventListener, RemoveEventListener); set { } }
+        #endregion
+    }
+}

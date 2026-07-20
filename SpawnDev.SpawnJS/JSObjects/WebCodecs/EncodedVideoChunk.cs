@@ -1,0 +1,47 @@
+// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Toolbox;
+namespace SpawnDev.SpawnJS.JSObjects
+{
+    /// <summary>
+    /// The EncodedVideoChunk interface of the Web Codecs API represents a chunk of encoded video.
+    /// </summary>
+    public class EncodedVideoChunk : SpawnJSObject
+    {
+        /// <summary>
+        /// Deserialization constructor
+        /// </summary>
+        public EncodedVideoChunk(SpawnJSObjectReference _ref) : base(_ref) { }
+
+        /// <summary>
+        /// Creates a new EncodedVideoChunk.
+        /// </summary>
+        public EncodedVideoChunk(EncodedVideoChunkInit init) : base(JS.New(nameof(EncodedVideoChunk), init)) { }
+
+        /// <summary>
+        /// Returns a string indicating whether this chunk is a key chunk or a delta chunk.
+        /// </summary>
+        public EncodedVideoChunkType Type => JSRef!.Get<EncodedVideoChunkType>("type");
+
+        /// <summary>
+        /// Returns an integer indicating the timestamp of the video in microseconds.
+        /// </summary>
+        public long Timestamp => JSRef!.Get<long>("timestamp");
+
+        /// <summary>
+        /// Returns an integer indicating the duration of the video in microseconds.
+        /// </summary>
+        public long? Duration => JSRef!.Get<long?>("duration");
+
+        /// <summary>
+        /// Returns the size in bytes of the encoded video data.
+        /// </summary>
+        public long ByteLength => JSRef!.Get<long>("byteLength");
+
+        /// <summary>
+        /// Copies the encoded video data to the destination buffer.
+        /// </summary>
+        public void CopyTo(ArrayBuffer destination) => JSRef!.CallVoid("copyTo", destination);
+    }
+}
