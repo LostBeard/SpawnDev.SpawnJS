@@ -34,7 +34,9 @@ var blockers = new (string Name, Regex Pattern)[]
     ("ElementRef", new Regex(@"\bElementReference\b")),
     ("Events",     new Regex(@"\bActionEvent\b|\bJSEventCallback\b")),
     ("Union",      new Regex(@"\bUnion<")),
-    ("Async",      new Regex(@"Async")),
+    // NOT a blocker: SpawnJSObjectReference already carries CallAsync/GetAsync/CallVoidAsync, so
+    // Task-returning wrapper members port unchanged. Verified by porting and building the
+    // AsyncIterator/Iterator/IteratorResult closure. Kept out of the list deliberately.
     ("Callback",   new Regex(@"\bCallback\b|\bActionCallback\b|\bFuncCallback\b")),
     ("DateTime",   new Regex(@"\bDateTime\b")),
     ("EnumString", new Regex(@"\bEnumString\b")),
@@ -45,6 +47,20 @@ var blockers = new (string Name, Regex Pattern)[]
     ("EpochDateTime", new Regex(@"\bEpochDateTime\b")),
     ("GPUCoord",   new Regex(@"\bGPUIntegerCoordinate\b|\bGPUSize\d+\b")),
 };
+
+// --allow <Blocker> drops a blocker from the list so its wrappers can be attempted.
+// Use it to test whether a category is genuinely blocked rather than assumed to be.
+// values consumed by a flag must never be mistaken for a type name
+var flagValues = new HashSet<string>(StringComparer.Ordinal);
+for (var i = 0; i < args.Length - 1; i++)
+{
+    if (args[i] != "--allow") continue;
+    var drop = args[i + 1];
+    flagValues.Add(drop);
+    blockers = blockers.Where(b => !string.Equals(b.Name, drop, StringComparison.OrdinalIgnoreCase)).ToArray();
+    Console.WriteLine($"(allowing '{drop}')");
+}
+bool IsTypeArg(string a) => !a.StartsWith("-") && !flagValues.Contains(a);
 
 var mode = args.FirstOrDefault() ?? "";
 if (mode == "--list") { Report(); return 0; }
@@ -71,7 +87,56 @@ if (mode == "--port-ready")
     return 0;
 }
 
-var names = args.Where(a => !a.StartsWith("-")).ToArray();
+if (mode == "--impact")
+{
+    // for each blocker, how many wrappers would become mechanically portable if that blocker
+    // alone were resolved. answers "which substrate do we build next" with a number.
+    var files = Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories);
+    var only = new Dictionary<string, int>();
+    var appears = new Dictionary<string, int>();
+    var multi = 0;
+    foreach (var f in files)
+    {
+        var text = File.ReadAllText(f);
+        var hits = blockers.Where(b => b.Pattern.IsMatch(text)).Select(b => b.Name).ToArray();
+        if (hits.Length == 0) continue;
+        foreach (var h in hits) appears[h] = appears.GetValueOrDefault(h) + 1;
+        if (hits.Length == 1) only[hits[0]] = only.GetValueOrDefault(hits[0]) + 1;
+        else multi++;
+    }
+    Console.WriteLine($"{"blocker",-16} {"appears in",10} {"sole blocker",13}");
+    foreach (var kv in appears.OrderByDescending(o => only.GetValueOrDefault(o.Key)))
+        Console.WriteLine($"{kv.Key,-16} {kv.Value,10} {only.GetValueOrDefault(kv.Key),13}");
+    Console.WriteLine($"\nwrappers with more than one blocker: {multi}");
+    return 0;
+}
+
+if (mode == "--closure")
+{
+    // port a seed type together with every wrapper it transitively depends on.
+    // clusters of mutually dependent wrappers can never become "ready" one file at a time,
+    // so the closure is the unit that actually moves.
+    var seeds = args.Skip(1).Where(IsTypeArg).ToArray();
+    if (seeds.Length == 0) { Console.WriteLine("usage: --closure <TypeName> [TypeName...]"); return 1; }
+    var (closure, blocked) = Closure(seeds);
+    if (blocked.Count > 0)
+    {
+        Console.WriteLine($"closure of {string.Join(", ", seeds)} is {closure.Count + blocked.Count} types, {blocked.Count} of which need design work:");
+        foreach (var kv in blocked.OrderBy(o => o.Key)) Console.WriteLine($"  {kv.Key,-34} {kv.Value}");
+        Console.WriteLine("\nnothing ported - resolve or exclude those first");
+        return 1;
+    }
+    foreach (var name in closure)
+    {
+        var src = Directory.GetFiles(source, name + ".cs", SearchOption.AllDirectories).First();
+        File.WriteAllText(Path.Combine(dest, name + ".cs"), Transform(File.ReadAllText(src)));
+    }
+    Console.WriteLine($"ported closure of {string.Join(", ", seeds)}: {closure.Count} types");
+    foreach (var chunk in closure.Order(StringComparer.Ordinal).Chunk(6)) Console.WriteLine("  " + string.Join(", ", chunk));
+    return 0;
+}
+
+var names = args.Where(IsTypeArg).ToArray();
 if (names.Length == 0)
 {
     Console.WriteLine("usage: PortJSObjects.cs <TypeName> [TypeName...] | --list | --missing");
@@ -149,6 +214,38 @@ void Report()
     Console.WriteLine($"mechanically portable: {clean.Count}");
     Console.WriteLine($"needs design work    : {files.Length - clean.Count}");
     foreach (var kv in counts.OrderByDescending(o => o.Value)) Console.WriteLine($"    {kv.Key,-12} {kv.Value}");
+}
+
+// transitive dependency closure of the seed types, split into portable and design-work-needed
+(List<string> Portable, Dictionary<string, string> Blocked) Closure(string[] seeds)
+{
+    var available = Directory.GetFiles(source, "*.cs", SearchOption.AllDirectories)
+        .GroupBy(Path.GetFileNameWithoutExtension).ToDictionary(g => g.Key!, g => g.First());
+    var have = new HashSet<string>(StringComparer.Ordinal);
+    foreach (var dir in new[] { dest, Path.Combine(repoRoot, "SpawnDev.SpawnJS", "SpawnJSObjects") })
+        if (Directory.Exists(dir))
+            foreach (var f in Directory.GetFiles(dir, "*.cs")) have.Add(Path.GetFileNameWithoutExtension(f)!);
+
+    var portable = new List<string>();
+    var blocked = new Dictionary<string, string>();
+    var seen = new HashSet<string>(StringComparer.Ordinal);
+    var queue = new Queue<string>(seeds);
+    while (queue.Count > 0)
+    {
+        var name = queue.Dequeue();
+        if (!seen.Add(name) || have.Contains(name)) continue;
+        if (!available.TryGetValue(name, out var file)) continue;
+        var text = File.ReadAllText(file);
+        var hits = blockers.Where(b => b.Pattern.IsMatch(text)).Select(b => b.Name).ToArray();
+        if (hits.Length > 0) { blocked[name] = string.Join(",", hits); continue; }
+        portable.Add(name);
+        foreach (Match m in Regex.Matches(text, @"\b([A-Z]\w+)\b"))
+        {
+            var dep = m.Groups[1].Value;
+            if (dep != name && available.ContainsKey(dep) && !have.Contains(dep)) queue.Enqueue(dep);
+        }
+    }
+    return (portable, blocked);
 }
 
 // wrappers that are mechanically portable AND whose every JSObject dependency is already ported.
