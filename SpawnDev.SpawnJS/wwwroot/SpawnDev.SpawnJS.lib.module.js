@@ -155,6 +155,39 @@
         getPropertyConstructorNames(parent, key) {
             return this.getConstructorNames(parent[key]);
         }
+        // Returns the WebAssembly linear memory ArrayBuffer that the .Net heap lives in.
+        // Zero copy views are built directly over this, so reaching it by the wrong path does not fail
+        // loudly - it silently produces a view onto the wrong bytes. The runtime exposes it under
+        // different shapes depending on version, so every known shape is tried and the one that worked is
+        // reportable via wasmMemoryBufferSource().
+        wasmMemoryBuffer() {
+            var found = this.#findWasmMemory();
+            if (!found) throw new Error('SpawnJSInterop: could not reach the WebAssembly memory buffer');
+            return found.buffer;
+        }
+        // returns the name of the path the memory buffer was found under, or '' if it was not found
+        wasmMemoryBufferSource() {
+            var found = this.#findWasmMemory();
+            return found ? found.source : '';
+        }
+        #findWasmMemory() {
+            var rt = this.dotnetRuntime;
+            if (!rt) return null;
+            var candidates = [
+                ['Module.HEAPU8.buffer', () => rt.Module?.HEAPU8?.buffer],
+                ['Module.wasmMemory.buffer', () => rt.Module?.wasmMemory?.buffer],
+                ['localHeapViewU8().buffer', () => rt.localHeapViewU8?.()?.buffer],
+                ['getHeapU8().buffer', () => rt.getHeapU8?.()?.buffer],
+            ];
+            for (var i = 0; i < candidates.length; i++) {
+                var buffer;
+                try { buffer = candidates[i][1](); } catch (ex) { continue; }
+                if (buffer && typeof buffer.byteLength === 'number' && buffer.byteLength > 0) {
+                    return { buffer: buffer, source: candidates[i][0] };
+                }
+            }
+            return null;
+        }
         // returns string[] of [typeof, ...constructorNames]
         // typeof and the prototype chain together are everything needed to identify a value, so they are
         // fetched in a single call. Anything that has to pick a .Net type from a live Javascript value

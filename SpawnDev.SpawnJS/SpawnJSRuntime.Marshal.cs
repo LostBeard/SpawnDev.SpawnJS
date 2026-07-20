@@ -76,6 +76,18 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>
+        /// The WebAssembly linear memory ArrayBuffer the .Net heap lives in.<br/>
+        /// This is what a zero copy view is built over: pin a .Net array, take its address, and hand
+        /// Javascript a TypedArray onto these bytes so the data is never copied across the boundary.
+        /// </summary>
+        public SpawnJSHandle WasmMemoryBuffer() => NetRun<SpawnJSHandle>("wasmMemoryBuffer");
+        /// <summary>
+        /// Which runtime shape the WebAssembly memory buffer was reached through, or an empty string if it
+        /// could not be reached. Diagnostics: the runtime exposes the heap differently across versions,
+        /// and reaching it the wrong way yields a view onto the wrong bytes rather than an error.
+        /// </summary>
+        public string WasmMemoryBufferSource() => NetRun<string>("wasmMemoryBufferSource");
+        /// <summary>
         /// Returns the Javascript typeof followed by the value's prototype chain constructor names, most
         /// derived first: ["object", "TypeError", "Error", "Object"].<br/>
         /// One call, because identifying a Javascript value needs both and a marshaller should not pay two
