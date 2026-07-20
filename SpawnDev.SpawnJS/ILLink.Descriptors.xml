@@ -1,0 +1,25 @@
+<!--
+  Tells the trimmer about the one thing it cannot see in this library.
+
+  Every wrapper is built by the marshaller graph through Activator.CreateInstance(type, jsRef) - see
+  SpawnJSObjectMarshaller.JSToNet. Nothing ever calls those constructors statically, so the trimmer
+  removes them and the first marshal of a wrapper fails at runtime with
+  "MissingMethodException: MissingConstructor_Name, SpawnDev.SpawnJS.JSObjects.Error".
+
+  required="false" is the important part: it does NOT root these types. A wrapper the app never mentions
+  is still removed entirely. This only says that IF a type is kept, its deserialization constructor is
+  kept with it - which is exactly the guarantee the marshaller needs, at no cost to what gets trimmed.
+
+  Shipped as an embedded resource so it travels in the package. An app consuming SpawnDev.SpawnJS can
+  turn on PublishTrimmed without knowing any of this exists.
+-->
+<linker>
+  <assembly fullname="SpawnDev.SpawnJS">
+    <type fullname="SpawnDev.SpawnJS.JSObjects*" required="false">
+      <method signature="System.Void .ctor(SpawnDev.SpawnJS.SpawnJSObjectReference)" />
+    </type>
+    <type fullname="SpawnDev.SpawnJS.SpawnJSObject" required="false">
+      <method signature="System.Void .ctor(SpawnDev.SpawnJS.SpawnJSObjectReference)" />
+    </type>
+  </assembly>
+</linker>

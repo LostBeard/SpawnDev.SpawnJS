@@ -21,4 +21,10 @@
 		<ProjectReference Include="..\SpawnDev.SpawnJS\SpawnDev.SpawnJS.csproj" />
 		<ProjectReference Include="..\TestsShared\TestsShared.csproj" />
 	</ItemGroup>
+  <!-- Trimming experiment: the test harness finds tests by reflection, so without rooting it the
+       trimmer removes every test method and the run reports a vacuous 'Failed: 0 Ran: 0'. Rooting these
+       keeps the harness intact so what is actually under test is the LIBRARY's trim safety. -->
+  <ItemGroup Condition="'$(PublishTrimmed)' == 'true'">
+    <TrimmerRootAssembly Include="TestsShared" />
+  </ItemGroup>
 </Project>
