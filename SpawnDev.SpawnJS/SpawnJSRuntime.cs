@@ -65,6 +65,7 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new DelegateMarshaller());
             Marshallers.Add(new IMarshalOutByJSHandleMarshaller());
             Marshallers.Add(new SpawnJSHandleMarshaller());
+            Marshallers.Add(new UnionMarshaller());
             // create a new instance of SpawnJSInterop Javascript class for interop with this isntance of .Net
             SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
             // get _netToJSCall function in SpawnJSInterop

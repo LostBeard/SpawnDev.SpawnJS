@@ -155,6 +155,17 @@
         getPropertyConstructorNames(parent, key) {
             return this.getConstructorNames(parent[key]);
         }
+        // returns string[] of [typeof, ...constructorNames]
+        // typeof and the prototype chain together are everything needed to identify a value, so they are
+        // fetched in a single call. Anything that has to pick a .Net type from a live Javascript value
+        // reads this, and reads it once.
+        getPropertyTypeAndConstructorNames(parent, key) {
+            var value = parent[key];
+            var ret = [typeof (value)];
+            var names = this.getConstructorNames(value);
+            for (var i = 0; i < names.length; i++) ret.push(names[i]);
+            return ret;
+        }
         // returns string[]
         getConstructorNames(obj) {
             var constructorNames = [];

@@ -76,9 +76,20 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>
+        /// Returns the Javascript typeof followed by the value's prototype chain constructor names, most
+        /// derived first: ["object", "TypeError", "Error", "Object"].<br/>
+        /// One call, because identifying a Javascript value needs both and a marshaller should not pay two
+        /// round trips to find out what it is reading.
+        /// </summary>
+        public string[] GetPropertyTypeAndConstructorNames(JSObject jsParent, object? jsKey)
+        {
+            if (jsParent == null || jsParent.IsDisposed) throw new Exception("GetPropertyTypeAndConstructorNames invalid JSObject");
+            return NetRun<string[]>("getPropertyTypeAndConstructorNames", new object[] { jsParent, jsKey! });
+        }
+        /// <summary>
         /// Returns a string with typeof and className: "object Array"
         /// </summary>
-        public string GetPropertyTypeInfo(SpawnJSHandle jsParent, object? jsKey) 
+        public string GetPropertyTypeInfo(SpawnJSHandle jsParent, object? jsKey)
         {
             if (jsParent == null || jsParent.IsDisposed || jsParent.JSObject == null) throw new Exception("ObjectPrototypeToStringCall invalid SpawnJSHandle");
             return NetRun<string>("getPropertyTypeInfo", new object[] { jsParent.JSObject, jsKey! });
@@ -100,7 +111,15 @@ namespace SpawnDev.SpawnJS
         #region Marshal
         ConcurrentDictionary <Type, JSMarshaller> _typeMarshallerCache = new ConcurrentDictionary<Type, JSMarshaller>();
         JSMarshaller? _nullTypeMarshaller = null;
-        internal JSMarshaller GetMarshaller(Type? type)
+        /// <summary>
+        /// Returns the marshaller that will be used for the given .Net type.<br/>
+        /// Marshallers are matched in reverse registration order, so a later registration wins, and the
+        /// match is cached per type. A marshaller may hand back an instance specialised to the type, in
+        /// which case that specialisation is what gets cached and returned.<br/>
+        /// Public because the marshaller registry is part of the API - anyone adding a marshaller needs to
+        /// be able to see which one a type actually resolves to.
+        /// </summary>
+        public JSMarshaller GetMarshaller(Type? type)
         {
             JSMarshaller? marshaller = null;
             if (type == null && _nullTypeMarshaller != null)
@@ -109,24 +128,29 @@ namespace SpawnDev.SpawnJS
             }
             else if (type == null || !_typeMarshallerCache.TryGetValue(type, out marshaller))
             {
+                // reset, because TryGetValue writes null on a miss and the loop below may decline every
+                // candidate. Leaving a declined candidate in `marshaller` would defeat the null check.
+                marshaller = null;
                 var length = Marshallers.Count;
                 for (var i = length - 1; i >= 0; i--)
                 {
-                    marshaller = Marshallers[i];
-                    if (marshaller.CanMarshal(type))
+                    var candidate = Marshallers[i];
+                    if (!candidate.CanMarshal(type)) continue;
+                    // GetMarshaller lets a marshaller hand back a per-type specialization (UnionMarshaller
+                    // returns one bound to the concrete Union<...> arms). Cache and use THAT, not the
+                    // generic candidate - otherwise the specialization hook does nothing.
+                    var typeMarshaller = candidate.GetMarshaller(type);
+                    if (typeMarshaller == null) continue;
+                    marshaller = typeMarshaller;
+                    if (type == null)
                     {
-                        var typeMarshaller = marshaller.GetMarshaller(type);
-                        if (typeMarshaller == null) continue;
-                        if (type == null)
-                        {
-                            _nullTypeMarshaller = marshaller;
-                        }
-                        else
-                        {
-                            _typeMarshallerCache.TryAdd(type, marshaller);
-                        }
-                        break;
+                        _nullTypeMarshaller = typeMarshaller;
                     }
+                    else
+                    {
+                        _typeMarshallerCache.TryAdd(type, typeMarshaller);
+                    }
+                    break;
                 }
             }
             if (marshaller == null) throw new Exception($"GetMarshaller failed: {type?.Name}");

@@ -233,7 +233,7 @@ namespace SpawnDev.SpawnJS
         {
             get
             {
-                if (_jsType == null) GetTypeInfo();
+                if (_jsType == null) GetTypeAndConstructorNames();
                 return _jsType!;
             }
         }
@@ -241,9 +241,28 @@ namespace SpawnDev.SpawnJS
 
         string[]? _constructorNames;
         /// <summary>
-        /// Javascript object protoype chain
+        /// Javascript object protoype chain, most derived first.<br/>
+        /// Empty for null and undefined. The first entry is the value's real constructor name, which is
+        /// not the same thing as <see cref="JSClass"/> - Object.prototype.toString reports "Error" for
+        /// every Error subclass, so it cannot identify a derived type.
         /// </summary>
-        public string[] ConstructorNames => _constructorNames ??= JS.GetPropertyConstructorNames(JSParent, JSKey);
+        public string[] ConstructorNames
+        {
+            get
+            {
+                if (_constructorNames == null) GetTypeAndConstructorNames();
+                return _constructorNames!;
+            }
+        }
+        /// <summary>
+        /// Reads typeof and the prototype chain in one call and caches both
+        /// </summary>
+        void GetTypeAndConstructorNames()
+        {
+            var info = JS.GetPropertyTypeAndConstructorNames(JSParent, JSKey);
+            _jsType = info.Length > 0 ? info[0] : "";
+            _constructorNames = info.Length > 1 ? info[1..] : System.Array.Empty<string>();
+        }
         /// <summary>
         /// Returns the Javascript type info
         /// </summary>

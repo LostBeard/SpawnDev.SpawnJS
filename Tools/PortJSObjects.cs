@@ -28,11 +28,26 @@ if (!Directory.Exists(source))
 }
 Directory.CreateDirectory(dest);
 
-// SpawnJS's own hand-written wrapper types live directly in JSObjects/ (Error, Promise, Function,
-// Array, Window, JSException...). They are what the runtime itself is built against, so a ported
-// BlazorJS wrapper of the same name must never overwrite one. Captured before anything is written.
+// SpawnJS's own hand-written wrapper types live in JSObjects/ alongside the ported ones (Error,
+// Promise, Function, Array, Window, JSException...). They are what the runtime itself is built
+// against, so a ported BlazorJS wrapper of the same name must never overwrite one.
+//
+// A file is native when it does NOT carry the ported marker. Identifying natives by "everything
+// already sitting in the destination folder" is what this used to do, and it made the tool a one shot:
+// after the first run every ported file looked native, so a re-run silently skipped all of them while
+// still reporting them as ported. Any later fix to Transform then appeared to do nothing.
+const string PortedMarker = "// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit";
+
+bool IsPorted(string text)
+    => text.Contains(PortedMarker, StringComparison.Ordinal)
+    // files ported before the marker existed are still recognisable by the injected using header,
+    // which Transform emits verbatim and no hand-written wrapper starts with
+    || Regex.IsMatch(text, @"\A﻿?using SpawnDev\.SpawnJS;\r?\nusing SpawnDev\.SpawnJS\.JSObjects;");
+
 var NativeTypes = new HashSet<string>(
-    Directory.GetFiles(dest, "*.cs", SearchOption.TopDirectoryOnly).Select(Path.GetFileNameWithoutExtension)!,
+    Directory.GetFiles(dest, "*.cs", SearchOption.AllDirectories)
+        .Where(f => !IsPorted(File.ReadAllText(f)))
+        .Select(Path.GetFileNameWithoutExtension)!,
     StringComparer.Ordinal);
 
 // patterns that mean the wrapper needs design work, not a mechanical copy
@@ -42,7 +57,9 @@ var blockers = new (string Name, Regex Pattern)[]
     // ActionEvent/FuncEvent/CallbackEvent/CallbackRef are ported, so event-bearing wrappers are no
     // longer blocked on the substrate. JSEventCallback has no SpawnJS equivalent yet.
     ("JSEventCallback", new Regex(@"\bJSEventCallback\b")),
-    ("Union",      new Regex(@"\bUnion<")),
+    // NOT a blocker: Union and UnionMarshaller are both in SpawnJS. The union type ported over unchanged
+    // (it only ever needed the Json attributes stripped) and arm selection now reads the live Javascript
+    // value's prototype chain instead of a Json token, so Union-bearing wrappers port mechanically.
     // NOT a blocker: SpawnJSObjectReference already carries CallAsync/GetAsync/CallVoidAsync, so
     // Task-returning wrapper members port unchanged. Verified by porting and building the
     // AsyncIterator/Iterator/IteratorResult closure. Kept out of the list deliberately.
@@ -106,8 +123,7 @@ if (mode == "--port-all")
     {
         var text = File.ReadAllText(f);
         if (blockers.Any(b => b.Pattern.IsMatch(text))) continue;
-        Emit(f);
-        count++;
+        if (Emit(f)) count++;
     }
     Console.WriteLine($"ported {count} wrappers");
     return 0;
@@ -204,15 +220,16 @@ string DestPathFor(string sourceFile)
     return target;
 }
 
-void Emit(string sourceFile)
+bool Emit(string sourceFile)
 {
     var name = Path.GetFileNameWithoutExtension(sourceFile);
     if (NativeTypes.Contains(name))
     {
         Console.WriteLine($"  SKIP  {name} - SpawnJS has its own implementation");
-        return;
+        return false;
     }
     File.WriteAllText(DestPathFor(sourceFile), Transform(File.ReadAllText(sourceFile)));
+    return true;
 }
 
 string Transform(string text)
@@ -220,19 +237,28 @@ string Transform(string text)
     text = Regex.Replace(text, @"^using Microsoft\.JSInterop;\s*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"^using SpawnDev\.BlazorJS[^\r\n]*;\s*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"namespace SpawnDev\.BlazorJS(\.\w+)*", "namespace SpawnDev.SpawnJS.JSObjects");
+    // fully qualified references survive the namespace rewrite above, which only touches the declaration.
+    // The union typedef file (TypeDefinitions.cs) is written entirely in fully qualified names.
+    text = Regex.Replace(text, @"\bSpawnDev\.BlazorJS\.JSObjects\b", "SpawnDev.SpawnJS.JSObjects");
+    text = Regex.Replace(text, @"\bSpawnDev\.BlazorJS\b", "SpawnDev.SpawnJS");
     text = Regex.Replace(text, @"\bIJSInProcessObjectReference\b", "SpawnJSObjectReference");
-    // only the base type reference, never a member or a string
-    text = Regex.Replace(text, @"(:\s*)JSObject\b", "$1SpawnJSObject");
-    text = Regex.Replace(text, @"\bJSObject<", "SpawnJSObject<");
+    // JSObject is BlazorJS's wrapper base type; SpawnJSObject is ours. \b will not match the JSObjects
+    // namespace segment, so this is safe to apply to the whole file rather than only the base type
+    // position - wrappers also take and return JSObject as a plain type (ProxyHandler alone does it 68
+    // times) and those uses have to move too.
+    text = Regex.Replace(text, @"\bJSObject\b", "SpawnJSObject");
     // Microsoft's IJSInProcessObjectReference.Invoke/InvokeVoid are the same operation as
     // SpawnJS's Call/CallVoid. Normalize rather than carry a legacy alias on the reference type.
     text = Regex.Replace(text, @"\.Invoke<", ".Call<");
     text = Regex.Replace(text, @"\.InvokeVoid\(", ".CallVoid(");
     // SpawnJS's own wrapper types (Error, Promise, Function, Array, Window...) live in a different
     // namespace than the ported ones, so ported files need both.
-    var usings = "using SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\n";
-    // a `global using` must precede every non-global using, so insert after any leading global usings
-    var lastGlobal = Regex.Matches(text, @"^global using [^\r\n]*;\s*\r?\n", RegexOptions.Multiline).LastOrDefault();
+    var usings = PortedMarker + "\r\nusing SpawnDev.SpawnJS;\r\nusing SpawnDev.SpawnJS.JSObjects;\r\n";
+    // a `global using` must precede every non-global using, so insert after any leading global usings.
+    // A global using alias can span lines (the WebIDL union typedefs are written one arm per line), so
+    // the match has to run to the terminating semicolon rather than to the end of the line - matching
+    // only single line ones lands the injected usings in the middle of the block and breaks the file.
+    var lastGlobal = Regex.Matches(text, @"^global using\b[\s\S]*?;[ \t]*\r?\n", RegexOptions.Multiline).LastOrDefault();
     if (lastGlobal != null)
     {
         var at = lastGlobal.Index + lastGlobal.Length;
