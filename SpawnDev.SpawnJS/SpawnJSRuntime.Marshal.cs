@@ -187,7 +187,11 @@ namespace SpawnDev.SpawnJS
         int WriteArgs(object?[] args)
         {
             var offset = _bufferTop;
-            _bufferTop += args.Length;
+            // Reserve at least one slot even with no arguments: the result comes back in the FIRST slot of
+            // this call's region, so with zero arguments there would be no region and the top would still
+            // point at the result slot. A nested call made while marshalling that result - and marshallers
+            // do make them - would then write its own arguments straight over it.
+            _bufferTop += Math.Max(args.Length, 1);
             for (var i = 0; i < args.Length; i++)
             {
                 var item = args[i];

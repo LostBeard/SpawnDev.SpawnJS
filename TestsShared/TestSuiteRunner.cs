@@ -15,7 +15,7 @@ namespace TestsShared
         /// <summary>
         /// The test classes that make up the suite. Add new test classes here.
         /// </summary>
-        public static Type[] TestTypes { get; } = new[] { typeof(JSInteropTestsCore), typeof(JSToNetTests), typeof(PortedJSObjectTests), typeof(EventTests), typeof(UnionTests), typeof(CallbackSharingTests), typeof(MarshallerTests), typeof(WasmMemoryTests), typeof(MemoryViewTests), typeof(HeapViewTests), typeof(CallbackConversionTests), typeof(GlobalsProbeTests), typeof(HandleStoreTests) };
+        public static Type[] TestTypes { get; } = new[] { typeof(JSInteropTestsCore), typeof(JSToNetTests), typeof(PortedJSObjectTests), typeof(EventTests), typeof(UnionTests), typeof(CallbackSharingTests), typeof(MarshallerTests), typeof(WasmMemoryTests), typeof(MemoryViewTests), typeof(HeapViewTests), typeof(CallbackConversionTests), typeof(GlobalsProbeTests), typeof(HandleStoreTests), typeof(CallBufferTests) };
         /// <summary>
         /// Milliseconds a test may run before it is reported as timed out. Overridable per test.
         /// </summary>
