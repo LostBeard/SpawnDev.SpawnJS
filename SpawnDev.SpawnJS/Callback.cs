@@ -43,18 +43,17 @@ namespace SpawnDev.SpawnJS
         public Callback(Delegate func, bool once, string? id = null)
         {
             Once = once;
-            Id = id ?? $"cb_{_id++}";
-            Func = func;
-            if (Func.Method.ReturnType == typeof(void))
-            {
-                JSHandle = JS.NetRun<SpawnJSHandle>("registerCallbackVoid", new object[] { Id });
-            }
-            else
-            {
-                JSHandle = JS.NetRun<SpawnJSHandle>("registerCallback", new object[] { Id });
-            }
-            AddHandler(this);
+            _function = CallbackFunction.Acquire(func, once, id, this);
+            Id = _function.Id;
+            Func = _function.Func;
+            JSHandle = _function.JSHandle;
         }
+        /// <summary>
+        /// The Javascript function this Callback dispatches through. Shared with every other live
+        /// Callback over the same delegate, so the JS/.Net boundary is crossed once per delegate rather
+        /// than once per Callback.
+        /// </summary>
+        readonly CallbackFunction _function;
         /// <summary>
         /// Create a callback
         /// </summary>
@@ -71,13 +70,8 @@ namespace SpawnDev.SpawnJS
         public void Dispose()
         {
             if (IsDisposed) return;
-            GC.SuppressFinalize(this);
             Dispose(true);
         }
-        /// <summary>
-        /// If true the Callback will be disposed in the finalizer
-        /// </summary>
-        public bool FinalizerDispose { get; set; } = true;
         /// <summary>
         /// Fired when this Callback is disposed. CallbackRef uses this to stop tracking it.
         /// </summary>
@@ -103,16 +97,16 @@ namespace SpawnDev.SpawnJS
         {
             if (IsDisposed) return;
             IsDisposed = true;
-            if (!disposing && JS.Verbose) Console.WriteLine($"{this.GetType().Name} disposed in finalizer");
-            RemoveHandler(this);
-            JSHandle.Dispose();
+            // Release this Callback's share of the Javascript function. The function, its registration and
+            // its JSObject only go away once the last Callback over the delegate has released it, so
+            // disposing one Callback never breaks a sibling that is still subscribed.
+            _function.Release(this);
             OnDisposed?.Invoke();
         }
-        /// <inheritdoc/>
-        ~Callback()
-        {
-            if (!IsDisposed && FinalizerDispose) Dispose(false);
-        }
+        // There is deliberately NO finalizer. A Callback must be disposed manually, which is the same
+        // contract SpawnDev.BlazorJS has always had and it works. A finalizer would be dead code anyway:
+        // every Callback is reachable from the static registration table for as long as Javascript can
+        // dispatch to it, so it is never eligible for collection.
 
         #region JS -> .Net handlers
         // Named .Net handlers that Javascript can invoke by name. The inbound path is the exact mirror
@@ -122,6 +116,113 @@ namespace SpawnDev.SpawnJS
         // and marshal the result back OUT as a one-element [result] array so JS reads index 0 - symmetric
         // with the outbound [ret] wrapper.
         static readonly ConcurrentDictionary<string, Callback> _jsToNetHandlers = new ConcurrentDictionary<string, Callback>();
+
+        /// <summary>
+        /// One Javascript function per delegate, shared by every live Callback over that delegate.<br/>
+        /// Creating a Callback used to unconditionally register a new JS function and so allocate a new
+        /// JSObject, even when the exact same .Net method already had one. Two subscriptions of one
+        /// handler cost two boundary crossings and two JS functions for no reason. The function is now
+        /// created on first use and reference counted, so the boundary is crossed once per delegate and
+        /// released when the last holder disposes.
+        /// </summary>
+        internal class CallbackFunction
+        {
+            /// <summary>
+            /// Shareable functions keyed on the delegate. Delegate equality is method plus target, so two
+            /// separately constructed delegates over the same instance method are the same key, while a
+            /// capturing lambda makes a distinct closure and correctly gets its own function.
+            /// </summary>
+            static readonly Dictionary<Delegate, CallbackFunction> _byDelegate = new Dictionary<Delegate, CallbackFunction>();
+
+            public string Id { get; private init; } = "";
+            public Delegate Func { get; private init; } = null!;
+            public SpawnJSHandle JSHandle { get; private init; } = null!;
+            /// <summary>
+            /// True when this function is in the shared table and must be removed from it on release
+            /// </summary>
+            public bool Shared { get; private init; }
+            /// <summary>
+            /// Every live Callback holding this function. The first one is what the dispatch table points
+            /// at; if it is disposed while others are still alive the registration moves to a survivor,
+            /// so Javascript never dispatches through a disposed Callback.
+            /// </summary>
+            readonly List<Callback> _holders = new List<Callback>();
+            /// <summary>
+            /// How many live Callbacks share this Javascript function
+            /// </summary>
+            public int HolderCount => _holders.Count;
+
+            /// <summary>
+            /// Returns the Javascript function for this delegate, creating it only if it does not exist,
+            /// and records holder as one of its users.
+            /// </summary>
+            public static CallbackFunction Acquire(Delegate func, bool once, string? id, Callback holder)
+            {
+                // A `once` callback disposes itself after firing, and an explicitly named one is a named
+                // intent rather than an anonymous callback. Neither may share a function with anything
+                // else - a shared function that self-disposes would pull the rug out from under the other
+                // holders, and a named intent has to keep its own identity.
+                var shareable = !once && id == null;
+                if (shareable && _byDelegate.TryGetValue(func, out var existing))
+                {
+                    existing._holders.Add(holder);
+                    return existing;
+                }
+                var callbackId = id ?? $"cb_{_id++}";
+                // void and value returning delegates need different Javascript wrappers: the void one
+                // must not marshal a return value back.
+                var register = func.Method.ReturnType == typeof(void) ? "registerCallbackVoid" : "registerCallback";
+                var fn = new CallbackFunction
+                {
+                    Id = callbackId,
+                    Func = func,
+                    JSHandle = JS.NetRun<SpawnJSHandle>(register, new object[] { callbackId }),
+                    Shared = shareable,
+                };
+                fn._holders.Add(holder);
+                if (shareable) _byDelegate[func] = fn;
+                _jsToNetHandlers[callbackId] = holder;
+                return fn;
+            }
+
+            /// <summary>
+            /// Drops one holder. The Javascript function is only unregistered and released once the last
+            /// holder is gone.
+            /// </summary>
+            public void Release(Callback holder)
+            {
+                _holders.Remove(holder);
+                if (_holders.Count > 0)
+                {
+                    // still in use - hand the registration to a holder that is still alive
+                    if (_jsToNetHandlers.TryGetValue(Id, out var registered) && ReferenceEquals(registered, holder))
+                    {
+                        _jsToNetHandlers[Id] = _holders[0];
+                    }
+                    return;
+                }
+                if (Shared) _byDelegate.Remove(Func);
+                _jsToNetHandlers.TryRemove(Id, out _);
+                JSHandle.Dispose();
+            }
+
+            /// <summary>
+            /// The number of distinct Javascript callback functions currently alive. Diagnostics only.
+            /// </summary>
+            public static int SharedFunctionCount => _byDelegate.Count;
+        }
+
+        /// <summary>
+        /// How many live Callbacks share this Callback's Javascript function, including this one.<br/>
+        /// A delegate used by several simultaneous Callbacks has exactly one Javascript function behind
+        /// all of them.
+        /// </summary>
+        public int SharedHolderCount => _function.HolderCount;
+
+        /// <summary>
+        /// The number of distinct shared Javascript callback functions currently alive. Diagnostics only.
+        /// </summary>
+        public static int SharedFunctionCount => CallbackFunction.SharedFunctionCount;
 
         /// <summary>
         /// Register a .Net handler that Javascript can invoke by name via
@@ -140,12 +241,7 @@ namespace SpawnDev.SpawnJS
         /// back out using the runtime Marshallers.
         /// </summary>
         /// <param name="handler">The .Net delegate to invoke.</param>
-        public static Callback AddHandler(Delegate handler)
-        {
-            var cb = new Callback(handler);
-            _jsToNetHandlers[cb.Id] = cb;
-            return cb;
-        }
+        public static Callback AddHandler(Delegate handler) => new Callback(handler);
 
         /// <summary>
         /// Register a .Net handler that Javascript can invoke by name via
@@ -161,14 +257,21 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="name"></param>
         /// <returns>True if a handler was removed.</returns>
-        public static bool RemoveHandler(string name) => _jsToNetHandlers.TryRemove(name, out _);
+        public static bool RemoveHandler(string name)
+        {
+            // Disposing is what unregisters. Removing the dictionary entry on its own would strand the
+            // Javascript function and its JSObject with nothing left able to release them.
+            if (!_jsToNetHandlers.TryGetValue(name, out var callback)) return false;
+            callback.Dispose();
+            return true;
+        }
 
         /// <summary>
         /// Remove a previously registered JS-callable .Net handler.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns>True if a handler was removed.</returns>
-        public static bool RemoveHandler(Callback callback) => _jsToNetHandlers.TryRemove(callback.Id, out _);
+        public static bool RemoveHandler(Callback callback) => callback != null && RemoveHandler(callback.Id);
 
         /// <summary>
         /// Remove a previously registered JS-callable .Net handler.
