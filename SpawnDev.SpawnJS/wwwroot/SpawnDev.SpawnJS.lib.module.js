@@ -357,6 +357,13 @@ globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
 globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
 globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 globalThis.__sjsSetString = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+// Numeric-key variants. The shared call buffer is an ARRAY indexed by offset, so forcing those keys
+// through a string conversion allocated a string per argument and turned an indexed array write into a
+// keyed one. That regressed every call that goes through the dispatcher.
+globalThis.__sjsSetDoubleAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
+globalThis.__sjsSetStringAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
+globalThis.__sjsSetBooleanAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
+globalThis.__sjsSetSlotAt = function (slot, index, valueSlot) { globalThis.__sjsSlots[slot][index] = globalThis.__sjsSlots[valueSlot]; };
 globalThis.__sjsSetBoolean = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 globalThis.__sjsGetDouble = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
 globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlots[slot][key] = globalThis.__sjsSlots[valueSlot]; };

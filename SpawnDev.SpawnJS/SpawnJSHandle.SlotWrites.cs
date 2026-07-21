@@ -30,8 +30,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         internal void SetProperty(object key, double value)
         {
-            if (TryGetSlot(out var slot)) SlotInterop.SetDouble(slot, KeyToString(key), value);
-            else Reflect.Set(JSObjectRequired, key, value);
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetDouble(slot, name, value);
+                else SlotInterop.SetDoubleAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.Set(JSObjectRequired, key, value);
         }
 
         /// <summary>
@@ -39,8 +44,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         internal void SetProperty(object key, string? value)
         {
-            if (TryGetSlot(out var slot)) SlotInterop.SetString(slot, KeyToString(key), value);
-            else Reflect.Set(JSObjectRequired, key, value);
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetString(slot, name, value);
+                else SlotInterop.SetStringAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.Set(JSObjectRequired, key, value);
         }
 
         /// <summary>
@@ -48,8 +58,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         internal void SetProperty(object key, bool value)
         {
-            if (TryGetSlot(out var slot)) SlotInterop.SetBoolean(slot, KeyToString(key), value);
-            else Reflect.Set(JSObjectRequired, key, value);
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetBoolean(slot, name, value);
+                else SlotInterop.SetBooleanAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.Set(JSObjectRequired, key, value);
         }
 
         /// <summary>
@@ -62,7 +77,8 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot) && value.TryGetSlot(out var valueSlot))
             {
-                SlotInterop.SetSlot(slot, KeyToString(key), valueSlot);
+                if (key is string name) SlotInterop.SetSlot(slot, name, valueSlot);
+                else SlotInterop.SetSlotAt(slot, Convert.ToDouble(key), valueSlot);
                 return;
             }
             Reflect.Set(JSObjectRequired, key, value.JSObjectRequired);

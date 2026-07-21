@@ -69,6 +69,22 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsSetBoolean")]
         public static partial void SetBoolean(double slot, string key, bool value);
 
+        /// <summary>Writes a number at a numeric index, with no string key conversion.</summary>
+        [JSImport("globalThis.__sjsSetDoubleAt")]
+        public static partial void SetDoubleAt(double slot, double index, double value);
+
+        /// <summary>Writes a string at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetStringAt")]
+        public static partial void SetStringAt(double slot, double index, string? value);
+
+        /// <summary>Writes a boolean at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetBooleanAt")]
+        public static partial void SetBooleanAt(double slot, double index, bool value);
+
+        /// <summary>Assigns a slotted value at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetSlotAt")]
+        public static partial void SetSlotAt(double slot, double index, double valueSlot);
+
         /// <summary>
         /// Reads a number from a property of the slotted object.
         /// </summary>

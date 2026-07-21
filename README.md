@@ -27,25 +27,21 @@ variable is the interop path. 20,000 iterations per case.
 
 | operation | BlazorJS | SpawnJS | |
 |---|---:|---:|---:|
-| read an int from a held object | 1664 ms | **38 ms** | **43.7x** |
-| read a string from a held object | 1739 ms | **44 ms** | **39.7x** |
-| write an int to a held object | 1364 ms | **44 ms** | **31.0x** |
-| call a method on a held object | 1885 ms | **136 ms** | **13.8x** |
-| read a string by path from globalThis | 1540 ms | **544 ms** | **2.8x** |
-| read an int by path from globalThis | 1465 ms | **559 ms** | **2.6x** |
-| take a handle to an object | 2531 ms | **1151 ms** | **2.2x** |
-| write an int by path from globalThis | 1127 ms | **671 ms** | **1.7x** |
-| call a method by path | 1704 ms | **1058 ms** | **1.6x** |
+| read a string from a held object | 1661 ms | **38 ms** | **43.4x** |
+| read an int from a held object | 1618 ms | **42 ms** | **39.0x** |
+| write an int to a held object | 1244 ms | **42 ms** | **29.6x** |
+| call a method on a held object | 1818 ms | **115 ms** | **15.9x** |
+| read a string by path from globalThis | 1500 ms | **273 ms** | **5.5x** |
+| read an int by path from globalThis | 1427 ms | **289 ms** | **4.9x** |
+| write an int by path from globalThis | 1065 ms | **251 ms** | **4.2x** |
+| call a method by path | 1675 ms | **523 ms** | **3.2x** |
+| take a handle to an object | 2510 ms | **909 ms** | **2.8x** |
 
 The two shapes differ because they take different routes. A **held object reference with a simple key**
 resolves to a single typed `Reflect` binding - one call across the boundary, nothing allocated. A **dotted
 path** has to be resolved at each call, so it goes through the general dispatcher. Most interop in a real
 library is the first shape: hold a `GPUDevice` or an `HTMLCanvasElement`, then read and write its
 properties.
-
-The dotted-path rows are a **known regression** to be paid down: they were faster (roughly 280 ms)
-before the slot work landed. Held-object calls moved the other way over the same period - 765 ms to
-136 ms - so the slot path is doing its job and the fallback path needs the same treatment.
 
 Where the difference comes from:
 
