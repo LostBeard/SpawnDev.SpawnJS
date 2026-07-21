@@ -20,6 +20,7 @@ Audited 2026-07-21.
 | `DictionaryStringObject` | `DictionaryMarshaller` |
 | `EnumStringConverter` | `EnumStringMarshaller` |
 | `ITupleConverterFactory` | `TupleMarshaller` |
+| `TaskConverterFactory` | `TaskMarshaller` |
 | `JSInProcessObjectReferenceConverterBase` | `SpawnJSObjectReferenceMarshaller` |
 | `JSObjectConverterFactory` | `JSObjectMarshaller` / `SpawnJSObjectMarshaller` |
 | `JSObjectReferenceArrayConverterFactory` | `ArrayMarshaller` |
@@ -41,7 +42,6 @@ Ordered by usefulness. None of these are blocked - each is a marshaller plus tes
 
 | Missing | What it maps | Notes |
 |---|---|---|
-| **`Task` / `Task<T>`** | .NET `Task` to a JS `Promise` | ⚠️ **The dangerous one.** Nothing claims `Task`, so passing one as an argument or property falls to `ObjectMarshaller`, which property-walks it into `{result, id, status, ...}` - silently wrong, no exception. Same failure mode `Dictionary` had before `DictionaryMarshaller`. `Promise` already has a `Promise(Task)` constructor, so the mapping exists; it just is not wired into the graph. |
 | **`Undefinable<T>`** | distinguishes JS `null` from `undefined` | The **type itself is not ported** - port `Undefinable`/`Undefinable<T>` first, then the marshaller. Needed for APIs where "absent" and "explicitly null" differ. |
 | **`BigInteger`** | `System.Numerics.BigInteger` to JS `BigInt` | The `BigInt` JSObject wrapper IS ported; the .NET-side numeric mapping is not. Note the design law: TypedArray/BigInt fast paths are **opt-in via wrapper types**, never auto-selected, so this maps `BigInteger` only - it must not make `long` start crossing as `BigInt`. |
 | **`Type`** | `System.Type` to its name string | Small; used for diagnostics and type-directed APIs. |
@@ -58,3 +58,8 @@ Ordered by usefulness. None of these are blocked - each is a marshaller plus tes
    shape-only check passes while the value is wrong. Read the raw JS value first, then round trip.
 3. **Test the READ, not just the write.** A write types itself from the boxed value; a read types itself
    from the declared type, and the two can resolve different marshallers.
+4. **Run the suite TRIMMED.** The graph reaches members reflectively, so the trimmer cannot see them.
+   `ILLink.Descriptors.xml` preserves them, and a new marshalling path can outrun it - a marshalled POCO
+   whose property getters were trimmed fails at runtime with `ArgumentException: Arg_GetMethNotFnd`, and
+   only a trimmed run shows it. Check **Ran:**, never just **Failed:** - a trimmed harness that lost its
+   tests reports a vacuous `Failed: 0 ... Ran: 0`.

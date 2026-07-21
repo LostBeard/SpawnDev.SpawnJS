@@ -6,18 +6,26 @@
   removes them and the first marshal of a wrapper fails at runtime with
   "MissingMethodException: MissingConstructor_Name, SpawnDev.SpawnJS.JSObjects.Error".
 
+  preserve="methods" covers the constructor AND the property accessors. The accessors matter because
+  ObjectMarshaller and StructMarshaller walk a type's members and call PropertyInfo.GetValue/SetValue,
+  which nothing calls statically either - so a marshalled descriptor POCO whose getters were trimmed
+  fails at runtime with "ArgumentException: Arg_GetMethNotFnd" the first time it is written to
+  Javascript. Only a TRIMMED test run shows this; an untrimmed suite is green either way.
+
   required="false" is the important part: it does NOT root these types. A wrapper the app never mentions
-  is still removed entirely. This only says that IF a type is kept, its deserialization constructor is
-  kept with it - which is exactly the guarantee the marshaller needs, at no cost to what gets trimmed.
+  is still removed entirely. This only says that IF a type is kept, its members are kept with it - which
+  is exactly the guarantee the marshaller needs.
+
+  Measured cost of preserving methods rather than just the constructor: WasmBrowserDemo, which runs the
+  whole test suite and so touches far more of the library than a real app, went 1017 KB -> 1101 KB.
+  WasmConsoleDemo was unchanged at 136 KB. The trimmed console suite goes from 5 failures to 0.
 
   Shipped as an embedded resource so it travels in the package. An app consuming SpawnDev.SpawnJS can
   turn on PublishTrimmed without knowing any of this exists.
 -->
 <linker>
   <assembly fullname="SpawnDev.SpawnJS">
-    <type fullname="SpawnDev.SpawnJS.JSObjects*" required="false">
-      <method signature="System.Void .ctor(SpawnDev.SpawnJS.SpawnJSObjectReference)" />
-    </type>
+    <type fullname="SpawnDev.SpawnJS.JSObjects*" required="false" preserve="methods" />
     <type fullname="SpawnDev.SpawnJS.SpawnJSObject" required="false">
       <method signature="System.Void .ctor(SpawnDev.SpawnJS.SpawnJSObjectReference)" />
     </type>

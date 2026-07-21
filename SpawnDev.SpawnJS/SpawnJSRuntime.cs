@@ -96,6 +96,9 @@ namespace SpawnDev.SpawnJS
             // those would otherwise claim tuples first and property-walk them into {Item1, Item2, ...}
             // instead of producing the Javascript array a tuple is meant to be
             Marshallers.Add(new TupleMarshaller());
+            // also after ObjectMarshaller: a Task is a plain class, so it would otherwise be property
+            // walked into {result, id, status, ...} instead of crossing as the Promise it corresponds to
+            Marshallers.Add(new TaskMarshaller());
             // create a new instance of SpawnJSInterop Javascript class for interop with this isntance of .Net
             SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
             // get _netToJSCall function in SpawnJSInterop

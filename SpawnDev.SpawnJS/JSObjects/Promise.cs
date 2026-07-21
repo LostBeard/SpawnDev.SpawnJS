@@ -295,49 +295,36 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public Task<object?> ThenAsync(Type resultType, int timeoutMS = 0)
         {
-            var t = new TaskCompletionSource<object?>();
-            var callbacks = new CallbackGroup();
-            var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
-            ThenCatch(callbacks.Add(Callback.Create<SpawnJSHandle>((result) =>
-            {
-                object? value;
-                try
-                {
-                    value = result == null ? null : JS.MarshallJSToNet(resultType, result);
-                }
-                catch (Exception ex)
-                {
-                    if (t.TrySetException(ex))
-                    {
-                        cancellationTokenSource?.Dispose();
-                        callbacks.Dispose();
-                    }
-                    return;
-                }
-                if (t.TrySetResult(value))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })), callbacks.Add(Callback.Create((Error? error) =>
-            {
-                if (t.TrySetException(UnknownErrorToException(error)))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })));
-            cancellationTokenSource?.Token.Register(() =>
-            {
-                if (t.TrySetException(new Exception("Timed out")))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            });
-            cancellationTokenSource?.CancelAfter(timeoutMS);
-            return t.Task;
+            // Delegates to the generic overload rather than reading the resolved value through a
+            // Callback<SpawnJSHandle>. A SpawnJSHandle is a proxy over a Javascript OBJECT, so a promise
+            // resolving with a primitive threw "JSObject proxy of number is not supported" inside the
+            // callback - which never reached the TaskCompletionSource, so the returned Task simply never
+            // completed. Promise.resolve(5) hung this method; only object-resolving promises worked.
+            var typedTask = ThenAsyncFor(resultType).Invoke(this, new object[] { timeoutMS })!;
+            return AsObjectTaskFor(resultType).Invoke(null, new object[] { typedTask }) as Task<object?>
+                ?? throw new Exception($"{nameof(ThenAsync)}: could not adapt Task<{resultType.Name}>");
         }
+
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Reflection.MethodInfo> _thenAsyncByResultType = new();
+        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Reflection.MethodInfo> _asObjectTaskByResultType = new();
+
+        static System.Reflection.MethodInfo ThenAsyncFor(Type resultType) => _thenAsyncByResultType.GetOrAdd(resultType, t =>
+            typeof(Promise).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                .Single(m => m.Name == nameof(ThenAsync)
+                          && m.IsGenericMethodDefinition
+                          && m.GetParameters() is { Length: 1 } p
+                          && p[0].ParameterType == typeof(int))
+                .MakeGenericMethod(t));
+
+        static System.Reflection.MethodInfo AsObjectTaskFor(Type resultType) => _asObjectTaskByResultType.GetOrAdd(resultType, t =>
+            typeof(Promise).GetMethod(nameof(AsObjectTask), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+                .MakeGenericMethod(t));
+
+        /// <summary>
+        /// Task&lt;T&gt; as Task&lt;object?&gt;. Awaiting rather than casting keeps the failure behaviour
+        /// intact - a faulted source faults the result with the same exception.
+        /// </summary>
+        static async Task<object?> AsObjectTask<T>(Task<T> source) => await source;
         /// <summary>
         /// Handles converting a value from a Promise catch event into an exception.<br/>
         /// These are usually of the type `Error`, but can be anything<br/>

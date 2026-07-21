@@ -300,7 +300,11 @@ namespace SpawnDev.SpawnJS
                 // boxing one with a value produces a boxed T - so comparing against the declared type
                 // rejects every non-null nullable value type, Get<int?> included.
                 var expected = Nullable.GetUnderlyingType(type) ?? type;
-                if (netRet != null && netRet.GetType() != expected)
+                // assignability, not exact equality: a marshaller may legitimately hand back a SUBCLASS of
+                // what was asked for. An async method returning Task<T> actually returns an
+                // AsyncStateMachineBox<T>, and a wrapper marshaller may return a derived wrapper. Exact
+                // equality rejected both while still being no better at catching a genuinely wrong type.
+                if (netRet != null && !expected.IsInstanceOfType(netRet))
                     throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {expected.Name} got {netRet.GetType().Name}");
                 return netRet;
             }
