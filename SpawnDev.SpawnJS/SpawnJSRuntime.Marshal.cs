@@ -273,17 +273,32 @@ namespace SpawnDev.SpawnJS
         /// The name is an interned slot id - a property name is a fixed literal per type, so it crosses
         /// once per process and is a number every time after.
         /// </summary>
-        internal void WriteMemberToFrame(int offset, int index, double nameSlot, object? value)
+        internal void WriteMemberToFrame(int offset, int index, Marshallers.ClassMemberJsonInfo member, object? value)
         {
             var at = offset + index * 2;
-            _argFrame.WriteTagged(at, ArgTag.Slot, nameSlot);
+            _argFrame.WriteTagged(at, ArgTag.Slot, member.NameSlot);
             if (value == null)
             {
                 _argFrame.WriteTagged(at + 1, ArgTag.Null, 0);
                 return;
             }
-            var valueType = value.GetType();
-            var marshaller = GetMarshaller(valueType);
+            // Resolve the marshaller ONCE per member, exactly as the per-member path did - and ONLY when
+            // the declaration pins the runtime type. A member declared as a base class may hold any
+            // subclass, and the two do not marshal the same way, so that case has to keep asking the value
+            // for its own type. Caching it unconditionally is a real bug that ObjectMemberMarshalTests
+            // exists to catch.
+            Type valueType;
+            JSMarshaller marshaller;
+            if (member.RuntimeTypeIsKnown)
+            {
+                valueType = member.MemberType;
+                marshaller = member.CachedMarshaller ??= GetMarshaller(valueType);
+            }
+            else
+            {
+                valueType = value.GetType();
+                marshaller = GetMarshaller(valueType);
+            }
             if (marshaller.TryWriteArg(valueType, value, out var tag, out var payload))
             {
                 _argFrame.WriteTagged(at + 1, tag, payload);

@@ -1,4 +1,4 @@
-namespace SpawnDev.SpawnJS.Marshallers
+﻿namespace SpawnDev.SpawnJS.Marshallers
 {
     public partial class ObjectMarshaller
     {
@@ -9,10 +9,10 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// A member whose value cannot be one number - a nested object, an array - takes the scratch path
         /// exactly as before, so this is never worse than what it replaces.
         /// </summary>
-        int WriteMembersToFrame(Type type, object obj, int offset)
+        int WriteMembersToFrame(List<ClassMemberJsonInfo> members, object obj, int offset)
         {
             var written = 0;
-            foreach (var member in type.GetTypeJsonProperties())
+            foreach (var member in members)
             {
                 var value = member.PropertyInfo != null ? member.PropertyInfo.GetValue(obj)
                     : member.FieldInfo != null ? member.FieldInfo.GetValue(obj)
@@ -20,17 +20,11 @@ namespace SpawnDev.SpawnJS.Marshallers
                 if (!member.GetShouldWrite(value)) continue;
                 // intern the property name once per process - it is a fixed literal for this type
                 if (member.NameSlot == 0) member.NameSlot = SlotInterop.AllocString(member.GetJsonName());
-                JS.WriteMemberToFrame(offset, written, member.NameSlot, value);
+                JS.WriteMemberToFrame(offset, written, member, value);
                 written++;
             }
             return written;
         }
-
-        /// <summary>
-        /// How many members this type could write, so the frame region can be reserved before any value is
-        /// read. An over-reservation is harmless - the top unwinds to where it started either way.
-        /// </summary>
-        static int MaxMemberCount(Type type) => type.GetTypeJsonProperties().Count;
 
         /// <summary>
         /// Builds the object and assigns it to <c>jsParent[jsKey]</c> in ONE crossing.<br/>
@@ -41,10 +35,12 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (jsKey is not string key) return false;
             if (!jsParent.TryGetSlot(out var parentSlot)) return false;
-            var offset = JS.ReserveMemberPairs(MaxMemberCount(type));
+            // resolved once - the reservation and the write both need it, and it is a dictionary lookup
+            var members = type.GetTypeJsonProperties();
+            var offset = JS.ReserveMemberPairs(members.Count);
             try
             {
-                var count = WriteMembersToFrame(type, obj, offset);
+                var count = WriteMembersToFrame(members, obj, offset);
                 SlotInterop.BuildObjectInto(parentSlot, key, offset, count);
                 return true;
             }
@@ -65,10 +61,11 @@ namespace SpawnDev.SpawnJS.Marshallers
             tag = ArgTag.Slot;
             payload = 0;
             if (typeToConvert == null) return false;
-            var offset = JS.ReserveMemberPairs(MaxMemberCount(typeToConvert));
+            var members = typeToConvert.GetTypeJsonProperties();
+            var offset = JS.ReserveMemberPairs(members.Count);
             try
             {
-                var count = WriteMembersToFrame(typeToConvert, value, offset);
+                var count = WriteMembersToFrame(members, value, offset);
                 payload = SlotInterop.BuildObject(offset, count);
                 return true;
             }
