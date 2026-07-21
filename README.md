@@ -50,6 +50,44 @@ Where the difference comes from:
   a command name, an offset and a length - no Javascript object reference crosses at all.
 - **One Javascript function per delegate.** A `Callback` shares its function with every other Callback over
   the same .NET method rather than registering a new one.
+- **No proxy per reference.** Javascript holds the value in a slot table and .NET holds the integer that
+  addresses it, so a reference costs a number rather than a GC handle plus a proxy-table entry.
+
+## Measured on a real workload: GPU dispatch
+
+Microbenchmarks prove a layer is fast in isolation; they do not prove it moves real work. This is
+[SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) dispatching an actual WebGPU compute kernel,
+same ILGPU source on both interop layers, same Blazor host, same browser, same GPU (NVIDIA Lovelace,
+software fallback adapters rejected), kernel output verified correct on every run.
+
+| | BlazorJS | SpawnJS | |
+|---|---:|---:|---:|
+| kernel launch | 1284 us | **~490 us** | **2.6x** |
+| first dispatch (compile + setup) | ~125 ms | **~34 ms** | **3.7x** |
+| JSObject proxies created per dispatch | 49 | **4** | |
+| generic dispatcher calls per dispatch | 4 | **0** | |
+
+Neither side using bind-group caching, so the comparison is like for like.
+
+This number was earned rather than assumed. SpawnJS started out **1.7x slower** than BlazorJS on this
+workload, and each of the three wins was somewhere the shape of the code did not predict:
+
+| fix | saved |
+|---|---:|
+| Cache per-type serializable members (an attribute scan ran on every marshal) | 1075 us |
+| Slot-backed references (creating a `JSObject` proxy cost 21 us; a slot costs 1.3 us) | 326 us |
+| Slot-native invocation (target, method and arguments all stay in Javascript) | 245 us |
+
+## Object marshalling
+
+| shape | cost |
+|---|---:|
+| write a primitive to a held object | 2.0 us |
+| marshal an empty object | 5.5 us |
+| marshal an object with 3 properties | 12.4 us |
+| marshal an object with a nested object | 20.3 us |
+| create a Javascript object | 2.0 us |
+| take a slot reference | 1.3 us |
 - **Async is a synchronous call that returns a Promise**, converted to a Task with `then`, so no Task is
   marshalled across the boundary and async uses the same buffer as everything else.
 
@@ -84,9 +122,9 @@ In SpawnDev.BlazorJS this had to be worked around with a `HybridObjectJsonConver
 `JSImport`/`JSExport` marshalling is frozen at compile time by the source generator - you cannot pick a marshaller at runtime. SpawnJS turns that constraint into its architecture:
 
 1. **Reduce every operation to a few fixed-signature JS primitives.** A small JS class (`SpawnJSInterop`, in `wwwroot/SpawnDev.SpawnJS.lib.module.js`) exposes generic operations - `getProperty`, `setProperty`, `deleteProperty`, `invokeProperty`, `invokePropertyConstructor`, `hasOwnPropertySafe`, and so on - each taking a target object, an identifier, and an argument array. Identifiers support dotted paths (`"a.b.c"`) and null-conditional segments (`"a?.b"`).
-2. **Route everything through one dispatcher.** Two `JSImport`-bound entry points, `_netToJSCall` (sync) and `_netToJSCallAsync` (async), take a command name plus a marshalled JS argument array and invoke the matching primitive.
-3. **Carry all variety as opaque `JSObject` handles.** The transport is always a live `JSObject` array, never a serialized string.
-4. **Wrap every result in a one-element array `[ret]`.** An unknown-typed JS return becomes "return a `JSObject`, then read index 0 as the caller's known target type." This lets one fixed JS signature return any type.
+2. **Route everything through one dispatcher.** One `JSImport`-bound entry point, `_netToJSCall`, takes a command name plus an offset and length into a shared flat buffer, and invokes the matching primitive. There is no separate async dispatcher: an async command is a **synchronous call that returns a Promise**, which is converted to a `Task` with `then`, so the same path and the same buffer serve both.
+3. **Carry references as slots, not proxies.** Javascript holds values in a slot table and .NET holds the integer that addresses them. A `JSObject` is a runtime proxy - creating one allocates a GC handle, a proxy-table entry and an enumerable `Symbol` tag on the object - so proxies are materialised only when something genuinely needs one.
+4. **Share one flat buffer.** Arguments are appended and the top unwinds when the call completes, so it behaves as a stack: nothing is allocated per call and only a command name, an offset and a length cross the boundary.
 5. **Compose the richness in managed code** via a marshaller graph (see below).
 
 The whole library is one pattern - typed read/write of a `JSObject` array - applied across get / set / call / construct, in both directions, sync and async. Adding async required no new mechanism; it reuses the sync path with an `await`.
@@ -159,7 +197,7 @@ obj.NewApply("Thing", args);
 
 Deeper docs live in [`Docs/`](Docs/README.md):
 
-- [Architecture](Docs/architecture.md) - the core design, the dispatch primitives, and the `[ret]` wrap.
+- [Architecture](Docs/architecture.md) - the core design, the dispatch primitives, and the shared call buffer.
 - [Argument passing](Docs/argument-passing.md) - the arity-overload / `Apply` design and the `params` collapse it avoids.
 - [Writing marshallers](Docs/writing-marshallers.md) - the `JSMarshaller` contract, resolution order, and registration.
 - [Roadmap](Docs/roadmap.md) - current state and what is next.
@@ -180,7 +218,12 @@ Early development (version 0.0.1). Working and verified via `WasmBrowserDemo`:
 
 - **.NET -> JS**, sync and async: get, set, delete, call, void call, and construct, with typed returns.
 - **Marshaller graph** with per-type caching, reverse-order priority, and null-argument handling.
-- **Transport disposal** - the `JSObject` argument array and the `[ret]` wrapper are disposed on every call.
+- **Transport** - a shared flat buffer that unwinds as a stack, so no per-call allocation.
+- **Slot-backed references** - `SlotInterop` plus a Javascript slot table; proxies are created lazily.
+  Slot keys are allocated monotonically and never reused, so a disposed handle can never resurrect
+  another value (locked down by `ReleasedSlotKeyIsNotReusedTest`).
+- **Opt-in call counting** (`SpawnJSRuntime.CountCalls`, default off) for attributing interop cost.
+- **Verified end to end** by SpawnDev.ILGPU running real WebGPU compute kernels.
 
 In progress / not yet complete:
 
