@@ -23,7 +23,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task RuntimePublishesTheHeapViewsWeReadThroughTest()
         {
-            var names = SlotInterop.HeapViewNames();
+            var names = SlotInterop.HeapViewNames(JS.CtxId);
             Console.WriteLine($"HEAP VIEWS: {names}");
             foreach (var required in new[] { "HEAPU8", "HEAPF64" })
             {
@@ -42,11 +42,11 @@ namespace TestsShared
         public async Task JavascriptReadsArgumentsFromDotnetMemoryTest()
         {
             using var buffer = new HeapArgBuffer(64);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
             for (var i = 0; i < args.Length; i++) buffer.Write(i, args[i]);
 
-            var sum = SlotInterop.HeapSum(0, args.Length);
+            var sum = SlotInterop.HeapSum(JS.CtxId, 0, args.Length);
             var expected = 0d;
             foreach (var a in args) expected += a;
             if (sum != expected)
@@ -63,9 +63,9 @@ namespace TestsShared
         public async Task ByteOrderAgreesWithoutAnyFlagTest()
         {
             using var buffer = new HeapArgBuffer(64);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             buffer.Write(0, 1.0);
-            var one = SlotInterop.HeapSum(0, 1);
+            var one = SlotInterop.HeapSum(JS.CtxId, 0, 1);
             if (one != 1.0)
                 throw new Exception($"Javascript read {one} for 1.0 - a byte reversed 1.0 is a denormal near zero, so the two sides disagree on byte order");
         }
@@ -81,7 +81,7 @@ namespace TestsShared
             using var buffer = new HeapArgBuffer(64);
             if (buffer.ValueAddress % 8 != 0)
                 throw new Exception($"the pinned double[] landed at {buffer.ValueAddress}, which is not 8 byte aligned");
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
         }
 
         /// <summary>
@@ -93,12 +93,12 @@ namespace TestsShared
         public async Task TaggedArgumentsCarryTypeAndPayloadTest()
         {
             using var buffer = new HeapArgBuffer(64);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             buffer.WriteTagged(0, HeapArgBuffer.TagNumber, 1.5);
             buffer.WriteTagged(1, HeapArgBuffer.TagBoolean, 1);
             buffer.WriteTagged(2, HeapArgBuffer.TagNumber, 0.5);
 
-            var sum = SlotInterop.HeapTaggedSum(buffer.TagOffsetFromValues, 0, 3);
+            var sum = SlotInterop.HeapTaggedSum(JS.CtxId, buffer.TagOffsetFromValues, 0, 3);
             if (sum != 3.0)
                 throw new Exception($"tagged arguments summed to {sum}, expected 3.0");
             if (buffer.ReadTag(1) != HeapArgBuffer.TagBoolean)
@@ -114,7 +114,7 @@ namespace TestsShared
         public async Task SlotTaggedArgumentResolvesThroughTheSlotTableTest()
         {
             using var buffer = new HeapArgBuffer(64);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             // take a real slot the same way the library does, holding a value the sum can verify
             var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
             try
@@ -122,7 +122,7 @@ namespace TestsShared
                 buffer.WriteTagged(0, HeapArgBuffer.TagSlot, slot);
                 buffer.WriteTagged(1, HeapArgBuffer.TagNumber, 2);
 
-                var sum = SlotInterop.HeapTaggedSum(buffer.TagOffsetFromValues, 0, 2);
+                var sum = SlotInterop.HeapTaggedSum(JS.CtxId, buffer.TagOffsetFromValues, 0, 2);
                 if (sum != 42)
                     throw new Exception($"a slot tagged argument summed to {sum}, expected 42 - the slot did not resolve");
             }
@@ -151,7 +151,7 @@ namespace TestsShared
                 if (view.ByteLength != text.Length * 2)
                     throw new Exception($"HeapViewString reported {view.ByteLength} bytes, expected {text.Length * 2} for UTF-16");
 
-                var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
                 if (read != text)
                     throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
             }
@@ -168,7 +168,7 @@ namespace TestsShared
             foreach (var text in new[] { "café", "日本語", "vulcan \U0001F596", "éèêë" })
             {
                 using var view = HeapView.Create(text);
-                var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
                 if (read != text)
                     throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
             }
@@ -187,7 +187,7 @@ namespace TestsShared
             if (view.Length != 4)
                 throw new Exception($"the window reported {view.Length} chars, expected 4");
 
-            var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+            var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
             if (read != "defg")
                 throw new Exception($"the window read '{read}', expected 'defg' - the character offset is not being scaled correctly");
         }
@@ -220,11 +220,11 @@ namespace TestsShared
         public async Task InterleavedFrameReadsEveryValueTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.BindProbe();
+            frame.BindProbe(JS.CtxId);
             double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
             for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
 
-            var sum = SlotInterop.FrameSum(args.Length);
+            var sum = SlotInterop.FrameSum(JS.CtxId, args.Length);
             var expected = 0d;
             foreach (var a in args) expected += a;
             if (sum != expected)
@@ -240,7 +240,7 @@ namespace TestsShared
         public async Task InterleavedTagAndValueDoNotCorruptEachOtherTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.BindProbe();
+            frame.BindProbe(JS.CtxId);
             // write the tag FIRST, then the value, so an overlapping value write would clear the tag
             frame.WriteTaggedByte(0, HeapArgFrame.TagBoolean, 1);
             frame.Write(0, 7.5);
@@ -271,13 +271,13 @@ namespace TestsShared
         public async Task InterleavedFrameTaggedSumResolvesSlotsTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.BindProbe();
+            frame.BindProbe(JS.CtxId);
             var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
             try
             {
                 frame.WriteTaggedByte(0, HeapArgFrame.TagSlot, slot);
                 frame.WriteTaggedByte(1, HeapArgFrame.TagNumber, 2);
-                var sum = SlotInterop.FrameTaggedSum(2);
+                var sum = SlotInterop.FrameTaggedSum(JS.CtxId, 2);
                 if (sum != 42)
                     throw new Exception($"the interleaved tagged frame summed to {sum}, expected 42");
             }
@@ -327,7 +327,7 @@ namespace TestsShared
                     throw new Exception("the transport was already wrong before any probe was bound");
 
                 using var probe = new HeapArgFrame(64);
-                probe.BindProbe();
+                probe.BindProbe(JS.CtxId);
                 probe.WriteTagged(0, HeapArgFrame.TagNumber, 999);
 
                 var afterBind = JS.Get<int>("__transportProbe.value");
@@ -410,6 +410,97 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// TWO RUNTIMES ON ONE PAGE must not be able to reach each other's memory.<br/>
+        /// <br/>
+        /// SpawnJSInterop is instance based on purpose: a custom element built on SpawnJS can be dropped
+        /// onto a page that already runs a SpawnJS app, and neither should be able to disturb the other.
+        /// I broke that by hanging per-runtime state - the interop pointer, the argument frame address -
+        /// on globalThis, where the LAST runtime to load silently won and the first one's heap reads
+        /// resolved against the second one's WebAssembly memory.<br/>
+        /// <br/>
+        /// A second real .Net runtime cannot be started inside a test, so this registers a second
+        /// CONTEXT with a deliberately wrong frame address and a different scratch buffer, then checks
+        /// the live runtime still reads its own. Under the old global design this fails; with routing by
+        /// context it cannot, because nothing about the second context is reachable from the first.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task ASecondRuntimeContextCannotDisturbThisOneTest()
+        {
+            JS.CallVoid("eval", "globalThis.__ctxProbe = { value: 4242, nested: { deep: 7 } }");
+            // a second context, pointing at nonsense - exactly what a second app's frame would look like
+            // from this runtime's point of view
+            JS.CallVoid("eval",
+                "globalThis.SpawnJSInterop.byCtx[9999] = {" +
+                "  ctxId: 9999," +
+                "  argFrameAddress: 8," +      // wrong, and 8-byte aligned so it would pass the bind check
+                "  probeFrameAddress: 8," +
+                "  netToJSBuffer: []," +
+                "  dotnetRuntime: globalThis.SpawnJSInterop.byCtx[" + JS.CtxId + "].dotnetRuntime" +
+                "};");
+            try
+            {
+                if (JS.CtxId == 9999) throw new Exception("the probe context collided with the real one");
+
+                // BIND the second context, through the real bind path. This is the step that matters:
+                // under the old design binding wrote a page global, so this call alone silently
+                // redirected every subsequent call of THIS runtime to read the other frame. Routed by
+                // context it lands on the second context's own state and is invisible here.
+                SlotInterop.BindArgFrame(9999, 8, 64);
+                SlotInterop.BindProbeFrame(9999, 8, 64);
+
+                // the generic dispatcher - arguments travel through this runtime's frame
+                if (JS.Get<int>("__ctxProbe.value") != 4242)
+                    throw new Exception("a second context being registered disturbed the transport");
+
+                // a held-object method call - travels through the frame too
+                using var probe = JS.Get<SpawnJSObject>("__ctxProbe")!;
+                if (probe.JSRef!.Get<int>("value") != 4242)
+                    throw new Exception("a property read was disturbed by a second context");
+
+                // an object result, which comes back through the frame as a slot
+                using var nested = JS.Get<SpawnJSObject>("__ctxProbe.nested");
+                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
+                    throw new Exception("an object result was disturbed by a second context");
+
+                // and a descriptor built in one crossing, which reads the frame for every member
+                using var target = JS.New("Object");
+                target.Set("poco", new CtxShape { Name = "ok", Count = 5 });
+                if (target.Get<string>("poco.name") != "ok" || target.Get<int>("poco.count") != 5)
+                    throw new Exception("an object marshal was disturbed by a second context");
+            }
+            finally
+            {
+                JS.CallVoid("eval", "delete globalThis.SpawnJSInterop.byCtx[9999]; delete globalThis.__ctxProbe");
+            }
+        }
+
+        class CtxShape
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("name")]
+            public string? Name { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("count")]
+            public int Count { get; set; }
+        }
+
+        /// <summary>
+        /// Per-runtime state must live on the INSTANCE, not on globalThis. This is the structural version
+        /// of the test above: it fails the moment anyone reintroduces a page-global for something that
+        /// belongs to one runtime, which is exactly the mistake that was made.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NoPerRuntimeStateLivesOnGlobalThisTest()
+        {
+            foreach (var name in new[] { "__sjsInterop", "__sjsArgFrameAddress", "__sjsProbeFrameAddress", "__sjsArgAddress" })
+            {
+                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
+                    throw new Exception($"globalThis.{name} exists - per-runtime state on a page global means the LAST runtime to load wins, silently");
+            }
+            // and the state that replaced them is reachable per context
+            if (!JS.Call<bool>("eval", $"globalThis.SpawnJSInterop.byCtx[{JS.CtxId}].argFrameAddress > 0"))
+                throw new Exception("this runtime's frame address is not registered against its own context");
+        }
+
+        /// <summary>
         /// The buffer must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
         /// so the collector cannot move it - but a view over memory the collector COULD move would read
         /// whatever now occupies that address, silently.
@@ -418,7 +509,7 @@ namespace TestsShared
         public async Task BufferSurvivesCollectionTest()
         {
             using var buffer = new HeapArgBuffer(64);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             buffer.Write(0, 987.654);
 
             for (var i = 0; i < 200; i++) _ = new byte[8192];
@@ -426,7 +517,7 @@ namespace TestsShared
             GC.WaitForPendingFinalizers();
             GC.Collect();
 
-            var value = SlotInterop.HeapSum(0, 1);
+            var value = SlotInterop.HeapSum(JS.CtxId, 0, 1);
             if (value != 987.654)
                 throw new Exception($"after a collection Javascript read {value}, expected 987.654 - the buffer moved");
         }
@@ -439,7 +530,7 @@ namespace TestsShared
         public async Task ManyArgumentsCostOneCrossingTest()
         {
             using var buffer = new HeapArgBuffer(1024);
-            buffer.Bind();
+            buffer.Bind(JS.CtxId);
             const int count = 512;
             var expected = 0d;
             for (var i = 0; i < count; i++)
@@ -448,7 +539,7 @@ namespace TestsShared
                 buffer.Write(i, v);
                 expected += v;
             }
-            var sum = SlotInterop.HeapSum(0, count);
+            var sum = SlotInterop.HeapSum(JS.CtxId, 0, count);
             if (sum != expected)
                 throw new Exception($"{count} arguments summed to {sum}, expected {expected}");
         }

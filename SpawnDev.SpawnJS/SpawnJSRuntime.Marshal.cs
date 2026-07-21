@@ -204,7 +204,7 @@ namespace SpawnDev.SpawnJS
             var offset = WriteArgsToFrame(args);
             try
             {
-                SlotInterop.FrameCall(cmd, offset, args.Length);
+                SlotInterop.FrameCall(CtxId, cmd, offset, args.Length);
                 var netRet = ReadFrameResult(type, offset);
                 var expected = Nullable.GetUnderlyingType(type) ?? type;
                 if (netRet != null && !expected.IsInstanceOfType(netRet))

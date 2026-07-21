@@ -192,7 +192,7 @@ namespace BlazorBrowserDemo
             //   heap arm - the buffer lives in .Net memory, which Javascript views directly, so the
             //              writes are plain array stores and only the call itself crosses
             using var heapArgs = new SJS.HeapArgBuffer(64);
-            heapArgs.Bind();
+            heapArgs.Bind(spawn.CtxId);
             const int argCount = 5;
             var transportIterations = iterations / 2;
 
@@ -212,7 +212,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.HeapSum(0, argCount);
+                        _ = SJS.SlotInterop.HeapSum(spawn.CtxId, 0, argCount);
                     }
                 });
 
@@ -221,7 +221,7 @@ namespace BlazorBrowserDemo
             // interleaved:         one padded 16 byte slot per argument, tag inside it - the shape the
             //                      .Net runtime's own marshaller uses
             using var heapFrame = new SJS.HeapArgFrame(64);
-            heapFrame.BindProbe();
+            heapFrame.BindProbe(spawn.CtxId);
 
             MeasureOne($"{argCount} args, structure-of-arrays, UNtagged", transportIterations,
                 () =>
@@ -229,7 +229,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.HeapSum(0, argCount);
+                        _ = SJS.SlotInterop.HeapSum(spawn.CtxId, 0, argCount);
                     }
                 });
 
@@ -239,7 +239,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapFrame.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.FrameSum(argCount);
+                        _ = SJS.SlotInterop.FrameSum(spawn.CtxId, argCount);
                     }
                 });
 
@@ -251,7 +251,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapArgs.WriteTagged(a, SJS.HeapArgBuffer.TagNumber, a + 0.5);
-                        _ = SJS.SlotInterop.HeapTaggedSum(heapArgs.TagOffsetFromValues, 0, argCount);
+                        _ = SJS.SlotInterop.HeapTaggedSum(spawn.CtxId, heapArgs.TagOffsetFromValues, 0, argCount);
                     }
                 });
 
@@ -261,7 +261,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapFrame.WriteTaggedByte(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
-                        _ = SJS.SlotInterop.FrameTaggedSum(argCount);
+                        _ = SJS.SlotInterop.FrameTaggedSum(spawn.CtxId, argCount);
                     }
                 });
 
@@ -274,7 +274,7 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < transportIterations; i++)
                     {
                         for (var a = 0; a < argCount; a++) heapFrame.WriteTagged(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
-                        _ = SJS.SlotInterop.FrameTaggedSumF64(argCount);
+                        _ = SJS.SlotInterop.FrameTaggedSumF64(spawn.CtxId, argCount);
                     }
                 });
 
@@ -293,25 +293,25 @@ namespace BlazorBrowserDemo
                     for (var i = 0; i < stringIterations; i++)
                     {
                         for (var a = 0; a < strings.Length; a++) SJS.SlotInterop.SetStringAt(stringArgsSlot, a, strings[a]);
-                        _ = SJS.SlotInterop.SlotStringLength(stringArgsSlot, strings.Length);
+                        _ = SJS.SlotInterop.SlotStringLength(spawn.CtxId, stringArgsSlot, strings.Length);
                     }
                 });
 
             // bind ONCE - binding is itself a crossing, and doing it per iteration would measure that
             // rather than the transport.
-            stringFrame.Bind();
+            stringFrame.Bind(spawn.CtxId);
             MeasureOne($"{strings.Length} string args, pinned address in frame", stringIterations,
                 () =>
                 {
                     for (var i = 0; i < stringIterations; i++)
                     {
                         for (var a = 0; a < strings.Length; a++) stringFrame.WriteString(a, strings[a]);
-                        _ = SJS.SlotInterop.FrameStringLength(strings.Length);
+                        _ = SJS.SlotInterop.FrameStringLength(spawn.CtxId, strings.Length);
                         stringFrame.ReleasePins();
                     }
                 });
             // the two-field frame is what the other arms bind; restore it so their numbers stay comparable
-            heapFrame.BindProbe();
+            heapFrame.BindProbe(spawn.CtxId);
 
             // END TO END: the generic dispatcher, with the argument frame OFF and ON. One variable.
             // These are the operations that actually reach NetRun - a dotted path defeats the slot fast
@@ -344,6 +344,11 @@ namespace BlazorBrowserDemo
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency
             // JS->.Net cost in a real app.
+            // Per-runtime isolation was measured here and the answer is recorded rather than re-run:
+            // a per-context SLOT TABLE cost +11% on this path (0.93us -> 1.03us) and bought no isolation
+            // that matters, because slot ids are monotonic and never reused so two runtimes cannot reach
+            // each other's entries anyway. The table stays shared; only the state that is genuinely
+            // per-runtime - the heap, the frame, the scratch buffer - is routed by context id.
             // DELEGATE INVOCATION IN ISOLATION - no boundary, no marshalling, pure .Net.
             // The inbound floor is ~8us with ZERO arguments, and DynamicInvoke is the prime suspect. This
             // measures the candidate fix on its own before any of it is wired in: the three arms run back

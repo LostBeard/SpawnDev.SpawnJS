@@ -1,4 +1,4 @@
-namespace SpawnDev.SpawnJS
+﻿namespace SpawnDev.SpawnJS
 {
     public partial class SpawnJSObjectReference
     {
@@ -28,7 +28,7 @@ namespace SpawnDev.SpawnJS
             var offset = JS.WriteArgsToFrame(args);
             try
             {
-                SlotInterop.InvokeFrameVoid(thisSlot, identifier, offset, args.Length);
+                SlotInterop.InvokeFrameVoid(JS.CtxId, thisSlot, identifier, offset, args.Length);
                 return true;
             }
             finally
@@ -56,7 +56,7 @@ namespace SpawnDev.SpawnJS
             var offset = JS.WriteArgsToFrame(args);
             try
             {
-                SlotInterop.InvokeFrameResult(thisSlot, identifier, offset, args.Length);
+                SlotInterop.InvokeFrameResult(JS.CtxId, thisSlot, identifier, offset, args.Length);
                 value = (T)JS.ReadFrameResult(typeof(T), offset)!;
                 return true;
             }

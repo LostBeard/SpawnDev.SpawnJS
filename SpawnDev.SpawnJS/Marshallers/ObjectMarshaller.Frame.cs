@@ -41,7 +41,7 @@
             try
             {
                 var count = WriteMembersToFrame(members, obj, offset);
-                SlotInterop.BuildObjectInto(parentSlot, key, offset, count);
+                SlotInterop.BuildObjectInto(JS.CtxId, parentSlot, key, offset, count);
                 return true;
             }
             finally
@@ -66,7 +66,7 @@
             try
             {
                 var count = WriteMembersToFrame(members, value, offset);
-                payload = SlotInterop.BuildObject(offset, count);
+                payload = SlotInterop.BuildObject(JS.CtxId, offset, count);
                 return true;
             }
             finally

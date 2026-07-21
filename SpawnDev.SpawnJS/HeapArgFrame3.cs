@@ -59,11 +59,11 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>Points the Javascript side at this frame.</summary>
-        public void Bind()
+        public void Bind(double ctxId)
         {
             if (Address % 8 != 0)
                 throw new InvalidOperationException($"the pinned frame is at {Address}, which is not 8 byte aligned");
-            SlotInterop.BindProbeFrame(Address, Capacity * Stride);
+            SlotInterop.BindProbeFrame(ctxId, Address, Capacity * Stride);
         }
 
         /// <summary>Writes a tagged value. No crossing.</summary>

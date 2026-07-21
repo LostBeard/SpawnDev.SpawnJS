@@ -9,17 +9,32 @@
         verbose = false;
         id = '';
         dotnetRuntime = null;
+        // Per-runtime state. Every one of these is instance scoped ON PURPOSE: two .Net apps can share a
+        // page - a custom element built on SpawnJS dropped onto a page that already runs one - and they
+        // must not be able to reach each other's memory.
+        ctxId = 0;
+        argFrameAddress = 0;
+        probeFrameAddress = 0;
+        argBufferAddress = 0;
         constructor(dotnetRuntime) {
             this.dotnetRuntime = dotnetRuntime;
-            this.id = `_${++SpawnJSInterop._idNext}`;
+            this.ctxId = ++SpawnJSInterop._idNext;
+            this.id = `_${this.ctxId}`;
             SpawnJSInterop.instances[this.id] = this;
-            // The slot helpers are plain globals - they are bound by JSImport to a fixed name and have no
-            // instance to reach through - but wasmMemoryBuffer() is an instance method, because finding
-            // the memory needs the dotnet runtime object. This is the pointer they use. It follows the
-            // same singleton shape as __sjsSlots.
-            // With more than one runtime in a scope the LAST one wins; the slot table has the same
-            // property, so anything that changes here has to change there too.
-            globalThis.__sjsInterop = this;
+            // The slot helpers are plain globals because JSImport binds to a fixed name and has no
+            // instance to reach through. They therefore take a CONTEXT ID as their first argument and
+            // resolve the instance here - which is how per-runtime state stays per-runtime despite the
+            // functions being shared.
+            SpawnJSInterop.byCtx[this.ctxId] = this;
+        }
+        // ctx id -> instance. The slot TABLE is deliberately not in here: slot ids come from one
+        // monotonic counter and are never reused, so two runtimes can share it without being able to
+        // touch each other's entries, and keeping it shared costs the hot path nothing.
+        static byCtx = {};
+        static ctx(id) {
+            var it = SpawnJSInterop.byCtx[id];
+            if (!it) throw new Error(`SpawnJSInterop: no runtime registered for context ${id}`);
+            return it;
         }
         _in(key, obj) {
             if (obj === null || obj === void 0) return false;
@@ -401,6 +416,10 @@ globalThis.__sjsGet = function (slot, key) { return globalThis.__sjsSlots[slot][
 // element - but the conversion allocates a string per read, which is what the SetAt variants exist to
 // avoid on the write side.
 globalThis.__sjsGetAt = globalThis.__sjsGet;
+// The slot TABLE stays shared, deliberately and measurably. Slot ids come from one monotonic counter
+// and are never reused, so two runtimes cannot reach each other's entries through it, and nothing
+// enumerates or clears it. A per-context table was measured at +11% on the hottest path (0.93us ->
+// 1.03us for a property read) and buys no isolation that matters.
 // The value a slot holds, rather than a property of it. A handle that OWNS its storage IS the slot, so
 // reading its own value is this rather than a keyed read.
 // Together with __sjsGetAt this is what lets a value be read with no proxy at either end: an owning
@@ -441,33 +460,30 @@ globalThis.__sjsSelf = function (slot) { return globalThis.__sjsSlots[slot]; };
 // ⚠️ HEAPF64 is indexed in ELEMENTS, so a byte address becomes address >>> 3. That requires the
 // address to be 8 byte aligned; a misaligned buffer would silently read the wrong element, so the
 // alignment is asserted at bind time rather than assumed.
-globalThis.__sjsHeaps = function () {
-    var m = globalThis.__sjsInterop?.dotnetRuntime?.Module;
+globalThis.__sjsHeaps = function (ctx) {
+    var m = SpawnJSInterop.ctx(ctx).dotnetRuntime?.Module;
     if (!m) throw new Error('SpawnJSInterop: the dotnet Module is not reachable');
     return m;
 };
 // Reports which HEAP views this runtime actually exposes, so the design rests on measurement rather
 // than on what Emscripten usually exports.
-globalThis.__sjsHeapViewNames = function () {
-    var m = globalThis.__sjsHeaps();
+globalThis.__sjsHeapViewNames = function (ctx) {
+    var m = globalThis.__sjsHeaps(ctx);
     var names = ['HEAP8', 'HEAPU8', 'HEAP16', 'HEAPU16', 'HEAP32', 'HEAPU32', 'HEAPF32', 'HEAPF64'];
     var found = [];
     for (var i = 0; i < names.length; i++) if (m[names[i]]) found.push(names[i]);
     return found.join(',');
 };
-globalThis.__sjsArgAddress = 0;
-globalThis.__sjsArgByteLength = 0;
-globalThis.__sjsBindArgBuffer = function (address, byteLength) {
+globalThis.__sjsBindArgBuffer = function (ctx, address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument buffer address ${address} is not 8 byte aligned`);
-    globalThis.__sjsArgAddress = address;
-    globalThis.__sjsArgByteLength = byteLength;
+    SpawnJSInterop.ctx(ctx).argBufferAddress = address;
     return true;
 };
 // PROBE ONLY: sums `count` float64 arguments .Net wrote at `offset` bytes.
 // The point is not the sum - it is that .Net paid ZERO crossings to write them and ONE to deliver.
-globalThis.__sjsHeapSum = function (offset, count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = (globalThis.__sjsArgAddress + offset) >>> 3;
+globalThis.__sjsHeapSum = function (ctx, offset, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var at = (SpawnJSInterop.ctx(ctx).argBufferAddress + offset) >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) total += f64[at + i];
     return total;
@@ -477,8 +493,8 @@ globalThis.__sjsHeapSum = function (offset, count) {
 // HEAPU16 indexes it directly with no copy on the .Net side and no marshalling machinery.
 // The address is only valid for the duration of this call, because the string is pinned around the
 // call and released after it. Nothing here may retain the subarray.
-globalThis.__sjsReadUtf16 = function (address, length) {
-    var u16 = globalThis.__sjsHeaps().HEAPU16;
+globalThis.__sjsReadUtf16 = function (ctx, address, length) {
+    var u16 = globalThis.__sjsHeaps(ctx).HEAPU16;
     var at = address >>> 1;
     // fromCharCode.apply blows the argument limit on long strings, so decode those instead. The
     // decoder reads the bytes directly; neither path copies on the .Net side.
@@ -495,32 +511,30 @@ globalThis.__sjsReadUtf16 = function (address, length) {
 // The probe/benchmark frames deliberately use a DIFFERENT global: they are separate frames, and when
 // they shared this one, binding a probe silently redirected every live transport call to read the
 // probe's memory instead. Nothing threw - the reads simply came from the wrong place.
-globalThis.__sjsArgFrameAddress = 0;
-globalThis.__sjsBindArgFrame = function (address, byteLength) {
+globalThis.__sjsBindArgFrame = function (ctx, address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument frame address ${address} is not 8 byte aligned`);
-    globalThis.__sjsArgFrameAddress = address;
+    SpawnJSInterop.ctx(ctx).argFrameAddress = address;
     return true;
 };
 // The probe frame's address - benchmarks and layout tests only, never the transport.
-globalThis.__sjsProbeFrameAddress = 0;
-globalThis.__sjsBindProbeFrame = function (address, byteLength) {
+globalThis.__sjsBindProbeFrame = function (ctx, address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: probe frame address ${address} is not 8 byte aligned`);
-    globalThis.__sjsProbeFrameAddress = address;
+    SpawnJSInterop.ctx(ctx).probeFrameAddress = address;
     return true;
 };
-globalThis.__sjsFrameSum = function (count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = globalThis.__sjsProbeFrameAddress >>> 3;
+globalThis.__sjsFrameSum = function (ctx, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
     var total = 0;
     // stride 16 bytes = 2 float64 elements
     for (var i = 0; i < count; i++) total += f64[at + i * 2];
     return total;
 };
-globalThis.__sjsFrameTaggedSum = function (count) {
-    var m = globalThis.__sjsHeaps();
+globalThis.__sjsFrameTaggedSum = function (ctx, count) {
+    var m = globalThis.__sjsHeaps(ctx);
     var f64 = m.HEAPF64;
     var u8 = m.HEAPU8;
-    var base = globalThis.__sjsProbeFrameAddress;
+    var base = SpawnJSInterop.ctx(ctx).probeFrameAddress;
     var at = base >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
@@ -533,9 +547,9 @@ globalThis.__sjsFrameTaggedSum = function (count) {
 // PROBE ONLY: interleaved, but the tag lives in the slot's PADDING as a float64 rather than as a byte.
 // The padding exists either way, so it costs no space - and it needs only ONE heap view and one width
 // of read, where the byte form needs HEAPU8 as well as HEAPF64.
-globalThis.__sjsFrameTaggedSumF64 = function (count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = globalThis.__sjsProbeFrameAddress >>> 3;
+globalThis.__sjsFrameTaggedSumF64 = function (ctx, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var value = f64[at + i * 2];
@@ -592,11 +606,11 @@ globalThis.__sjsFrameResult = function (f64, at, value) {
     f64[at] = globalThis.__sjsAlloc(value);
     f64[at + 1] = SJS_TAG_SLOT;
 };
-globalThis.__sjsFrameCall = function (cmd, offset, length) {
-    var interop = globalThis.__sjsInterop;
+globalThis.__sjsFrameCall = function (ctx, cmd, offset, length) {
+    var interop = SpawnJSInterop.ctx(ctx);
     var scratch = interop.netToJSBuffer;
-    var base = globalThis.__sjsArgFrameAddress;
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var base = interop.argFrameAddress;
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
     var at = (base >>> 3) + offset * 2;
     var A = globalThis.__sjsFrameArg;
     // dispatch by arity rather than spreading a slice - the spread is the only branch that allocates
@@ -617,8 +631,7 @@ globalThis.__sjsFrameCall = function (cmd, offset, length) {
     // RE-FETCH the view before writing the result. The call may have re-entered .Net - a callback, a
     // marshaller reading a property - and anything that grows the WebAssembly memory DETACHES the view
     // captured above. Writing through the stale one would throw, or worse, write nowhere.
-    globalThis.__sjsHeaps().HEAPF64[at] = 0;
-    globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
+    globalThis.__sjsFrameResult(globalThis.__sjsHeaps(ctx).HEAPF64, at, ret);
 };
 // Building an OBJECT whose members are already in the frame.
 //
@@ -631,8 +644,8 @@ globalThis.__sjsFrameCall = function (cmd, offset, length) {
 // its value - and the whole object is built here in one go. Property names are fixed literals per
 // type, so they intern to a slot once per process and are thereafter just numbers like any other
 // argument.
-globalThis.__sjsBuildFromFrame = function (f64, at, count) {
-    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+globalThis.__sjsBuildFromFrame = function (ctx, f64, at, count) {
+    var scratch = SpawnJSInterop.ctx(ctx).netToJSBuffer;
     var A = globalThis.__sjsFrameArg;
     var obj = {};
     for (var i = 0; i < count; i++) {
@@ -642,17 +655,17 @@ globalThis.__sjsBuildFromFrame = function (f64, at, count) {
 };
 // Builds the object and hands back its slot - for a member that is itself an object, or an object
 // passed as a call argument.
-globalThis.__sjsBuildObject = function (offset, count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
-    return globalThis.__sjsAlloc(globalThis.__sjsBuildFromFrame(f64, at, count));
+globalThis.__sjsBuildObject = function (ctx, offset, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var at = (SpawnJSInterop.ctx(ctx).argFrameAddress >>> 3) + offset * 2;
+    return globalThis.__sjsAlloc(globalThis.__sjsBuildFromFrame(ctx, f64, at, count));
 };
 // Builds the object AND assigns it, so the whole descriptor costs exactly one crossing - no temporary
 // slot is allocated, so none has to be freed either.
-globalThis.__sjsBuildObjectInto = function (parentSlot, key, offset, count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
-    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(f64, at, count);
+globalThis.__sjsBuildObjectInto = function (ctx, parentSlot, key, offset, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var at = (SpawnJSInterop.ctx(ctx).argFrameAddress >>> 3) + offset * 2;
+    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(ctx, f64, at, count);
 };
 // Calling a METHOD with its arguments already in the frame.
 //
@@ -662,19 +675,20 @@ globalThis.__sjsBuildObjectInto = function (parentSlot, key, offset, count) {
 // arguments were already sitting in .Net memory.
 //
 // Now the target is a slot, the arguments are frame slots, and the whole call is ONE crossing.
-globalThis.__sjsInvokeFrameArgs = function (f64, at, length) {
+globalThis.__sjsInvokeFrameArgs = function (ctx, f64, at, length) {
     var A = globalThis.__sjsFrameArg;
-    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var scratch = SpawnJSInterop.ctx(ctx).netToJSBuffer;
     var out = new Array(length);
     for (var i = 0; i < length; i++) out[i] = A(f64, at, i, scratch);
     return out;
 };
-globalThis.__sjsInvokeFrameVoid = function (targetSlot, name, offset, length) {
+globalThis.__sjsInvokeFrameVoid = function (ctx, targetSlot, name, offset, length) {
+    var interop = SpawnJSInterop.ctx(ctx);
     var target = globalThis.__sjsSlots[targetSlot];
-    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (interop.argFrameAddress >>> 3) + offset * 2;
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
     var A = globalThis.__sjsFrameArg;
-    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var scratch = interop.netToJSBuffer;
     // dispatch by arity so the common shapes allocate no argument array at all
     switch (length) {
         case 0: target[name](); return;
@@ -682,18 +696,19 @@ globalThis.__sjsInvokeFrameVoid = function (targetSlot, name, offset, length) {
         case 2: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); return;
         case 3: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); return;
         case 4: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); return;
-        default: target[name].apply(target, globalThis.__sjsInvokeFrameArgs(f64, at, length)); return;
+        default: target[name].apply(target, globalThis.__sjsInvokeFrameArgs(ctx, f64, at, length)); return;
     }
 };
 // Same, and the result goes back into the caller's own frame slot - so a call that returns a number
 // or a boolean moves no data across the boundary in either direction, and one that returns an object
 // hands back a slot id rather than a proxy.
-globalThis.__sjsInvokeFrameResult = function (targetSlot, name, offset, length) {
+globalThis.__sjsInvokeFrameResult = function (ctx, targetSlot, name, offset, length) {
+    var interop = SpawnJSInterop.ctx(ctx);
     var target = globalThis.__sjsSlots[targetSlot];
-    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (interop.argFrameAddress >>> 3) + offset * 2;
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
     var A = globalThis.__sjsFrameArg;
-    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var scratch = interop.netToJSBuffer;
     var ret;
     switch (length) {
         case 0: ret = target[name](); break;
@@ -701,10 +716,10 @@ globalThis.__sjsInvokeFrameResult = function (targetSlot, name, offset, length) 
         case 2: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); break;
         case 3: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); break;
         case 4: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); break;
-        default: ret = target[name].apply(target, globalThis.__sjsInvokeFrameArgs(f64, at, length)); break;
+        default: ret = target[name].apply(target, globalThis.__sjsInvokeFrameArgs(ctx, f64, at, length)); break;
     }
     // re-fetch: the call may have re-entered .Net and grown the memory, which detaches the view
-    globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
+    globalThis.__sjsFrameResult(globalThis.__sjsHeaps(ctx).HEAPF64, at, ret);
 };
 // PROBE ONLY: STRING ARGUMENTS, the last undecided piece of the frame layout.
 // A string needs TWO fields - where its characters are, and how many - which is exactly why the
@@ -714,10 +729,10 @@ globalThis.__sjsInvokeFrameResult = function (targetSlot, name, offset, length) 
 // Frame arm: .Net pins each string and writes (address, length) into the slot's value and aux
 // fields, so the strings themselves never cross; Javascript decodes them out of the heap.
 // Stride 24: value +0, tag +8, aux +16.
-globalThis.__sjsFrameStringLength = function (count) {
-    var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var u16 = globalThis.__sjsHeaps().HEAPU16;
-    var at = globalThis.__sjsProbeFrameAddress >>> 3;
+globalThis.__sjsFrameStringLength = function (ctx, count) {
+    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var u16 = globalThis.__sjsHeaps(ctx).HEAPU16;
+    var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var address = f64[at + i * 3];
@@ -729,7 +744,7 @@ globalThis.__sjsFrameStringLength = function (count) {
     return total;
 };
 // Slot arm: the strings were written across the boundary one at a time, the way they are today.
-globalThis.__sjsSlotStringLength = function (argsSlot, count) {
+globalThis.__sjsSlotStringLength = function (ctx, argsSlot, count) {
     var a = globalThis.__sjsSlots[argsSlot];
     var total = 0;
     for (var i = 0; i < count; i++) total += a[i].length;
@@ -738,7 +753,7 @@ globalThis.__sjsSlotStringLength = function (argsSlot, count) {
 // PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
 // today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
 // isolates exactly one thing: what .Net paid to get the arguments here.
-globalThis.__sjsSlotSum = function (argsSlot, count) {
+globalThis.__sjsSlotSum = function (ctx, argsSlot, count) {
     var a = globalThis.__sjsSlots[argsSlot];
     var total = 0;
     for (var i = 0; i < count; i++) total += a[i];
@@ -749,12 +764,12 @@ globalThis.__sjsSlotSum = function (argsSlot, count) {
 // HEAPF64 indexing needs - so tags live in their own region and payloads in theirs, parallel by
 // index. Both regions are read through the runtime's own views, so both are platform endian.
 // tag 1 = number, 2 = boolean, 3 = slot reference.
-globalThis.__sjsHeapTaggedSum = function (tagOffset, valueOffset, count) {
-    var m = globalThis.__sjsHeaps();
+globalThis.__sjsHeapTaggedSum = function (ctx, tagOffset, valueOffset, count) {
+    var m = globalThis.__sjsHeaps(ctx);
     var u8 = m.HEAPU8;
     var f64 = m.HEAPF64;
-    var tagAt = globalThis.__sjsArgAddress + tagOffset;
-    var valueAt = (globalThis.__sjsArgAddress + valueOffset) >>> 3;
+    var tagAt = SpawnJSInterop.ctx(ctx).argBufferAddress + tagOffset;
+    var valueAt = (SpawnJSInterop.ctx(ctx).argBufferAddress + valueOffset) >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var value = f64[valueAt + i];

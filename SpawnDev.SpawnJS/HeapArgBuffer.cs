@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Toolbox;
+﻿using SpawnDev.SpawnJS.Toolbox;
 
 namespace SpawnDev.SpawnJS
 {
@@ -67,11 +67,11 @@ namespace SpawnDev.SpawnJS
         /// misaligned address would read the wrong element rather than fail, and a loud throw here is far
         /// better than silently shifted arguments later.
         /// </summary>
-        public void Bind()
+        public void Bind(double ctxId)
         {
             if (ValueAddress % 8 != 0)
                 throw new InvalidOperationException($"the pinned value region is at {ValueAddress}, which is not 8 byte aligned");
-            SlotInterop.BindArgBuffer(ValueAddress, _values.Length * 8);
+            SlotInterop.BindArgBuffer(ctxId, ValueAddress, _values.Length * 8);
             IsBound = true;
         }
 

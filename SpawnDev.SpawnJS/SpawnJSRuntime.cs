@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Marshallers;
+﻿using SpawnDev.SpawnJS.Marshallers;
 using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
 using System.Runtime.InteropServices.JavaScript;
 
@@ -65,6 +65,12 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private HeapArgFrame _argFrame = null!;
         /// <summary>
+        /// This runtime's context id, as known to the Javascript side. Every helper that touches
+        /// per-runtime state takes it, so state stays per-runtime even though the helpers are shared
+        /// globals - JSImport binds to a fixed name and has no instance to reach through.
+        /// </summary>
+        public double CtxId { get; private set; }
+        /// <summary>
         /// JSObject marshallers used for marshalling data between .Net and Javasript
         /// </summary>
         public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
@@ -115,11 +121,16 @@ namespace SpawnDev.SpawnJS
             _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
+            // This runtime's CONTEXT ID. Every Javascript helper that touches per-runtime state - the
+            // heap, the argument frame, the scratch buffer - takes it as its first argument and resolves
+            // the owning instance from it. Two .Net apps can share a page (a custom element built on
+            // SpawnJS dropped onto a page that already runs one) and neither can reach the other's memory.
+            CtxId = SpawnJSInterop.GetPropertyAsInt32("ctxId");
             // The ARGUMENT FRAME: pinned .Net memory that Javascript views directly, so outbound call
             // arguments are written with plain stores and nothing crosses to deliver them. Allocated and
             // bound once here - binding is itself a crossing, and not paying crossings is the point.
             _argFrame = new HeapArgFrame();
-            _argFrame.Bind();
+            _argFrame.Bind(CtxId);
             Initializing = false;
             _instance = this;
         }

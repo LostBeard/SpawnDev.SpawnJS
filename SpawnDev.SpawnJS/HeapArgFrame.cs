@@ -64,11 +64,16 @@ namespace SpawnDev.SpawnJS
         /// Points the Javascript side at this frame. Throws if the pinned base is not 8 byte aligned,
         /// because HEAPF64 is indexed in elements and a misaligned base reads the wrong slot silently.
         /// </summary>
-        public void Bind()
+        /// <param name="ctxId">
+        /// The owning runtime's context id. Passed rather than looked up because Bind runs INSIDE the
+        /// runtime's constructor, before the singleton is assigned - reaching for it there would
+        /// construct a second runtime and recurse.
+        /// </param>
+        public void Bind(double ctxId)
         {
             if (Address % 8 != 0)
                 throw new InvalidOperationException($"the pinned frame is at {Address}, which is not 8 byte aligned");
-            SlotInterop.BindArgFrame(Address, Capacity * Stride);
+            SlotInterop.BindArgFrame(ctxId, Address, Capacity * Stride);
             IsBound = true;
         }
 
@@ -77,11 +82,11 @@ namespace SpawnDev.SpawnJS
         /// Never bind a probe frame with <see cref="Bind"/>: that address belongs to the live transport,
         /// and pointing it at another frame redirects every call's arguments without any error.
         /// </summary>
-        public void BindProbe()
+        public void BindProbe(double ctxId)
         {
             if (Address % 8 != 0)
                 throw new InvalidOperationException($"the pinned frame is at {Address}, which is not 8 byte aligned");
-            SlotInterop.BindProbeFrame(Address, Capacity * Stride);
+            SlotInterop.BindProbeFrame(ctxId, Address, Capacity * Stride);
             IsBound = true;
         }
 

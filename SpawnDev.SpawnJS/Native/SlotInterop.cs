@@ -56,7 +56,7 @@ namespace SpawnDev.SpawnJS
         /// the name, an offset and a length cross. The result comes back in the caller's own frame slot.
         /// </summary>
         [JSImport("globalThis.__sjsFrameCall")]
-        public static partial void FrameCall(string cmd, double offset, double length);
+        public static partial void FrameCall(double ctx, string cmd, double offset, double length);
 
         /// <summary>
         /// Calls a METHOD on a slotted object with its arguments already in the frame - ONE crossing for
@@ -65,7 +65,7 @@ namespace SpawnDev.SpawnJS
         /// ARGUMENT to fill it, one to invoke and one to free it.
         /// </summary>
         [JSImport("globalThis.__sjsInvokeFrameVoid")]
-        public static partial void InvokeFrameVoid(double targetSlot, string name, double offset, double length);
+        public static partial void InvokeFrameVoid(double ctx, double targetSlot, string name, double offset, double length);
 
         /// <summary>
         /// As <see cref="InvokeFrameVoid"/>, with the result written back into the caller's own frame
@@ -73,7 +73,7 @@ namespace SpawnDev.SpawnJS
         /// object result arrives as a slot id rather than a proxy.
         /// </summary>
         [JSImport("globalThis.__sjsInvokeFrameResult")]
-        public static partial void InvokeFrameResult(double targetSlot, string name, double offset, double length);
+        public static partial void InvokeFrameResult(double ctx, double targetSlot, string name, double offset, double length);
 
         /// <summary>
         /// Releases a slot so it can be reused. Lifetime is explicit here - there is no proxy for the
@@ -129,6 +129,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>Reads a property as an int.</summary>
         [JSImport("globalThis.__sjsGet")]
         public static partial int GetInt32(double slot, string key);
+
 
         /// <summary>Reads a property as a bool.</summary>
         [JSImport("globalThis.__sjsGet")]
@@ -256,7 +257,7 @@ namespace SpawnDev.SpawnJS
         /// and rebound automatically if growing the WebAssembly memory detaches it.
         /// </summary>
         [JSImport("globalThis.__sjsBindArgBuffer")]
-        public static partial bool BindArgBuffer(double address, double byteLength);
+        public static partial bool BindArgBuffer(double ctx, double address, double byteLength);
 
         /// <summary>
         /// Which HEAP views the runtime actually exposes, comma separated. The design reads .Net memory
@@ -264,14 +265,14 @@ namespace SpawnDev.SpawnJS
         /// relying on what Emscripten normally exports.
         /// </summary>
         [JSImport("globalThis.__sjsHeapViewNames")]
-        public static partial string HeapViewNames();
+        public static partial string HeapViewNames(double ctx);
 
         /// <summary>
         /// PROBE: reads a .Net string straight out of .Net memory, given the address of its first
         /// character and its length in chars. Nothing is copied .Net side and no string marshaller runs.
         /// </summary>
         [JSImport("globalThis.__sjsReadUtf16")]
-        public static partial string ReadUtf16(double address, double length);
+        public static partial string ReadUtf16(double ctx, double address, double length);
 
         /// <summary>
         /// Builds a Javascript object from name/value pairs in the frame and returns its slot.<br/>
@@ -279,20 +280,20 @@ namespace SpawnDev.SpawnJS
         /// three before.
         /// </summary>
         [JSImport("globalThis.__sjsBuildObject")]
-        public static partial double BuildObject(double offset, double count);
+        public static partial double BuildObject(double ctx, double offset, double count);
 
         /// <summary>
         /// Builds the object and ASSIGNS it in the same crossing, so a descriptor written onto a slotted
         /// parent costs exactly one - and allocates no temporary slot, so none has to be freed.
         /// </summary>
         [JSImport("globalThis.__sjsBuildObjectInto")]
-        public static partial void BuildObjectInto(double parentSlot, string key, double offset, double count);
+        public static partial void BuildObjectInto(double ctx, double parentSlot, string key, double offset, double count);
 
         /// <summary>
         /// Binds the Javascript side to the TRANSPORT argument frame. Called once, by the runtime.
         /// </summary>
         [JSImport("globalThis.__sjsBindArgFrame")]
-        public static partial bool BindArgFrame(double address, double byteLength);
+        public static partial bool BindArgFrame(double ctx, double address, double byteLength);
 
         /// <summary>
         /// Binds a PROBE frame - benchmarks and layout tests only.<br/>
@@ -301,27 +302,27 @@ namespace SpawnDev.SpawnJS
         /// the values simply came from the wrong place.
         /// </summary>
         [JSImport("globalThis.__sjsBindProbeFrame")]
-        public static partial bool BindProbeFrame(double address, double byteLength);
+        public static partial bool BindProbeFrame(double ctx, double address, double byteLength);
 
         /// <summary>PROBE: sums `count` values from the interleaved frame - one padded slot per argument.</summary>
         [JSImport("globalThis.__sjsFrameSum")]
-        public static partial double FrameSum(double count);
+        public static partial double FrameSum(double ctx, double count);
 
         /// <summary>PROBE: the same, reading each slot's inline tag byte - the runtime's own shape.</summary>
         [JSImport("globalThis.__sjsFrameTaggedSum")]
-        public static partial double FrameTaggedSum(double count);
+        public static partial double FrameTaggedSum(double ctx, double count);
 
         /// <summary>PROBE: interleaved with the tag as a float64 in the slot's padding - one view, one width.</summary>
         [JSImport("globalThis.__sjsFrameTaggedSumF64")]
-        public static partial double FrameTaggedSumF64(double count);
+        public static partial double FrameTaggedSumF64(double ctx, double count);
 
         /// <summary>PROBE: decodes `count` strings the frame carries as (address, length) - none crossed.</summary>
         [JSImport("globalThis.__sjsFrameStringLength")]
-        public static partial double FrameStringLength(double count);
+        public static partial double FrameStringLength(double ctx, double count);
 
         /// <summary>PROBE: the same, over strings that crossed the boundary one at a time.</summary>
         [JSImport("globalThis.__sjsSlotStringLength")]
-        public static partial double SlotStringLength(double argsSlot, double count);
+        public static partial double SlotStringLength(double ctx, double argsSlot, double count);
 
         /// <summary>
         /// PROBE: the same sum over a Javascript side argument array - the transport in use today. The
@@ -329,11 +330,11 @@ namespace SpawnDev.SpawnJS
         /// paid to deliver the arguments.
         /// </summary>
         [JSImport("globalThis.__sjsSlotSum")]
-        public static partial double SlotSum(double argsSlot, double count);
+        public static partial double SlotSum(double ctx, double argsSlot, double count);
 
         /// <summary>PROBE: sums `count` float64s .Net wrote at `offset` bytes, delivered in ONE crossing.</summary>
         [JSImport("globalThis.__sjsHeapSum")]
-        public static partial double HeapSum(double offset, double count);
+        public static partial double HeapSum(double ctx, double offset, double count);
 
         /// <summary>
         /// PROBE: the same for a heterogeneous list - tags in one region, payloads in another, parallel by
@@ -341,7 +342,7 @@ namespace SpawnDev.SpawnJS
         /// the float64 payloads.
         /// </summary>
         [JSImport("globalThis.__sjsHeapTaggedSum")]
-        public static partial double HeapTaggedSum(double tagOffset, double valueOffset, double count);
+        public static partial double HeapTaggedSum(double ctx, double tagOffset, double valueOffset, double count);
 
         /// <summary>
         /// Own enumerable keys of the slotted object, for reading a record back.<br/>
