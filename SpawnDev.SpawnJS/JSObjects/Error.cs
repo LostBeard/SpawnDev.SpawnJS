@@ -77,7 +77,5 @@
         /// </summary>
         /// <returns></returns>
         public override string ToString() => JSRef!.Call<string>("toString");
-
-        internal T JSRefAs<T>() => JSRef!.As<T>();
     }
 }

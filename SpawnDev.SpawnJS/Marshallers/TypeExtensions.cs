@@ -44,11 +44,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
         }
         /// <summary>
-        /// Returns a List of ClassMemberJsonInfo for properties and fields that may be included during serialization and deserialization
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        /// <summary>
         /// Serializable members per type. A type's members and their attributes cannot change at runtime,
         /// so this is computed once.<br/>
         /// It was previously rebuilt on EVERY marshal, and the rebuild calls GetCustomAttribute for each

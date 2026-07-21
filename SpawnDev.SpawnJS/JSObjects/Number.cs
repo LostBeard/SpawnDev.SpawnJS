@@ -206,6 +206,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="number"></param>
         public static implicit operator Number(byte number) => new Number(number);
+        /// <summary>
         /// Implicit conversion to sbyte
         /// </summary>
         /// <param name="number"></param>

@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.Toolbox
     /// upload them right back to the GPU is a pure waste - the weights are never used by .NET logic.
     /// </para>
     /// <para>
-    /// Backed by <see cref="BlobStream"/>, <see cref="ArrayBufferStream"/>, and other JS-backed streams.
+    /// Backed by <c>BlobStream</c>, <c>ArrayBufferStream</c>, and other JS-backed streams.
     /// </para>
     /// </summary>
     public interface IJSReadStream
@@ -22,8 +22,8 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// True if the standard synchronous <see cref="System.IO.Stream.Read(byte[], int, int)"/> works on this
         /// stream. Many JS-backed streams in Blazor WASM are async-only - their data is fetched via a Promise
         /// (e.g. <c>Blob.arrayBuffer()</c> or a network piece) so synchronous <c>Read</c> throws. Check this
-        /// before doing a synchronous read. An <see cref="ArrayBufferStream"/> (data already resident in JS
-        /// memory) returns true; a <see cref="BlobStream"/> or a network-backed stream returns false.
+        /// before doing a synchronous read. An <c>ArrayBufferStream</c> (data already resident in JS
+        /// memory) returns true; a <c>BlobStream</c> or a network-backed stream returns false.
         /// </summary>
         bool CanReadSync { get; }
 

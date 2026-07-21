@@ -17,7 +17,7 @@ namespace SpawnDev.SpawnJS.Toolbox
     /// the full payload - or entering the .NET/WASM managed heap - along the way.
     /// </para>
     /// <para>
-    /// Backed by <see cref="FileSystemHandleWritableStream"/> (async OPFS/disk), <see cref="ArrayBufferStream"/>
+    /// Backed by <c>FileSystemHandleWritableStream</c> (async OPFS/disk), <c>ArrayBufferStream</c>
     /// (synchronous in-memory JS buffer), and other JS-backed writable streams.
     /// </para>
     /// </summary>
@@ -27,9 +27,9 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// True if the synchronous <see cref="WriteUint8Array(Uint8Array)"/> works on this stream. Many
         /// JS-backed writable streams in Blazor WASM are async-only - their write is a Promise (e.g. an OPFS
         /// <c>FileSystemWritableFileStream.write()</c>) so a synchronous write throws. Check this before doing
-        /// a synchronous write. An <see cref="ArrayBufferStream"/> (data written directly into a JS
+        /// a synchronous write. An <c>ArrayBufferStream</c> (data written directly into a JS
         /// <c>ArrayBuffer</c> already resident in memory) returns true; a
-        /// <see cref="FileSystemHandleWritableStream"/> returns false.
+        /// <c>FileSystemHandleWritableStream</c> returns false.
         /// </summary>
         bool CanWriteSync { get; }
 

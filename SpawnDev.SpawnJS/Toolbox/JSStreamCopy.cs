@@ -7,7 +7,7 @@ namespace SpawnDev.SpawnJS.Toolbox
     /// <summary>
     /// Shared copy loops used by the <see cref="System.IO.Stream.CopyTo(System.IO.Stream, int)"/> /
     /// <see cref="System.IO.Stream.CopyToAsync(System.IO.Stream, int, CancellationToken)"/> overrides on the
-    /// JS-backed read streams (<see cref="BlobStream"/>, <see cref="ArrayBufferStream"/>). When the copy
+    /// JS-backed read streams (<c>BlobStream</c>, <c>ArrayBufferStream</c>). When the copy
     /// destination is an <see cref="IJSWriteStream"/>, the override routes here to pump the data as
     /// <see cref="SpawnDev.SpawnJS.JSObjects.Uint8Array"/> chunks - read JS-side, written JS-side - so the
     /// payload never enters the .NET/WASM managed heap. Otherwise the override defers to the base
