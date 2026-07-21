@@ -312,6 +312,18 @@ namespace SpawnDev.SpawnJS
         public static partial double GetObjectSlot(double slot, string key);
 
         /// <summary>
+        /// As <see cref="GetObjectSlot"/>, but slots a value that is not a reference rather than refusing
+        /// it. A slot holds any Javascript value, so a wrapper over a primitive works - it is only a
+        /// JSObject PROXY that cannot represent one. Still returns 0 for null and undefined.
+        /// </summary>
+        [JSImport("globalThis.__sjsGetValueSlot")]
+        public static partial double GetValueSlot(double slot, string key);
+
+        /// <summary>As <see cref="CloneObjectSlot"/>, but accepts a non-reference value.</summary>
+        [JSImport("globalThis.__sjsCloneValueSlot")]
+        public static partial double CloneValueSlot(double slot);
+
+        /// <summary>
         /// Reads a property addressed by numeric index into a NEW slot. Same sentinels as
         /// <see cref="GetObjectSlot"/>; separate because the shared call buffer is an array and its reads
         /// must not pay a string key conversion per element.

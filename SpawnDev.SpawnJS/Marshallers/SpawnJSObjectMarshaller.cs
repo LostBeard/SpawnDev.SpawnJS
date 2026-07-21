@@ -20,7 +20,12 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// </remarks>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            if (jsHandle.TryTakeOwnedValue(out var owned))
+            // A wrapper that represents a PRIMITIVE opts in to being backed by one. A slot holds any
+            // Javascript value, so this works; it is only a JSObject proxy that cannot represent a
+            // primitive, and that restriction is what made StringPrimitive - and with it the string
+            // HeapView path - unusable in this library until the reads became slot native.
+            var allowNonReference = typeof(IJSPrimitiveWrapper).IsAssignableFrom(type);
+            if (jsHandle.TryTakeOwnedValue(out var owned, allowNonReference))
             {
                 return owned == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(owned));
             }

@@ -34,7 +34,15 @@ namespace SpawnDev.SpawnJS
         /// take the proxy path, which behaves exactly as it did before. Returns true with a null
         /// <paramref name="owned"/> when the value is null or undefined.
         /// </summary>
-        internal bool TryTakeOwnedValue(out SpawnJSHandle? owned)
+        /// <param name="owned">The new handle, or null when the value is null or undefined</param>
+        /// <param name="allowNonReference">
+        /// When true, a value that is not a reference is slotted rather than refused. A slot holds any
+        /// Javascript value, so a wrapper over a PRIMITIVE works - it is only a JSObject proxy that cannot
+        /// represent one. Off by default, so <c>JS.Get&lt;Window&gt;("someNumber")</c> still fails loudly
+        /// instead of handing back a wrapper whose every property reads undefined; a wrapper type that
+        /// genuinely represents a primitive opts in.
+        /// </param>
+        internal bool TryTakeOwnedValue(out SpawnJSHandle? owned, bool allowNonReference = false)
         {
             owned = null;
             if (IsDisposed) return false;
@@ -42,14 +50,14 @@ namespace SpawnDev.SpawnJS
             if (TryGetSlot(out var ownSlot))
             {
                 // this handle IS the value's storage, so take a second reference to the same value
-                valueSlot = SlotInterop.CloneObjectSlot(ownSlot);
+                valueSlot = allowNonReference ? SlotInterop.CloneValueSlot(ownSlot) : SlotInterop.CloneObjectSlot(ownSlot);
             }
             else if (_unownedParent != null && _unownedParent.TryGetSlot(out var parentSlot))
             {
                 // volatile: the value lives at parent[key] and the parent is addressable, so the read
                 // never leaves Javascript
                 valueSlot = JSKey is string name
-                    ? SlotInterop.GetObjectSlot(parentSlot, name)
+                    ? (allowNonReference ? SlotInterop.GetValueSlot(parentSlot, name) : SlotInterop.GetObjectSlot(parentSlot, name))
                     : SlotInterop.GetObjectSlotAt(parentSlot, Convert.ToDouble(JSKey, System.Globalization.CultureInfo.InvariantCulture));
             }
             else

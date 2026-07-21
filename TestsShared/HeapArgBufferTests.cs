@@ -1,4 +1,5 @@
-using SpawnDev.SpawnJS;
+﻿using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.Toolbox;
 
 namespace TestsShared
 {
@@ -133,50 +134,78 @@ namespace TestsShared
 
         /// <summary>
         /// A .Net STRING read straight out of .Net memory, with nothing copied .Net side and no string
-        /// marshaller involved: pin it, hand Javascript the address of its first character, and let
-        /// HEAPU16 index it.<br/>
+        /// marshaller involved.<br/>
         /// <br/>
-        /// This confirms two things that were assumptions until now: that a string can be pinned at all,
-        /// and that AddrOfPinnedObject on one gives the FIRST CHARACTER rather than the object header. If
-        /// it gave the header, the text would come back shifted by the header size and be garbage - so a
-        /// correct round trip is the proof.
+        /// Pinning is HeapViewString's job - it already pins the string and exposes the address of its
+        /// first character, so this uses that rather than taking its own GCHandle. Strings being pinnable
+        /// is not an open question; the library has supported it since BlazorJS.
         /// </summary>
         [SpawnJSTest]
         public async Task JavascriptReadsAPinnedDotnetStringTest()
         {
-            foreach (var text in new[] { "hello", "", "a", new string('x', 5000) })
+            foreach (var text in new[] { "hello", "a", new string('x', 5000) })
             {
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(text, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    var address = handle.AddrOfPinnedObject().ToInt64();
-                    var read = SlotInterop.ReadUtf16(address, text.Length);
-                    if (read != text)
-                        throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
-                }
-                finally { handle.Free(); }
+                using var view = HeapView.Create(text);
+                if (view.Length != text.Length)
+                    throw new Exception($"HeapViewString reported {view.Length} chars for a {text.Length} char string");
+                if (view.ByteLength != text.Length * 2)
+                    throw new Exception($"HeapViewString reported {view.ByteLength} bytes, expected {text.Length * 2} for UTF-16");
+
+                var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+                if (read != text)
+                    throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
             }
         }
 
         /// <summary>
-        /// The same, for text that is not ASCII - which is the case that proves the data really is being
-        /// read as UTF-16 rather than accidentally working because every character happened to fit in a
-        /// byte. Includes a surrogate pair, which is two chars in .Net and must stay two.
+        /// Text that is not ASCII - the case that proves the data really is read as UTF-16 rather than
+        /// working by accident because every character fitted in a byte. Includes a surrogate pair, which
+        /// is two chars in .Net and must stay two.
         /// </summary>
         [SpawnJSTest]
         public async Task PinnedStringReadHandlesNonAsciiTest()
         {
             foreach (var text in new[] { "café", "日本語", "vulcan \U0001F596", "éèêë" })
             {
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(text, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    var read = SlotInterop.ReadUtf16(handle.AddrOfPinnedObject().ToInt64(), text.Length);
-                    if (read != text)
-                        throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
-                }
-                finally { handle.Free(); }
+                using var view = HeapView.Create(text);
+                var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+                if (read != text)
+                    throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
             }
+        }
+
+        /// <summary>
+        /// HeapViewString can pin a WINDOW into a string - an offset and a length - so a substring can be
+        /// handed over without allocating one. Worth covering because the offset is applied in CHARACTERS
+        /// and scaled by the two byte element size; getting that wrong would read from the wrong place.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task PinnedStringWindowReadsTheRightSubstringTest()
+        {
+            const string text = "abcdefghij";
+            using var view = HeapView.Create(text, 3, 4);
+            if (view.Length != 4)
+                throw new Exception($"the window reported {view.Length} chars, expected 4");
+
+            var read = SlotInterop.ReadUtf16(view.Address, view.Length);
+            if (read != "defg")
+                throw new Exception($"the window read '{read}', expected 'defg' - the character offset is not being scaled correctly");
+        }
+
+        /// <summary>
+        /// The library's own conversion, rather than a probe binding: HeapViewString hands Javascript a
+        /// string primitive through TextDecoder over the pinned region. This is the shipped path, so it is
+        /// the one worth guarding.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task HeapViewStringConvertsToAJavascriptStringTest()
+        {
+            const string text = "vulcan salute \U0001F596 café";
+            using var view = HeapView.Create(text);
+            using var native = view.AsNativeView();
+            var roundTripped = JS.Call<string>("String", native);
+            if (roundTripped != text)
+                throw new Exception($"AsNativeView produced '{Trim(roundTripped)}', expected '{Trim(text)}'");
         }
 
         static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";

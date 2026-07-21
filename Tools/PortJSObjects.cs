@@ -301,6 +301,20 @@ string Transform(string text)
     // position - wrappers also take and return JSObject as a plain type (ProxyHandler alone does it 68
     // times) and those uses have to move too.
     text = Regex.Replace(text, @"\bJSObject\b", "SpawnJSObject");
+    // A handful of BlazorJS wrappers represent a Javascript PRIMITIVE rather than an object. Reading a
+    // wrapper here normally refuses a non-reference value, so JS.Get<Window>("someNumber") fails loudly
+    // instead of handing back a wrapper whose every property reads undefined - but for these types that
+    // refusal is wrong, and it is what made StringPrimitive, and with it the string HeapView path,
+    // unusable in this library. They opt out by implementing IJSPrimitiveWrapper.
+    //
+    // Applied here rather than by hand, because these files carry a do-not-hand-edit marker and a manual
+    // edit would be silently reverted by the next port.
+    foreach (var primitiveWrapper in new[] { "StringPrimitive" })
+    {
+        text = Regex.Replace(text,
+            @"(?<decl>\bpublic (?:sealed )?class " + primitiveWrapper + @" : SpawnJSObject)(?<tail>\s*(?:\r?\n|\{))",
+            "${decl}, IJSPrimitiveWrapper${tail}");
+    }
     // The pre-built-argument-array escape hatch is spelled Void-before-Apply in SpawnJS
     // (CallVoidApply) and Void-after-Apply in BlazorJS (CallApplyVoid). Same method, same arguments.
     // \b will not match CallApplyVoidAsync when rewriting CallApplyVoid, so the order here is safe.

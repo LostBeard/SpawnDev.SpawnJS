@@ -550,6 +550,21 @@ globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlot
 // A function counts as a reference. Javascript functions are legitimate wrapper targets, and typeof
 // reports them separately from "object", so omitting them here would reject every one of them.
 globalThis.__sjsIsRef = function (v) { var t = typeof v; return t === "object" || t === "function"; };
+// As __sjsGetObjectSlot, but a value that is NOT a reference is slotted rather than refused. A slot
+// holds any Javascript value, so a wrapper over a primitive - StringPrimitive is the one that exists -
+// works perfectly well; it is only a JSObject PROXY that cannot represent one, which is why that path
+// throws "JSObject proxy of string is not supported".
+// Still returns 0 for null and undefined: those are absence, not a value to wrap.
+globalThis.__sjsGetValueSlot = function (slot, key) {
+    var v = globalThis.__sjsSlots[slot][key];
+    if (v === void 0 || v === null) return 0;
+    return globalThis.__sjsAlloc(v);
+};
+globalThis.__sjsCloneValueSlot = function (slot) {
+    var v = globalThis.__sjsSlots[slot];
+    if (v === void 0 || v === null) return 0;
+    return globalThis.__sjsAlloc(v);
+};
 globalThis.__sjsGetObjectSlot = function (slot, key) {
     var v = globalThis.__sjsSlots[slot][key];
     if (v === void 0 || v === null) return 0;

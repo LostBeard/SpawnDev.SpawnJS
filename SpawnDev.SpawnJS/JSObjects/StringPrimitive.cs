@@ -7,7 +7,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// <summary>
     /// https://developer.mozilla.org/en-US/docs/Glossary/Primitive
     /// </summary>
-    public class StringPrimitive : SpawnJSObject
+    public class StringPrimitive : SpawnJSObject, IJSPrimitiveWrapper
     {
         /// <summary>
         /// Explicit cast from StringPrimitive to .Net string
