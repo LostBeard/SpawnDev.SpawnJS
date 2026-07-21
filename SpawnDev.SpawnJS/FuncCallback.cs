@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.JSObjects;
+﻿using SpawnDev.SpawnJS.JSObjects;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -17,6 +17,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<TResult>)Func)();
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -34,6 +39,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, TResult>)Func)((T1)args[0]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -51,6 +61,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, TResult>)Func)((T1)args[0]!, (T2)args[1]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -68,6 +83,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, T3, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, T3, TResult>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -85,6 +105,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, T3, T4, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, T3, T4, TResult>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -102,6 +127,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, T3, T4, T5, TResult>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -119,6 +149,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, T3, T4, T5, T6, TResult>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!, (T6)args[5]!);
+        }
     }
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
@@ -136,5 +171,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback">.Net target method</param>
         /// <param name="once">If true, the Callback will be disposed after the first call</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, T7, TResult> callback, bool once = false) : base(callback, once) { }
+        /// <inheritdoc/>
+        internal override object? InvokeHandler(object?[] args)
+        {
+            return ((Func<T1, T2, T3, T4, T5, T6, T7, TResult>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!, (T6)args[5]!, (T7)args[6]!);
+        }
     }
 }

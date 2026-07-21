@@ -344,6 +344,33 @@ namespace BlazorBrowserDemo
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency
             // JS->.Net cost in a real app.
+            // DELEGATE INVOCATION IN ISOLATION - no boundary, no marshalling, pure .Net.
+            // The inbound floor is ~8us with ZERO arguments, and DynamicInvoke is the prime suspect. This
+            // measures the candidate fix on its own before any of it is wired in: the three arms run back
+            // to back in one loop, so the RATIO between them holds even on a busy machine, which the
+            // boundary benchmarks do not.
+            var invokeHits = 0;
+            Action<int> typedDelegate = _ => invokeHits++;
+            Delegate asDelegate = typedDelegate;
+            var invokeArgs = new object?[] { 0 };
+            var invokeIterations = iterations;
+
+            MeasureOne("delegate: direct typed call", invokeIterations,
+                () => { for (var i = 0; i < invokeIterations; i++) typedDelegate(i); });
+
+            MeasureOne("delegate: cast from Delegate then call", invokeIterations,
+                () => { for (var i = 0; i < invokeIterations; i++) ((Action<int>)asDelegate)(i); });
+
+            MeasureOne("delegate: DynamicInvoke (what dispatch does now)", invokeIterations,
+                () =>
+                {
+                    for (var i = 0; i < invokeIterations; i++)
+                    {
+                        invokeArgs[0] = i;
+                        asDelegate.DynamicInvoke(invokeArgs);
+                    }
+                });
+
             // FIRST: what is the inbound cost actually MADE of? A one argument callback measures ~13us,
             // but at most two crossings are involved - so most of it is not the boundary. Scaling the
             // ARGUMENT COUNT separates per-argument cost from fixed dispatch cost, and decides whether an
