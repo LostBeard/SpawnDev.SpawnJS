@@ -258,6 +258,14 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsFrameTaggedSumF64")]
         public static partial double FrameTaggedSumF64(double count);
 
+        /// <summary>PROBE: decodes `count` strings the frame carries as (address, length) - none crossed.</summary>
+        [JSImport("globalThis.__sjsFrameStringLength")]
+        public static partial double FrameStringLength(double count);
+
+        /// <summary>PROBE: the same, over strings that crossed the boundary one at a time.</summary>
+        [JSImport("globalThis.__sjsSlotStringLength")]
+        public static partial double SlotStringLength(double argsSlot, double count);
+
         /// <summary>
         /// PROBE: the same sum over a Javascript side argument array - the transport in use today. The
         /// Javascript work is identical to <see cref="HeapSum"/>, so an A/B isolates exactly what .Net

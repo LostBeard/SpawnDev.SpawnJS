@@ -530,6 +530,35 @@ globalThis.__sjsFrameTaggedSumF64 = function (count) {
     }
     return total;
 };
+// PROBE ONLY: STRING ARGUMENTS, the last undecided piece of the frame layout.
+// A string needs TWO fields - where its characters are, and how many - which is exactly why the
+// runtime's own slot is wider than ours. Either the frame grows an aux field, or strings keep
+// crossing one at a time. Measured rather than chosen.
+//
+// Frame arm: .Net pins each string and writes (address, length) into the slot's value and aux
+// fields, so the strings themselves never cross; Javascript decodes them out of the heap.
+// Stride 24: value +0, tag +8, aux +16.
+globalThis.__sjsFrameStringLength = function (count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var u16 = globalThis.__sjsHeaps().HEAPU16;
+    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var total = 0;
+    for (var i = 0; i < count; i++) {
+        var address = f64[at + i * 3];
+        var length = f64[at + i * 3 + 2];
+        // decode it for real - measuring only the address read would measure nothing
+        var s = String.fromCharCode.apply(null, u16.subarray(address >>> 1, (address >>> 1) + length));
+        total += s.length;
+    }
+    return total;
+};
+// Slot arm: the strings were written across the boundary one at a time, the way they are today.
+globalThis.__sjsSlotStringLength = function (argsSlot, count) {
+    var a = globalThis.__sjsSlots[argsSlot];
+    var total = 0;
+    for (var i = 0; i < count; i++) total += a[i].length;
+    return total;
+};
 // PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
 // today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
 // isolates exactly one thing: what .Net paid to get the arguments here.

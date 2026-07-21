@@ -278,6 +278,41 @@ namespace BlazorBrowserDemo
                     }
                 });
 
+            // STRING ARGUMENTS - the last undecided piece of the frame layout. A string needs two fields
+            // (where the characters are, how many), which is why the runtime's own slot is wider. Either
+            // the frame grows an aux field, or strings keep crossing one at a time.
+            // Both arms end with Javascript holding the same N strings and summing their lengths.
+            var strings = new[] { "setBindGroup", "compute", "a", "vertexBufferLayoutDescriptor", "rgba8unorm" };
+            using var stringFrame = new SJS.HeapArgFrame3(64);
+            var stringArgsSlot = SJS.SlotInterop.NewArray();
+            var stringIterations = iterations / 4;
+
+            MeasureOne($"{strings.Length} string args, crossing one at a time", stringIterations,
+                () =>
+                {
+                    for (var i = 0; i < stringIterations; i++)
+                    {
+                        for (var a = 0; a < strings.Length; a++) SJS.SlotInterop.SetStringAt(stringArgsSlot, a, strings[a]);
+                        _ = SJS.SlotInterop.SlotStringLength(stringArgsSlot, strings.Length);
+                    }
+                });
+
+            // bind ONCE - binding is itself a crossing, and doing it per iteration would measure that
+            // rather than the transport.
+            stringFrame.Bind();
+            MeasureOne($"{strings.Length} string args, pinned address in frame", stringIterations,
+                () =>
+                {
+                    for (var i = 0; i < stringIterations; i++)
+                    {
+                        for (var a = 0; a < strings.Length; a++) stringFrame.WriteString(a, strings[a]);
+                        _ = SJS.SlotInterop.FrameStringLength(strings.Length);
+                        stringFrame.ReleasePins();
+                    }
+                });
+            // the two-field frame is what the other arms bind; restore it so their numbers stay comparable
+            heapFrame.Bind();
+
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency
