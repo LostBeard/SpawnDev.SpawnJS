@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
@@ -20,7 +20,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             // Nullable<T> itself would read HasValue and Value as if they were Javascript properties.
             var underlying = Nullable.GetUnderlyingType(type);
             var structType = underlying ?? type;
-            using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsHandle.JSParent, jsHandle.JSKey)!;
+            using var jsObj = jsHandle.AsJSHandle()!;
             // absent on the Javascript side is null for a nullable target, and the default value for a
             // plain struct, which has no way to represent absence
             if (jsObj == null) return underlying != null ? null : structType.GetDefaultValue();

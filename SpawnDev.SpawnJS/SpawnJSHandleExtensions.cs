@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Native;
+﻿using SpawnDev.SpawnJS.Native;
 using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using SpawnDev.SpawnJS.Extensions;
@@ -15,35 +15,35 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get as object
         /// </summary>
-        public static object? AsObject(this SpawnJSHandle _this) => Reflect.GetObject(_this.JSParent, _this.JSKey);
+        public static object? AsObject(this SpawnJSHandle _this) => _this.ReadSelfAny();
         /// <summary>
         /// Get as nullable int
         /// </summary>
-        public static int? AsInt32Nullable(this SpawnJSHandle _this) => Reflect.GetInt32Nullable(_this.JSParent, _this.JSKey);
+        public static int? AsInt32Nullable(this SpawnJSHandle _this) => _this.ReadSelfInt32Nullable();
         /// <summary>
         /// Get as nullable double
         /// </summary>
-        public static double? AsDoubleNullable(this SpawnJSHandle _this) => Reflect.GetDoubleNullable(_this.JSParent, _this.JSKey);
+        public static double? AsDoubleNullable(this SpawnJSHandle _this) => _this.ReadSelfDoubleNullable();
         /// <summary>
         /// Get as nullable bool
         /// </summary>
-        public static bool? AsBooleanNullable(this SpawnJSHandle _this) => Reflect.GetBooleanNullable(_this.JSParent, _this.JSKey);
+        public static bool? AsBooleanNullable(this SpawnJSHandle _this) => _this.ReadSelfBooleanNullable();
         /// <summary>
         /// Get as bool
         /// </summary>
-        public static bool AsBoolean(this SpawnJSHandle _this) => Reflect.GetBoolean(_this.JSParent, _this.JSKey);
+        public static bool AsBoolean(this SpawnJSHandle _this) => _this.ReadSelfBoolean();
         /// <summary>
         /// Get as int
         /// </summary>
-        public static int AsInt32(this SpawnJSHandle _this) => Reflect.GetInt32(_this.JSParent, _this.JSKey);
+        public static int AsInt32(this SpawnJSHandle _this) => _this.ReadSelfInt32();
         /// <summary>
         /// Get as double
         /// </summary>
-        public static double AsDouble(this SpawnJSHandle _this) => Reflect.GetDouble(_this.JSParent, _this.JSKey);
+        public static double AsDouble(this SpawnJSHandle _this) => _this.ReadSelfDouble();
         /// <summary>
         /// Get as string
         /// </summary>
-        public static string? AsString(this SpawnJSHandle _this) => Reflect.GetString(_this.JSParent, _this.JSKey);
+        public static string? AsString(this SpawnJSHandle _this) => _this.ReadSelfString();
         /// <summary>
         /// Get as JSObject
         /// </summary>
@@ -51,11 +51,20 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get as JSObject
         /// </summary>
-        public static SpawnJSHandle? AsJSHandle(this SpawnJSHandle _this) => (SpawnJSHandle?)Reflect.GetJSObject(_this.JSParent, _this.JSKey)!;
+        /// <remarks>
+        /// Takes the value into a handle of its own through the slot table when it can, so nothing becomes
+        /// a JSObject proxy. This one is on the hot path for arrays and lists, which take a handle to the
+        /// Javascript array before reading a single element out of it.
+        /// </remarks>
+        public static SpawnJSHandle? AsJSHandle(this SpawnJSHandle _this)
+        {
+            if (_this.TryTakeOwnedValue(out var owned)) return owned;
+            return (SpawnJSHandle?)Reflect.GetJSObject(_this.JSParent, _this.JSKey)!;
+        }
         /// <summary>
         /// Marshal the SpawnJSHandle and return as byte[]
         /// </summary>
-        public static byte[]? AsByteArray(this SpawnJSHandle _this) => _this.JSParent.GetPropertyAsByteArray(_this.JSKey);
+        public static byte[]? AsByteArray(this SpawnJSHandle _this) => _this.ReadSelfByteArray();
         /// <summary>
         /// Marshal the SpawnJSHandle and return as T using JSON seriliazation
         /// </summary>
@@ -85,24 +94,24 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns true if the proeprty exists
         /// </summary>
-        public static bool HasProperty(this SpawnJSHandle _this, object identifier) => Reflect.Has(_this.JSObjectRequired, identifier);
+        public static bool HasProperty(this SpawnJSHandle _this, object identifier) => _this.HasPropertyValue(identifier);
         #region GetProperty
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, object identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, object identifier) => _this.GetPropertyBoolean(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, object identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, object identifier) => _this.GetPropertyInt32(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, object identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, object identifier) => _this.GetPropertyDouble(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, object identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, object identifier) => _this.GetPropertyString(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
@@ -114,15 +123,20 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, object identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, object identifier)
+        {
+            // slot first: reading a property into a handle needs no proxy for either object
+            if (_this.CanReadBySlot) return _this.TryGetPropertyHandle(identifier);
+            return (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        }
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, object identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, object identifier) => _this.GetPropertyByteArray(identifier);
         /// <summary>
         /// Returns true if the proeprty exists
         /// </summary>
-        public static bool HasProperty(this SpawnJSHandle _this,string identifier) => Reflect.Has(_this.JSObjectRequired, identifier);
+        public static bool HasProperty(this SpawnJSHandle _this,string identifier) => _this.HasPropertyValue(identifier);
         /// <summary>
         /// Returns strings like: '[object String]'<br/>
         /// USes: Object.prototype.toString.call
@@ -135,19 +149,19 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, string identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, string identifier) => _this.GetPropertyBoolean(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, string identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, string identifier) => _this.GetPropertyInt32(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, string identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, string identifier) => _this.GetPropertyDouble(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, string identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, string identifier) => _this.GetPropertyString(identifier);
         /// <summary>
         /// Returns the property value
         /// </summary>
@@ -155,11 +169,16 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, string identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, string identifier)
+        {
+            // slot first: reading a property into a handle needs no proxy for either object
+            if (_this.CanReadBySlot) return _this.TryGetPropertyHandle(identifier);
+            return (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        }
         /// <summary>
         /// Returns the property value
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, string identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, string identifier) => _this.GetPropertyByteArray(identifier);
         /// <summary>
         /// Get the property value as T using JSON seriliazation
         /// </summary>
@@ -259,19 +278,19 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get the property value as bool
         /// </summary>
-        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, int identifier) => Reflect.GetBoolean(_this.JSObjectRequired, identifier);
+        public static bool GetPropertyAsBoolean(this SpawnJSHandle _this, int identifier) => _this.GetPropertyBoolean(identifier);
         /// <summary>
         /// Get the property value as int
         /// </summary>
-        public static int GetPropertyAsInt32(this SpawnJSHandle _this, int identifier) => Reflect.GetInt32(_this.JSObjectRequired, identifier);
+        public static int GetPropertyAsInt32(this SpawnJSHandle _this, int identifier) => _this.GetPropertyInt32(identifier);
         /// <summary>
         /// Get the property value as double
         /// </summary>
-        public static double GetPropertyAsDouble(this SpawnJSHandle _this, int identifier) => Reflect.GetDouble(_this.JSObjectRequired, identifier);
+        public static double GetPropertyAsDouble(this SpawnJSHandle _this, int identifier) => _this.GetPropertyDouble(identifier);
         /// <summary>
         /// Get the property value as string
         /// </summary>
-        public static string? GetPropertyAsString(this SpawnJSHandle _this, int identifier) => Reflect.GetString(_this.JSObjectRequired, identifier);
+        public static string? GetPropertyAsString(this SpawnJSHandle _this, int identifier) => _this.GetPropertyString(identifier);
         /// <summary>
         /// Get the property value as JSObject
         /// </summary>
@@ -279,11 +298,16 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Get the property value as JSObject
         /// </summary>
-        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, int identifier) => (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        public static SpawnJSHandle? GetPropertyAsJSHandle(this SpawnJSHandle _this, int identifier)
+        {
+            // slot first: reading a property into a handle needs no proxy for either object
+            if (_this.CanReadBySlot) return _this.TryGetPropertyHandle(identifier);
+            return (SpawnJSHandle)Reflect.GetJSObject(_this.JSObjectRequired, identifier)!;
+        }
         /// <summary>
         /// Get the property value as byte[]
         /// </summary>
-        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, int identifier) => Reflect.GetByteArray(_this.JSObjectRequired, identifier);
+        public static byte[]? GetPropertyAsByteArray(this SpawnJSHandle _this, int identifier) => _this.GetPropertyByteArray(identifier);
         #endregion
         #region DeleteProperty
         /// <summary>

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle)
         {
-            var value = Reflect.GetString(jsHandle.JSParent, jsHandle.JSKey);
+            var value = jsHandle.ReadSelfString();
             if (value == null) return null;
             var constructor = _constructors.GetOrAdd(typeToConvert, t =>
                 t.GetConstructor(new[] { typeof(string) })

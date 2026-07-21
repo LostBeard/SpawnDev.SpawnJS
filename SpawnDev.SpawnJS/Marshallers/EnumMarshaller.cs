@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -69,7 +69,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 // An undeclared combination has no name; sending its .Net spelling is closer to right
                 // than sending nothing, and Javascript will reject it loudly either way.
-                Reflect.Set(jsParent.JSObjectRequired, jsKey,
+                jsParent.SetProperty(jsKey,
                     stringEnum.ToName.TryGetValue(value, out var name) ? name : value.ToString());
                 return;
             }
@@ -85,11 +85,11 @@ namespace SpawnDev.SpawnJS.Marshallers
             var stringEnum = GetStringEnum(enumType);
             if (stringEnum != null)
             {
-                var name = Reflect.GetString(jsHandle.JSParent, jsHandle.JSKey);
+                var name = jsHandle.ReadSelfString();
                 if (name == null) return null;
                 return stringEnum.ToValue.TryGetValue(name, out var value) ? value : null;
             }
-            var number = Reflect.GetDoubleNullable(jsHandle.JSParent, jsHandle.JSKey);
+            var number = jsHandle.ReadSelfDoubleNullable();
             if (number == null) return null;
             return Enum.ToObject(enumType, Convert.ChangeType(number.Value, Enum.GetUnderlyingType(enumType)));
         }

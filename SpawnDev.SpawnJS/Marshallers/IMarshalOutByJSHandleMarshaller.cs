@@ -21,7 +21,8 @@
         {
             if (value is IMarshalOutByJSHandle byJSHandle)
             {
-                jsParent.SetProperty(jsKey, byJSHandle.JSHandle.JSObject);
+                // the handle, not its JSObject: handle to handle is slot native and resolves no proxy
+                jsParent.SetProperty(jsKey, byJSHandle.JSHandle);
             } else
             {
                 jsParent.SetProperty(jsKey, (string)null!);

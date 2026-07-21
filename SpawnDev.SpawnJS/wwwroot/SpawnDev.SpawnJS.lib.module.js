@@ -386,6 +386,41 @@ globalThis.__sjsSetBoolean = function (slot, key, value) { globalThis.__sjsSlots
 // Javascript function bound at several return types - and it is why a typed property read needs no
 // proxy for the object it is reading from.
 globalThis.__sjsGet = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
+// The same function under a second name, so the .Net side can bind it with a NUMERIC key parameter and
+// skip converting an index to a string. Javascript does not care - arr[0] and arr["0"] address the same
+// element - but the conversion allocates a string per read, which is what the SetAt variants exist to
+// avoid on the write side.
+globalThis.__sjsGetAt = globalThis.__sjsGet;
+// The value a slot holds, rather than a property of it. A handle that OWNS its storage IS the slot, so
+// reading its own value is this rather than a keyed read.
+// Together with __sjsGetAt this is what lets a value be read with no proxy at either end: an owning
+// handle reads itself here, and a volatile handle - which borrows its parent's storage - reads
+// parent[key] there. Before, both went through JSParent, which is a JSObject, so every read of a
+// number or a string out of a borrowed handle resolved a proxy for the object holding it.
+globalThis.__sjsSelf = function (slot) { return globalThis.__sjsSlots[slot]; };
+// A property write whose VALUE type is decided by the .Net binding rather than by this function - the
+// write-side twin of __sjsGet. It covers the cases the typed setters do not: an arbitrary Any value, a
+// JSObject the caller genuinely holds, and a byte array. In every one of them the value was never the
+// problem; the PARENT had to become a proxy just to be written through, and that is what this removes.
+globalThis.__sjsSetAny = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+globalThis.__sjsSetAnyAt = globalThis.__sjsSetAny;
+// Own enumerable keys of a slotted object, so a record can be read back without proxying it.
+// Returns NULL - not an empty array - for null and undefined, so a caller can tell "there is no object
+// here" from "an object with no keys". The proxy path it replaces made that distinction by handing back
+// a null JSObject, and collapsing the two would turn a null record into an empty one.
+globalThis.__sjsKeys = function (slot, ownOnly) {
+    var target = globalThis.__sjsSlots[slot];
+    if (target === void 0 || target === null) return null;
+    if (ownOnly) return Object.keys(target);
+    var out = [];
+    for (var k in target) out.push(k);
+    return out;
+};
+// Whether a property exists, without materialising the object to ask.
+globalThis.__sjsHas = function (slot, key, useIn) {
+    var target = globalThis.__sjsSlots[slot];
+    return useIn ? (key in target) : Object.prototype.hasOwnProperty.call(target, key);
+};
 globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlots[slot][key] = globalThis.__sjsSlots[valueSlot]; };
 
 // Slot-native READS. These are the other half of the slot table: writing a descriptor without a proxy

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type typeToConvert, SpawnJSHandle jsHandle)
         {
-            var value = Reflect.GetDoubleNullable(jsHandle.JSParent, jsHandle.JSKey);
+            var value = jsHandle.ReadSelfDoubleNullable();
             return value == null ? null : new EpochDateTime((long)value.Value);
         }
     }
@@ -62,12 +62,12 @@ namespace SpawnDev.SpawnJS.Marshallers
                     return null;
                 case "number":
                     {
-                        var ms = Reflect.GetDoubleNullable(jsHandle.JSParent, jsHandle.JSKey);
+                        var ms = jsHandle.ReadSelfDoubleNullable();
                         return ms == null ? null : ((long)ms.Value).EpochTimeToDateTime();
                     }
                 case "string":
                     {
-                        var text = Reflect.GetString(jsHandle.JSParent, jsHandle.JSKey);
+                        var text = jsHandle.ReadSelfString();
                         if (string.IsNullOrEmpty(text)) return null;
                         return DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed)
                             ? parsed

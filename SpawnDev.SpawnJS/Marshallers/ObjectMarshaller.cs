@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsHandle.JSParent, jsHandle.JSKey)!;
+            using var jsObj = jsHandle.AsJSHandle()!;
             if (jsObj == null) return null;
             var retObj = Activator.CreateInstance(type);
             // iterate Javascript marshallable properties

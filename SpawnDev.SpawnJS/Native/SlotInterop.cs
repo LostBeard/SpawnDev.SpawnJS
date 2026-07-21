@@ -119,6 +119,138 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsGet")]
         public static partial bool? GetBooleanNullable(double slot, string key);
 
+        /// <summary>Reads a property as a byte array, or null if it was null or undefined.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial byte[]? GetByteArray(double slot, string key);
+
+        // Numeric-key reads. Same Javascript function, bound with a number parameter so an index does not
+        // have to become a string first - the read-side counterpart of the SetAt variants.
+
+        /// <summary>Reads a property at a numeric index as an int.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial int GetInt32At(double slot, double index);
+
+        /// <summary>Reads a property at a numeric index as a number.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial double GetDoubleAt(double slot, double index);
+
+        /// <summary>Reads a property at a numeric index as a bool.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial bool GetBooleanAt(double slot, double index);
+
+        /// <summary>Reads a property at a numeric index as a string, or null.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial string? GetStringAt(double slot, double index);
+
+        /// <summary>Reads a property at a numeric index as a byte array, or null.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial byte[]? GetByteArrayAt(double slot, double index);
+
+        /// <summary>
+        /// Whether a property exists on the slotted object. <paramref name="useIn"/> selects the
+        /// <c>in</c> operator, which walks the prototype chain, over hasOwnProperty.
+        /// </summary>
+        [JSImport("globalThis.__sjsHas")]
+        public static partial bool Has(double slot, string key, bool useIn);
+
+        // The value a slot HOLDS, rather than a property of it - what an owning handle needs to read
+        // itself. Same one Javascript function at several .Net return types, as above.
+
+        /// <summary>Reads the slot's own value as a bool.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial bool SelfBoolean(double slot);
+
+        /// <summary>Reads the slot's own value as an int.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial int SelfInt32(double slot);
+
+        /// <summary>Reads the slot's own value as a number.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial double SelfDouble(double slot);
+
+        /// <summary>Reads the slot's own value as a string, or null.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial string? SelfString(double slot);
+
+        /// <summary>Reads the slot's own value as a byte array, or null.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial byte[]? SelfByteArray(double slot);
+
+        /// <summary>Reads the slot's own value as an int, or null.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial int? SelfInt32Nullable(double slot);
+
+        /// <summary>Reads the slot's own value as a number, or null.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial double? SelfDoubleNullable(double slot);
+
+        /// <summary>Reads the slot's own value as a bool, or null.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        public static partial bool? SelfBooleanNullable(double slot);
+
+        /// <summary>Reads the slot's own value, letting the runtime decide how it crosses.</summary>
+        [JSImport("globalThis.__sjsSelf")]
+        [return: JSMarshalAs<JSType.Any>]
+        public static partial object? SelfAny(double slot);
+
+        /// <summary>Reads a property as an int, or null. Numeric index.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial int? GetInt32NullableAt(double slot, double index);
+
+        /// <summary>Reads a property as a number, or null. Numeric index.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial double? GetDoubleNullableAt(double slot, double index);
+
+        /// <summary>Reads a property as a bool, or null. Numeric index.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        public static partial bool? GetBooleanNullableAt(double slot, double index);
+
+        /// <summary>Reads a property, letting the runtime decide how it crosses.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        [return: JSMarshalAs<JSType.Any>]
+        public static partial object? GetAny(double slot, string key);
+
+        /// <summary>Reads a property at a numeric index, letting the runtime decide how it crosses.</summary>
+        [JSImport("globalThis.__sjsGetAt")]
+        [return: JSMarshalAs<JSType.Any>]
+        public static partial object? GetAnyAt(double slot, double index);
+
+        /// <summary>
+        /// Own enumerable keys of the slotted object, for reading a record back.<br/>
+        /// Null - not an empty array - when the value is null or undefined, so "no object here" stays
+        /// distinguishable from "an object with no keys".
+        /// </summary>
+        [JSImport("globalThis.__sjsKeys")]
+        public static partial string[]? Keys(double slot, bool ownOnly);
+
+        // Writes whose VALUE type the binding decides. These exist for the cases the typed setters do not
+        // cover, where the value was never the problem - the PARENT had to become a proxy to be written
+        // through. Declared separately per value type for the same reason Reflect.Set is.
+
+        /// <summary>Writes an arbitrary value to a property.</summary>
+        [JSImport("globalThis.__sjsSetAny")]
+        public static partial void SetAny(double slot, string key, [JSMarshalAs<JSType.Any>] object? value);
+
+        /// <summary>Writes an arbitrary value at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetAnyAt")]
+        public static partial void SetAnyAt(double slot, double index, [JSMarshalAs<JSType.Any>] object? value);
+
+        /// <summary>Writes a JSObject the caller genuinely holds to a property.</summary>
+        [JSImport("globalThis.__sjsSetAny")]
+        public static partial void SetJSObject(double slot, string key, JSObject? value);
+
+        /// <summary>Writes a JSObject at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetAnyAt")]
+        public static partial void SetJSObjectAt(double slot, double index, JSObject? value);
+
+        /// <summary>Writes a byte array to a property.</summary>
+        [JSImport("globalThis.__sjsSetAny")]
+        public static partial void SetBytes(double slot, string key, byte[]? value);
+
+        /// <summary>Writes a byte array at a numeric index.</summary>
+        [JSImport("globalThis.__sjsSetAnyAt")]
+        public static partial void SetBytesAt(double slot, double index, byte[]? value);
+
         /// <summary>
         /// Reads a property of the slotted object into a NEW slot, which the caller owns.<br/>
         /// This is the read half of the slot table. Building a descriptor without a proxy was only ever

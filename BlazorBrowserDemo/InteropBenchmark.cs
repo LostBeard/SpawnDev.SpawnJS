@@ -168,6 +168,23 @@ namespace BlazorBrowserDemo
                     }
                 });
 
+            // Reading an ARRAY and reading a RECORD back. These are the shapes where a proxy used to be
+            // created per CONTAINER and then, through the borrowed handle each element was addressed
+            // against, per ELEMENT as well - so the cost scaled with length rather than being a fixed
+            // charge. Neither was covered by any case above, which is why they are measured separately
+            // rather than assumed to have moved with the others.
+            blazor.CallVoid("eval", $"globalThis.{Target}.numbers = [1,2,3,4,5,6,7,8,9,10];");
+            blazor.CallVoid("eval", $"globalThis.{Target}.record = {{a:1,b:2,c:3,d:4,e:5}};");
+            var containerIterations = iterations / 4;
+
+            Measure("read a 10 element array", containerIterations,
+                () => { for (var i = 0; i < containerIterations; i++) _ = blazorRef.JSRef!.Get<int[]>("numbers"); },
+                () => { for (var i = 0; i < containerIterations; i++) _ = spawnRef.JSRef!.Get<int[]>("numbers"); });
+
+            Measure("read a 5 member record", containerIterations,
+                () => { for (var i = 0; i < containerIterations; i++) _ = blazorRef.JSRef!.Get<Dictionary<string, int>>("record"); },
+                () => { for (var i = 0; i < containerIterations; i++) _ = spawnRef.JSRef!.Get<Dictionary<string, int>>("record"); });
+
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency

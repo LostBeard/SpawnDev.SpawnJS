@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Numerics;
 using System.Reflection;
 
@@ -44,7 +44,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 // 1. Get raw double from JavaScript via your Reflect class
                 // Use Nullable read to catch 'null' or 'undefined' gracefully from JS
-                double? jsValue = Reflect.GetDoubleNullable(jsHandle.JSParent, jsHandle.JSKey);
+                double? jsValue = jsHandle.ReadSelfDoubleNullable();
                 if (jsValue == null) return null;
 
                 Type actualType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;

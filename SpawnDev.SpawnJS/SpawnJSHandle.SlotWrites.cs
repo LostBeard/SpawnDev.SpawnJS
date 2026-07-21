@@ -115,6 +115,61 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>
+        /// Writes a byte array to a property, through the slot table when possible.
+        /// </summary>
+        internal void SetProperty(object key, byte[]? value)
+        {
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetBytes(slot, name, value);
+                else SlotInterop.SetBytesAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.Set(JSObjectRequired, key, value);
+        }
+
+        /// <summary>
+        /// Writes a JSObject the caller genuinely holds to a property, through the slot table when
+        /// possible.<br/>
+        /// The VALUE is already a proxy here and that is the caller's choice; what this avoids is
+        /// materialising a second one for the PARENT merely to write through it.
+        /// </summary>
+        internal void SetProperty(object key, System.Runtime.InteropServices.JavaScript.JSObject? value)
+        {
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetJSObject(slot, name, value);
+                else SlotInterop.SetJSObjectAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.Set(JSObjectRequired, key, value);
+        }
+
+        /// <summary>
+        /// Writes an arbitrary value to a property, through the slot table when possible. This is the
+        /// fallback shape - the runtime decides how the value crosses.
+        /// </summary>
+        internal void SetPropertyAny(object key, object? value)
+        {
+            if (TryGetSlot(out var slot))
+            {
+                if (key is string name) SlotInterop.SetAny(slot, name, value);
+                else SlotInterop.SetAnyAt(slot, Convert.ToDouble(key), value);
+                return;
+            }
+            Reflect.SetObject(JSObjectRequired, key, value);
+        }
+
+        /// <summary>
+        /// Own enumerable keys of this handle's value, read through the slot table.<br/>
+        /// Only call this when <see cref="CanReadBySlot"/> is true; a null then means the value itself is
+        /// null or undefined, which is a different answer from "no slot path available" and the caller
+        /// has to be able to tell them apart.
+        /// </summary>
+        internal string[]? GetOwnKeysBySlot()
+            => TryGetSlot(out var slot) ? SlotInterop.Keys(slot, true) : null;
+
+        /// <summary>
         /// Assigns another handle's value as a property of this one.<br/>
         /// When both sides are slotted this is one call between two Javascript values and NEITHER becomes
         /// a .Net proxy - which is the whole point for a nested descriptor, where the old path had to

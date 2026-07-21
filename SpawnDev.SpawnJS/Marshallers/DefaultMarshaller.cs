@@ -27,7 +27,8 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
             else
             {
-                Reflect.SetObject(jsParent.JSObjectRequired, jsKey, obj);
+                // slot native, so the parent is not proxied merely to be written through
+                jsParent.SetPropertyAny(jsKey, obj);
             }
         }
     }

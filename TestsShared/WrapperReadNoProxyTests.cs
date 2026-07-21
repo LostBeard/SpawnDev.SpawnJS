@@ -284,6 +284,114 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// Reading an ARRAY creates no proxy. This path takes a handle to the Javascript array before
+        /// reading a single element, so it proxied once per array read regardless of length.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task ArrayReadCreatesNoProxyTest()
+        {
+            JS.CallVoid("eval", "globalThis.__arrayProbe = [3, 5, 7, 11]");
+            var counting = SpawnJSRuntime.CountCalls;
+            SpawnJSRuntime.CountCalls = true;
+            try
+            {
+                var before = ProxyCount();
+                var values = JS.Get<int[]>("__arrayProbe");
+                var created = ProxyCount() - before;
+                if (values == null || values.Length != 4) throw new Exception($"read back {values?.Length.ToString() ?? "null"} elements, expected 4");
+                if (values[0] != 3 || values[3] != 11) throw new Exception($"read back [{string.Join(",", values)}]");
+                if (created != 0) throw new Exception($"reading an array created {created} JSObject proxy(s)");
+                if (SymbolKeysOn("__arrayProbe") != 0) throw new Exception("the array was tagged with an enumerable Symbol, so it was proxied");
+            }
+            finally
+            {
+                SpawnJSRuntime.CountCalls = counting;
+                JS.CallVoid("eval", "delete globalThis.__arrayProbe");
+            }
+        }
+
+        /// <summary>
+        /// Reading a RECORD back as a dictionary creates no proxy. Enumerating its keys used to resolve one
+        /// for the record itself, which also tagged it - so the read path reintroduced the very Symbol
+        /// hazard the write path had been cleared of.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task DictionaryReadCreatesNoProxyTest()
+        {
+            JS.CallVoid("eval", "globalThis.__recordProbe = { a: 1, b: 2 }");
+            var counting = SpawnJSRuntime.CountCalls;
+            SpawnJSRuntime.CountCalls = true;
+            try
+            {
+                var before = ProxyCount();
+                var map = JS.Get<Dictionary<string, int>>("__recordProbe");
+                var created = ProxyCount() - before;
+                if (map == null || map.Count != 2) throw new Exception($"read back {map?.Count.ToString() ?? "null"} entries, expected 2");
+                if (map["a"] != 1 || map["b"] != 2) throw new Exception("the dictionary read back the wrong values");
+                if (created != 0) throw new Exception($"reading a record created {created} JSObject proxy(s)");
+                if (SymbolKeysOn("__recordProbe") != 0) throw new Exception("the record was tagged with an enumerable Symbol, so it was proxied");
+            }
+            finally
+            {
+                SpawnJSRuntime.CountCalls = counting;
+                JS.CallVoid("eval", "delete globalThis.__recordProbe");
+            }
+        }
+
+        /// <summary>
+        /// A NULL record must still read back as null, not as a present-but-empty dictionary. The slot key
+        /// read returns null and an empty array for two different situations, and collapsing them would
+        /// silently turn absence into emptiness - which no assertion about proxies would ever catch.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NullRecordReadsBackAsNullNotEmptyTest()
+        {
+            JS.CallVoid("eval", "globalThis.__nullRecord = null; globalThis.__emptyRecord = {}");
+            try
+            {
+                var fromNull = JS.Get<Dictionary<string, int>>("__nullRecord");
+                if (fromNull != null) throw new Exception($"a null record read back as a dictionary of {fromNull.Count} entries, expected null");
+                var fromEmpty = JS.Get<Dictionary<string, int>>("__emptyRecord");
+                if (fromEmpty == null) throw new Exception("an empty record read back as null, expected an empty dictionary");
+                if (fromEmpty.Count != 0) throw new Exception($"an empty record read back {fromEmpty.Count} entries");
+            }
+            finally
+            {
+                JS.CallVoid("eval", "delete globalThis.__nullRecord; delete globalThis.__emptyRecord");
+            }
+        }
+
+        /// <summary>
+        /// Writing a byte array onto a held object creates no proxy for the PARENT. The bytes themselves
+        /// have to cross; the object being written into never did.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task ByteArrayWriteCreatesNoProxyTest()
+        {
+            using var target = JS.New("Object");
+            JS.Set("__byteTarget", target);
+            var counting = SpawnJSRuntime.CountCalls;
+            SpawnJSRuntime.CountCalls = true;
+            try
+            {
+                var before = ProxyCount();
+                target.Set("bytes", new byte[] { 1, 2, 3, 4 });
+                var created = ProxyCount() - before;
+                var length = JS.Call<int>("eval", "globalThis.__byteTarget.bytes.length");
+                if (length != 4) throw new Exception($"the byte array arrived with length {length}, expected 4");
+                var first = JS.Call<int>("eval", "globalThis.__byteTarget.bytes[0]");
+                var last = JS.Call<int>("eval", "globalThis.__byteTarget.bytes[3]");
+                if (first != 1 || last != 4) throw new Exception($"the bytes arrived as [{first}...{last}]");
+                if (created != 0) throw new Exception($"writing a byte array created {created} JSObject proxy(s)");
+            }
+            finally
+            {
+                SpawnJSRuntime.CountCalls = counting;
+                JS.CallVoid("eval", "delete globalThis.__byteTarget");
+            }
+        }
+
+        /// <summary>
         /// A value that is not a reference cannot be owned by a handle, and the read falls back rather than
         /// inventing a meaning for it - so it fails exactly as it always did instead of handing back a
         /// wrapper around a number whose every property reads undefined.
