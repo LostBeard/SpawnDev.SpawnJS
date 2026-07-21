@@ -236,6 +236,13 @@ namespace SpawnDev.SpawnJS
         public static partial string HeapViewNames();
 
         /// <summary>
+        /// PROBE: reads a .Net string straight out of .Net memory, given the address of its first
+        /// character and its length in chars. Nothing is copied .Net side and no string marshaller runs.
+        /// </summary>
+        [JSImport("globalThis.__sjsReadUtf16")]
+        public static partial string ReadUtf16(double address, double length);
+
+        /// <summary>
         /// PROBE: the same sum over a Javascript side argument array - the transport in use today. The
         /// Javascript work is identical to <see cref="HeapSum"/>, so an A/B isolates exactly what .Net
         /// paid to deliver the arguments.

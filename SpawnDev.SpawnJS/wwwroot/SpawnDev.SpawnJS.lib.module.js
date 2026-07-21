@@ -469,6 +469,21 @@ globalThis.__sjsHeapSum = function (offset, count) {
     for (var i = 0; i < count; i++) total += f64[at + i];
     return total;
 };
+// PROBE ONLY: reads a .Net string straight out of .Net memory.
+// A .Net string is UTF-16, and a pinned one hands back the address of its FIRST CHARACTER - so
+// HEAPU16 indexes it directly with no copy on the .Net side and no marshalling machinery.
+// The address is only valid for the duration of this call, because the string is pinned around the
+// call and released after it. Nothing here may retain the subarray.
+globalThis.__sjsReadUtf16 = function (address, length) {
+    var u16 = globalThis.__sjsHeaps().HEAPU16;
+    var at = address >>> 1;
+    // fromCharCode.apply blows the argument limit on long strings, so decode those instead. The
+    // decoder reads the bytes directly; neither path copies on the .Net side.
+    if (length > 4096) {
+        return new TextDecoder('utf-16le').decode(new Uint8Array(u16.buffer, address, length * 2));
+    }
+    return String.fromCharCode.apply(null, u16.subarray(at, at + length));
+};
 // PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
 // today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
 // isolates exactly one thing: what .Net paid to get the arguments here.

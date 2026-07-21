@@ -132,6 +132,56 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// A .Net STRING read straight out of .Net memory, with nothing copied .Net side and no string
+        /// marshaller involved: pin it, hand Javascript the address of its first character, and let
+        /// HEAPU16 index it.<br/>
+        /// <br/>
+        /// This confirms two things that were assumptions until now: that a string can be pinned at all,
+        /// and that AddrOfPinnedObject on one gives the FIRST CHARACTER rather than the object header. If
+        /// it gave the header, the text would come back shifted by the header size and be garbage - so a
+        /// correct round trip is the proof.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task JavascriptReadsAPinnedDotnetStringTest()
+        {
+            foreach (var text in new[] { "hello", "", "a", new string('x', 5000) })
+            {
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(text, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    var address = handle.AddrOfPinnedObject().ToInt64();
+                    var read = SlotInterop.ReadUtf16(address, text.Length);
+                    if (read != text)
+                        throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
+                }
+                finally { handle.Free(); }
+            }
+        }
+
+        /// <summary>
+        /// The same, for text that is not ASCII - which is the case that proves the data really is being
+        /// read as UTF-16 rather than accidentally working because every character happened to fit in a
+        /// byte. Includes a surrogate pair, which is two chars in .Net and must stay two.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task PinnedStringReadHandlesNonAsciiTest()
+        {
+            foreach (var text in new[] { "café", "日本語", "vulcan \U0001F596", "éèêë" })
+            {
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(text, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    var read = SlotInterop.ReadUtf16(handle.AddrOfPinnedObject().ToInt64(), text.Length);
+                    if (read != text)
+                        throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
+                }
+                finally { handle.Free(); }
+            }
+        }
+
+        static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";
+
+        /// <summary>
         /// The buffer must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
         /// so the collector cannot move it - but a view over memory the collector COULD move would read
         /// whatever now occupies that address, silently.
