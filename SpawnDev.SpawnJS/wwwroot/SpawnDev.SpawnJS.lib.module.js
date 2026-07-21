@@ -340,6 +340,31 @@
         registerCallbackVoidById(id) {
             return (...args) => { this.#callNetById(id, args, false); };
         }
+        // Reports a settled promise to .Net over the same inbound buffer every callback uses: the value
+        // goes in this call's region and only the call id, the arm, and the offset cross.
+        #settle(id, isError, value) {
+            var b = this.jsToNetBuffer;
+            var offset = this.jsToNetTop;
+            this.jsToNetTop += 1;
+            b[offset] = value;
+            try {
+                this._JSToNetSettle(id, isError, offset);
+            } finally {
+                this.jsToNetTop = offset;
+            }
+        }
+        // Attaches to a promise with OUR OWN closures. Nothing here is a registered .Net callback, so an
+        // await creates no Javascript function that .Net has to hold a handle for and release - which is
+        // what awaiting used to cost, twice, every time.
+        awaitPromise(promiseSlot, id) {
+            var self = this;
+            globalThis.__sjsSlots[promiseSlot].then(
+                function (value) { self.#settle(id, 0, value); },
+                function (reason) { self.#settle(id, 1, reason); });
+        }
+        _JSToNetSettle() {
+            // placeholder, overwritten by SpawnJSRuntime with its JSExport-ed method - see _JSToNetCall
+        }
         _JSToNetCallById() {
             // placeholder, overwritten by SpawnJSRuntime with its JSExport-ed method - see _JSToNetCall
         }
@@ -422,6 +447,7 @@ globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
 // the slots a HANDLE owns, so a slot allocated Javascript side and owned by nobody is invisible to it -
 // which is precisely how the object-argument leak went unnoticed. This counts the table itself.
 globalThis.__sjsSlotTableCount = function () { return Object.keys(globalThis.__sjsSlots).length; };
+globalThis.__sjsAwaitPromise = function (ctx, promiseSlot, id) { SpawnJSInterop.ctx(ctx).awaitPromise(promiseSlot, id); };
 globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 globalThis.__sjsSetString = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 // Numeric-key variants. The shared call buffer is an ARRAY indexed by offset, so forcing those keys

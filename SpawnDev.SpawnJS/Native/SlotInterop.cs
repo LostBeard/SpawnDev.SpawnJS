@@ -285,6 +285,13 @@ namespace SpawnDev.SpawnJS
         public static partial double SlotTableCount();
 
         /// <summary>
+        /// Asks Javascript to attach to a promise and report the outcome under <paramref name="id"/>.
+        /// See <see cref="PromiseAwaiter"/> - this is the whole outbound half of an await.
+        /// </summary>
+        [JSImport("globalThis.__sjsAwaitPromise")]
+        public static partial void AwaitPromise(double ctx, double promiseSlot, double id);
+
+        /// <summary>
         /// Builds the object and ASSIGNS it in the same crossing, so a descriptor written onto a slotted
         /// parent costs exactly one - and allocates no temporary slot, so none has to be freed.
         /// </summary>

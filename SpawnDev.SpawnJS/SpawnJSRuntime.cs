@@ -122,6 +122,7 @@ namespace SpawnDev.SpawnJS
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCallById", _JSToNetCallById);
+            Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetSettle", _JSToNetSettle);
             // This runtime's CONTEXT ID. Every Javascript helper that touches per-runtime state - the
             // heap, the argument frame, the scratch buffer - takes it as its first argument and resolves
             // the owning instance from it. Two .Net apps can share a page (a custom element built on
@@ -173,6 +174,15 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private bool _JSToNetCallById(double id, double offset, double length)
             => Callback.JSToNetDispatchById(id, _jsToNetBuffer, (int)offset, (int)length);
+        /// <summary>
+        /// An awaited promise settled. <paramref name="isError"/> selects the arm; the value or the
+        /// rejection reason is in the inbound buffer at <paramref name="offset"/>.
+        /// </summary>
+        private bool _JSToNetSettle(double id, double isError, double offset)
+        {
+            PromiseAwaiter.Settle(id, isError != 0, _jsToNetBuffer, (int)offset);
+            return false;
+        }
         /// <summary>
         /// Create a new Javascript Object as JSObject
         /// </summary>

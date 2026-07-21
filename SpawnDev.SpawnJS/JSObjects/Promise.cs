@@ -119,37 +119,48 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
+        /// <remarks>
+        /// Javascript attaches to the promise with its own closures and reports the outcome by call id -
+        /// see <see cref="PromiseAwaiter"/>. This used to build two <see cref="Callback"/>s and a
+        /// <see cref="CallbackGroup"/> per await, each a Javascript function created, registered, invoked
+        /// once and torn down.
+        /// </remarks>
         public Task ThenAsync(int timeoutMS = 0)
+            => WithTimeout(PromiseAwaiter.Await(JSRef!.JSHandle), timeoutMS);
+
+        /// <summary>
+        /// Faults the task if it has not settled within <paramref name="timeoutMS"/>. Zero means no
+        /// timeout, and then the awaiter's task is handed back untouched.
+        /// </summary>
+        static Task WithTimeout(Task task, int timeoutMS)
         {
-            var t = new TaskCompletionSource();
-            var callbacks = new CallbackGroup();
-            var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
-            ThenCatch(callbacks.Add(Callback.Create(() =>
+            if (timeoutMS <= 0) return task;
+            return Race(task, timeoutMS);
+
+            static async Task Race(Task task, int timeoutMS)
             {
-                if (t.TrySetResult())
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })), callbacks.Add(Callback.Create((Error? error) =>
+                using var cts = new CancellationTokenSource();
+                var delay = Task.Delay(timeoutMS, cts.Token);
+                if (await Task.WhenAny(task, delay) != task) throw new Exception("Timed out");
+                cts.Cancel();
+                await task;
+            }
+        }
+
+        /// <inheritdoc cref="WithTimeout(Task, int)"/>
+        static Task<TResult> WithTimeout<TResult>(Task<TResult> task, int timeoutMS)
+        {
+            if (timeoutMS <= 0) return task;
+            return Race(task, timeoutMS);
+
+            static async Task<TResult> Race(Task<TResult> task, int timeoutMS)
             {
-                var ex = UnknownErrorToException(error);
-                if (t.TrySetException(ex))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })));
-            cancellationTokenSource?.Token.Register(() =>
-            {
-                if (t.TrySetException(new Exception("Timed out")))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            });
-            cancellationTokenSource?.CancelAfter(timeoutMS);
-            return t.Task;
+                using var cts = new CancellationTokenSource();
+                var delay = Task.Delay(timeoutMS, cts.Token);
+                if (await Task.WhenAny(task, delay) != task) throw new Exception("Timed out");
+                cts.Cancel();
+                return await task;
+            }
         }
         /// <summary>
         /// Asynchronously wait for a Promise to complete
@@ -188,38 +199,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
+        /// <inheritdoc cref="ThenAsync(int)"/>
         public Task<TResult> ThenAsync<TResult>(int timeoutMS = 0)
-        {
-            var t = new TaskCompletionSource<TResult>();
-            var callbacks = new CallbackGroup();
-            var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
-            ThenCatch(callbacks.Add(Callback.Create<TResult>((result) =>
-            {
-                if (t.TrySetResult(result))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })), callbacks.Add(Callback.Create((Error? error) =>
-            {
-                var ex = Promise.UnknownErrorToException(error);
-                if (t.TrySetException(ex))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            })));
-            cancellationTokenSource?.Token.Register(() =>
-            {
-                if (t.TrySetException(new Exception("Timed out")))
-                {
-                    cancellationTokenSource?.Dispose();
-                    callbacks.Dispose();
-                }
-            });
-            cancellationTokenSource?.CancelAfter(timeoutMS);
-            return t.Task;
-        }
+            => WithTimeout(PromiseAwaiter.Await<TResult>(JSRef!.JSHandle), timeoutMS);
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
