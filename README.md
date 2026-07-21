@@ -33,7 +33,7 @@ variable is the interop path. 20,000 iterations per case.
 | call a method on a held object | 1818 ms | **115 ms** | **15.9x** |
 | read a string by path from globalThis | 1500 ms | **273 ms** | **5.5x** |
 | read an int by path from globalThis | 1427 ms | **289 ms** | **4.9x** |
-| write an int by path from globalThis | 1065 ms | **251 ms** | **4.2x** |
+| write an int by path on globalThis | 1065 ms | **251 ms** | **4.2x** |
 | call a method by path | 1675 ms | **523 ms** | **3.2x** |
 | take a handle to an object | 2510 ms | **909 ms** | **2.8x** |
 
