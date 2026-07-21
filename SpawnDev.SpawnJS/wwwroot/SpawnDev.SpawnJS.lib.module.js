@@ -309,6 +309,23 @@
                 this.jsToNetTop = offset;
             }
         }
+        // Same, for a callback identified by NUMBER rather than name. An anonymous callback's id is
+        // generated, never meaningful, and it crosses on EVERY invocation - as a string that cost a
+        // marshalled string each time and, once interning required a repeat, could not be interned
+        // either. A number rides in the frame as itself.
+        #callNetById(id, args, wantsResult) {
+            var b = this.jsToNetBuffer;
+            var offset = this.jsToNetTop;
+            var length = args.length;
+            this.jsToNetTop += length > 0 ? length : 1;
+            for (var i = 0; i < length; i++) b[offset + i] = args[i];
+            try {
+                var hasResult = this._JSToNetCallById(id, offset, length);
+                return wantsResult && hasResult ? b[offset] : null;
+            } finally {
+                this.jsToNetTop = offset;
+            }
+        }
         // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
         registerCallback(id) {
             return (...args) => this.#callNet(id, args, true);
@@ -316,6 +333,15 @@
         // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
         registerCallbackVoid(id) {
             return (...args) => { this.#callNet(id, args, false); };
+        }
+        registerCallbackById(id) {
+            return (...args) => this.#callNetById(id, args, true);
+        }
+        registerCallbackVoidById(id) {
+            return (...args) => { this.#callNetById(id, args, false); };
+        }
+        _JSToNetCallById() {
+            // placeholder, overwritten by SpawnJSRuntime with its JSExport-ed method - see _JSToNetCall
         }
         _JSToNetCall() {
             // this method is a placeHolder and will be overwritten

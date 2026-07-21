@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -10,7 +11,10 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override bool CanMarshal(Type? type)
         {
+
+            
             return true;
+            
         }
         /// <inheritdoc/>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)

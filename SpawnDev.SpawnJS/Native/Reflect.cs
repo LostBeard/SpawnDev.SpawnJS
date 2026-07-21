@@ -273,6 +273,14 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.Reflect.set")]
         public static partial bool Set(JSObject target, [JSMarshalAs<Any>] object key, [JSMarshalAs<JSType.Function<JSType.String, JSType.Number, JSType.Number, JSType.Boolean>>] Func<string, double, double, bool> value);
 
+        /// <summary>
+        /// The same entry point for a callback addressed by NUMBER. An anonymous callback's id is
+        /// generated and never spoken, but it crosses on every invocation - so carrying it as a string
+        /// marshalled one per DOM event and per resolved promise. All four parameters are numbers here.
+        /// </summary>
+        [JSImport("globalThis.Reflect.set")]
+        public static partial bool Set(JSObject target, [JSMarshalAs<Any>] object key, [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.Number, JSType.Boolean>>] Func<double, double, double, bool> value);
+
 
         /// <summary>
         /// Returns strings like: '[object String]'

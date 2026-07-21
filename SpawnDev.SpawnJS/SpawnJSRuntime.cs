@@ -121,6 +121,7 @@ namespace SpawnDev.SpawnJS
             _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
+            Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCallById", _JSToNetCallById);
             // This runtime's CONTEXT ID. Every Javascript helper that touches per-runtime state - the
             // heap, the argument frame, the scratch buffer - takes it as its first argument and resolves
             // the owning instance from it. Two .Net apps can share a page (a custom element built on
@@ -165,6 +166,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         private bool _JSToNetCall(string cmd, double offset, double length)
             => Callback.JSToNetDispatch(cmd, _jsToNetBuffer, (int)offset, (int)length);
+        /// <summary>
+        /// The same, for an anonymous callback addressed by NUMBER. Its id is generated and carries no
+        /// meaning, but it crossed on every invocation as a string - a marshalled string per DOM event or
+        /// per resolved promise. A number costs nothing to carry.
+        /// </summary>
+        private bool _JSToNetCallById(double id, double offset, double length)
+            => Callback.JSToNetDispatchById(id, _jsToNetBuffer, (int)offset, (int)length);
         /// <summary>
         /// Create a new Javascript Object as JSObject
         /// </summary>

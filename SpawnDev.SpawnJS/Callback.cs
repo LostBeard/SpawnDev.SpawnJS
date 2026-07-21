@@ -152,6 +152,18 @@ namespace SpawnDev.SpawnJS
         static readonly ConcurrentDictionary<string, Callback> _jsToNetHandlers = new ConcurrentDictionary<string, Callback>();
 
         /// <summary>
+        /// Anonymous callbacks, addressed by a generated NUMBER instead of a name.<br/>
+        /// <br/>
+        /// A named handler's key is meaningful and public - <c>AddHandler(name)</c>, <c>RemoveHandler(name)</c>,
+        /// <c>jsToNetCall(name, ...)</c> - so it stays a string. An anonymous callback's id is generated,
+        /// never spoken by anyone, and crosses the boundary on EVERY invocation: as a string that meant a
+        /// marshalled string per DOM event and per resolved promise, and one that correctly refuses to
+        /// intern because it never recurs. Kept separate rather than widening the key to <c>object</c>, so
+        /// neither lookup pays for the other and a name can never collide with an id.
+        /// </summary>
+        static readonly ConcurrentDictionary<double, Callback> _jsToNetById = new ConcurrentDictionary<double, Callback>();
+
+        /// <summary>
         /// One Javascript function per delegate, shared by every live Callback over that delegate.<br/>
         /// Creating a Callback used to unconditionally register a new JS function and so allocate a new
         /// JSObject, even when the exact same .Net method already had one. Two subscriptions of one
@@ -169,6 +181,15 @@ namespace SpawnDev.SpawnJS
             static readonly Dictionary<Delegate, CallbackFunction> _byDelegate = new Dictionary<Delegate, CallbackFunction>();
 
             public string Id { get; private init; } = "";
+            /// <summary>
+            /// The numeric id for an anonymous callback. Meaningless when <see cref="Named"/>.
+            /// </summary>
+            public double NumericId { get; private init; }
+            /// <summary>
+            /// True when the caller supplied a name, which is what decides WHICH dispatch table this is
+            /// registered in and which register/unregister path it takes.
+            /// </summary>
+            public bool Named { get; private init; }
             public Delegate Func { get; private init; } = null!;
             public SpawnJSHandle JSHandle { get; private init; } = null!;
             /// <summary>
@@ -202,20 +223,30 @@ namespace SpawnDev.SpawnJS
                     existing._holders.Add(holder);
                     return existing;
                 }
-                var callbackId = id ?? $"cb_{_id++}";
                 // void and value returning delegates need different Javascript wrappers: the void one
                 // must not marshal a return value back.
                 var register = func.Method.ReturnType == typeof(void) ? "registerCallbackVoid" : "registerCallback";
+                var named = id != null;
+                // An anonymous callback is addressed by number, so neither registering it nor any later
+                // invocation carries a string - see _jsToNetById.
+                var numericId = named ? 0d : ++_id;
                 var fn = new CallbackFunction
                 {
-                    Id = callbackId,
+                    // Still a unique string identity on THIS side - it is what Id, HasHandler and the
+                    // sharing tests speak. Only the boundary stopped carrying it.
+                    Id = id ?? $"cb_{numericId}",
+                    NumericId = numericId,
+                    Named = named,
                     Func = func,
-                    JSHandle = JS.NetRun<SpawnJSHandle>(register, new object[] { callbackId }),
+                    JSHandle = named
+                        ? JS.NetRun<SpawnJSHandle>(register, new object[] { id! })
+                        : JS.NetRun<SpawnJSHandle>(register + "ById", new object[] { numericId }),
                     Shared = shareable,
                 };
                 fn._holders.Add(holder);
                 if (shareable) _byDelegate[func] = fn;
-                _jsToNetHandlers[callbackId] = holder;
+                if (named) _jsToNetHandlers[id!] = holder;
+                else _jsToNetById[numericId] = holder;
                 return fn;
             }
 
@@ -229,14 +260,20 @@ namespace SpawnDev.SpawnJS
                 if (_holders.Count > 0)
                 {
                     // still in use - hand the registration to a holder that is still alive
-                    if (_jsToNetHandlers.TryGetValue(Id, out var registered) && ReferenceEquals(registered, holder))
+                    if (Named)
                     {
-                        _jsToNetHandlers[Id] = _holders[0];
+                        if (_jsToNetHandlers.TryGetValue(Id, out var registered) && ReferenceEquals(registered, holder))
+                            _jsToNetHandlers[Id] = _holders[0];
+                    }
+                    else if (_jsToNetById.TryGetValue(NumericId, out var registeredById) && ReferenceEquals(registeredById, holder))
+                    {
+                        _jsToNetById[NumericId] = _holders[0];
                     }
                     return;
                 }
                 if (Shared) _byDelegate.Remove(Func);
-                _jsToNetHandlers.TryRemove(Id, out _);
+                if (Named) _jsToNetHandlers.TryRemove(Id, out _);
+                else _jsToNetById.TryRemove(NumericId, out _);
                 JSHandle.Dispose();
             }
 
@@ -295,8 +332,10 @@ namespace SpawnDev.SpawnJS
         {
             // Disposing is what unregisters. Removing the dictionary entry on its own would strand the
             // Javascript function and its JSObject with nothing left able to release them.
-            if (!_jsToNetHandlers.TryGetValue(name, out var callback)) return false;
-            callback.Dispose();
+            if (!_jsToNetHandlers.TryGetValue(name, out var callback)
+                && !(TryParseAnonymousId(name, out var id) && _jsToNetById.TryGetValue(id, out callback)))
+                return false;
+            callback!.Dispose();
             return true;
         }
 
@@ -312,35 +351,55 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="handler"></param>
         /// <returns>True if a handler was removed.</returns>
-        public static int RemoveHandlers(Delegate handler) => _jsToNetHandlers.ToArray().Where(o => o.Value.Func == handler).Select(o => _jsToNetHandlers.TryRemove(o.Value.Id, out _)).Count();
+        public static int RemoveHandlers(Delegate handler)
+            => _jsToNetHandlers.ToArray().Where(o => o.Value.Func == handler).Select(o => _jsToNetHandlers.TryRemove(o.Key, out _)).Count()
+             + _jsToNetById.ToArray().Where(o => o.Value.Func == handler).Select(o => _jsToNetById.TryRemove(o.Key, out _)).Count();
 
         /// <summary>
         /// Get all callbacks registered for the specified delegate
         /// </summary>
         /// <param name="handler"></param>
         /// <returns>True if a handler was removed.</returns>
-        public static List<Callback> GetHandlers(Delegate handler) => _jsToNetHandlers.ToArray().Where(o => o.Value.Func == handler).Select(o => o.Value).ToList();
+        public static List<Callback> GetHandlers(Delegate handler)
+            => _jsToNetHandlers.ToArray().Where(o => o.Value.Func == handler).Select(o => o.Value)
+                .Concat(_jsToNetById.ToArray().Where(o => o.Value.Func == handler).Select(o => o.Value)).ToList();
 
         /// <summary>
         /// Returns true if a handler with the specified name is registered.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static bool HasHandler(string name) => _jsToNetHandlers.ContainsKey(name);
+        public static bool HasHandler(string name)
+            => _jsToNetHandlers.ContainsKey(name) || (TryParseAnonymousId(name, out var id) && _jsToNetById.ContainsKey(id));
+
+        /// <summary>
+        /// An anonymous callback's public <see cref="Id"/> is <c>cb_{n}</c> over the number it is actually
+        /// registered under, so a lookup by that string has to reach the numeric table. Named handlers
+        /// never take this path.
+        /// </summary>
+        static bool TryParseAnonymousId(string name, out double id)
+        {
+            id = 0;
+            return name.StartsWith("cb_", StringComparison.Ordinal)
+                && double.TryParse(name.AsSpan(3), System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out id);
+        }
 
         /// <summary>
         /// Check if a Delegate has handlers
         /// </summary>
         /// <param name="handler"></param>
         /// <returns>True if a handler was removed.</returns>
-        public static bool HasHandler(Delegate handler) => _jsToNetHandlers.ToArray().Any(o => o.Value.Func == handler);
+        public static bool HasHandler(Delegate handler)
+            => _jsToNetHandlers.ToArray().Any(o => o.Value.Func == handler)
+            || _jsToNetById.ToArray().Any(o => o.Value.Func == handler);
 
         /// <summary>
         /// Returns true if a handler with the specified name is registered.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public static bool HasHandler(Callback callback) => callback != null && _jsToNetHandlers.ContainsKey(callback.Id);
+        public static bool HasHandler(Callback callback) => callback != null && HasHandler(callback.Id);
 
         /// <summary>
         /// Dispatch a JS -> .Net call. Invoked from Javascript through the _JSToNetCall JSExport binding.
@@ -352,6 +411,21 @@ namespace SpawnDev.SpawnJS
             if (JS.Verbose) Console.WriteLine($">> JSToNetDispatch: {cmd}");
             if (!_jsToNetHandlers.TryGetValue(cmd, out var handler))
                 throw new Exception($"SpawnJSRuntime: no JS->.Net handler registered for '{cmd}'");
+            return Dispatch(handler, buffer, offset, length);
+        }
+
+        /// <summary>
+        /// The anonymous path: same dispatch, addressed by the generated number so no string crosses.
+        /// </summary>
+        internal static bool JSToNetDispatchById(double id, SpawnJSHandle buffer, int offset, int length)
+        {
+            if (!_jsToNetById.TryGetValue(id, out var handler))
+                throw new Exception($"SpawnJSRuntime: no JS->.Net callback registered for id {id}");
+            return Dispatch(handler, buffer, offset, length);
+        }
+
+        static bool Dispatch(Callback handler, SpawnJSHandle buffer, int offset, int length)
+        {
             // signature resolved once, when the callback was created - see ParameterTypes
             var parameters = handler.ParameterTypes;
             var netArgs = parameters.Length == 0 ? System.Array.Empty<object?>() : new object?[parameters.Length];
@@ -372,7 +446,7 @@ namespace SpawnDev.SpawnJS
             // The result goes back in the FIRST slot of the caller's own region - the arguments there have
             // already been consumed - exactly as the outbound direction returns its result. A void handler
             // writes nothing and reports false, so the common case costs no write at all.
-            if (JS.Verbose) Console.WriteLine($"<< JSToNetDispatch: {cmd}");
+            if (JS.Verbose) Console.WriteLine("<< JSToNetDispatch");
             if (handler.ReturnsVoid) return false;
             JS.MarshallNetToJS(buffer, offset, result);
             return true;
