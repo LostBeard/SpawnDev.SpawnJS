@@ -344,6 +344,29 @@ namespace BlazorBrowserDemo
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency
             // JS->.Net cost in a real app.
+            // FIRST: what is the inbound cost actually MADE of? A one argument callback measures ~13us,
+            // but at most two crossings are involved - so most of it is not the boundary. Scaling the
+            // ARGUMENT COUNT separates per-argument cost from fixed dispatch cost, and decides whether an
+            // inbound frame is worth building at all or whether the dispatch itself is the problem.
+            var arityHits = 0;
+            using var inbound0 = SJS.Callback.Create(() => arityHits++);
+            using var inbound1 = SJS.Callback.Create<int>(_ => arityHits++);
+            using var inbound4 = SJS.Callback.Create<int, int, int, int>((_, _, _, _) => arityHits++);
+            spawn.Set("__benchArity0", inbound0);
+            spawn.Set("__benchArity1", inbound1);
+            spawn.Set("__benchArity4", inbound4);
+            blazor.CallVoid("eval",
+                "globalThis.__benchArity0Loop = function(n) { for (var i = 0; i < n; i++) globalThis.__benchArity0(); };" +
+                "globalThis.__benchArity1Loop = function(n) { for (var i = 0; i < n; i++) globalThis.__benchArity1(i); };" +
+                "globalThis.__benchArity4Loop = function(n) { for (var i = 0; i < n; i++) globalThis.__benchArity4(i, i, i, i); };");
+            var arityIterations = iterations / 2;
+            MeasureOne("inbound arity 0 (no arguments at all)", arityIterations,
+                () => spawn.CallVoid("__benchArity0Loop", arityIterations));
+            MeasureOne("inbound arity 1", arityIterations,
+                () => spawn.CallVoid("__benchArity1Loop", arityIterations));
+            MeasureOne("inbound arity 4", arityIterations,
+                () => spawn.CallVoid("__benchArity4Loop", arityIterations));
+
             var inboundHits = 0;
             using var inboundVoid = SJS.Callback.Create<int>(_ => inboundHits++);
             spawn.Set("__benchInboundVoid", inboundVoid);
