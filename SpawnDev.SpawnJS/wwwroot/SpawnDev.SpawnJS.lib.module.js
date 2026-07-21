@@ -4,10 +4,8 @@
     if (globalThis.SpawnJSInterop) return;
 
     class SpawnJSInterop {
-        static instances = {};
         static _idNext = 0;
         verbose = false;
-        id = '';
         dotnetRuntime = null;
         // Per-runtime state. Every one of these is instance scoped ON PURPOSE: two .Net apps can share a
         // page - a custom element built on SpawnJS dropped onto a page that already runs one - and they
@@ -19,8 +17,6 @@
         constructor(dotnetRuntime) {
             this.dotnetRuntime = dotnetRuntime;
             this.ctxId = ++SpawnJSInterop._idNext;
-            this.id = `_${this.ctxId}`;
-            SpawnJSInterop.instances[this.id] = this;
             // The slot helpers are plain globals because JSImport binds to a fixed name and has no
             // instance to reach through. They therefore take a CONTEXT ID as their first argument and
             // resolve the instance here - which is how per-runtime state stays per-runtime despite the
