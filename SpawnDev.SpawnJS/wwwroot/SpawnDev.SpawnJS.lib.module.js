@@ -349,6 +349,9 @@ globalThis.__sjsAlloc = function (value) {
     return slot;
 };
 globalThis.__sjsAllocEmpty = function () { return globalThis.__sjsAlloc(void 0); };
+// Allocates a slot AND stores the value in one crossing. Taking a handle used to be an allocation
+// call followed by a separate Reflect.Set - two crossings to park one object.
+globalThis.__sjsAllocValue = function (value) { return globalThis.__sjsAlloc(value); };
 globalThis.__sjsNewObject = function () { return globalThis.__sjsAlloc({}); };
 globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
 globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };

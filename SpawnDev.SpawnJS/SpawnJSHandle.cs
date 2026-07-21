@@ -239,14 +239,14 @@ namespace SpawnDev.SpawnJS
             IsObject = true;
             // its own slot key in the shared store. Never reused, so a disposed handle's key can
             // never be handed out again and resurrect a stale value.
-            JSKey = SlotInterop.AllocEmpty();
+            // one crossing: allocate the slot with the object already in it
+            JSKey = SlotInterop.AllocValue(_jsObject);
             Resolved = true;
             Ptr = _jsObject?.GetId() ?? -1;
             // store the JSObject in a JS array we own so that if the JSObject gets Dispsoed elsewhere we can get a fresh JSObject
             _ownedParent = Store;
             _ownsSlot = true;
             _liveSlots++;
-            Reflect.Set(_ownedParent, JSKey, _jsObject);
         }
         /// <summary>
         /// Adopts a slot that Javascript already holds a value in.<br/>

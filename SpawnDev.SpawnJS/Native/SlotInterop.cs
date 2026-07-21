@@ -39,6 +39,12 @@ namespace SpawnDev.SpawnJS
         public static partial double AllocEmpty();
 
         /// <summary>
+        /// Allocates a slot already holding the given object, in one crossing.
+        /// </summary>
+        [JSImport("globalThis.__sjsAllocValue")]
+        public static partial double AllocValue([JSMarshalAs<JSType.Any>] object value);
+
+        /// <summary>
         /// Releases a slot so it can be reused. Lifetime is explicit here - there is no proxy for the
         /// runtime to collect, which is the trade for not paying to create one.
         /// </summary>
