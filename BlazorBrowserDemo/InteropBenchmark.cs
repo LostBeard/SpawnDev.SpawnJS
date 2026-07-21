@@ -216,6 +216,68 @@ namespace BlazorBrowserDemo
                     }
                 });
 
+            // LAYOUT A/B, both in .Net memory, same argument count, same Javascript work shape.
+            // structure-of-arrays: values packed 8 bytes apart, tags in a separate region
+            // interleaved:         one padded 16 byte slot per argument, tag inside it - the shape the
+            //                      .Net runtime's own marshaller uses
+            using var heapFrame = new SJS.HeapArgFrame(64);
+            heapFrame.Bind();
+
+            MeasureOne($"{argCount} args, structure-of-arrays, UNtagged", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
+                        _ = SJS.SlotInterop.HeapSum(0, argCount);
+                    }
+                });
+
+            MeasureOne($"{argCount} args, interleaved padded, UNtagged", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapFrame.Write(a, a + 0.5);
+                        _ = SJS.SlotInterop.FrameSum(argCount);
+                    }
+                });
+
+            // Tagged is the case a real transport actually runs, and it is where the layouts differ most:
+            // SoA reads two regions far apart, interleaved reads one slot twice.
+            MeasureOne($"{argCount} args, structure-of-arrays, TAGGED", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapArgs.WriteTagged(a, SJS.HeapArgBuffer.TagNumber, a + 0.5);
+                        _ = SJS.SlotInterop.HeapTaggedSum(heapArgs.TagOffsetFromValues, 0, argCount);
+                    }
+                });
+
+            MeasureOne($"{argCount} args, interleaved padded, TAGGED byte", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapFrame.WriteTagged(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
+                        _ = SJS.SlotInterop.FrameTaggedSum(argCount);
+                    }
+                });
+
+            // The byte arm above pays a MemoryMarshal.AsBytes span per write on the .Net side and a second
+            // heap view plus a mixed width read on the Javascript side. Storing the tag as a float64 in the
+            // padding - which exists either way - removes both, and isolates the LAYOUT from that overhead.
+            MeasureOne($"{argCount} args, interleaved padded, TAGGED f64", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapFrame.WriteTaggedF64(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
+                        _ = SJS.SlotInterop.FrameTaggedSumF64(argCount);
+                    }
+                });
+
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency

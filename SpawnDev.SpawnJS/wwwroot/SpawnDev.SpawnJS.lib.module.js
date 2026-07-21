@@ -484,6 +484,52 @@ globalThis.__sjsReadUtf16 = function (address, length) {
     }
     return String.fromCharCode.apply(null, u16.subarray(at, at + length));
 };
+// PROBE ONLY: the INTERLEAVED frame - one padded slot per argument, the shape the .Net runtime's own
+// marshaller uses (value at slot+0, a type tag BYTE inside the same slot, stride padded so every value
+// stays 8 byte aligned). Measured against the structure-of-arrays layout above rather than assumed
+// better. Stride 16: value at +0, tag at +8.
+globalThis.__sjsArgFrameAddress = 0;
+globalThis.__sjsBindArgFrame = function (address, byteLength) {
+    if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument frame address ${address} is not 8 byte aligned`);
+    globalThis.__sjsArgFrameAddress = address;
+    return true;
+};
+globalThis.__sjsFrameSum = function (count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var total = 0;
+    // stride 16 bytes = 2 float64 elements
+    for (var i = 0; i < count; i++) total += f64[at + i * 2];
+    return total;
+};
+globalThis.__sjsFrameTaggedSum = function (count) {
+    var m = globalThis.__sjsHeaps();
+    var f64 = m.HEAPF64;
+    var u8 = m.HEAPU8;
+    var base = globalThis.__sjsArgFrameAddress;
+    var at = base >>> 3;
+    var total = 0;
+    for (var i = 0; i < count; i++) {
+        var value = f64[at + i * 2];
+        if (u8[base + i * 16 + 8] === 3) value = globalThis.__sjsSlots[value];
+        total += value;
+    }
+    return total;
+};
+// PROBE ONLY: interleaved, but the tag lives in the slot's PADDING as a float64 rather than as a byte.
+// The padding exists either way, so it costs no space - and it needs only ONE heap view and one width
+// of read, where the byte form needs HEAPU8 as well as HEAPF64.
+globalThis.__sjsFrameTaggedSumF64 = function (count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var total = 0;
+    for (var i = 0; i < count; i++) {
+        var value = f64[at + i * 2];
+        if (f64[at + i * 2 + 1] === 3) value = globalThis.__sjsSlots[value];
+        total += value;
+    }
+    return total;
+};
 // PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
 // today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
 // isolates exactly one thing: what .Net paid to get the arguments here.

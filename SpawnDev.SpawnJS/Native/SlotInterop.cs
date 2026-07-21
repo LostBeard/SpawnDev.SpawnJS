@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices.JavaScript;
+﻿using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS
 {
@@ -241,6 +241,22 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         [JSImport("globalThis.__sjsReadUtf16")]
         public static partial string ReadUtf16(double address, double length);
+
+        /// <summary>PROBE: binds the Javascript side to the INTERLEAVED argument frame.</summary>
+        [JSImport("globalThis.__sjsBindArgFrame")]
+        public static partial bool BindArgFrame(double address, double byteLength);
+
+        /// <summary>PROBE: sums `count` values from the interleaved frame - one padded slot per argument.</summary>
+        [JSImport("globalThis.__sjsFrameSum")]
+        public static partial double FrameSum(double count);
+
+        /// <summary>PROBE: the same, reading each slot's inline tag byte - the runtime's own shape.</summary>
+        [JSImport("globalThis.__sjsFrameTaggedSum")]
+        public static partial double FrameTaggedSum(double count);
+
+        /// <summary>PROBE: interleaved with the tag as a float64 in the slot's padding - one view, one width.</summary>
+        [JSImport("globalThis.__sjsFrameTaggedSumF64")]
+        public static partial double FrameTaggedSumF64(double count);
 
         /// <summary>
         /// PROBE: the same sum over a Javascript side argument array - the transport in use today. The

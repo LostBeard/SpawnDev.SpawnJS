@@ -211,6 +211,99 @@ namespace TestsShared
         static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";
 
         /// <summary>
+        /// The INTERLEAVED frame - one padded slot per argument, the shape the runtime's own marshaller
+        /// uses. Values must land where Javascript expects them given a stride of 16 bytes.<br/>
+        /// Deliberately uses values that differ per index, so a stride mistake shows up as the wrong sum
+        /// rather than passing because every slot held the same thing.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task InterleavedFrameReadsEveryValueTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            frame.Bind();
+            double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
+            for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
+
+            var sum = SlotInterop.FrameSum(args.Length);
+            var expected = 0d;
+            foreach (var a in args) expected += a;
+            if (sum != expected)
+                throw new Exception($"the interleaved frame summed to {sum}, expected {expected} - check the stride");
+        }
+
+        /// <summary>
+        /// The tag byte lives INSIDE the slot, so it shares memory with the padding next to the value.
+        /// Writing a tag must not disturb the value it belongs to, and writing a value must not clear the
+        /// tag - which is the failure mode interleaving introduces and structure-of-arrays cannot have.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task InterleavedTagAndValueDoNotCorruptEachOtherTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            frame.Bind();
+            // write the tag FIRST, then the value, so an overlapping value write would clear the tag
+            frame.WriteTagged(0, HeapArgFrame.TagBoolean, 1);
+            frame.Write(0, 7.5);
+            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+                throw new Exception("writing a value cleared the tag of the same slot");
+            if (frame.Read(0) != 7.5)
+                throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
+
+            // and the other order - a tag write must not touch the value
+            frame.WriteTagged(1, HeapArgFrame.TagNumber, 9.25);
+            if (frame.Read(1) != 9.25)
+                throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
+
+            // a tag on one slot must not bleed into its neighbours
+            frame.Write(2, 4.0);
+            frame.WriteTagged(1, HeapArgFrame.TagSlot, 9.25);
+            if (frame.Read(2) != 4.0)
+                throw new Exception("a tag write bled into the next slot");
+            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+                throw new Exception("a tag write bled into the previous slot");
+        }
+
+        /// <summary>
+        /// The interleaved frame's tagged read, end to end through Javascript - including a slot tag,
+        /// which Javascript resolves against the slot table.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task InterleavedFrameTaggedSumResolvesSlotsTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            frame.Bind();
+            var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
+            try
+            {
+                frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
+                frame.WriteTagged(1, HeapArgFrame.TagNumber, 2);
+                var sum = SlotInterop.FrameTaggedSum(2);
+                if (sum != 42)
+                    throw new Exception($"the interleaved tagged frame summed to {sum}, expected 42");
+            }
+            finally { SlotInterop.Free(slot); }
+        }
+
+        /// <summary>
+        /// Every slot's value must be 8 byte aligned, which is the whole reason the stride is padded.
+        /// Checked across many slots rather than only the first, because a stride that is not a multiple
+        /// of 8 misaligns progressively - slot 0 would pass and slot 1 would not.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task EverySlotValueIsEightByteAlignedTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            if (HeapArgFrame.Stride % 8 != 0)
+                throw new Exception($"a stride of {HeapArgFrame.Stride} is not a multiple of 8, so values drift out of alignment");
+            for (var i = 0; i < 64; i++)
+            {
+                var slotAddress = frame.Address + i * HeapArgFrame.Stride;
+                if (slotAddress % 8 != 0)
+                    throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
+            }
+        }
+
+        /// <summary>
         /// The buffer must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
         /// so the collector cannot move it - but a view over memory the collector COULD move would read
         /// whatever now occupies that address, silently.
