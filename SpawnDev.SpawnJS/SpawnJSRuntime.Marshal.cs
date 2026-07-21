@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.JSObjects;
+﻿using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Marshallers;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices.JavaScript;
@@ -234,7 +234,7 @@ namespace SpawnDev.SpawnJS
         /// into the scratch array the old way, and the frame carries its index. That fallback costs exactly
         /// what the whole transport used to cost, so nothing is ever slower than before.
         /// </summary>
-        int WriteArgsToFrame(object?[] args)
+        internal int WriteArgsToFrame(object?[] args)
         {
             var offset = _frameTop;
             // reserve at least one slot even with no arguments - the result lands in the first slot of
@@ -265,7 +265,7 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>Releases the current call's region of the frame.</summary>
-        void ReleaseFrameArgs(int offset) => _frameTop = offset;
+        internal void ReleaseFrameArgs(int offset) => _frameTop = offset;
 
         /// <summary>
         /// Reads the result the Javascript side wrote into this call's own frame slot.<br/>
@@ -274,7 +274,7 @@ namespace SpawnDev.SpawnJS
         /// either - only a string still needs a typed read, because a Javascript string cannot live in
         /// .Net memory.
         /// </summary>
-        object? ReadFrameResult(Type type, int offset)
+        internal object? ReadFrameResult(Type type, int offset)
         {
             var tag = _argFrame.ReadTag(offset);
             var payload = _argFrame.Read(offset);

@@ -620,6 +620,58 @@ globalThis.__sjsFrameCall = function (cmd, offset, length) {
     globalThis.__sjsHeaps().HEAPF64[at] = 0;
     globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
 };
+// Calling a METHOD with its arguments already in the frame.
+//
+// This is the path a wrapper method call takes - setPipeline, setBindGroup, dispatchWorkgroups - and
+// it was still building a Javascript argument array the expensive way: one crossing to create the
+// array, one PER ARGUMENT to fill it, one to invoke, one to free it. N+3 crossings for a call whose
+// arguments were already sitting in .Net memory.
+//
+// Now the target is a slot, the arguments are frame slots, and the whole call is ONE crossing.
+globalThis.__sjsInvokeFrameArgs = function (f64, at, length) {
+    var A = globalThis.__sjsFrameArg;
+    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var out = new Array(length);
+    for (var i = 0; i < length; i++) out[i] = A(f64, at, i, scratch);
+    return out;
+};
+globalThis.__sjsInvokeFrameVoid = function (targetSlot, name, offset, length) {
+    var target = globalThis.__sjsSlots[targetSlot];
+    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var A = globalThis.__sjsFrameArg;
+    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    // dispatch by arity so the common shapes allocate no argument array at all
+    switch (length) {
+        case 0: target[name](); return;
+        case 1: target[name](A(f64, at, 0, scratch)); return;
+        case 2: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); return;
+        case 3: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); return;
+        case 4: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); return;
+        default: target[name].apply(target, globalThis.__sjsInvokeFrameArgs(f64, at, length)); return;
+    }
+};
+// Same, and the result goes back into the caller's own frame slot - so a call that returns a number
+// or a boolean moves no data across the boundary in either direction, and one that returns an object
+// hands back a slot id rather than a proxy.
+globalThis.__sjsInvokeFrameResult = function (targetSlot, name, offset, length) {
+    var target = globalThis.__sjsSlots[targetSlot];
+    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var A = globalThis.__sjsFrameArg;
+    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var ret;
+    switch (length) {
+        case 0: ret = target[name](); break;
+        case 1: ret = target[name](A(f64, at, 0, scratch)); break;
+        case 2: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); break;
+        case 3: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); break;
+        case 4: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); break;
+        default: ret = target[name].apply(target, globalThis.__sjsInvokeFrameArgs(f64, at, length)); break;
+    }
+    // re-fetch: the call may have re-entered .Net and grown the memory, which detaches the view
+    globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
+};
 // PROBE ONLY: STRING ARGUMENTS, the last undecided piece of the frame layout.
 // A string needs TWO fields - where its characters are, and how many - which is exactly why the
 // runtime's own slot is wider than ours. Either the frame grows an aux field, or strings keep

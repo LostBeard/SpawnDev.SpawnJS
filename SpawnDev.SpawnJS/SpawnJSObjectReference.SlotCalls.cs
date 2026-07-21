@@ -3,15 +3,19 @@ namespace SpawnDev.SpawnJS
     public partial class SpawnJSObjectReference
     {
         /// <summary>
-        /// Calls a method entirely through the slot table, so nothing on either side becomes a .Net
-        /// proxy. Returns false when this target or key is not eligible and the caller should take the
+        /// Calls a method with its arguments already in the ARGUMENT FRAME - ONE crossing for the whole
+        /// call. Returns false when this target or key is not eligible and the caller should take the
         /// normal path.<br/>
         /// <br/>
-        /// This is where the remaining cost was. Creating objects in slots made building a descriptor
-        /// cheap, but handing it to a method still went through JSObject for the target AND the argument
-        /// array, so a proxy was created at call time anyway - measured at 7.6us per handle, ~40 of them
-        /// per GPU dispatch. With the call itself slotted, the boundary carries a slot number, a method
-        /// name and a slot number, and nothing else.<br/>
+        /// This is where the remaining cost was, and it survived the first round of frame work because
+        /// only the generic dispatcher was moved over. A call on a held wrapper still built a Javascript
+        /// argument array the expensive way: one crossing to create it, one PER ARGUMENT to fill it, one
+        /// to invoke, one to free it - N+3 crossings for arguments that were already sitting in .Net
+        /// memory. That is exactly the shape a GPU dispatch is made of: setPipeline, setBindGroup,
+        /// dispatchWorkgroups, end, submit.<br/>
+        /// <br/>
+        /// Now the target is a slot number, the arguments are frame slots, and the boundary carries a slot
+        /// id, a method name, an offset and a length.<br/>
         /// <br/>
         /// A dotted identifier is not eligible: the Javascript side indexes the target by the literal
         /// name, so "console.log" would look for a property called exactly that.
@@ -21,18 +25,27 @@ namespace SpawnDev.SpawnJS
             if (identifier.Contains('.')) return false;
             if (!JSHandle.TryGetSlot(out var thisSlot)) return false;
 
-            using var argsHandle = JS.MarshallNetArrayToJSArray(args);
-            if (argsHandle == null || !argsHandle.TryGetSlot(out var argsSlot)) return false;
-
-            SlotInterop.InvokeVoid(thisSlot, identifier, argsSlot);
-            return true;
+            var offset = JS.WriteArgsToFrame(args);
+            try
+            {
+                SlotInterop.InvokeFrameVoid(thisSlot, identifier, offset, args.Length);
+                return true;
+            }
+            finally
+            {
+                JS.ReleaseFrameArgs(offset);
+            }
         }
 
         /// <summary>
-        /// Calls a method through the slot table and converts its result.<br/>
-        /// A primitive comes straight back. Anything else stays in Javascript, in a slot, and is handed
-        /// to the marshaller as a handle - so an object-returning call only materialises a proxy if the
-        /// destination type actually needs one.
+        /// Calls a method through the frame and converts its result.<br/>
+        /// The result is written back into this call's own frame slot, so a number or a boolean moves no
+        /// data across the boundary in either direction, and anything else arrives as a slot id - which
+        /// means an object returned from a call becomes a handle with no crossing and no proxy.<br/>
+        /// <br/>
+        /// The separate typed invoke bindings this replaces (InvokeDouble, InvokeString, InvokeBoolean,
+        /// InvokeSlot) each cost their own crossing to deliver the arguments. One framed call covers every
+        /// return type, so the typed variants bought nothing once the arguments stopped crossing.
         /// </summary>
         private bool TryInvokeBySlot<T>(string identifier, object?[] args, out T value)
         {
@@ -40,23 +53,17 @@ namespace SpawnDev.SpawnJS
             if (identifier.Contains('.')) return false;
             if (!JSHandle.TryGetSlot(out var thisSlot)) return false;
 
-            using var argsHandle = JS.MarshallNetArrayToJSArray(args);
-            if (argsHandle == null || !argsHandle.TryGetSlot(out var argsSlot)) return false;
-
-            if (typeof(T) == typeof(double)) { value = (T)(object)SlotInterop.InvokeDouble(thisSlot, identifier, argsSlot); return true; }
-            if (typeof(T) == typeof(int)) { value = (T)(object)(int)SlotInterop.InvokeDouble(thisSlot, identifier, argsSlot); return true; }
-            if (typeof(T) == typeof(float)) { value = (T)(object)(float)SlotInterop.InvokeDouble(thisSlot, identifier, argsSlot); return true; }
-            if (typeof(T) == typeof(long)) { value = (T)(object)(long)SlotInterop.InvokeDouble(thisSlot, identifier, argsSlot); return true; }
-            if (typeof(T) == typeof(bool)) { value = (T)(object)SlotInterop.InvokeBoolean(thisSlot, identifier, argsSlot); return true; }
-            if (typeof(T) == typeof(string)) { value = (T)(object)SlotInterop.InvokeString(thisSlot, identifier, argsSlot)!; return true; }
-
-            // Non primitive: keep the result in Javascript and let the registry decide what it becomes.
-            // The handle owns the returned slot, so the slot is released when it is disposed - a wrapper
-            // type takes its own reference during marshalling.
-            var resultSlot = SlotInterop.InvokeSlot(thisSlot, identifier, argsSlot);
-            using var resultHandle = new SpawnJSHandle(resultSlot);
-            value = (T)JS.MarshallJSToNet(typeof(T), resultHandle)!;
-            return true;
+            var offset = JS.WriteArgsToFrame(args);
+            try
+            {
+                SlotInterop.InvokeFrameResult(thisSlot, identifier, offset, args.Length);
+                value = (T)JS.ReadFrameResult(typeof(T), offset)!;
+                return true;
+            }
+            finally
+            {
+                JS.ReleaseFrameArgs(offset);
+            }
         }
     }
 }

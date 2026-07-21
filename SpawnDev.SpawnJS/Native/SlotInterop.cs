@@ -59,6 +59,23 @@ namespace SpawnDev.SpawnJS
         public static partial void FrameCall(string cmd, double offset, double length);
 
         /// <summary>
+        /// Calls a METHOD on a slotted object with its arguments already in the frame - ONE crossing for
+        /// the whole call.<br/>
+        /// Replaces build-an-array-and-fill-it, which cost one crossing to create the array, one PER
+        /// ARGUMENT to fill it, one to invoke and one to free it.
+        /// </summary>
+        [JSImport("globalThis.__sjsInvokeFrameVoid")]
+        public static partial void InvokeFrameVoid(double targetSlot, string name, double offset, double length);
+
+        /// <summary>
+        /// As <see cref="InvokeFrameVoid"/>, with the result written back into the caller's own frame
+        /// slot - so a number or boolean result moves no data across the boundary either way, and an
+        /// object result arrives as a slot id rather than a proxy.
+        /// </summary>
+        [JSImport("globalThis.__sjsInvokeFrameResult")]
+        public static partial void InvokeFrameResult(double targetSlot, string name, double offset, double length);
+
+        /// <summary>
         /// Releases a slot so it can be reused. Lifetime is explicit here - there is no proxy for the
         /// runtime to collect, which is the trade for not paying to create one.
         /// </summary>
