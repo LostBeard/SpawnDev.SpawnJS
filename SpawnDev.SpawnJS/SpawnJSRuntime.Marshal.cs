@@ -265,7 +265,18 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>Releases the current call's region of the frame.</summary>
+        /// <remarks>
+        /// The frame is a STACK: releasing an offset drops everything reserved above it too. That is what
+        /// lets a nested region - an inline object's name/value pairs - outlive the call that reserved it
+        /// and stay valid until the outer call has actually read it, without any separate bookkeeping.
+        /// </remarks>
         internal void ReleaseFrameArgs(int offset) => _frameTop = offset;
+
+        /// <summary>
+        /// The absolute HEAPF64 index of a reservation, which is what an inline object's payload carries.
+        /// A frame slot is <see cref="HeapArgFrame.Stride"/> bytes, so it spans two float64s.
+        /// </summary>
+        internal double FrameF64Index(int offset) => (_argFrame.Address >> 3) + offset * 2;
 
         /// <summary>
         /// Writes one member of an object being built into the frame, as a name/value PAIR at

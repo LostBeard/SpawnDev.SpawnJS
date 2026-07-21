@@ -52,27 +52,30 @@
 
         /// <inheritdoc/>
         /// <remarks>
-        /// An object offered as a single frame value: it is built Javascript side and its SLOT is the
-        /// payload. This is what lets a nested descriptor, or an object passed as a call argument, cost
-        /// one crossing rather than one per member of every level.
+        /// An object offered as a single frame value. Its members go into a NESTED REGION of the frame and
+        /// the payload says where - so it is built Javascript side, in place, as the argument list is read.
+        /// A nested descriptor or an object argument costs one crossing rather than one per member of every
+        /// level, and it costs no slot.
+        /// <br/><br/>
+        /// It used to hand back a slot instead, which leaked: the slot table holds a strong reference, the
+        /// slot belonged to nobody once the call returned, and nothing freed it. A WebGPU dispatch passes
+        /// two descriptors, so it leaked two entries PER DISPATCH - measured at 4000 live slots after 2000
+        /// launches, which is also what made every later call slower. Built inline there is nothing to own
+        /// and nothing to free. <c>ArgumentSlotLeakTests</c> holds this.
         /// </remarks>
         public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
         {
-            tag = ArgTag.Slot;
+            tag = ArgTag.InlineObject;
             payload = 0;
             if (typeToConvert == null) return false;
             var members = typeToConvert.GetTypeJsonProperties();
+            if (members.Count >= ArgTag.InlinePackLimit) return false;   // cannot be encoded - take the scratch path
+            // NOT released here. The region has to still be there when the OUTER call reads its arguments,
+            // and the frame is a stack, so releasing the outer call's region drops this one with it.
             var offset = JS.ReserveMemberPairs(members.Count);
-            try
-            {
-                var count = WriteMembersToFrame(members, value, offset);
-                payload = SlotInterop.BuildObject(JS.CtxId, offset, count);
-                return true;
-            }
-            finally
-            {
-                JS.ReleaseFrameArgs(offset);
-            }
+            var count = WriteMembersToFrame(members, value, offset);
+            payload = ArgTag.PackInline(JS.FrameF64Index(offset), count);
+            return true;
         }
     }
 }

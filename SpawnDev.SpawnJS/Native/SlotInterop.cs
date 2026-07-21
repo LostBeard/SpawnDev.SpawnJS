@@ -274,13 +274,15 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsReadUtf16")]
         public static partial string ReadUtf16(double ctx, double address, double length);
 
+        // No BuildObject. Building an object into a slot and handing the slot back leaked one table entry
+        // per call - see ArgTag.InlineObject, which carries an object argument as a frame region instead.
+
         /// <summary>
-        /// Builds a Javascript object from name/value pairs in the frame and returns its slot.<br/>
-        /// One crossing for the whole object however many members it has, against one PER MEMBER plus
-        /// three before.
+        /// How many entries the Javascript slot table holds. Diagnostic, for tests that assert a path
+        /// leaves nothing behind - <see cref="SpawnJSHandle.LiveSlotCount"/> only sees handle owned slots.
         /// </summary>
-        [JSImport("globalThis.__sjsBuildObject")]
-        public static partial double BuildObject(double ctx, double offset, double count);
+        [JSImport("globalThis.__sjsSlotTableCount")]
+        public static partial double SlotTableCount();
 
         /// <summary>
         /// Builds the object and ASSIGNS it in the same crossing, so a descriptor written onto a slotted

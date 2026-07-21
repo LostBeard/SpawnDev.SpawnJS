@@ -396,6 +396,10 @@ globalThis.__sjsNewObject = function () { return globalThis.__sjsAlloc({}); };
 globalThis.__sjsAllocString = function (value) { return globalThis.__sjsAlloc(value); };
 globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
 globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
+// How many entries the slot table actually holds. Diagnostic: SpawnJSHandle.LiveSlotCount only counts
+// the slots a HANDLE owns, so a slot allocated Javascript side and owned by nobody is invisible to it -
+// which is precisely how the object-argument leak went unnoticed. This counts the table itself.
+globalThis.__sjsSlotTableCount = function () { return Object.keys(globalThis.__sjsSlots).length; };
 globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 globalThis.__sjsSetString = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
 // Numeric-key variants. The shared call buffer is an ARRAY indexed by offset, so forcing those keys
@@ -579,6 +583,10 @@ const SJS_TAG_SLOT = 3;      // an object, a wrapper, or an interned string - re
 const SJS_TAG_NULL = 4;
 const SJS_TAG_UNDEFINED = 5;
 const SJS_TAG_SCRATCH = 6;   // built Javascript side already; the payload indexes the scratch array
+const SJS_TAG_OBJECT = 7;    // an object built HERE out of a nested frame region - no slot, nothing to free
+// The pair count sits in the low digits of an inline object's payload, the heap index above it.
+// Must match ArgTag.InlinePackLimit.
+const SJS_INLINE_BASE = 1048576;
 
 globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
     var o = at + i * 2;
@@ -589,6 +597,13 @@ globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
         case SJS_TAG_NULL: return null;
         case SJS_TAG_UNDEFINED: return void 0;
         case SJS_TAG_SCRATCH: return scratch[f64[o]];
+        // The payload carries the region's own absolute heap index, so this needs no frame base - and
+        // because the region is read here, nested inline objects fall out of the recursion for free.
+        case SJS_TAG_OBJECT: {
+            var p = f64[o];
+            var n = p % SJS_INLINE_BASE;
+            return globalThis.__sjsBuildFromFrame(f64, (p - n) / SJS_INLINE_BASE, n, scratch);
+        }
         default: throw new Error(`SpawnJSInterop: argument ${i} has unknown tag ${f64[o + 1]}`);
     }
 };
@@ -644,8 +659,9 @@ globalThis.__sjsFrameCall = function (ctx, cmd, offset, length) {
 // its value - and the whole object is built here in one go. Property names are fixed literals per
 // type, so they intern to a slot once per process and are thereafter just numbers like any other
 // argument.
-globalThis.__sjsBuildFromFrame = function (ctx, f64, at, count) {
-    var scratch = SpawnJSInterop.ctx(ctx).netToJSBuffer;
+// Takes the scratch array rather than a context id, because __sjsFrameArg has scratch but no context -
+// and an inline object argument is built straight from there.
+globalThis.__sjsBuildFromFrame = function (f64, at, count, scratch) {
     var A = globalThis.__sjsFrameArg;
     var obj = {};
     for (var i = 0; i < count; i++) {
@@ -653,19 +669,16 @@ globalThis.__sjsBuildFromFrame = function (ctx, f64, at, count) {
     }
     return obj;
 };
-// Builds the object and hands back its slot - for a member that is itself an object, or an object
-// passed as a call argument.
-globalThis.__sjsBuildObject = function (ctx, offset, count) {
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var at = (SpawnJSInterop.ctx(ctx).argFrameAddress >>> 3) + offset * 2;
-    return globalThis.__sjsAlloc(globalThis.__sjsBuildFromFrame(ctx, f64, at, count));
-};
+// There is deliberately no "build an object and hand back its slot". That shape leaked by construction:
+// the slot table is a strong reference, a temporary built for one call belongs to nobody afterwards, and
+// nothing freed it. An object argument is carried as SJS_TAG_OBJECT and built in place instead.
 // Builds the object AND assigns it, so the whole descriptor costs exactly one crossing - no temporary
 // slot is allocated, so none has to be freed either.
 globalThis.__sjsBuildObjectInto = function (ctx, parentSlot, key, offset, count) {
+    var interop = SpawnJSInterop.ctx(ctx);
     var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var at = (SpawnJSInterop.ctx(ctx).argFrameAddress >>> 3) + offset * 2;
-    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(ctx, f64, at, count);
+    var at = (interop.argFrameAddress >>> 3) + offset * 2;
+    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(f64, at, count, interop.netToJSBuffer);
 };
 // Calling a METHOD with its arguments already in the frame.
 //
