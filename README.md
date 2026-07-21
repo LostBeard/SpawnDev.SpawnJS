@@ -64,8 +64,6 @@ software fallback adapters rejected), kernel output verified correct on every ru
 |---|---:|---:|---:|
 | kernel launch | 1284 us | **~490 us** | **2.6x** |
 | first dispatch (compile + setup) | ~125 ms | **~34 ms** | **3.7x** |
-| JSObject proxies created per dispatch | 49 | **4** | |
-| generic dispatcher calls per dispatch | 4 | **0** | |
 
 Neither side using bind-group caching, so the comparison is like for like.
 
@@ -77,6 +75,10 @@ workload, and each of the three wins was somewhere the shape of the code did not
 | Cache per-type serializable members (an attribute scan ran on every marshal) | 1075 us |
 | Slot-backed references (creating a `JSObject` proxy cost 21 us; a slot costs 1.3 us) | 326 us |
 | Slot-native invocation (target, method and arguments all stay in Javascript) | 245 us |
+
+Along the way SpawnJS's own per-dispatch cost went from 49 `JSObject` proxies to 4, and from 4 generic
+dispatcher calls to none. (Those two are SpawnJS before against SpawnJS after - the equivalent internals
+of the BlazorJS path were not instrumented.)
 
 ## Object marshalling
 
