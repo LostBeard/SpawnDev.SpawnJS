@@ -26,6 +26,10 @@ changes are taken deliberately while the shape is still being decided.
 
 - `ArgTag.InlineObject` and `ArgTag.PackInline`, with the matching `SJS_TAG_OBJECT` on the Javascript
   side.
+- A numeric inbound callback path - `registerCallbackById` / `registerCallbackVoidById`,
+  `_JSToNetCallById`, and the `_jsToNetById` table - so an anonymous callback's generated id crosses as
+  a number instead of a marshalled string on every invocation. Named handlers keep their string key,
+  which is public API.
 - `SlotInterop.SlotTableCount()` - the size of the actual slot table. `SpawnJSHandle.LiveSlotCount`
   counts only handle-owned slots and read zero through both leaks above, so a guard needed something
   that can observe the failure.
@@ -53,11 +57,12 @@ still slower than the pre-transport baseline - see Known issues.
 
 ### Known issues
 
-- **Dispatch + `SynchronizeAsync` is ~13% slower than baseline.** Awaiting a Javascript promise builds
-  two `Callback`s; each carries a unique `cb_{n}` **string** id which crosses at registration and again
-  on every invocation, and which no longer interns (correctly - it never recurs). The id should be an
-  integer. This touches the key space shared with named handlers, `jsToNetCall` and
-  `RemoveHandler(string)`, so it is a two-sided change rather than a local one.
+- **Dispatch + `SynchronizeAsync` is ~12% slower than baseline (780us vs 695us) and the cause is not
+  yet known.** The callback id was the stated suspect and has been **ruled out by measurement**: making
+  anonymous callbacks numeric end to end left the figure unchanged (780 +/-24 against 783 +/-17). Both
+  slot leaks are fixed and the table no longer grows, so it is not accumulation either. Next candidates
+  are the promise-to-task conversion itself (two `Callback`s plus a `CallbackGroup` per await) and the
+  `Promise.ThenCatch` round trip - neither measured yet.
 - `SlotInterop` public vs internal is still undecided.
 
 ## Earlier work

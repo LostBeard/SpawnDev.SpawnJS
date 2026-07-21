@@ -113,10 +113,10 @@ GPU's):
 | kernel launch (queue only) | 207.2 us | **154.4 us** |
 | dispatch + `SynchronizeAsync` | 695.4 us | 782.8 us |
 
-The launch path is 25% cheaper. The synchronising round trip is **slower**, and is not yet understood:
-awaiting a promise builds two `Callback`s, each carrying a unique `cb_{n}` id that crosses at
-registration and again on every invocation. That is the open item, and the honest number is printed
-here rather than the flattering half of it.
+The launch path is 25% cheaper. The synchronising round trip is **slower**, and is not yet understood.
+The callback id was the stated suspect and has been ruled out by measurement - making anonymous
+callbacks numeric end to end left it unchanged - so the cause is still open. The honest number is
+printed here rather than the flattering half of it.
 
 Both figures are one kernel on one machine, published (not interpreted) - read them against each other,
 not as absolutes.
