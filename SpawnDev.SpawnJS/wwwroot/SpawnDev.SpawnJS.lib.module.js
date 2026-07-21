@@ -165,10 +165,6 @@
             }
             return new ctor(buffer, address, byteLength / elementSize);
         }
-        // returns string[] of the target's property names.
-        // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
-        // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the
-        // handful of own properties it happens to carry.
         // Assigns a record (a plain object of string keys) built .Net-side onto parent[key].
         // The .Net runtime tags every JS object it proxies with an enumerable Symbol key. WebIDL converts
         // a record<USVString, V> by enumerating EVERY own key and converting each to a string, and a
@@ -183,6 +179,10 @@
             }
             parent[key] = Object.fromEntries(Object.entries(source));
         }
+        // returns string[] of the target's property names.
+        // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
+        // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the
+        // handful of own properties it happens to carry.
         objectKeys(target, hasOwnProperty) {
             if (target === void 0 || target === null) return [];
             if (hasOwnProperty) return Object.keys(target);
@@ -266,18 +266,45 @@
             }
             return constructorNames;
         }
-        // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
-        registerCallback(id) {
-            return (...args) => {
-                var ret = this._JSToNetCall(id, args);
-                return ret == null || ret.length == 0 ? null : ret[0];
+        // The inbound half of the flat buffer design - the mirror of netToJSBuffer below.
+        //
+        // Javascript writes the arguments into this buffer at its own top and calls .Net with
+        // (cmd, offset, length): a string and two numbers, no object reference. Previously the arguments
+        // crossed as a JS array marshalled into a JSObject, and the result came back as a second one, so
+        // every inbound call - every DOM event, every callback, every promise settlement - paid for two
+        // runtime proxies.
+        //
+        // It is a SEPARATE buffer from netToJSBuffer, with its own top, and that is the point rather than
+        // symmetry: each side owns its top locally and can bump it for free. A single shared top would
+        // have to live on one side of the boundary, so the other side would pay a crossing per call just
+        // to read it - the very cost this removes.
+        jsToNetBuffer = [];
+        jsToNetTop = 0;
+        // Pushes args, calls .Net, unwinds. Returns the result when the handler produced one.
+        #callNet(cmd, args, wantsResult) {
+            var b = this.jsToNetBuffer;
+            var offset = this.jsToNetTop;
+            var length = args.length;
+            // Reserve at least one slot even with no arguments: the result comes back in the FIRST slot
+            // of this call's region, so a zero-argument call still has to own one or a nested call writes
+            // over it. Same reservation the outbound side makes.
+            this.jsToNetTop += length > 0 ? length : 1;
+            for (var i = 0; i < length; i++) b[offset + i] = args[i];
+            try {
+                var hasResult = this._JSToNetCall(cmd, offset, length);
+                return wantsResult && hasResult ? b[offset] : null;
+            } finally {
+                // unwind in a finally so a throwing handler cannot leak the region and grow the buffer
+                this.jsToNetTop = offset;
             }
         }
         // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
+        registerCallback(id) {
+            return (...args) => this.#callNet(id, args, true);
+        }
+        // Creates a new function for .Net to use wit hJS as it needs to allow JS to call into .Net
         registerCallbackVoid(id) {
-            return (...args) => {
-                this._JSToNetCall(id, args);
-            }
+            return (...args) => { this.#callNet(id, args, false); };
         }
         _JSToNetCall() {
             // this method is a placeHolder and will be overwritten
@@ -285,14 +312,10 @@
             // this placeholder is here for clarity.
         }
         jsToNetCall(/* string */ cmd, ...args) {
-        // intentionally extra code here to allow breakpoint return value debugging
-            var ret = this._JSToNetCall(cmd, args);
-            return ret;
+            return this.#callNet(cmd, args, true);
         }
         jsToNetCallApply(/* string */ cmd, /* Array */ args) {
-            // intentionally extra code here to allow breakpoint return value debugging
-            var ret = this._JSToNetCall(cmd, args);
-            return ret;
+            return this.#callNet(cmd, args || [], true);
         }
         // Arguments and results both live in this one flat buffer, so a synchronous call carries only
         // primitives across the boundary: the command name, an offset and a length. No Javascript object

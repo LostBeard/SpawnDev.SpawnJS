@@ -26,7 +26,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
-            // read the value as a Promise first - it is a JSObject like any other, so the graph does it
+            // read the value as a Promise first - it is a wrapper like any other, so the graph does it
             using var promise = (Promise?)JS.MarshallJSToNet(typeof(Promise), jsHandle);
             if (promise == null) return null;
 

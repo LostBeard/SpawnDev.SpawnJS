@@ -56,6 +56,55 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// The two directions must not share a region.<br/>
+        /// This is the case that breaks if inbound (JS -> .Net) writes into the OUTBOUND buffer: .Net is
+        /// mid-call with a live region when Javascript calls back into .Net, and the inbound arguments
+        /// land inside the outer call's region. Both directions have their own buffer and their own top
+        /// for exactly this reason, so the interleaving below has to come out clean.
+        /// <br/>
+        /// The shape is deliberately three deep: .Net calls out to Javascript, Javascript calls back in to
+        /// .Net, and that inbound handler calls out to Javascript again while the first outbound call is
+        /// still on the stack.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task InboundCallDuringAnOutboundCallDoesNotTrampleItTest()
+        {
+            const string probe = "_spawnjs_interleave_probe";
+            JS.Set(probe, JS.New("Object"));
+            JS.Set($"{probe}.tag", "outer-intact");
+            JS.Set($"{probe}.number", 11);
+
+            // the inbound handler reads Javascript itself, so an outbound call runs INSIDE the inbound one
+            using var reentrant = Callback.Create<int, string>(n =>
+            {
+                var inner = JS.Get<string>($"{probe}.tag");
+                var innerNumber = JS.Get<int>($"{probe}.number");
+                return $"{inner}:{innerNumber}:{n}";
+            });
+            JS.Set("__interleaveCallback", reentrant);
+
+            // a Javascript function that calls back into .Net while .Net is waiting on it
+            JS.CallVoid("eval",
+                "globalThis.__interleaveOuter = function(a, b) { " +
+                "  var fromNet = globalThis.__interleaveCallback(a); " +
+                "  return fromNet + '|' + b; " +
+                "};");
+
+            for (var i = 0; i < 20; i++)
+            {
+                var result = JS.Call<string>("__interleaveOuter", i, "tail");
+                var expected = $"outer-intact:11:{i}|tail";
+                if (result != expected)
+                    throw new Exception($"Interleaved call returned '{result}', expected '{expected}' on iteration {i}");
+
+                // and the outer values must be untouched by all that traffic
+                var tag = JS.Get<string>($"{probe}.tag");
+                if (tag != "outer-intact")
+                    throw new Exception($"Outer value read back as '{tag}' after interleaving on iteration {i}");
+            }
+        }
+
+        /// <summary>
         /// The buffer is a stack, so a completed call must leave the top exactly where it found it. Drift
         /// in either direction is a leak: upward grows the buffer forever, downward hands a later call a
         /// region an earlier one is still using.

@@ -59,6 +59,7 @@ namespace SpawnDev.SpawnJS
         /// per call; only the command name, an offset and a length cross the boundary.
         /// </summary>
         private SpawnJSHandle _netToJSBuffer;
+        private SpawnJSHandle _jsToNetBuffer;
         /// <summary>
         /// JSObject marshallers used for marshalling data between .Net and Javasript
         /// </summary>
@@ -105,6 +106,9 @@ namespace SpawnDev.SpawnJS
             _netToJSCall = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
             // One handle to the call buffer, held for the life of the runtime
             _netToJSBuffer = SpawnJSInterop.GetPropertyAsJSHandle("netToJSBuffer") ?? throw new Exception("SpawnJSInterop.netToJSBuffer not found");
+            // One handle to the inbound buffer, held for the life of the runtime. Javascript writes call
+            // arguments into it and .Net reads them by index, so no argument array ever crosses.
+            _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
             Initializing = false;
@@ -133,12 +137,14 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// JS ➡️ .Net method
         /// </summary>
-        private JSObject _JSToNetCall(string cmd, JSObject argsArray)
-        {
-            using var argsArrayHandle = argsArray == null ? null : new SpawnJSHandle(argsArray);
-            var ret = Callback.JSToNetDispatch(cmd, argsArrayHandle!);
-            return ret?.JSObject!;
-        }
+        /// <summary>
+        /// Carries only primitives, the mirror of <c>_netToJSCall</c>: Javascript has already written the
+        /// arguments into <c>jsToNetBuffer</c> and passes the region it used.<br/>
+        /// Returns true when a result was written back into the first slot of that region, so a void
+        /// handler - a DOM event, the most frequent inbound call there is - costs no result write at all.
+        /// </summary>
+        private bool _JSToNetCall(string cmd, double offset, double length)
+            => Callback.JSToNetDispatch(cmd, _jsToNetBuffer, (int)offset, (int)length);
         /// <summary>
         /// Create a new Javascript Object as JSObject
         /// </summary>

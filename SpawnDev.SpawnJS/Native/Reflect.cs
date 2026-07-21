@@ -264,8 +264,14 @@ namespace SpawnDev.SpawnJS
         /// Writes <c>target[key]</c> through <c>Reflect.set</c>. Returns true if the write was accepted.
         /// Returns the result as a bool.
         /// </summary>
+        /// <summary>
+        /// Publishes the JS ➡️ .Net entry point. Its signature is all primitives - the command, and the
+        /// region of jsToNetBuffer holding the arguments - so an inbound call marshals no object at all.
+        /// It used to be <c>Func&lt;string, JSObject, JSObject&gt;</c>, which cost a runtime proxy for the
+        /// argument array on the way in and another for the result on the way out.
+        /// </summary>
         [JSImport("globalThis.Reflect.set")]
-        public static partial bool Set(JSObject target, [JSMarshalAs<Any>] object key, [JSMarshalAs<JSType.Function<JSType.String, JSType.Object, JSType.Object>>] Func<string, JSObject, JSObject> value);
+        public static partial bool Set(JSObject target, [JSMarshalAs<Any>] object key, [JSMarshalAs<JSType.Function<JSType.String, JSType.Number, JSType.Number, JSType.Boolean>>] Func<string, double, double, bool> value);
 
 
         /// <summary>

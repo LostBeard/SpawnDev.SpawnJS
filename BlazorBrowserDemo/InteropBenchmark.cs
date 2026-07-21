@@ -168,6 +168,25 @@ namespace BlazorBrowserDemo
                     }
                 });
 
+            // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
+            // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
+            // every callback and every promise settlement takes this path, so it is the highest frequency
+            // JS->.Net cost in a real app.
+            var inboundHits = 0;
+            using var inboundVoid = SJS.Callback.Create<int>(_ => inboundHits++);
+            spawn.Set("__benchInboundVoid", inboundVoid);
+            using var inboundValue = SJS.Callback.Create<int, int>(v => v + 1);
+            spawn.Set("__benchInboundValue", inboundValue);
+            blazor.CallVoid("eval",
+                "globalThis.__benchInboundVoidLoop = function(n) { for (var i = 0; i < n; i++) globalThis.__benchInboundVoid(i); };" +
+                "globalThis.__benchInboundValueLoop = function(n) { var t = 0; for (var i = 0; i < n; i++) t += globalThis.__benchInboundValue(i); return t; };");
+
+            MeasureOne("inbound: JS calls .Net void callback", iterations,
+                () => spawn.CallVoid("__benchInboundVoidLoop", iterations));
+
+            MeasureOne("inbound: JS calls .Net callback with a return", iterations,
+                () => _ = spawn.Call<int>("__benchInboundValueLoop", iterations));
+
             // Split the machinery cost by KIND. The gap between "marshal POCO" and the floor says how much
             // the machinery costs but not WHICH part, and guessing which part has been wrong every time it
             // has been guessed. These two arms do the member walk with the Javascript writes removed, so

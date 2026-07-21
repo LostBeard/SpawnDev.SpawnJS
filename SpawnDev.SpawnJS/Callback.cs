@@ -313,7 +313,7 @@ namespace SpawnDev.SpawnJS
         /// Marshals the JS argument array into the handler's parameters, invokes it, and returns the
         /// result wrapped in a one-element JS array so JS reads index 0.
         /// </summary>
-        internal static SpawnJSHandle JSToNetDispatch(string cmd, SpawnJSHandle argsArray)
+        internal static bool JSToNetDispatch(string cmd, SpawnJSHandle buffer, int offset, int length)
         {
             if (JS.Verbose) Console.WriteLine($">> JSToNetDispatch: {cmd}");
             if (!_jsToNetHandlers.TryGetValue(cmd, out var handler))
@@ -321,8 +321,13 @@ namespace SpawnDev.SpawnJS
             var method = handler.Func.Method;
             var parameters = method.GetParameters();
             var netArgs = new object?[parameters.Length];
+            // Arguments live in the caller's region of the shared inbound buffer. Reading past what
+            // Javascript actually wrote would pick up whatever a previous call left there, so a handler
+            // taking more parameters than it was called with gets nulls rather than stale values.
             for (var i = 0; i < parameters.Length; i++)
-                netArgs[i] = JS.MarshallJSToNet(parameters[i].ParameterType, argsArray, i);
+                netArgs[i] = i < length
+                    ? JS.MarshallJSToNet(parameters[i].ParameterType, buffer, offset + i)
+                    : null;
             // invoke first, then dispose. Disposing a `once` handler before the call would release its
             // JS function handle while that very call is still in flight.
             var result = handler.Func.DynamicInvoke(netArgs);
@@ -330,12 +335,13 @@ namespace SpawnDev.SpawnJS
             {
                 handler.Dispose();
             }
-            // Package the result as [result] so JS reads index 0 (mirror of the outbound [ret] wrapper).
-            var retArray = JS.NewJSArray();
-            if (method.ReturnType != typeof(void))
-                JS.MarshallNetToJS(retArray, 0, result);
+            // The result goes back in the FIRST slot of the caller's own region - the arguments there have
+            // already been consumed - exactly as the outbound direction returns its result. A void handler
+            // writes nothing and reports false, so the common case costs no write at all.
             if (JS.Verbose) Console.WriteLine($"<< JSToNetDispatch: {cmd}");
-            return retArray;
+            if (method.ReturnType == typeof(void)) return false;
+            JS.MarshallNetToJS(buffer, offset, result);
+            return true;
         }
         #endregion
 
