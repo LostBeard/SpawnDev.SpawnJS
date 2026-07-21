@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (obj == null || type == null)
             {
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
+                jsParent.SetProperty(jsKey, (string?)null);
             }
             else
             {

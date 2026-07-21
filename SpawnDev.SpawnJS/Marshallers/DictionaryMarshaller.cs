@@ -54,16 +54,20 @@ namespace SpawnDev.SpawnJS.Marshallers
                     // API accepts - numbers, strings, booleans, or a JSObject.
                     if (entry.Key is string key) JS.MarshallNetToJS(outObj, key, entry.Value);
                 }
-                // Assign through Javascript rather than Reflect.Set. The .Net runtime tags every JS
-                // object it proxies with an enumerable Symbol key, and a record-typed web API enumerates
-                // every own key and converts it to a string - which a Symbol cannot be. assignRecord
-                // rebuilds the object from its string keys on the JS side so what the API receives is
-                // clean. Detail in the JS command.
-                JS.NetRunVoid("assignRecord", new object?[] { jsParent.JSObjectRequired, jsKey, outObj.JSObjectRequired });
+                // Slot to slot, so neither object is ever proxied.
+                //
+                // This used to call a JS assignRecord command that rebuilt the object from its string
+                // keys. That existed because the .Net runtime tags every JS object it proxies with an
+                // enumerable Symbol, and a record-typed web API enumerates every own key and converts it
+                // to a string - which a Symbol cannot be, so WebGPU threw "Cannot convert a Symbol value
+                // to a string". Rebuilding stripped the tag.
+                //
+                // Not being proxied removes the tag at its source instead: there is nothing to strip.
+                jsParent.SetProperty(jsKey, outObj);
             }
             else
             {
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string?)null);
+                jsParent.SetProperty(jsKey, (string?)null);
             }
         }
 

@@ -166,19 +166,12 @@
             return new ctor(buffer, address, byteLength / elementSize);
         }
         // Assigns a record (a plain object of string keys) built .Net-side onto parent[key].
-        // The .Net runtime tags every JS object it proxies with an enumerable Symbol key. WebIDL converts
-        // a record<USVString, V> by enumerating EVERY own key and converting each to a string, and a
-        // Symbol cannot be converted - so handing a proxied object straight to such an API throws
-        // "Cannot convert a Symbol value to a string" (WebGPU createComputePipeline, constants).
-        // Object.entries yields only own enumerable STRING keys, so the rebuilt object is clean, and
-        // because it is created here and assigned here it is never proxied back and never re-tagged.
-        assignRecord(parent, key, source) {
-            if (source === void 0 || source === null) {
-                parent[key] = source;
-                return;
-            }
-            parent[key] = Object.fromEntries(Object.entries(source));
-        }
+        // assignRecord was removed. It rebuilt a record from its own string keys to drop the enumerable
+        // Symbol the .Net runtime tags every object it PROXIES with - which a record-typed web API chokes
+        // on, because it enumerates every own key and converts each to a string ("Cannot convert a Symbol
+        // value to a string", WebGPU createComputePipeline constants).
+        // The marshallers now write objects through the slot table, so a descriptor is never proxied and
+        // never tagged. Stripping the tag is unnecessary once nothing applies it.
         // returns string[] of the target's property names.
         // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
         // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the

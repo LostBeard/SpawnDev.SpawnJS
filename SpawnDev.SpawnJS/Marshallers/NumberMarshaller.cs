@@ -96,7 +96,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 if (value == null)
                 {
-                    Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
+                    jsParent.SetProperty(jsKey, (string?)null);
                     return;
                 }
 

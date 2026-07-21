@@ -221,6 +221,34 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// A marshalled object must carry NO enumerable Symbol keys.<br/>
+        /// The .Net runtime tags every Javascript object it PROXIES with one, and a record-typed web API
+        /// enumerates every own key and converts each to a string - which a Symbol cannot be - so a tagged
+        /// descriptor makes WebGPU throw "Cannot convert a Symbol value to a string". The dictionary path
+        /// used to rebuild objects Javascript side to strip the tag; the marshallers now write through the
+        /// slot table instead, so nothing is ever proxied and there is no tag to strip.<br/>
+        /// This covers the PLAIN object path, which never had that rebuild and so was never protected.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task MarshalledObjectHasNoEnumerableSymbolKeysTest()
+        {
+            JS.Set("__symbolProbe", new Holder { Label = "x", Count = 1, Shape = new DerivedShape { Kind = "d", Extra = 2 } });
+
+            var onHolder = JS.Call<int>("eval",
+                "Object.getOwnPropertySymbols(globalThis.__symbolProbe)" +
+                ".filter(s => Object.getOwnPropertyDescriptor(globalThis.__symbolProbe, s).enumerable).length");
+            if (onHolder != 0)
+                throw new Exception($"the marshalled object carries {onHolder} enumerable Symbol key(s)");
+
+            // and the NESTED object too - a nested descriptor is exactly what a web API walks into
+            var onNested = JS.Call<int>("eval",
+                "Object.getOwnPropertySymbols(globalThis.__symbolProbe.shape)" +
+                ".filter(s => Object.getOwnPropertyDescriptor(globalThis.__symbolProbe.shape, s).enumerable).length");
+            if (onNested != 0)
+                throw new Exception($"the nested object carries {onNested} enumerable Symbol key(s)");
+        }
+
+        /// <summary>
         /// The fast path itself: a sealed typed member round trips. Runs after the cases above so that the
         /// cached marshaller has already been used at least once by the time this asserts on it.
         /// </summary>

@@ -88,7 +88,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
             else
             {
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
+                jsParent.SetProperty(jsKey, (string?)null);
             }
         }
     }

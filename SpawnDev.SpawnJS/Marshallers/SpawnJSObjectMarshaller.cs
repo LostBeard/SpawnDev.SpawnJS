@@ -18,11 +18,13 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value is SpawnJSObject jsRef && jsRef.JSRef != null)
             {
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, jsRef.JSRef.JSObject);
+                // handle to handle: neither the parent nor the wrapper's value becomes a .Net proxy, so
+                // neither picks up the runtime's enumerable Symbol tag
+                jsParent.SetProperty(jsKey, jsRef.JSRef.JSHandle);
             }
             else
             {
-                Reflect.Set(jsParent.JSObjectRequired, jsKey, (string)null!);
+                jsParent.SetProperty(jsKey, (string?)null);
             }
         }
     }
