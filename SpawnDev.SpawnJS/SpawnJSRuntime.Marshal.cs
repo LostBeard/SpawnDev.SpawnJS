@@ -296,8 +296,12 @@ namespace SpawnDev.SpawnJS
                 NetToJSCall(cmd, offset, args.Length);
                 // the result comes back in the first slot of this call's own region
                 var netRet = MarshallJSToNet(type, _netToJSBuffer, (double)offset);
-                if (netRet != null && netRet.GetType() != type)
-                    throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {type.Name} got {netRet.GetType().Name}");
+                // A Nullable<T> target is satisfied by a T. There is no boxed Nullable<T> at runtime -
+                // boxing one with a value produces a boxed T - so comparing against the declared type
+                // rejects every non-null nullable value type, Get<int?> included.
+                var expected = Nullable.GetUnderlyingType(type) ?? type;
+                if (netRet != null && netRet.GetType() != expected)
+                    throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {expected.Name} got {netRet.GetType().Name}");
                 return netRet;
             }
             finally

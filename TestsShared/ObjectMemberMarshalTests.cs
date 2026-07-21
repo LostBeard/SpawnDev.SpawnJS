@@ -201,6 +201,26 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// Reading a nullable VALUE type directly, which is a different path from reading one as a member
+        /// of an object.<br/>
+        /// NetRun compared the returned value's type against the DECLARED type, and there is no boxed
+        /// Nullable&lt;T&gt; at runtime - boxing one with a value produces a boxed T - so every non-null
+        /// nullable value type read threw "expected Nullable`1 got Int32". Nothing caught it because the
+        /// existing nullable tests all used string?, a reference type, where the two agree.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NullableValueTypeReadsDirectlyTest()
+        {
+            JS.Set("__nullableDirect", 7);
+            var value = JS.Get<int?>("__nullableDirect");
+            if (value != 7) throw new Exception($"int? read back as {value}");
+
+            JS.Set("__nullableDirectNull", (object?)null);
+            var missing = JS.Get<int?>("__nullableDirectNull");
+            if (missing != null) throw new Exception($"null read back as {missing}");
+        }
+
+        /// <summary>
         /// The fast path itself: a sealed typed member round trips. Runs after the cases above so that the
         /// cached marshaller has already been used at least once by the time this asserts on it.
         /// </summary>

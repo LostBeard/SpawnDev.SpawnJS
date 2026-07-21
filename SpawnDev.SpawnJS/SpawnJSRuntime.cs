@@ -91,6 +91,11 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new EnumStringMarshaller());
             Marshallers.Add(new DateTimeMarshaller());
             Marshallers.Add(new EpochDateTimeMarshaller());
+            // after StructMarshaller and ObjectMarshaller deliberately: matching runs in reverse
+            // registration order, and a ValueTuple is a struct while a Tuple is a class, so both of
+            // those would otherwise claim tuples first and property-walk them into {Item1, Item2, ...}
+            // instead of producing the Javascript array a tuple is meant to be
+            Marshallers.Add(new TupleMarshaller());
             // create a new instance of SpawnJSInterop Javascript class for interop with this isntance of .Net
             SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
             // get _netToJSCall function in SpawnJSInterop
