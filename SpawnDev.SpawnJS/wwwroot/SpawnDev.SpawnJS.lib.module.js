@@ -13,6 +13,13 @@
             this.dotnetRuntime = dotnetRuntime;
             this.id = `_${++SpawnJSInterop._idNext}`;
             SpawnJSInterop.instances[this.id] = this;
+            // The slot helpers are plain globals - they are bound by JSImport to a fixed name and have no
+            // instance to reach through - but wasmMemoryBuffer() is an instance method, because finding
+            // the memory needs the dotnet runtime object. This is the pointer they use. It follows the
+            // same singleton shape as __sjsSlots.
+            // With more than one runtime in a scope the LAST one wins; the slot table has the same
+            // property, so anything that changes here has to change there too.
+            globalThis.__sjsInterop = this;
         }
         _in(key, obj) {
             if (obj === null || obj === void 0) return false;
@@ -398,6 +405,98 @@ globalThis.__sjsGetAt = globalThis.__sjsGet;
 // parent[key] there. Before, both went through JSParent, which is a JSObject, so every read of a
 // number or a string out of a borrowed handle resolved a proxy for the object holding it.
 globalThis.__sjsSelf = function (slot) { return globalThis.__sjsSlots[slot]; };
+
+// ---------------------------------------------------------------------------------------------
+// PROBE: an argument buffer living in .Net's OWN memory rather than in Javascript's.
+//
+// Javascript can view the WebAssembly linear memory directly, so a buffer placed THERE is free to
+// both sides: .Net writes are plain stores, and Javascript reads are ordinary DataView reads. The
+// buffers we have today live Javascript side, which is free for Javascript but costs .Net a boundary
+// crossing PER ARGUMENT. Moving the buffer into .Net memory collapses an N argument call from N+1
+// crossings to 1 - the signal that says "go, at this offset".
+//
+// DataView rather than a typed array because the arguments are heterogeneous: a tag byte and a
+// payload at an arbitrary byte offset, read with getUint8/getFloat64, off one view over the whole
+// heap. A Float64Array would force one type and 8 byte alignment.
+//
+// ⚠️ DataView is BIG ENDIAN by default. WebAssembly memory is little endian, so every get/set here
+// passes littleEndian=true explicitly. Omitting it does not throw - it silently byte swaps.
+//
+// ⚠️ Growing the WebAssembly memory DETACHES the old ArrayBuffer and every view over it goes to
+// byteLength 0. The view is cached because re acquiring it per call would reintroduce the crossing
+// this exists to remove, so every use checks for detachment first and rebinds.
+// The runtime already publishes a TypedArray view over the WHOLE linear memory for each element type
+// - HEAPU8, HEAPF64 and friends - and those use the PLATFORM's endianness, which is what .Net writes
+// and what Javascript reads everywhere else. Reading through them means there is no byte order
+// question to get wrong: no flag, no default to remember, nothing to forget at one call site out of
+// fifty. Element indexing is also the shape engines optimise hardest.
+//
+// Emscripten REPLACES these views when the memory grows, so they are looked up per call rather than
+// cached. That is two property reads Javascript side and no boundary crossing - and it makes the
+// detachment problem disappear rather than needing a check, because the runtime maintains them.
+//
+// ⚠️ HEAPF64 is indexed in ELEMENTS, so a byte address becomes address >>> 3. That requires the
+// address to be 8 byte aligned; a misaligned buffer would silently read the wrong element, so the
+// alignment is asserted at bind time rather than assumed.
+globalThis.__sjsHeaps = function () {
+    var m = globalThis.__sjsInterop?.dotnetRuntime?.Module;
+    if (!m) throw new Error('SpawnJSInterop: the dotnet Module is not reachable');
+    return m;
+};
+// Reports which HEAP views this runtime actually exposes, so the design rests on measurement rather
+// than on what Emscripten usually exports.
+globalThis.__sjsHeapViewNames = function () {
+    var m = globalThis.__sjsHeaps();
+    var names = ['HEAP8', 'HEAPU8', 'HEAP16', 'HEAPU16', 'HEAP32', 'HEAPU32', 'HEAPF32', 'HEAPF64'];
+    var found = [];
+    for (var i = 0; i < names.length; i++) if (m[names[i]]) found.push(names[i]);
+    return found.join(',');
+};
+globalThis.__sjsArgAddress = 0;
+globalThis.__sjsArgByteLength = 0;
+globalThis.__sjsBindArgBuffer = function (address, byteLength) {
+    if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument buffer address ${address} is not 8 byte aligned`);
+    globalThis.__sjsArgAddress = address;
+    globalThis.__sjsArgByteLength = byteLength;
+    return true;
+};
+// PROBE ONLY: sums `count` float64 arguments .Net wrote at `offset` bytes.
+// The point is not the sum - it is that .Net paid ZERO crossings to write them and ONE to deliver.
+globalThis.__sjsHeapSum = function (offset, count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (globalThis.__sjsArgAddress + offset) >>> 3;
+    var total = 0;
+    for (var i = 0; i < count; i++) total += f64[at + i];
+    return total;
+};
+// PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
+// today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
+// isolates exactly one thing: what .Net paid to get the arguments here.
+globalThis.__sjsSlotSum = function (argsSlot, count) {
+    var a = globalThis.__sjsSlots[argsSlot];
+    var total = 0;
+    for (var i = 0; i < count; i++) total += a[i];
+    return total;
+};
+// PROBE ONLY: a heterogeneous argument list, structure of arrays rather than interleaved.
+// Interleaving a tag byte with an eight byte payload gives a stride of 9, which breaks the alignment
+// HEAPF64 indexing needs - so tags live in their own region and payloads in theirs, parallel by
+// index. Both regions are read through the runtime's own views, so both are platform endian.
+// tag 1 = number, 2 = boolean, 3 = slot reference.
+globalThis.__sjsHeapTaggedSum = function (tagOffset, valueOffset, count) {
+    var m = globalThis.__sjsHeaps();
+    var u8 = m.HEAPU8;
+    var f64 = m.HEAPF64;
+    var tagAt = globalThis.__sjsArgAddress + tagOffset;
+    var valueAt = (globalThis.__sjsArgAddress + valueOffset) >>> 3;
+    var total = 0;
+    for (var i = 0; i < count; i++) {
+        var value = f64[valueAt + i];
+        if (u8[tagAt + i] === 3) value = globalThis.__sjsSlots[value];
+        total += value;
+    }
+    return total;
+};
 // A property write whose VALUE type is decided by the .Net binding rather than by this function - the
 // write-side twin of __sjsGet. It covers the cases the typed setters do not: an arbitrary Any value, a
 // JSObject the caller genuinely holds, and a byte array. In every one of them the value was never the

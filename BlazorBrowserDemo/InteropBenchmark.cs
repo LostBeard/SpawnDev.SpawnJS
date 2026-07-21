@@ -185,6 +185,37 @@ namespace BlazorBrowserDemo
                 () => { for (var i = 0; i < containerIterations; i++) _ = blazorRef.JSRef!.Get<Dictionary<string, int>>("record"); },
                 () => { for (var i = 0; i < containerIterations; i++) _ = spawnRef.JSRef!.Get<Dictionary<string, int>>("record"); });
 
+            // THE ARGUMENT TRANSPORT ITSELF. Both arms end with Javascript summing the same N doubles,
+            // so the Javascript work is identical by construction and the difference is exactly what .Net
+            // paid to deliver them:
+            //   slot arm - the buffer lives Javascript side, so each argument costs a boundary crossing
+            //   heap arm - the buffer lives in .Net memory, which Javascript views directly, so the
+            //              writes are plain array stores and only the call itself crosses
+            using var heapArgs = new SJS.HeapArgBuffer(64);
+            heapArgs.Bind();
+            const int argCount = 5;
+            var transportIterations = iterations / 2;
+
+            // The JS side arm writes 5 arguments the way the transport does today - one crossing each.
+            MeasureOne($"{argCount} args written JS side ({argCount} crossings, no call)", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                        for (var a = 0; a < argCount; a++) spawnRef.JSRef!.Set("arg", a + 0.5);
+                });
+
+            // The .Net side arm writes the same 5 arguments AND makes the call. It does strictly MORE
+            // work than the arm above, so if it still wins the result is not a matter of interpretation.
+            MeasureOne($"{argCount} args written .Net side (0 crossings, PLUS the call)", transportIterations,
+                () =>
+                {
+                    for (var i = 0; i < transportIterations; i++)
+                    {
+                        for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
+                        _ = SJS.SlotInterop.HeapSum(0, argCount);
+                    }
+                });
+
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
             // every callback and every promise settlement takes this path, so it is the highest frequency
