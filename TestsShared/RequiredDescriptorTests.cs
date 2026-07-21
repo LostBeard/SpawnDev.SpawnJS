@@ -125,10 +125,7 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task ConstructorSuppliedRequiredMembersCrossTest()
         {
-            // built Javascript side on purpose: `new Uint8Array(byte[])` goes through HeapView, which
-            // does not resolve its module in this test host, and that failure has nothing to do with the
-            // required-member contract this test exists to check
-            using var salt = JS.New<Uint8Array>("Uint8Array", 4);
+            using var salt = new Uint8Array(new byte[] { 1, 2, 3, 4 });
             var pbkdf2 = new Pbkdf2Params(salt) { Iterations = 1000, Hash = "SHA-256" };
             JS.Set("__reqPbkdf2", pbkdf2);
 

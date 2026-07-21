@@ -536,54 +536,32 @@ namespace SpawnDev.SpawnJS.Toolbox
         {
             Dispose(false);
         }
-        static string? _ModulePath = null;
-        static string ModulePath
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_ModulePath))
-                {
-                    var modulePaths = new string[]{
-                        "Module",                   // .Net 8 and earlier
-                        "Blazor.runtime.Module" ,   // .Net 9 and up
-                    };
-                    foreach (var mPath in modulePaths)
-                    {
-                        if (!JS.IsUndefined(mPath))
-                        {
-                            _ModulePath = mPath;
-                            break;
-                        }
-                    }
-                }
-                if (string.IsNullOrEmpty(_ModulePath))
-                {
-                    throw new Exception("SpawnDev.SpawnJS.HeapView: Unsupported .Net version. Module not found.");
-                }
-                return _ModulePath;
-            }
-        }
-
-        static Lazy<string> HeapName = new Lazy<string>(() => $"{ModulePath}.HEAPU8");
-
-        static Lazy<string> HeapBufferName = new Lazy<string>(() => $"{HeapName.Value}.buffer");
+        // The heap is reached through SpawnJSRuntime's wasmMemoryBuffer primitive, NOT by reading a global
+        // by name. The ported code carried BlazorJS's name probe - "Module" for .Net 8 and earlier,
+        // "Blazor.runtime.Module" for .Net 9 and up - and threw "Unsupported .Net version. Module not
+        // found." on every host that is neither. That is wrong here for two reasons: SpawnJS has no Blazor
+        // dependency by design, so `Blazor` does not exist in a plain WASM or console host; and the .Net 9+
+        // runtime does not publish `Module` as a global at all. The Javascript side already resolves the
+        // memory from the runtime instance it was handed, trying Module.HEAPU8, Module.wasmMemory,
+        // localHeapViewU8() and getHeapU8() in turn, which is version and host independent.
         /// <summary>
         /// Returns the current ArrayBuffer the Heap is using
         /// </summary>
-        /// <returns></returns>
-        public static ArrayBuffer GetHeapBuffer() => JS.Get<ArrayBuffer>(HeapBufferName.Value);
+        public static ArrayBuffer GetHeapBuffer() => JS.NetRun<ArrayBuffer>("wasmMemoryBuffer");
         /// <summary>
-        /// Gets the size of the current ArrayBuffer the Heap is using 
+        /// Gets the size of the current ArrayBuffer the Heap is using
         /// </summary>
-        /// <returns></returns>
-        public static long GetHeapBufferSize() => JS.Get<long>($"{ModulePath}.HEAPU8.byteLength");
+        public static long GetHeapBufferSize()
+        {
+            using var buffer = GetHeapBuffer();
+            return buffer.ByteLength;
+        }
         /// <summary>
         /// Returns the current Uint8Array the Heap is using.<br/>
         /// The underlying Uint8Array ArrayBuffer will become detached when it is resized.<br/>
         /// This happens VERY frequently, therefore this Uint8Array must be used immediately.
         /// </summary>
-        /// <returns></returns>
-        public static Uint8Array GetHeap() => JS.Get<Uint8Array>(HeapName.Value);
+        public static Uint8Array GetHeap() => JS.CreateHeapView<Uint8Array>("Uint8Array", 0, GetHeapBufferSize());
         /// <summary>
         /// SpawnJSRuntime
         /// </summary>

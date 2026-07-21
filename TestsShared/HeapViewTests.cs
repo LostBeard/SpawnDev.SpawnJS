@@ -15,6 +15,54 @@ namespace TestsShared
     public class HeapViewTests(SpawnJSRuntime JS)
     {
         /// <summary>
+        /// The heap must be reachable WITHOUT any Blazor global.<br/>
+        /// The port carried BlazorJS's module-name probe ("Module" for .Net 8 and earlier,
+        /// "Blazor.runtime.Module" for .Net 9 and up) and threw "Unsupported .Net version. Module not
+        /// found." on any host that is neither - which is every SpawnJS host, since SpawnJS has no Blazor
+        /// dependency by design. These three entry points are the ones that went through it.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task HeapIsReachableWithoutBlazorGlobalsTest()
+        {
+            var size = HeapView.GetHeapBufferSize();
+            if (size <= 0) throw new Exception($"heap buffer size reported as {size}");
+
+            using var buffer = HeapView.GetHeapBuffer();
+            if (buffer.ByteLength != size)
+                throw new Exception($"heap buffer byteLength {buffer.ByteLength} does not match reported size {size}");
+
+            using var heap = HeapView.GetHeap();
+            if (heap.Length != size)
+                throw new Exception($"heap view length {heap.Length} does not match heap size {size}");
+
+            // and confirm the reason the old path failed is real, not incidental: neither Blazor global
+            // that the ported probe looked for exists in this host
+            if (!JS.IsUndefined("Blazor"))
+                throw new Exception("this host DOES have a Blazor global, so this test is not proving host independence");
+        }
+
+        /// <summary>
+        /// `new Uint8Array(byte[])` goes .Net array -> HeapView -> ArrayBuffer, which is the path the
+        /// Blazor module probe broke. It is the most ordinary thing a consumer can write, so it gets its
+        /// own regression test rather than being covered only indirectly.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task TypedArrayFromDotnetArrayRoundTripsTest()
+        {
+            var source = new byte[] { 9, 8, 7, 6, 5 };
+            using var array = new Uint8Array(source);
+
+            if (array.Length != source.Length)
+                throw new Exception($"length crossed as {array.Length}, expected {source.Length}");
+
+            // read the bytes back out of Javascript - a wrong-memory view is still a well formed array
+            var back = array.ReadBytes();
+            for (var i = 0; i < source.Length; i++)
+                if (back[i] != source[i])
+                    throw new Exception($"byte {i} crossed as {back[i]}, expected {source[i]}");
+        }
+
+        /// <summary>
         /// The view Javascript receives must be a genuine Uint8Array, not a wrapper around a descriptor
         /// object. This is exactly what the old JSON descriptor mechanism would produce here, since SpawnJS
         /// has no hook for it - so this test is what tells the two apart.
