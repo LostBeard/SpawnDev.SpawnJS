@@ -80,6 +80,32 @@ namespace SpawnDev.SpawnJS
         static double ToIndex(object key)
             => Convert.ToDouble(key, System.Globalization.CultureInfo.InvariantCulture);
 
+        /// <summary>
+        /// Prepares a slot-native method invocation on this handle's value.<br/>
+        /// <br/>
+        /// The old path resolved a proxy for the FUNCTION and another for the TARGET, purely to hand them
+        /// to Reflect.apply - two per call, on a surface whose whole purpose is calling methods. With both
+        /// sides slotted the boundary carries a slot number, a name and a slot number.<br/>
+        /// <br/>
+        /// Returns false when the target or the argument array cannot be addressed that way, and the
+        /// caller takes the path it always had. The caller owns <paramref name="argsHandle"/> and must
+        /// dispose it.
+        /// </summary>
+        internal bool TryPrepareSlotInvoke(object?[] args, out double targetSlot, out double argsSlot, out SpawnJSHandle? argsHandle)
+        {
+            argsSlot = 0;
+            argsHandle = null;
+            if (!TryGetSlot(out targetSlot)) return false;
+            var handle = JS.MarshallNetArrayToJSArray(args);
+            if (handle == null || !handle.TryGetSlot(out argsSlot))
+            {
+                handle?.Dispose();
+                return false;
+            }
+            argsHandle = handle;
+            return true;
+        }
+
         #region Reading this handle's OWN value
         /// <summary>
         /// Where this handle's value lives, if the slot table can reach it.<br/>

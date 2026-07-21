@@ -392,6 +392,45 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// Invoking a method through the handle extension surface creates no proxy. That path resolved TWO
+        /// per call - one for the function and one for the target - purely to hand them to Reflect.apply,
+        /// on a surface whose entire purpose is calling methods. A Date read back through the marshaller
+        /// takes it, by calling getTime.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task HandleInvokeCreatesNoProxyTest()
+        {
+            using var target = JS.New("Object");
+            JS.Set("__invokeTarget", target);
+            JS.CallVoid("eval", "globalThis.__invokeTarget.twice = function (n) { return n * 2; };" +
+                                "globalThis.__invokeTarget.name = function () { return 'named'; };" +
+                                "globalThis.__invokeTarget.flag = function () { return true; };" +
+                                "globalThis.__invokeTarget.noop = function () { globalThis.__invokeTarget.ran = true; };");
+            var counting = SpawnJSRuntime.CountCalls;
+            SpawnJSRuntime.CountCalls = true;
+            try
+            {
+                var before = ProxyCount();
+                var doubled = target.JSHandle.InvokePropertyDouble("twice", 21);
+                var named = target.JSHandle.InvokePropertyString("name");
+                var flag = target.JSHandle.InvokePropertyBoolean("flag");
+                target.JSHandle.InvokePropertyVoid("noop");
+                var created = ProxyCount() - before;
+
+                if (doubled != 42) throw new Exception($"twice(21) returned {doubled}");
+                if (named != "named") throw new Exception($"name() returned '{named}'");
+                if (!flag) throw new Exception("flag() returned false");
+                if (!JS.Call<bool>("eval", "globalThis.__invokeTarget.ran === true")) throw new Exception("the void call did not run");
+                if (created != 0) throw new Exception($"four method invocations created {created} JSObject proxy(s)");
+            }
+            finally
+            {
+                SpawnJSRuntime.CountCalls = counting;
+                JS.CallVoid("eval", "delete globalThis.__invokeTarget");
+            }
+        }
+
+        /// <summary>
         /// A value that is not a reference cannot be owned by a handle, and the read falls back rather than
         /// inventing a meaning for it - so it fails exactly as it always did instead of handing back a
         /// wrapper around a number whose every property reads undefined.

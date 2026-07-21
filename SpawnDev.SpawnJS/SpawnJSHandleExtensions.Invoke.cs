@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Native;
+﻿using SpawnDev.SpawnJS.Native;
 using System.Text.Json;
 
 namespace SpawnDev.SpawnJS
@@ -755,6 +755,11 @@ namespace SpawnDev.SpawnJS
         /// <param name="args"></param>
         public static void InvokePropertyVoidApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
+            // slot native: neither the function nor the target becomes a proxy
+            if (_this.TryPrepareSlotInvoke(args, out var slot, out var argsSlot, out var argsHandle))
+            {
+                using (argsHandle) { SlotInterop.InvokeVoid(slot, identifier, argsSlot); return; }
+            }
             using var property = _this.GetPropertyAsJSHandle(identifier);
             Reflect.ApplyVoid(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
@@ -1083,6 +1088,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static string? InvokePropertyStringApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
+            // slot native: neither the function nor the target becomes a proxy
+            if (_this.TryPrepareSlotInvoke(args, out var slot, out var argsSlot, out var argsHandle))
+            {
+                using (argsHandle) { return SlotInterop.InvokeString(slot, identifier, argsSlot); }
+            }
             using var property = _this.GetPropertyAsJSHandle(identifier);
             return Reflect.ApplyString(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
@@ -1135,6 +1145,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static int InvokePropertyInt32Apply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
+            // slot native: neither the function nor the target becomes a proxy
+            if (_this.TryPrepareSlotInvoke(args, out var slot, out var argsSlot, out var argsHandle))
+            {
+                using (argsHandle) { return (int)SlotInterop.InvokeDouble(slot, identifier, argsSlot); }
+            }
             using var property = _this.GetPropertyAsJSHandle(identifier);
             return Reflect.ApplyInt32(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
@@ -1187,6 +1202,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static double InvokePropertyDoubleApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
+            // slot native: neither the function nor the target becomes a proxy
+            if (_this.TryPrepareSlotInvoke(args, out var slot, out var argsSlot, out var argsHandle))
+            {
+                using (argsHandle) { return SlotInterop.InvokeDouble(slot, identifier, argsSlot); }
+            }
             using var property = _this.GetPropertyAsJSHandle(identifier);
             return Reflect.ApplyDouble(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
@@ -1239,6 +1259,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public static bool InvokePropertyBooleanApply(this SpawnJSHandle _this, string identifier, object?[] args)
         {
+            // slot native: neither the function nor the target becomes a proxy
+            if (_this.TryPrepareSlotInvoke(args, out var slot, out var argsSlot, out var argsHandle))
+            {
+                using (argsHandle) { return SlotInterop.InvokeBoolean(slot, identifier, argsSlot); }
+            }
             using var property = _this.GetPropertyAsJSHandle(identifier);
             return Reflect.ApplyBoolean(property!.JSObjectRequired, _this.JSObjectRequired, args);
         }
