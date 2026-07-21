@@ -1,4 +1,4 @@
-namespace SpawnDev.SpawnJS.Marshallers
+﻿namespace SpawnDev.SpawnJS.Marshallers
 {
     /// <summary>
     /// Marshalls SpawnJSObject and types that derive from SpawnJSObject
@@ -45,6 +45,19 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 jsParent.SetProperty(jsKey, (string?)null);
             }
+        }
+        /// <inheritdoc/>
+        /// <remarks>
+        /// A wrapper already holds a slot, so passing one costs a number. This is the case that matters
+        /// most for a GPU dispatch, where nearly every argument is a wrapper.
+        /// </remarks>
+        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+        {
+            tag = ArgTag.Slot;
+            payload = 0;
+            return value is SpawnJSObject jsRef
+                && jsRef.JSRef != null
+                && jsRef.JSRef.JSHandle.TryGetSlot(out payload);
         }
     }
 }

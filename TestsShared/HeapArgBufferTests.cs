@@ -220,7 +220,7 @@ namespace TestsShared
         public async Task InterleavedFrameReadsEveryValueTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.Bind();
+            frame.BindProbe();
             double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
             for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
 
@@ -240,26 +240,26 @@ namespace TestsShared
         public async Task InterleavedTagAndValueDoNotCorruptEachOtherTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.Bind();
+            frame.BindProbe();
             // write the tag FIRST, then the value, so an overlapping value write would clear the tag
-            frame.WriteTagged(0, HeapArgFrame.TagBoolean, 1);
+            frame.WriteTaggedByte(0, HeapArgFrame.TagBoolean, 1);
             frame.Write(0, 7.5);
-            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+            if (frame.ReadTagByte(0) != HeapArgFrame.TagBoolean)
                 throw new Exception("writing a value cleared the tag of the same slot");
             if (frame.Read(0) != 7.5)
                 throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
 
             // and the other order - a tag write must not touch the value
-            frame.WriteTagged(1, HeapArgFrame.TagNumber, 9.25);
+            frame.WriteTaggedByte(1, HeapArgFrame.TagNumber, 9.25);
             if (frame.Read(1) != 9.25)
                 throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
 
             // a tag on one slot must not bleed into its neighbours
             frame.Write(2, 4.0);
-            frame.WriteTagged(1, HeapArgFrame.TagSlot, 9.25);
+            frame.WriteTaggedByte(1, HeapArgFrame.TagSlot, 9.25);
             if (frame.Read(2) != 4.0)
                 throw new Exception("a tag write bled into the next slot");
-            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+            if (frame.ReadTagByte(0) != HeapArgFrame.TagBoolean)
                 throw new Exception("a tag write bled into the previous slot");
         }
 
@@ -271,12 +271,12 @@ namespace TestsShared
         public async Task InterleavedFrameTaggedSumResolvesSlotsTest()
         {
             using var frame = new HeapArgFrame(64);
-            frame.Bind();
+            frame.BindProbe();
             var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
             try
             {
-                frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
-                frame.WriteTagged(1, HeapArgFrame.TagNumber, 2);
+                frame.WriteTaggedByte(0, HeapArgFrame.TagSlot, slot);
+                frame.WriteTaggedByte(1, HeapArgFrame.TagNumber, 2);
                 var sum = SlotInterop.FrameTaggedSum(2);
                 if (sum != 42)
                     throw new Exception($"the interleaved tagged frame summed to {sum}, expected 42");
@@ -300,6 +300,112 @@ namespace TestsShared
                 var slotAddress = frame.Address + i * HeapArgFrame.Stride;
                 if (slotAddress % 8 != 0)
                     throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
+            }
+        }
+
+        /// <summary>
+        /// REGRESSION. Binding a probe frame must not disturb the LIVE TRANSPORT.<br/>
+        /// <br/>
+        /// They shared one global address at first, so binding any probe silently redirected every
+        /// transport call to read the probe's memory instead of the runtime's. Nothing threw - arguments
+        /// simply came from the wrong place, and a call read whatever happened to be there.<br/>
+        /// <br/>
+        /// The whole suite passed anyway, because the tests that bind a frame only make calls that take
+        /// the slot fast path and never reach the generic dispatcher. The benchmark caught it, using a
+        /// dotted path. This closes that gap: bind a probe, then make a call that MUST go through the
+        /// transport, and check the answer.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task BindingAProbeFrameDoesNotDisturbTheTransportTest()
+        {
+            JS.CallVoid("eval", "globalThis.__transportProbe = { value: 4242, nested: { deep: 7 } }");
+            try
+            {
+                // a dotted path defeats every fast path, so this is the generic dispatcher and its
+                // arguments travel through the transport frame
+                if (JS.Get<int>("__transportProbe.value") != 4242)
+                    throw new Exception("the transport was already wrong before any probe was bound");
+
+                using var probe = new HeapArgFrame(64);
+                probe.BindProbe();
+                probe.WriteTagged(0, HeapArgFrame.TagNumber, 999);
+
+                var afterBind = JS.Get<int>("__transportProbe.value");
+                if (afterBind != 4242)
+                    throw new Exception($"after binding a probe frame the transport read {afterBind}, expected 4242 - the probe took over the transport's frame address");
+
+                // and a call whose result is an OBJECT, which comes back as a slot through the frame
+                using var nested = JS.Get<SpawnJSObject>("__transportProbe.nested");
+                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
+                    throw new Exception("an object result did not survive a probe frame being bound");
+            }
+            finally
+            {
+                JS.CallVoid("eval", "delete globalThis.__transportProbe");
+            }
+        }
+
+        /// <summary>
+        /// The transport itself, end to end, over every argument shape it can carry: a number, a boolean,
+        /// null, a string (interned to a slot) and an object (already a slot).<br/>
+        /// Runs the SAME assertions with the frame off and on, so the two transports are held to one
+        /// standard rather than the new one being trusted because it is new.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task TransportCarriesEveryArgumentShapeTest()
+        {
+            var wasFrame = SpawnJSRuntime.UseArgFrame;
+            JS.CallVoid("eval",
+                "globalThis.__shapeProbe = function (n, b, s, o, x) {" +
+                "  return `${typeof n}:${n}|${typeof b}:${b}|${typeof s}:${s}|${o === null ? 'null' : typeof o.tag}|${x === null ? 'null' : typeof x}`;" +
+                "}");
+            JS.CallVoid("eval", "globalThis.__shapeObj = { tag: 'obj' }");
+            try
+            {
+                using var obj = JS.Get<SpawnJSObject>("__shapeObj")!;
+                foreach (var useFrame in new[] { false, true })
+                {
+                    SpawnJSRuntime.UseArgFrame = useFrame;
+                    var which = useFrame ? "frame" : "buffer";
+                    var got = JS.Call<string>("__shapeProbe", 42.5, true, "hello", obj, null);
+                    const string expected = "number:42.5|boolean:true|string:hello|string|null";
+                    if (got != expected)
+                        throw new Exception($"[{which}] carried '{got}', expected '{expected}'");
+                }
+            }
+            finally
+            {
+                SpawnJSRuntime.UseArgFrame = wasFrame;
+                JS.CallVoid("eval", "delete globalThis.__shapeProbe; delete globalThis.__shapeObj");
+            }
+        }
+
+        /// <summary>
+        /// A repeated string argument is interned to a slot, so the second use costs what a number costs.
+        /// The value must still arrive intact - an intern table that returned the wrong slot would be a
+        /// silent data corruption, so this checks the string itself, not just the cache behaviour.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task InternedStringArgumentsStayCorrectTest()
+        {
+            JS.CallVoid("eval", "globalThis.__internProbe = function (s) { return s + '!'; }");
+            try
+            {
+                var texts = new[] { "alpha", "beta", "alpha", "gamma", "beta", "alpha" };
+                foreach (var text in texts)
+                {
+                    var got = JS.Call<string>("__internProbe", text);
+                    if (got != text + "!")
+                        throw new Exception($"an interned string argument arrived as '{got}', expected '{text}!'");
+                }
+                // a string past the intern length limit must still work, on the ordinary path
+                var longText = new string('z', SpawnDev.SpawnJS.Marshallers.StringMarshaller.InternMaxLength + 10);
+                if (JS.Call<string>("__internProbe", longText) != longText + "!")
+                    throw new Exception("a string too long to intern did not survive the ordinary path");
+            }
+            finally
+            {
+                JS.CallVoid("eval", "delete globalThis.__internProbe");
             }
         }
 

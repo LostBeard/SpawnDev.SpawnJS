@@ -61,6 +61,10 @@ namespace SpawnDev.SpawnJS
         private SpawnJSHandle _netToJSBuffer;
         private SpawnJSHandle _jsToNetBuffer;
         /// <summary>
+        /// Outbound call arguments, in .Net's own memory. See <see cref="UseArgFrame"/>.
+        /// </summary>
+        private HeapArgFrame _argFrame = null!;
+        /// <summary>
         /// JSObject marshallers used for marshalling data between .Net and Javasript
         /// </summary>
         public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
@@ -111,6 +115,11 @@ namespace SpawnDev.SpawnJS
             _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
             Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
+            // The ARGUMENT FRAME: pinned .Net memory that Javascript views directly, so outbound call
+            // arguments are written with plain stores and nothing crosses to deliver them. Allocated and
+            // bound once here - binding is itself a crossing, and not paying crossings is the point.
+            _argFrame = new HeapArgFrame();
+            _argFrame.Bind();
             Initializing = false;
             _instance = this;
         }

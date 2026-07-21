@@ -32,6 +32,33 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// </summary>
         public abstract void NetToJS(Type? typeToConvert, SpawnJSHandle jsParent, object jsKey, object? value);
         /// <summary>
+        /// Offers this value as a single ARGUMENT-FRAME slot: a tag and eight bytes, written into .Net's
+        /// own memory with no boundary crossing at all.<br/>
+        /// <br/>
+        /// Returning false is always safe and is the default. The caller then builds the value Javascript
+        /// side the usual way - <see cref="NetToJS"/> into the scratch array - and passes its index, which
+        /// costs exactly what it costs today. So this is an opt-in fast lane, not a second contract every
+        /// marshaller has to satisfy.<br/>
+        /// <br/>
+        /// Worth implementing wherever the value is ALREADY expressible as one number: a number, a
+        /// boolean, a numeric enum, or anything that already holds a slot id - a wrapper, a handle, an
+        /// interned string. That covers essentially everything a GPU dispatch passes, which is why the
+        /// argument transport gets to be free for the calls that matter.<br/>
+        /// <br/>
+        /// Do NOT implement it for a value that has to be CONSTRUCTED in Javascript - a descriptor object,
+        /// an array. Those have to be built there whatever the transport does.
+        /// </summary>
+        /// <param name="typeToConvert">The value's runtime type</param>
+        /// <param name="value">The value, never null - null is handled by the caller</param>
+        /// <param name="tag">One of the <see cref="ArgTag"/> values</param>
+        /// <param name="payload">The number that carries it: the value itself, or a slot id</param>
+        public virtual bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+        {
+            tag = 0;
+            payload = 0;
+            return false;
+        }
+        /// <summary>
         /// Writes one member of an object or struct being cloned into Javascript.<br/>
         /// A member whose declared type cannot be derived from resolves its marshaller once and keeps it -
         /// the answer cannot change, because the value's runtime type is pinned by the declaration. Every

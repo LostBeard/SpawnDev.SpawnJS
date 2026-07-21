@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Toolbox;
+﻿using SpawnDev.SpawnJS.Toolbox;
 using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS
@@ -72,40 +72,59 @@ namespace SpawnDev.SpawnJS
             IsBound = true;
         }
 
+        /// <summary>
+        /// Binds this frame for BENCHMARKS AND LAYOUT TESTS, which read it through their own address.<br/>
+        /// Never bind a probe frame with <see cref="Bind"/>: that address belongs to the live transport,
+        /// and pointing it at another frame redirects every call's arguments without any error.
+        /// </summary>
+        public void BindProbe()
+        {
+            if (Address % 8 != 0)
+                throw new InvalidOperationException($"the pinned frame is at {Address}, which is not 8 byte aligned");
+            SlotInterop.BindProbeFrame(Address, Capacity * Stride);
+            IsBound = true;
+        }
+
         /// <summary>Writes a value at an argument index. No crossing - a plain array store.</summary>
         public void Write(int index, double value) => _frame[index * (Stride / 8)] = value;
 
-        /// <summary>Writes a value and its tag. No crossing.</summary>
-        public void WriteTagged(int index, byte tag, double value)
+        /// <summary>
+        /// Writes a value and a BYTE tag - the shape the .Net runtime's own marshaler uses, kept so the
+        /// benchmark can still measure it. MEASURED SLOWER here and not used in production: a byte tag
+        /// costs a span per write on this side and a second heap view plus a mixed width read on the
+        /// other, where an f64 tag in padding that exists anyway costs nothing. Use
+        /// <see cref="WriteTagged"/>.
+        /// </summary>
+        public void WriteTaggedByte(int index, byte tag, double value)
         {
             _frame[index * (Stride / 8)] = value;
             MemoryMarshal.AsBytes(_frame.AsSpan())[index * Stride + TagOffset] = tag;
         }
 
         /// <summary>
-        /// Writes a value and its tag, with the tag stored as a float64 in the slot's PADDING rather than
-        /// as a byte.<br/>
+        /// Writes a value and its tag. No crossing.<br/>
+        /// The tag is a float64 in the slot's PADDING rather than a byte.<br/>
         /// <br/>
         /// The padding is there either way, so this costs nothing in space - and it removes two costs the
         /// byte form pays: a <c>MemoryMarshal.AsBytes</c> span per write on the .Net side, and a second
         /// heap view lookup plus a mixed width read on the Javascript side. Measured against the byte
         /// form rather than assumed better.
         /// </summary>
-        public void WriteTaggedF64(int index, byte tag, double value)
+        public void WriteTagged(int index, byte tag, double value)
         {
             var at = index * (Stride / 8);
             _frame[at] = value;
             _frame[at + 1] = tag;
         }
 
-        /// <summary>Reads a float64 stored tag back.</summary>
-        public byte ReadTagF64(int index) => (byte)_frame[index * (Stride / 8) + 1];
+        /// <summary>Reads the tag back.</summary>
+        public byte ReadTag(int index) => (byte)_frame[index * (Stride / 8) + 1];
 
         /// <summary>Reads a value back.</summary>
         public double Read(int index) => _frame[index * (Stride / 8)];
 
-        /// <summary>Reads a tag back.</summary>
-        public byte ReadTag(int index) => MemoryMarshal.AsBytes(_frame.AsSpan())[index * Stride + TagOffset];
+        /// <summary>Reads a BYTE tag back. Pairs with <see cref="WriteTaggedByte"/>.</summary>
+        public byte ReadTagByte(int index) => MemoryMarshal.AsBytes(_frame.AsSpan())[index * Stride + TagOffset];
 
         /// <inheritdoc/>
         public void Dispose() => _view.Dispose();

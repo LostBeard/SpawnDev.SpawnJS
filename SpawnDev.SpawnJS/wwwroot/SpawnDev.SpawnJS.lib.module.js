@@ -1,4 +1,4 @@
-/* By Todd Tanner aka github.com/LostBeard 2026 */
+﻿/* By Todd Tanner aka github.com/LostBeard 2026 */
 
 (function () {
     if (globalThis.SpawnJSInterop) return;
@@ -376,6 +376,9 @@ globalThis.__sjsAllocEmpty = function () { return globalThis.__sjsAlloc(void 0);
 // call followed by a separate Reflect.Set - two crossings to park one object.
 globalThis.__sjsAllocValue = function (value) { return globalThis.__sjsAlloc(value); };
 globalThis.__sjsNewObject = function () { return globalThis.__sjsAlloc({}); };
+// Allocates a slot holding a string. One crossing, paid once per interned string - every later use
+// of that string is just its slot id, which is a number.
+globalThis.__sjsAllocString = function (value) { return globalThis.__sjsAlloc(value); };
 globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
 globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
 globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
@@ -488,15 +491,26 @@ globalThis.__sjsReadUtf16 = function (address, length) {
 // marshaller uses (value at slot+0, a type tag BYTE inside the same slot, stride padded so every value
 // stays 8 byte aligned). Measured against the structure-of-arrays layout above rather than assumed
 // better. Stride 16: value at +0, tag at +8.
+// The TRANSPORT frame's address. Owned by the runtime and bound exactly once, at startup.
+// The probe/benchmark frames deliberately use a DIFFERENT global: they are separate frames, and when
+// they shared this one, binding a probe silently redirected every live transport call to read the
+// probe's memory instead. Nothing threw - the reads simply came from the wrong place.
 globalThis.__sjsArgFrameAddress = 0;
 globalThis.__sjsBindArgFrame = function (address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument frame address ${address} is not 8 byte aligned`);
     globalThis.__sjsArgFrameAddress = address;
     return true;
 };
+// The probe frame's address - benchmarks and layout tests only, never the transport.
+globalThis.__sjsProbeFrameAddress = 0;
+globalThis.__sjsBindProbeFrame = function (address, byteLength) {
+    if (address % 8 !== 0) throw new Error(`SpawnJSInterop: probe frame address ${address} is not 8 byte aligned`);
+    globalThis.__sjsProbeFrameAddress = address;
+    return true;
+};
 globalThis.__sjsFrameSum = function (count) {
     var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var at = globalThis.__sjsProbeFrameAddress >>> 3;
     var total = 0;
     // stride 16 bytes = 2 float64 elements
     for (var i = 0; i < count; i++) total += f64[at + i * 2];
@@ -506,7 +520,7 @@ globalThis.__sjsFrameTaggedSum = function (count) {
     var m = globalThis.__sjsHeaps();
     var f64 = m.HEAPF64;
     var u8 = m.HEAPU8;
-    var base = globalThis.__sjsArgFrameAddress;
+    var base = globalThis.__sjsProbeFrameAddress;
     var at = base >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
@@ -521,7 +535,7 @@ globalThis.__sjsFrameTaggedSum = function (count) {
 // of read, where the byte form needs HEAPU8 as well as HEAPF64.
 globalThis.__sjsFrameTaggedSumF64 = function (count) {
     var f64 = globalThis.__sjsHeaps().HEAPF64;
-    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var at = globalThis.__sjsProbeFrameAddress >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var value = f64[at + i * 2];
@@ -529,6 +543,82 @@ globalThis.__sjsFrameTaggedSumF64 = function (count) {
         total += value;
     }
     return total;
+};
+// ---------------------------------------------------------------------------------------------
+// THE ARGUMENT FRAME - the live outbound transport.
+//
+// Arguments live in .Net's OWN memory, which Javascript views directly, so .Net writes them with
+// plain array stores and pays NOTHING to deliver them. Only the call itself crosses: a command name,
+// an offset and a length. The Javascript-side buffer it replaces cost .Net one crossing PER
+// ARGUMENT.
+//
+// One padded 16 byte slot per argument - value at +0, tag at +8, both float64 so there is one heap
+// view and one read width. Measured against structure-of-arrays and against a byte tag; this shape
+// won both.
+//
+// Tags. Everything a dispatch actually passes - numbers, booleans, wrappers, interned strings -
+// reaches Javascript with no crossing at all. Only a value that has to be BUILT here (a descriptor
+// object, an array) falls back to the scratch array, and that one still costs what it costs today.
+const SJS_TAG_NUMBER = 1;
+const SJS_TAG_BOOLEAN = 2;
+const SJS_TAG_SLOT = 3;      // an object, a wrapper, or an interned string - resolved in the slot table
+const SJS_TAG_NULL = 4;
+const SJS_TAG_UNDEFINED = 5;
+const SJS_TAG_SCRATCH = 6;   // built Javascript side already; the payload indexes the scratch array
+
+globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
+    var o = at + i * 2;
+    switch (f64[o + 1]) {
+        case SJS_TAG_NUMBER: return f64[o];
+        case SJS_TAG_SLOT: return globalThis.__sjsSlots[f64[o]];
+        case SJS_TAG_BOOLEAN: return f64[o] !== 0;
+        case SJS_TAG_NULL: return null;
+        case SJS_TAG_UNDEFINED: return void 0;
+        case SJS_TAG_SCRATCH: return scratch[f64[o]];
+        default: throw new Error(`SpawnJSInterop: argument ${i} has unknown tag ${f64[o + 1]}`);
+    }
+};
+// Writes the result back into the CALLER'S OWN slot, the same convention the array buffer used - the
+// arguments there have already been consumed by the time the result lands.
+// A primitive goes into the frame itself, so .Net reads it with no crossing. Anything else takes a
+// slot, which means an object returned from a call reaches .Net as a slot id - also no crossing, and
+// no proxy.
+globalThis.__sjsFrameResult = function (f64, at, value) {
+    if (value === null) { f64[at] = 0; f64[at + 1] = SJS_TAG_NULL; return; }
+    if (value === void 0) { f64[at] = 0; f64[at + 1] = SJS_TAG_UNDEFINED; return; }
+    var t = typeof value;
+    if (t === "number") { f64[at] = value; f64[at + 1] = SJS_TAG_NUMBER; return; }
+    if (t === "boolean") { f64[at] = value ? 1 : 0; f64[at + 1] = SJS_TAG_BOOLEAN; return; }
+    f64[at] = globalThis.__sjsAlloc(value);
+    f64[at + 1] = SJS_TAG_SLOT;
+};
+globalThis.__sjsFrameCall = function (cmd, offset, length) {
+    var interop = globalThis.__sjsInterop;
+    var scratch = interop.netToJSBuffer;
+    var base = globalThis.__sjsArgFrameAddress;
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (base >>> 3) + offset * 2;
+    var A = globalThis.__sjsFrameArg;
+    // dispatch by arity rather than spreading a slice - the spread is the only branch that allocates
+    var ret;
+    switch (length) {
+        case 0: ret = interop[cmd](); break;
+        case 1: ret = interop[cmd](A(f64, at, 0, scratch)); break;
+        case 2: ret = interop[cmd](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); break;
+        case 3: ret = interop[cmd](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); break;
+        case 4: ret = interop[cmd](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); break;
+        default: {
+            var spread = new Array(length);
+            for (var i = 0; i < length; i++) spread[i] = A(f64, at, i, scratch);
+            ret = interop[cmd].apply(interop, spread);
+            break;
+        }
+    }
+    // RE-FETCH the view before writing the result. The call may have re-entered .Net - a callback, a
+    // marshaller reading a property - and anything that grows the WebAssembly memory DETACHES the view
+    // captured above. Writing through the stale one would throw, or worse, write nowhere.
+    globalThis.__sjsHeaps().HEAPF64[at] = 0;
+    globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
 };
 // PROBE ONLY: STRING ARGUMENTS, the last undecided piece of the frame layout.
 // A string needs TWO fields - where its characters are, and how many - which is exactly why the
@@ -541,7 +631,7 @@ globalThis.__sjsFrameTaggedSumF64 = function (count) {
 globalThis.__sjsFrameStringLength = function (count) {
     var f64 = globalThis.__sjsHeaps().HEAPF64;
     var u16 = globalThis.__sjsHeaps().HEAPU16;
-    var at = globalThis.__sjsArgFrameAddress >>> 3;
+    var at = globalThis.__sjsProbeFrameAddress >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var address = f64[at + i * 3];

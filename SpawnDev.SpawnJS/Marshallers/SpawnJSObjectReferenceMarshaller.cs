@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices.JavaScript;
+﻿using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -45,6 +45,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 jsParent.SetProperty(jsKey, (string?)null);
             }
+        }
+        /// <inheritdoc/>
+        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+        {
+            tag = ArgTag.Slot;
+            payload = 0;
+            return value is SpawnJSObjectReference jsRef && jsRef.JSHandle.TryGetSlot(out payload);
         }
     }
 }

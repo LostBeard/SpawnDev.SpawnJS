@@ -189,6 +189,122 @@ namespace SpawnDev.SpawnJS
         int _bufferTop;
 
         /// <summary>
+        /// Whether outbound calls carry their arguments in the ARGUMENT FRAME - .Net's own memory, which
+        /// Javascript views directly - rather than in the Javascript side array.<br/>
+        /// The old path is kept so the two can be measured against each other on demand; it is not a
+        /// fallback for correctness, and both are covered by the same tests.
+        /// </summary>
+        public static bool UseArgFrame { get; set; } = true;
+
+        /// <summary>
+        /// A call whose arguments never cross. Only the command name, an offset and a length do.
+        /// </summary>
+        object? NetRunViaFrame(Type type, string cmd, object?[] args)
+        {
+            var offset = WriteArgsToFrame(args);
+            try
+            {
+                SlotInterop.FrameCall(cmd, offset, args.Length);
+                var netRet = ReadFrameResult(type, offset);
+                var expected = Nullable.GetUnderlyingType(type) ?? type;
+                if (netRet != null && !expected.IsInstanceOfType(netRet))
+                    throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {expected.Name} got {netRet.GetType().Name}");
+                return netRet;
+            }
+            finally
+            {
+                ReleaseFrameArgs(offset);
+            }
+        }
+
+        /// <summary>
+        /// Top of the argument frame. Unwinds like the buffer top, so a nested call - a marshaller
+        /// building a value while an argument is being written - takes slots above the outer call's
+        /// region and cannot disturb it.
+        /// </summary>
+        int _frameTop;
+
+        /// <summary>
+        /// Writes the arguments into the ARGUMENT FRAME, which lives in .Net's own memory, and returns the
+        /// slot index they start at.<br/>
+        /// <br/>
+        /// Every argument that is already expressible as one number - a number, a boolean, a numeric enum,
+        /// a wrapper or handle (which holds a slot), an interned string, null - is a plain store and costs
+        /// NOTHING to deliver. Only a value that has to be BUILT in Javascript falls back: it is marshalled
+        /// into the scratch array the old way, and the frame carries its index. That fallback costs exactly
+        /// what the whole transport used to cost, so nothing is ever slower than before.
+        /// </summary>
+        int WriteArgsToFrame(object?[] args)
+        {
+            var offset = _frameTop;
+            // reserve at least one slot even with no arguments - the result lands in the first slot of
+            // this call's region, the same convention the array buffer used
+            _frameTop += Math.Max(args.Length, 1);
+            if (_frameTop > _argFrame.Capacity)
+                throw new InvalidOperationException($"the argument frame holds {_argFrame.Capacity} slots and a call needed {_frameTop}");
+            for (var i = 0; i < args.Length; i++)
+            {
+                var item = args[i];
+                if (item == null)
+                {
+                    _argFrame.WriteTagged(offset + i, ArgTag.Null, 0);
+                    continue;
+                }
+                var itemType = item.GetType();
+                var marshaller = GetMarshaller(itemType);
+                if (marshaller.TryWriteArg(itemType, item, out var tag, out var payload))
+                {
+                    _argFrame.WriteTagged(offset + i, tag, payload);
+                    continue;
+                }
+                // has to be constructed Javascript side - build it in the scratch array and point at it
+                marshaller.NetToJS(itemType, _netToJSBuffer, (double)(offset + i), item);
+                _argFrame.WriteTagged(offset + i, ArgTag.Scratch, offset + i);
+            }
+            return offset;
+        }
+
+        /// <summary>Releases the current call's region of the frame.</summary>
+        void ReleaseFrameArgs(int offset) => _frameTop = offset;
+
+        /// <summary>
+        /// Reads the result the Javascript side wrote into this call's own frame slot.<br/>
+        /// A primitive is read straight out of .Net memory with no crossing. Anything else arrives as a
+        /// slot id, so an object returned from a call becomes a handle with no crossing and no proxy
+        /// either - only a string still needs a typed read, because a Javascript string cannot live in
+        /// .Net memory.
+        /// </summary>
+        object? ReadFrameResult(Type type, int offset)
+        {
+            var tag = _argFrame.ReadTag(offset);
+            var payload = _argFrame.Read(offset);
+            switch (tag)
+            {
+                case ArgTag.Null:
+                case ArgTag.Undefined:
+                    return type.GetDefaultValue();
+                case ArgTag.Number:
+                case ArgTag.Boolean:
+                {
+                    // reading a primitive out of the frame means the whole call moved no data across the
+                    // boundary at all. Anything the frame cannot represent goes through the marshaller.
+                    if (type == typeof(double)) return payload;
+                    if (type == typeof(int)) return (int)payload;
+                    if (type == typeof(float)) return (float)payload;
+                    if (type == typeof(long)) return (long)payload;
+                    if (type == typeof(bool)) return payload != 0;
+                    break;
+                }
+            }
+            // everything else - a slot id, a scratch value, or a primitive wanted as some other type -
+            // is handed to the marshaller registry through a handle on the value.
+            using var handle = tag == ArgTag.Slot
+                ? new SpawnJSHandle(payload)
+                : new SpawnJSHandle(_netToJSBuffer, (double)offset, true);
+            return MarshallJSToNet(type, handle);
+        }
+
+        /// <summary>
         /// Writes the arguments into the shared buffer and returns the offset they start at. Pair every
         /// call with <see cref="ReleaseArgs"/> in a finally.
         /// </summary>
@@ -290,6 +406,7 @@ namespace SpawnDev.SpawnJS
         {
             if (CountCalls) CountCall(cmd);
             args ??= new object?[0];
+            if (UseArgFrame) return NetRunViaFrame(type, cmd, args);
             var offset = WriteArgs(args);
             try
             {

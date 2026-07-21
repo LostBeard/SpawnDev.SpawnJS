@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Toolbox;
+﻿using SpawnDev.SpawnJS.Toolbox;
 using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS
@@ -63,7 +63,7 @@ namespace SpawnDev.SpawnJS
         {
             if (Address % 8 != 0)
                 throw new InvalidOperationException($"the pinned frame is at {Address}, which is not 8 byte aligned");
-            SlotInterop.BindArgFrame(Address, Capacity * Stride);
+            SlotInterop.BindProbeFrame(Address, Capacity * Stride);
         }
 
         /// <summary>Writes a tagged value. No crossing.</summary>

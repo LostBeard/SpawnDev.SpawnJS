@@ -31,5 +31,12 @@
                 jsParent.SetProperty(jsKey, (string?)null);
             }
         }
+        /// <inheritdoc/>
+        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+        {
+            tag = ArgTag.Slot;
+            payload = 0;
+            return value is SpawnJSHandle handle && handle.TryGetSlot(out payload);
+        }
     }
 }

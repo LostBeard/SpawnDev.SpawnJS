@@ -45,6 +45,20 @@ namespace SpawnDev.SpawnJS
         public static partial double AllocValue([JSMarshalAs<JSType.Any>] object value);
 
         /// <summary>
+        /// Allocates a slot holding a string, in one crossing. Declared with a string parameter rather
+        /// than Any so the runtime uses its string marshaller directly.
+        /// </summary>
+        [JSImport("globalThis.__sjsAllocString")]
+        public static partial double AllocString(string value);
+
+        /// <summary>
+        /// Calls a command through the ARGUMENT FRAME: the arguments are already in .Net memory, so only
+        /// the name, an offset and a length cross. The result comes back in the caller's own frame slot.
+        /// </summary>
+        [JSImport("globalThis.__sjsFrameCall")]
+        public static partial void FrameCall(string cmd, double offset, double length);
+
+        /// <summary>
         /// Releases a slot so it can be reused. Lifetime is explicit here - there is no proxy for the
         /// runtime to collect, which is the trade for not paying to create one.
         /// </summary>
@@ -242,9 +256,20 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsReadUtf16")]
         public static partial string ReadUtf16(double address, double length);
 
-        /// <summary>PROBE: binds the Javascript side to the INTERLEAVED argument frame.</summary>
+        /// <summary>
+        /// Binds the Javascript side to the TRANSPORT argument frame. Called once, by the runtime.
+        /// </summary>
         [JSImport("globalThis.__sjsBindArgFrame")]
         public static partial bool BindArgFrame(double address, double byteLength);
+
+        /// <summary>
+        /// Binds a PROBE frame - benchmarks and layout tests only.<br/>
+        /// Separate from <see cref="BindArgFrame"/> on purpose. When both shared one address, binding a
+        /// probe silently redirected every live transport call to read the probe's memory: nothing threw,
+        /// the values simply came from the wrong place.
+        /// </summary>
+        [JSImport("globalThis.__sjsBindProbeFrame")]
+        public static partial bool BindProbeFrame(double address, double byteLength);
 
         /// <summary>PROBE: sums `count` values from the interleaved frame - one padded slot per argument.</summary>
         [JSImport("globalThis.__sjsFrameSum")]

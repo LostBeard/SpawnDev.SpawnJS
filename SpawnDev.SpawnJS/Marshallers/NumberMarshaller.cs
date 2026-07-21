@@ -120,6 +120,30 @@ namespace SpawnDev.SpawnJS.Marshallers
                 // Push to JS via your strongly typed Reflect method signature
                 jsParent.SetProperty(jsKey, doubleValue);
             }
+
+            /// <inheritdoc/>
+            /// <remarks>
+            /// A number IS the payload, so this is the cheapest argument there is - a plain store into
+            /// .Net memory and nothing crosses.
+            /// </remarks>
+            public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+            {
+                tag = ArgTag.Number;
+                payload = ToDouble(value);
+                return true;
+            }
+
+            /// <summary>
+            /// The one .Net number to Javascript number conversion, shared by the property write and the
+            /// argument write so the two can never disagree about what a value means.
+            /// </summary>
+            static double ToDouble(object value)
+            {
+                if (value is IConvertible convertible) return convertible.ToDouble(null);
+                if (value is Half systemHalf) return (double)systemHalf;
+                // custom numeric types (ILGPU.Half and friends) resolve their own conversion operator
+                return (double)(dynamic)value;
+            }
         }
     }
 }

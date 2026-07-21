@@ -93,5 +93,22 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (number == null) return null;
             return Enum.ToObject(enumType, Convert.ChangeType(number.Value, Enum.GetUnderlyingType(enumType)));
         }
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Numeric enums only - which is the majority, and includes every WebGPU bitflag. A STRING enum
+        /// has to arrive as its Javascript name, and a name is not a number, so it declines and takes the
+        /// ordinary path.
+        /// </remarks>
+        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
+        {
+            tag = ArgTag.Number;
+            payload = 0;
+            if (typeToConvert == null) return false;
+            var enumType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
+            if (GetStringEnum(enumType) != null) return false;
+            payload = Convert.ToDouble(value);
+            return true;
+        }
     }
 }

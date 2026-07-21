@@ -1,4 +1,4 @@
-using SpawnDev.BlazorJS;
+﻿using SpawnDev.BlazorJS;
 // imported for the SpawnJSHandle SetProperty extension methods the hand written floor case uses;
 // the `BJS.` / `SJS.` prefixes elsewhere keep the two runtimes' types unambiguous
 using SpawnDev.SpawnJS;
@@ -221,7 +221,7 @@ namespace BlazorBrowserDemo
             // interleaved:         one padded 16 byte slot per argument, tag inside it - the shape the
             //                      .Net runtime's own marshaller uses
             using var heapFrame = new SJS.HeapArgFrame(64);
-            heapFrame.Bind();
+            heapFrame.BindProbe();
 
             MeasureOne($"{argCount} args, structure-of-arrays, UNtagged", transportIterations,
                 () =>
@@ -260,7 +260,7 @@ namespace BlazorBrowserDemo
                 {
                     for (var i = 0; i < transportIterations; i++)
                     {
-                        for (var a = 0; a < argCount; a++) heapFrame.WriteTagged(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
+                        for (var a = 0; a < argCount; a++) heapFrame.WriteTaggedByte(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
                         _ = SJS.SlotInterop.FrameTaggedSum(argCount);
                     }
                 });
@@ -273,7 +273,7 @@ namespace BlazorBrowserDemo
                 {
                     for (var i = 0; i < transportIterations; i++)
                     {
-                        for (var a = 0; a < argCount; a++) heapFrame.WriteTaggedF64(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
+                        for (var a = 0; a < argCount; a++) heapFrame.WriteTagged(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
                         _ = SJS.SlotInterop.FrameTaggedSumF64(argCount);
                     }
                 });
@@ -311,7 +311,34 @@ namespace BlazorBrowserDemo
                     }
                 });
             // the two-field frame is what the other arms bind; restore it so their numbers stay comparable
-            heapFrame.Bind();
+            heapFrame.BindProbe();
+
+            // END TO END: the generic dispatcher, with the argument frame OFF and ON. One variable.
+            // These are the operations that actually reach NetRun - a dotted path defeats the slot fast
+            // paths, so the arguments go through the transport. The obj-ref cases above never get here,
+            // which is why they do not move.
+            var genericIterations = iterations / 2;
+            foreach (var useFrame in new[] { false, true })
+            {
+                SJS.SpawnJSRuntime.UseArgFrame = useFrame;
+                var label = useFrame ? "frame" : "JS-side buffer";
+
+                MeasureOne($"generic get int (dotted) - {label}", genericIterations,
+                    () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Get<int>($"{Target}.number"); });
+
+                MeasureOne($"generic call method (dotted) - {label}", genericIterations,
+                    () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Call<int>($"{Target}.method", i); });
+
+                MeasureOne($"generic get object handle (dotted) - {label}", genericIterations,
+                    () =>
+                    {
+                        for (var i = 0; i < genericIterations; i++)
+                        {
+                            using var o = spawn.Get<SJS.SpawnJSObject>($"{Target}.child");
+                        }
+                    });
+            }
+            SJS.SpawnJSRuntime.UseArgFrame = true;
 
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,
