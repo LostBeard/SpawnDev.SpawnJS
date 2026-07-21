@@ -42,6 +42,8 @@ namespace SpawnDev.SpawnJS.Marshallers
             FieldInfo = fieldInfo;
             Name = FieldInfo.Name;
             DefaultValue = FieldInfo.FieldType.GetDefaultValue();
+            MemberType = UnwrapNullable(FieldInfo.FieldType);
+            RuntimeTypeIsKnown = IsRuntimeTypeKnown(MemberType);
         }
         /// <summary>
         /// New instance usign PropertyInfo
@@ -52,7 +54,33 @@ namespace SpawnDev.SpawnJS.Marshallers
             PropertyInfo = propertyInfo;
             Name = PropertyInfo.Name;
             DefaultValue = PropertyInfo.PropertyType.GetDefaultValue();
+            MemberType = UnwrapNullable(PropertyInfo.PropertyType);
+            RuntimeTypeIsKnown = IsRuntimeTypeKnown(MemberType);
         }
+        /// <summary>
+        /// The member's declared type, with Nullable&lt;&gt; unwrapped. A boxed Nullable&lt;int&gt; reports
+        /// its runtime type as int, so the unwrapped type is the one a marshaller is selected for.
+        /// </summary>
+        public Type MemberType { get; private set; }
+        /// <summary>
+        /// True when a non null value of this member is guaranteed to have <see cref="MemberType"/> as its
+        /// exact runtime type - that is, the type is a value type or is sealed, so nothing can derive from
+        /// it and be stored here. When true the marshaller for this member can be resolved once and reused;
+        /// when false the value must be asked for its own type on every marshal, because a member declared
+        /// as a base class may hold any subclass and the two can marshal differently.
+        /// </summary>
+        public bool RuntimeTypeIsKnown { get; private set; }
+        /// <summary>
+        /// Marshaller for <see cref="MemberType"/>, resolved on first use and only when
+        /// <see cref="RuntimeTypeIsKnown"/>. Resolution is a dictionary lookup keyed on a Type, which is
+        /// cheap in isolation but ran once per member per marshal and measured 2.86us of the 20.2us cost of
+        /// marshalling a five member descriptor - more than the reflection reads in the same walk.
+        /// </summary>
+        internal JSMarshaller? CachedMarshaller;
+
+        static Type UnwrapNullable(Type type) => Nullable.GetUnderlyingType(type) ?? type;
+
+        static bool IsRuntimeTypeKnown(Type type) => type.IsValueType || type.IsSealed;
         /// <summary>
         /// Returns if the Property/Field should be written when serialized
         /// </summary>

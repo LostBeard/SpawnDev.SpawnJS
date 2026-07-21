@@ -31,6 +31,22 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <paramref name="typeToConvert"/> and <paramref name="value"/> may be null when the .Net value being marshalled is null.
         /// </summary>
         public abstract void NetToJS(Type? typeToConvert, SpawnJSHandle jsParent, object jsKey, object? value);
+        /// <summary>
+        /// Writes one member of an object or struct being cloned into Javascript.<br/>
+        /// A member whose declared type cannot be derived from resolves its marshaller once and keeps it -
+        /// the answer cannot change, because the value's runtime type is pinned by the declaration. Every
+        /// other member, and every null, goes the general route and is typed by the value itself.
+        /// </summary>
+        protected void WriteMember(ClassMemberJsonInfo member, SpawnJSHandle jsParent, object jsKey, object? value)
+        {
+            if (value != null && member.RuntimeTypeIsKnown)
+            {
+                var marshaller = member.CachedMarshaller ??= JS.GetMarshaller(member.MemberType);
+                marshaller.NetToJS(member.MemberType, jsParent, jsKey, value);
+                return;
+            }
+            JS.MarshallNetToJS(jsParent, jsKey, value);
+        }
     }
 
     /// <summary>

@@ -18,7 +18,6 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsHandle.JSParent, jsHandle.JSKey)!;
             if (jsObj == null) return null;
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var retObj = Activator.CreateInstance(type);
             // iterate Javascript marshallable properties
             var classProps = type.GetTypeJsonProperties();
@@ -75,7 +74,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                         propValue = fieldInfo.GetValue(obj);
                     }
                     if (!prop.GetShouldWrite(propValue)) continue;
-                    JS.MarshallNetToJS(outObj, propName, propValue);
+                    WriteMember(prop, outObj, propName, propValue);
                 }
                 jsParent.SetProperty(jsKey, outObj);
             }

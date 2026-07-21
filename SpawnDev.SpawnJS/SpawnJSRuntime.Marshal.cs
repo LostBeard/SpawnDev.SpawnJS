@@ -144,15 +144,23 @@ namespace SpawnDev.SpawnJS
                 // reset, because TryGetValue writes null on a miss and the loop below may decline every
                 // candidate. Leaving a declined candidate in `marshaller` would defeat the null check.
                 marshaller = null;
+                // A Nullable<T> is selected for as T.
+                // On the write path a value arrives boxed, and a boxed Nullable<int> reports int as its
+                // type, so the write path has always selected for T. The read path passes the DECLARED
+                // type, so without this unwrap the two disagree: Nullable<int> is a value type that is
+                // neither an enum nor primitive, so StructMarshaller claims it and walks HasValue/Value
+                // instead of reading the number - every nullable property wrote correctly and read back
+                // as null. Selecting for T here is what makes a read agree with a write.
+                var selectionType = type == null ? null : Nullable.GetUnderlyingType(type) ?? type;
                 var length = Marshallers.Count;
                 for (var i = length - 1; i >= 0; i--)
                 {
                     var candidate = Marshallers[i];
-                    if (!candidate.CanMarshal(type)) continue;
+                    if (!candidate.CanMarshal(selectionType)) continue;
                     // GetMarshaller lets a marshaller hand back a per-type specialization (UnionMarshaller
                     // returns one bound to the concrete Union<...> arms). Cache and use THAT, not the
                     // generic candidate - otherwise the specialization hook does nothing.
-                    var typeMarshaller = candidate.GetMarshaller(type);
+                    var typeMarshaller = candidate.GetMarshaller(selectionType);
                     if (typeMarshaller == null) continue;
                     marshaller = typeMarshaller;
                     if (type == null)

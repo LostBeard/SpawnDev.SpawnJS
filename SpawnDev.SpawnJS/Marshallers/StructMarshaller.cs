@@ -16,12 +16,17 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
+            // The declared type reaching a read may be Nullable<T>; the members to walk are T's. Walking
+            // Nullable<T> itself would read HasValue and Value as if they were Javascript properties.
+            var underlying = Nullable.GetUnderlyingType(type);
+            var structType = underlying ?? type;
             using var jsObj = (SpawnJSHandle)Reflect.GetJSObject(jsHandle.JSParent, jsHandle.JSKey)!;
-            if (jsObj == null) return type.GetDefaultValue();
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var retObj = Activator.CreateInstance(type);
+            // absent on the Javascript side is null for a nullable target, and the default value for a
+            // plain struct, which has no way to represent absence
+            if (jsObj == null) return underlying != null ? null : structType.GetDefaultValue();
+            var retObj = Activator.CreateInstance(structType);
             // iterate Javascript marshallable properties
-            var classProps = type.GetTypeJsonProperties();
+            var classProps = structType.GetTypeJsonProperties();
             foreach (var prop in classProps)
             {
                 var propertyInfo = prop.PropertyInfo;
@@ -59,7 +64,9 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (type != null && obj != null)
             {
                 using var outObj = JS.NewJSObject()!;
-                var classProps = type.GetTypeJsonProperties();
+                // a boxed Nullable<T> already reports T here, but the declared type can still arrive on a
+                // path that types the write from the declaration rather than the value
+                var classProps = (Nullable.GetUnderlyingType(type) ?? type).GetTypeJsonProperties();
                 foreach (var prop in classProps)
                 {
                     var propertyInfo = prop.PropertyInfo;
@@ -75,7 +82,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                         propValue = fieldInfo.GetValue(obj);
                     }
                     if (!prop.GetShouldWrite(propValue)) continue;
-                    JS.MarshallNetToJS(outObj, propName, propValue);
+                    WriteMember(prop, outObj, propName, propValue);
                 }
                 jsParent.SetProperty(jsKey, outObj);
             }
