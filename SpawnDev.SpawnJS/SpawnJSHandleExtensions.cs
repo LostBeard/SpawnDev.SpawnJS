@@ -38,7 +38,8 @@ namespace SpawnDev.SpawnJS
         public static int AsInt32(this SpawnJSHandle _this) => Reflect.GetInt32(_this.JSParent, _this.JSKey);
         /// <summary>
         /// Get as double
-        /// </summary>his SpawnJSHandle _this) => Reflect.GetDouble(_this.JSParent, _this.JSKey);
+        /// </summary>
+        public static double AsDouble(this SpawnJSHandle _this) => Reflect.GetDouble(_this.JSParent, _this.JSKey);
         /// <summary>
         /// Get as string
         /// </summary>

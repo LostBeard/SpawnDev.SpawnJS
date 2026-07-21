@@ -22,6 +22,24 @@ namespace SpawnDev.SpawnJS
             value = default!;
             if (identifier.Contains('.')) return false;
             if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:get");
+
+            // Slot first. The Reflect path below needs a JSObject for the object being read FROM, so it
+            // materialised a proxy on EVERY property access - and a proxy costs a GC handle, a proxy-table
+            // entry and a permanent enumerable Symbol tag on the Javascript object. That tag is what makes
+            // a record-typed web API throw, so this was not only the hottest cost in the library but a
+            // correctness hazard reintroduced by every read of a wrapper's property.
+            if (JSHandle.TryGetSlot(out var slot))
+            {
+                if (typeof(T) == typeof(int)) { value = (T)(object)SlotInterop.GetInt32(slot, identifier); return true; }
+                if (typeof(T) == typeof(double)) { value = (T)(object)SlotInterop.GetDouble(slot, identifier); return true; }
+                if (typeof(T) == typeof(bool)) { value = (T)(object)SlotInterop.GetBoolean(slot, identifier); return true; }
+                if (typeof(T) == typeof(string)) { value = (T)(object)SlotInterop.GetString(slot, identifier)!; return true; }
+                if (typeof(T) == typeof(int?)) { value = (T)(object)SlotInterop.GetInt32Nullable(slot, identifier)!; return true; }
+                if (typeof(T) == typeof(double?)) { value = (T)(object)SlotInterop.GetDoubleNullable(slot, identifier)!; return true; }
+                if (typeof(T) == typeof(bool?)) { value = (T)(object)SlotInterop.GetBooleanNullable(slot, identifier)!; return true; }
+                return false;
+            }
+
             var target = JSObject;
 
             if (typeof(T) == typeof(int)) { value = (T)(object)Reflect.GetInt32(target, identifier); return true; }
@@ -42,6 +60,23 @@ namespace SpawnDev.SpawnJS
         {
             if (identifier.Contains('.')) return false;
             if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("fast:set");
+
+            // Slot first, for the same reason as TryGetFast - SetProperty is already slot native and falls
+            // back to the proxy path itself, so this only has to recognise the eligible value types.
+            if (JSHandle.TryGetSlot(out _))
+            {
+                switch (value)
+                {
+                    case int i: JSHandle.SetProperty(identifier, (double)i); return true;
+                    case double d: JSHandle.SetProperty(identifier, d); return true;
+                    case bool b: JSHandle.SetProperty(identifier, b); return true;
+                    case string s: JSHandle.SetProperty(identifier, s); return true;
+                    case float f: JSHandle.SetProperty(identifier, (double)f); return true;
+                    case long l: JSHandle.SetProperty(identifier, (double)l); return true;
+                    default: return false;
+                }
+            }
+
             var target = JSObject;
 
             switch (value)

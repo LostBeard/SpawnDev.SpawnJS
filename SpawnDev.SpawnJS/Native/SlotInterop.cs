@@ -86,10 +86,67 @@ namespace SpawnDev.SpawnJS
         public static partial void SetSlotAt(double slot, double index, double valueSlot);
 
         /// <summary>
-        /// Reads a number from a property of the slotted object.
+        /// Reads a property of the slotted object as a number.<br/>
+        /// This and the typed reads below all bind the SAME Javascript function and differ only in the
+        /// .Net return type, which is what performs the conversion - exactly how the Reflect.get bindings
+        /// are declared. The point of them is that reading a typed property no longer needs a JSObject for
+        /// the object being read FROM, which the fast path used to resolve on every single property access.
         /// </summary>
-        [JSImport("globalThis.__sjsGetDouble")]
+        [JSImport("globalThis.__sjsGet")]
         public static partial double GetDouble(double slot, string key);
+
+        /// <summary>Reads a property as an int.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial int GetInt32(double slot, string key);
+
+        /// <summary>Reads a property as a bool.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial bool GetBoolean(double slot, string key);
+
+        /// <summary>Reads a property as a string, or null if it was null or undefined.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial string? GetString(double slot, string key);
+
+        /// <summary>Reads a property as an int, or null if it was null or undefined.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial int? GetInt32Nullable(double slot, string key);
+
+        /// <summary>Reads a property as a number, or null if it was null or undefined.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial double? GetDoubleNullable(double slot, string key);
+
+        /// <summary>Reads a property as a bool, or null if it was null or undefined.</summary>
+        [JSImport("globalThis.__sjsGet")]
+        public static partial bool? GetBooleanNullable(double slot, string key);
+
+        /// <summary>
+        /// Reads a property of the slotted object into a NEW slot, which the caller owns.<br/>
+        /// This is the read half of the slot table. Building a descriptor without a proxy was only ever
+        /// half the path: every value read back out of Javascript - every <c>JS.Get&lt;Window&gt;</c>, every
+        /// wrapper returned from a call - still materialised one.<br/>
+        /// Returns <c>0</c> when the value is null or undefined, and <c>-1</c> when it is not a reference
+        /// type. Neither is a valid slot, because allocation starts at 1, so one crossing both answers
+        /// "is there an object here" and hands back the reference - with no proxy created, and no slot
+        /// allocated that the caller would only have to free.
+        /// </summary>
+        [JSImport("globalThis.__sjsGetObjectSlot")]
+        public static partial double GetObjectSlot(double slot, string key);
+
+        /// <summary>
+        /// Reads a property addressed by numeric index into a NEW slot. Same sentinels as
+        /// <see cref="GetObjectSlot"/>; separate because the shared call buffer is an array and its reads
+        /// must not pay a string key conversion per element.
+        /// </summary>
+        [JSImport("globalThis.__sjsGetObjectSlotAt")]
+        public static partial double GetObjectSlotAt(double slot, double index);
+
+        /// <summary>
+        /// Takes a SECOND, independent slot on the value a slot already holds, so one handle can hand
+        /// ownership of what it points at to another without either becoming a proxy. Same sentinels as
+        /// <see cref="GetObjectSlot"/>.
+        /// </summary>
+        [JSImport("globalThis.__sjsCloneObjectSlot")]
+        public static partial double CloneObjectSlot(double slot);
 
         /// <summary>
         /// Calls a method on the slotted object, discarding the result. Nothing becomes a .Net proxy:

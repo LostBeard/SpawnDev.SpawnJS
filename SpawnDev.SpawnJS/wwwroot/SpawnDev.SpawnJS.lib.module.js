@@ -381,8 +381,46 @@ globalThis.__sjsSetStringAt = function (slot, index, value) { globalThis.__sjsSl
 globalThis.__sjsSetBooleanAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
 globalThis.__sjsSetSlotAt = function (slot, index, valueSlot) { globalThis.__sjsSlots[slot][index] = globalThis.__sjsSlots[valueSlot]; };
 globalThis.__sjsSetBoolean = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
-globalThis.__sjsGetDouble = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
+// Reads a property of the slotted object and hands the RAW value back, letting the .Net return type
+// declared on the binding do the conversion. This is the same shape Reflect.get is used in - one
+// Javascript function bound at several return types - and it is why a typed property read needs no
+// proxy for the object it is reading from.
+globalThis.__sjsGet = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
 globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlots[slot][key] = globalThis.__sjsSlots[valueSlot]; };
+
+// Slot-native READS. These are the other half of the slot table: writing a descriptor without a proxy
+// was only ever half the path, because every value READ back out of Javascript - every JS.Get<Window>,
+// every wrapper returned from a call - still materialised one.
+//
+// A read into a NEW slot, so the reader OWNS what it read rather than borrowing its parent's storage.
+// Two sentinels let one crossing both answer the question and hand back the reference:
+//   0  the value is null or undefined - and no slot was allocated that the caller would have to free
+//  -1  the value is not a reference, so there is nothing a handle can own; .Net falls back to the
+//      proxy path, which raises exactly the error it always did for this case
+// Neither is ever a valid slot: allocation starts at 1 and never reuses a key.
+// A function counts as a reference. Javascript functions are legitimate wrapper targets, and typeof
+// reports them separately from "object", so omitting them here would reject every one of them.
+globalThis.__sjsIsRef = function (v) { var t = typeof v; return t === "object" || t === "function"; };
+globalThis.__sjsGetObjectSlot = function (slot, key) {
+    var v = globalThis.__sjsSlots[slot][key];
+    if (v === void 0 || v === null) return 0;
+    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+};
+// Same read, addressed by numeric index. The shared call buffer is an ARRAY, so its reads must not pay
+// a string key conversion per element - the same reason the SetAt variants exist.
+globalThis.__sjsGetObjectSlotAt = function (slot, index) {
+    var v = globalThis.__sjsSlots[slot][index];
+    if (v === void 0 || v === null) return 0;
+    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+};
+// Takes a SECOND, independent slot on the value a slot already holds, so one handle can hand ownership
+// of what it points at to another without either becoming a proxy. The two slots are separate
+// references to the same Javascript value: freeing one does not disturb the other.
+globalThis.__sjsCloneObjectSlot = function (slot) {
+    var v = globalThis.__sjsSlots[slot];
+    if (v === void 0 || v === null) return 0;
+    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+};
 
 // Slot-native invocation. `this`, the method, and the argument array all live in Javascript, so a call
 // makes NO .Net proxy at all - the only things crossing are a slot number, a name, and a slot number.

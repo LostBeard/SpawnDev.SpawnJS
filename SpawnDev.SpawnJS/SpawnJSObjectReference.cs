@@ -46,6 +46,18 @@ namespace SpawnDev.SpawnJS
             JSHandle = new SpawnJSHandle(jsObject);
         }
         /// <summary>
+        /// Create a new instance around a handle that already holds the Javascript value, TAKING
+        /// OWNERSHIP of it - the handle is disposed with this reference.<br/>
+        /// This is the path a read takes now. Constructing from a <see cref="JSObject"/> forces the value
+        /// to be resolved to a runtime proxy first, which is the most expensive operation in the library;
+        /// a handle can address the value through the slot table instead and never make one.
+        /// </summary>
+        /// <param name="jsHandle">The handle to take ownership of</param>
+        public SpawnJSObjectReference(SpawnJSHandle jsHandle)
+        {
+            JSHandle = jsHandle ?? throw new ArgumentNullException(nameof(jsHandle));
+        }
+        /// <summary>
         /// Dispose resources
         /// </summary>
         /// <param name="disposing"></param>
@@ -75,6 +87,12 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T As<T>() => JS.NetRun<T>("returnMe", new object[] { JSObject });
+        /// <remarks>
+        /// The handle is passed, not <see cref="JSObject"/>. Passing the JSObject forced the value to be
+        /// resolved to a runtime proxy purely to hand it back across a boundary it never had to cross;
+        /// the handle marshaller assigns slot to slot instead. Every JSRefAs, JSRefCopy and JSRefMove
+        /// funnels through here.
+        /// </remarks>
+        public T As<T>() => JS.NetRun<T>("returnMe", new object[] { JSHandle });
     }
 }

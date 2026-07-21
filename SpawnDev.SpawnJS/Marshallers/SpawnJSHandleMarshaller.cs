@@ -6,8 +6,14 @@
     public class SpawnJSHandleMarshaller : JSMarshaller<SpawnJSHandle>
     {
         /// <inheritdoc/>
+        /// <remarks>
+        /// Takes its own slot on the value rather than resolving it to a JSObject and wrapping that. A
+        /// handle is precisely the thing that does not need a proxy, so creating one to build it was the
+        /// most backwards read in the library.
+        /// </remarks>
         public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
         {
+            if (jsHandle.TryTakeOwnedValue(out var owned)) return owned;
             return jsHandle.AsJSHandle();
         }
         /// <inheritdoc/>
@@ -15,11 +21,14 @@
         {
             if (value is SpawnJSHandle jsHandle)
             {
-                jsHandle.CopyTo(jsParent, jsKey);
+                // slot to slot when both sides are slotted, so neither becomes a proxy. CopyTo is the
+                // general path and still handles a handle that borrows its parent's storage.
+                if (jsParent.TryGetSlot(out _) && jsHandle.TryGetSlot(out _)) jsParent.SetProperty(jsKey, jsHandle);
+                else jsHandle.CopyTo(jsParent, jsKey);
             }
             else
             {
-                Reflect.Set(jsParent.JSObject!, jsKey, (string)null!);
+                jsParent.SetProperty(jsKey, (string?)null);
             }
         }
     }

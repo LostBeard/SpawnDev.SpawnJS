@@ -12,7 +12,18 @@ namespace SpawnDev.SpawnJS
         /// <param name="identifier"></param>
         /// <returns></returns>
         public T Get<T>(string identifier)
-            => TryGetFast<T>(identifier, out T fast) ? fast : JS.NetRun<T>("getProperty", new object[] { JSObject, identifier });
+        {
+            if (TryGetFast<T>(identifier, out T fast)) return fast;
+            // Marshal straight out of this object at the key, the mirror of what Set does. The marshallers
+            // already read from a handle at a key, so when this target is slotted nothing needs the generic
+            // dispatcher - and going through it meant handing over a JSObject for the target, which is a
+            // proxy created purely to be read through.
+            if (!identifier.Contains('.') && JSHandle.TryGetSlot(out _))
+            {
+                return (T)JS.MarshallJSToNet(typeof(T), JSHandle, identifier)!;
+            }
+            return JS.NetRun<T>("getProperty", new object[] { JSObject, identifier });
+        }
         /// <summary>
         /// Get object property as T
         /// </summary>
