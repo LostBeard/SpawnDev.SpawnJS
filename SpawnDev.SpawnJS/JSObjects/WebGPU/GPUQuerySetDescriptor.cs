@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The type of queries managed by GPUQuerySet.
         /// </summary>
-        public EnumString<GPUQueryType> Type { get; set; }
+        public required EnumString<GPUQueryType> Type { get; set; }
         /// <summary>
         /// The number of queries managed by GPUQuerySet.
         /// </summary>

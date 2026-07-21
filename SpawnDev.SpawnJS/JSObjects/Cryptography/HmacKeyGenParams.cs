@@ -12,11 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class HmacKeyGenParams : KeyGenParams
     {
         /// <summary>
-        /// A string. This should be set to HMAC.
-        /// </summary>
-        [JsonPropertyName("name")]
-        public override string Name { get; set; }
-        /// <summary>
         /// A string representing the name of the digest function to use. You can pass any of SHA-1, SHA-256, SHA-384, or SHA-512 here.
         /// </summary>
         [JsonPropertyName("hash")]

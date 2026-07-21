@@ -68,6 +68,13 @@ namespace SpawnDev.SpawnJS.JSObjects
 
 
         // AddEventListener and RemoveEventListener that support using actions with auto reference handling
+        //
+        // CallBackInfo.Callback is nullable because the "once" paths must construct the info before the
+        // callback (the callback's body closes over the info to decrement RefCount). By the time any of
+        // the methods below hand it to Add/RemoveEventListener it has always been assigned - either in the
+        // object initializer or immediately after construction - and an entry only reaches the dictionary
+        // once that is done. That is why those uses are marked `!` rather than null checked: a null there
+        // would be a bug in this class, not a state a caller can produce.
         static Dictionary<object, CallBackInfo> CallBackInfos { get; } = new Dictionary<object, CallBackInfo>();
         #region Func EventHandlers
         /// <summary>
@@ -85,7 +92,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -101,11 +108,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -124,7 +131,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -141,11 +148,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -165,7 +172,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -183,11 +190,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -208,7 +215,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -227,11 +234,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -253,7 +260,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -273,11 +280,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         // **************************************************************************************************************************************
@@ -303,7 +310,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                         return ret;
                     });
@@ -314,7 +321,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -330,11 +337,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -360,7 +367,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                         return ret;
                     });
@@ -371,7 +378,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -388,11 +395,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -419,7 +426,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                         return ret;
                     });
@@ -430,7 +437,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -448,11 +455,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -480,7 +487,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                         return ret;
                     });
@@ -491,7 +498,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -510,11 +517,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -543,7 +550,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                         return ret;
                     });
@@ -554,7 +561,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -574,11 +581,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         #endregion
@@ -597,7 +604,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -612,11 +619,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -634,7 +641,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -650,11 +657,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -673,7 +680,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -690,11 +697,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -714,7 +721,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -732,11 +739,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -757,7 +764,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 CallBackInfos[listener] = info;
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, useCapture);
+            AddEventListener(type, info.Callback!, useCapture);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -776,11 +783,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, useCapture);
+            RemoveEventListener(type, info.Callback!, useCapture);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         // **************************************************************************************************************************************
@@ -805,7 +812,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                     });
                 }
@@ -815,7 +822,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -830,11 +837,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -859,7 +866,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                     });
                 }
@@ -869,7 +876,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -885,11 +892,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -915,7 +922,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                     });
                 }
@@ -925,7 +932,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -942,11 +949,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -973,7 +980,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                     });
                 }
@@ -983,7 +990,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -1001,11 +1008,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         /// <summary>
@@ -1033,7 +1040,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                         if (info.RefCount <= 0)
                         {
                             CallBackInfos.Remove(listener);
-                            info.Callback.Dispose();
+                            info.Callback?.Dispose();
                         }
                     });
                 }
@@ -1043,7 +1050,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 }
             }
             info.RefCount++;
-            AddEventListener(type, info.Callback, options);
+            AddEventListener(type, info.Callback!, options);
         }
         /// <summary>
         /// Removes an event listener from the EventTarget.
@@ -1062,11 +1069,11 @@ namespace SpawnDev.SpawnJS.JSObjects
                 return;
             }
             info.RefCount--;
-            RemoveEventListener(type, info.Callback, options);
+            RemoveEventListener(type, info.Callback!, options);
             if (info.RefCount <= 0)
             {
                 CallBackInfos.Remove(listener);
-                info.Callback.Dispose();
+                info.Callback?.Dispose();
             }
         }
         #endregion
@@ -1082,9 +1089,12 @@ namespace SpawnDev.SpawnJS.JSObjects
             /// </summary>
             public int RefCount { get; set; }
             /// <summary>
-            /// Holds a reference to the callback fo disposing when done using
+            /// Holds a reference to the callback fo disposing when done using.<br/>
+            /// Nullable because there is a real window where it is unset: the "once" paths construct the
+            /// CallBackInfo first and assign the callback afterwards, since the callback's own body has to
+            /// close over the info to decrement its RefCount.
             /// </summary>
-            public Callback Callback { get; set; }
+            public Callback? Callback { get; set; }
         }
     }
 }

@@ -12,11 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class HmacImportParams : CryptoImportParams
     {
         /// <summary>
-        /// A string. This should be set to HMAC.
-        /// </summary>
-        [JsonPropertyName("name")]
-        public override string Name { get; set; }
-        /// <summary>
         /// A string representing the name of the digest function to use. The can take a value of SHA-256, SHA-384, or SHA-512
         /// </summary>
         [JsonPropertyName("hash")]

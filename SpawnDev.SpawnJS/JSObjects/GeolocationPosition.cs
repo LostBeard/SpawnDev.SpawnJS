@@ -17,6 +17,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a timestamp, given as Unix time in milliseconds, representing the time at which the location was retrieved.
         /// </summary>
-        public EpochDateTime Timestamp { get; set; }
+        public EpochDateTime? Timestamp { get; set; }
     }
 }

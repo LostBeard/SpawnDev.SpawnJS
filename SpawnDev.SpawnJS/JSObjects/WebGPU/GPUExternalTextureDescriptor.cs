@@ -12,7 +12,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The video source to import the external texture from. Source size is determined as described by the external source dimensions table.
         /// </summary>
-        public Union<HTMLVideoElement, VideoFrame> Source { get; set; }
+        public required Union<HTMLVideoElement, VideoFrame> Source { get; set; }
 
         /// <summary>
         /// The color space the image contents of source will be converted into when reading.

@@ -34,6 +34,17 @@ namespace TestsShared
             public int Y { get; set; }
         }
 
+        /// <summary>
+        /// A descriptor shaped like the WebIDL ones that carry `required` members.
+        /// </summary>
+        public class RequiredHolder
+        {
+            [JsonPropertyName("format")]
+            public required string Format { get; set; }
+            [JsonPropertyName("offset")]
+            public int Offset { get; set; }
+        }
+
         public class Holder
         {
             /// <summary>A nullable custom struct - selected for as Point, walked as Point.</summary>
@@ -167,6 +178,26 @@ namespace TestsShared
             var back = JS.Get<Holder>("__memberTestNoPoint");
             if (back?.Point != null)
                 throw new Exception($"absent point read back as ({back!.Point!.Value.X},{back.Point.Value.Y}) instead of null");
+        }
+
+        /// <summary>
+        /// A type with a `required` member must still round trip.<br/>
+        /// This is load bearing for the WebIDL descriptor types: `required` is enforced by the COMPILER
+        /// for object initializers, but the marshaller builds objects reflectively via
+        /// Activator.CreateInstance, which never runs that check. If reflective construction refused a
+        /// type with required members, marking the descriptors `required` would break every READ of one.
+        /// Asserting it here means the decision rests on observed behaviour, not on my reading of the
+        /// language rules.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task RequiredMemberTypeRoundTripsTest()
+        {
+            JS.Set("__memberTestRequired", new RequiredHolder { Format = "rgba8unorm", Offset = 12 });
+            var raw = JS.Get<string>("__memberTestRequired.format");
+            if (raw != "rgba8unorm") throw new Exception($"javascript holds '{raw}'");
+            var back = JS.Get<RequiredHolder>("__memberTestRequired");
+            if (back?.Format != "rgba8unorm") throw new Exception($"required member read back as '{back?.Format}'");
+            if (back?.Offset != 12) throw new Exception($"neighbouring member read back as '{back?.Offset}'");
         }
 
         /// <summary>

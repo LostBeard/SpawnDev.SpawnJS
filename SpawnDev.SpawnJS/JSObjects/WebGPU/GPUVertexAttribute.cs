@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The data format for this attribute. 
         /// </summary>
-        public EnumString<GPUVertexFormat> Format { get; set; }
+        public required EnumString<GPUVertexFormat> Format { get; set; }
 
         /// <summary>
         /// The byte offset of this attribute within the vertex structure. 

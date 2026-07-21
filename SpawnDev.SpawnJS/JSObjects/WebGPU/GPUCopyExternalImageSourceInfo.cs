@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The source of the texel copy. The copy source data is captured at the moment that copyExternalImageToTexture() is issued. Source size is determined as described by the external source dimensions table.
         /// </summary>
-        public GPUCopyExternalImageSource Source { get; set; }
+        public required GPUCopyExternalImageSource Source { get; set; }
 
         /// <summary>
         /// Defines the origin of the copy - the minimum (top-left) corner of the source sub-region to copy from. Together with copySize, defines the full copy sub-region.

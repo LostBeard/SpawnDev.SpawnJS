@@ -12,11 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class RsaHashedKeyGenParams : KeyGenParams
     {
         /// <summary>
-        /// A string. This should be set to RSASSA-PKCS1-v1_5, RSA-PSS, or RSA-OAEP, depending on the algorithm you want to use.
-        /// </summary>
-        [JsonPropertyName("name")]
-        public override string Name { get; set; }
-        /// <summary>
         /// A Number. The length in bits of the RSA modulus. This should be at least 2048: see for example see SP 800-131A Rev. 2. Some organizations are now recommending that it should be 4096.
         /// </summary>
         [JsonPropertyName("modulusLength")]
@@ -33,7 +28,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// That is why RsaHash is also allowed here.
         /// </summary>
         [JsonPropertyName("hash")]
-        public Union<string, RsaHash> Hash { get; set; }
+        public required Union<string, RsaHash> Hash { get; set; }
         /// <summary>
         /// Returns the hash name from the Hash property, which can be an object or a string<br/>
         /// non-standard property to simplify reading the Hash from Union.Value

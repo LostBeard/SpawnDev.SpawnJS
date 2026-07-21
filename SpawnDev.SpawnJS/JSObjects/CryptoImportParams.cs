@@ -17,6 +17,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// For HKDF: Pass the string HKDF.
         /// </summary>
         [JsonPropertyName("name")]
-        public virtual string Name { get; set; }
+        public required virtual string Name { get; set; }
     }
 }

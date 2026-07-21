@@ -12,6 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A string that specifies the signature algorithm to use
         /// </summary>
-        public virtual string Name { get; set; }
+        public required virtual string Name { get; set; }
     }
 }

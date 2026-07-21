@@ -16,6 +16,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Note: If "auto" is used the pipeline cannot share GPUBindGroups with any other pipelines.
         /// </summary>
         [JsonPropertyName("layout")]
-        public Union<GPUPipelineLayout, GPUAutoLayoutMode, string> Layout { get; set; }
+        public required Union<GPUPipelineLayout, GPUAutoLayoutMode, string> Layout { get; set; }
     }
 }

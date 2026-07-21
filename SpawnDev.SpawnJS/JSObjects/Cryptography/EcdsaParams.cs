@@ -10,9 +10,18 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class EcdsaParams : CryptoSignParams
     {
         /// <summary>
-        /// A string. This should be set to ECDSA.
+        /// Creates a new instance. The algorithm name is fixed by this type, so a caller does
+        /// not supply it even though the base declares it required.
         /// </summary>
-        public override string Name { get; set; } = "ECDSA";
+        [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
+        public EcdsaParams()
+        {
+            Name = "ECDSA";
+        }
+        // Name is inherited from the base and set in the constructor above. It is deliberately NOT
+        // overridden here: an override auto-property would reintroduce CS8618, because nullable
+        // analysis does not count assigning a VIRTUAL property in a constructor as definite
+        // assignment. The base declares it required, which is what makes the base warning free.
         /// <summary>
         /// A string. An identifier for the digest algorithm to use. This should be one of the following:<br/>
         /// SHA-256: selects the SHA-256 algorithm.<br/>

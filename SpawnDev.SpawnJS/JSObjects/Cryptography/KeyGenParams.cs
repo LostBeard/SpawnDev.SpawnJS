@@ -15,6 +15,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A string.
         /// </summary>
         [JsonPropertyName("name")]
-        public virtual string Name { get; set; }
+        public required virtual string Name { get; set; }
     }
 }

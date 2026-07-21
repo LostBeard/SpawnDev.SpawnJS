@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A GPUTextureView that will be used as the depth-stencil attachment for a render pass.
         /// </summary>
         [JsonPropertyName("view")]
-        public Union<GPUTextureView, GPUTexture> View { get; set; }
+        public required Union<GPUTextureView, GPUTexture> View { get; set; }
 
         /// <summary>
         /// An object (see Depth stencil attachment depth clear value object structure) defining the clear value 

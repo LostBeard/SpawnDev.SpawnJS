@@ -12,11 +12,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class RsaHashedImportParams : CryptoImportParams
     {
         /// <summary>
-        /// A string. This should be set to RSASSA-PKCS1-v1_5, RSA-PSS, or RSA-OAEP, depending on the algorithm you want to use.
-        /// </summary>
-        [JsonPropertyName("name")]
-        public override string Name { get; set; }
-        /// <summary>
         /// A string representing the name of the digest function to use. This can be one of SHA-256, SHA-384, or SHA-512
         /// </summary>
         [JsonPropertyName("hash")]
