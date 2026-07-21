@@ -102,8 +102,24 @@ dotnet run --project SpawnJS.TestRunner -- --url "http://localhost:5199/?bench" 
 
 For an interop-heavy consumer the per-call figures are the ones that matter. A SpawnDev.ILGPU WebGPU kernel
 launch was measured at 15 interop calls, so the saving scales with launch count rather than with data size -
-irrelevant for one kernel, potentially dominant across a graph with thousands of nodes. That end-to-end
-number has not been measured yet and is not claimed here.
+irrelevant for one kernel, potentially dominant across a graph with thousands of nodes.
+
+That end-to-end number has now been measured, on a real GPU rather than a fallback adapter (NVIDIA
+Lovelace, `fallback=False` - the harness fails rather than report a software adapter's timings as a
+GPU's):
+
+| SpawnDev.ILGPU WebGPU dispatch | before | after |
+|---|---:|---:|
+| kernel launch (queue only) | 207.2 us | **154.4 us** |
+| dispatch + `SynchronizeAsync` | 695.4 us | 782.8 us |
+
+The launch path is 25% cheaper. The synchronising round trip is **slower**, and is not yet understood:
+awaiting a promise builds two `Callback`s, each carrying a unique `cb_{n}` id that crosses at
+registration and again on every invocation. That is the open item, and the honest number is printed
+here rather than the flattering half of it.
+
+Both figures are one kernel on one machine, published (not interpreted) - read them against each other,
+not as absolutes.
 
 Read the ratios rather than the absolute times. The run above is an interpreted WASM build with no AOT, so
 the absolute numbers are much higher than a published app would see, and each case ran once. Run-to-run
