@@ -6,7 +6,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// <summary>
     /// Marshalls objects by property walking (clone)
     /// </summary>
-    public class ObjectMarshaller : JSMarshaller
+    public partial class ObjectMarshaller : JSMarshaller
     {
         /// <inheritdoc/>
         public override bool CanMarshal(Type? type)
@@ -57,6 +57,12 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (type != null && obj != null)
             {
+                // ONE crossing for the whole object when the parent is slotted: members go into the frame
+                // as name/value pairs and Javascript builds and assigns it in a single call. The path
+                // below - create, write each member, attach, free - cost one crossing PER MEMBER plus
+                // three, which counted as eight on a five member descriptor and was nearly all of its
+                // cost. The marshaller was already cached per member; the boundary was the expense.
+                if (TryWriteObjectInto(type, jsParent, jsKey, obj)) return;
                 using var outObj = JS.NewJSObject()!;
                 var classProps = type.GetTypeJsonProperties();
                 foreach (var prop in classProps)

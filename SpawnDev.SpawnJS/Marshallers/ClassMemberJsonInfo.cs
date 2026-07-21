@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -77,6 +77,13 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// marshalling a five member descriptor - more than the reflection reads in the same walk.
         /// </summary>
         internal JSMarshaller? CachedMarshaller;
+        /// <summary>
+        /// The Javascript slot holding this member's property NAME, interned on first use.<br/>
+        /// A property name is a fixed literal for its type, so it crosses the boundary once per process
+        /// and is a plain number - a slot id - every time after. That is what lets a whole descriptor be
+        /// built in one crossing: names and values are all just numbers in the frame.
+        /// </summary>
+        internal double NameSlot;
 
         static Type UnwrapNullable(Type type) => Nullable.GetUnderlyingType(type) ?? type;
 

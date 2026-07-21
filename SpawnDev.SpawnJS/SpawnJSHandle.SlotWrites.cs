@@ -1,4 +1,4 @@
-namespace SpawnDev.SpawnJS
+﻿namespace SpawnDev.SpawnJS
 {
     public sealed partial class SpawnJSHandle
     {
@@ -87,6 +87,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetDouble(slot, name, value);
                 else SlotInterop.SetDoubleAt(slot, Convert.ToDouble(key), value);
                 return;
@@ -101,6 +102,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetString(slot, name, value);
                 else SlotInterop.SetStringAt(slot, Convert.ToDouble(key), value);
                 return;
@@ -115,6 +117,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetBoolean(slot, name, value);
                 else SlotInterop.SetBooleanAt(slot, Convert.ToDouble(key), value);
                 return;
@@ -129,6 +132,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetBytes(slot, name, value);
                 else SlotInterop.SetBytesAt(slot, Convert.ToDouble(key), value);
                 return;
@@ -146,6 +150,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetJSObject(slot, name, value);
                 else SlotInterop.SetJSObjectAt(slot, Convert.ToDouble(key), value);
                 return;
@@ -161,6 +166,7 @@ namespace SpawnDev.SpawnJS
         {
             if (TryGetSlot(out var slot))
             {
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:setProperty");
                 if (key is string name) SlotInterop.SetAny(slot, name, value);
                 else SlotInterop.SetAnyAt(slot, Convert.ToDouble(key), value);
                 return;

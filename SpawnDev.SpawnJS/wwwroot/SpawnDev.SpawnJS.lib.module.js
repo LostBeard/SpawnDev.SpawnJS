@@ -620,6 +620,40 @@ globalThis.__sjsFrameCall = function (cmd, offset, length) {
     globalThis.__sjsHeaps().HEAPF64[at] = 0;
     globalThis.__sjsFrameResult(globalThis.__sjsHeaps().HEAPF64, at, ret);
 };
+// Building an OBJECT whose members are already in the frame.
+//
+// Marshalling a descriptor used to cost one crossing PER MEMBER plus three more - create the object,
+// attach it, free the temporary handle. Counted on a five member descriptor: eight crossings, which
+// is nearly all of its ~18us. The marshaller was already cached per member, so the registry was never
+// the problem; the boundary was.
+//
+// Members are written into the frame as name/value PAIRS - slot 2i is the property name, slot 2i+1 is
+// its value - and the whole object is built here in one go. Property names are fixed literals per
+// type, so they intern to a slot once per process and are thereafter just numbers like any other
+// argument.
+globalThis.__sjsBuildFromFrame = function (f64, at, count) {
+    var scratch = globalThis.__sjsInterop.netToJSBuffer;
+    var A = globalThis.__sjsFrameArg;
+    var obj = {};
+    for (var i = 0; i < count; i++) {
+        obj[A(f64, at, i * 2, scratch)] = A(f64, at, i * 2 + 1, scratch);
+    }
+    return obj;
+};
+// Builds the object and hands back its slot - for a member that is itself an object, or an object
+// passed as a call argument.
+globalThis.__sjsBuildObject = function (offset, count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
+    return globalThis.__sjsAlloc(globalThis.__sjsBuildFromFrame(f64, at, count));
+};
+// Builds the object AND assigns it, so the whole descriptor costs exactly one crossing - no temporary
+// slot is allocated, so none has to be freed either.
+globalThis.__sjsBuildObjectInto = function (parentSlot, key, offset, count) {
+    var f64 = globalThis.__sjsHeaps().HEAPF64;
+    var at = (globalThis.__sjsArgFrameAddress >>> 3) + offset * 2;
+    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(f64, at, count);
+};
 // Calling a METHOD with its arguments already in the frame.
 //
 // This is the path a wrapper method call takes - setPipeline, setBindGroup, dispatchWorkgroups - and

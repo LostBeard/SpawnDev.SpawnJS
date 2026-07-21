@@ -415,6 +415,18 @@ namespace BlazorBrowserDemo
             // reflection and registry lookup are each priced on their own.
             // qualified because BlazorJS carries an extension of the same name
             var members = SpawnDev.SpawnJS.Marshallers.TypeExtensions.GetTypeJsonProperties(typeof(BenchDescriptor));
+            // WHAT DOES ONE POCO MARSHAL ACTUALLY DO? Counted, not reasoned about. The registry is already
+            // cached per member, so if the cost is not lookup it has to be somewhere else - and a count of
+            // the boundary operations says where, without any arithmetic on my part.
+            SJS.SpawnJSRuntime.ResetCallCounts();
+            SJS.SpawnJSRuntime.CountCalls = true;
+            spawnRef.JSRef!.Set("poco", descriptor);
+            SJS.SpawnJSRuntime.CountCalls = false;
+            var counted = SJS.SpawnJSRuntime.CallCounts
+                .OrderByDescending(kv => kv.Value)
+                .Select(kv => $"{kv.Key}={kv.Value}");
+            Console.WriteLine($"BENCH: ONE POCO marshal, counted ops|{string.Join(" ", counted)}");
+
             MeasureOne("POCO members: reflection only", pocoIterations, () =>
             {
                 for (var i = 0; i < pocoIterations; i++)

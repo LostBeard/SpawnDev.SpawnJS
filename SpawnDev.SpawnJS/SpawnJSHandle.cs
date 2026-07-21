@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Extensions;
+﻿using SpawnDev.SpawnJS.Extensions;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS
@@ -385,6 +385,7 @@ namespace SpawnDev.SpawnJS
             {
                 _ownsSlot = false;
                 _liveSlots--;
+                if (SpawnJSRuntime.CountCalls) SpawnJSRuntime.CountCall("cross:freeSlot");
                 SlotInterop.Free(Convert.ToDouble(JSKey));
             }
             // _unownedParent belongs to whoever handed it to us - that is what Volatile means.

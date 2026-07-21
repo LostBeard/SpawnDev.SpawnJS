@@ -268,6 +268,46 @@ namespace SpawnDev.SpawnJS
         internal void ReleaseFrameArgs(int offset) => _frameTop = offset;
 
         /// <summary>
+        /// Writes one member of an object being built into the frame, as a name/value PAIR at
+        /// <paramref name="index"/>.<br/>
+        /// The name is an interned slot id - a property name is a fixed literal per type, so it crosses
+        /// once per process and is a number every time after.
+        /// </summary>
+        internal void WriteMemberToFrame(int offset, int index, double nameSlot, object? value)
+        {
+            var at = offset + index * 2;
+            _argFrame.WriteTagged(at, ArgTag.Slot, nameSlot);
+            if (value == null)
+            {
+                _argFrame.WriteTagged(at + 1, ArgTag.Null, 0);
+                return;
+            }
+            var valueType = value.GetType();
+            var marshaller = GetMarshaller(valueType);
+            if (marshaller.TryWriteArg(valueType, value, out var tag, out var payload))
+            {
+                _argFrame.WriteTagged(at + 1, tag, payload);
+                return;
+            }
+            // has to be built Javascript side - the scratch path, exactly as before
+            marshaller.NetToJS(valueType, _netToJSBuffer, (double)(at + 1), value);
+            _argFrame.WriteTagged(at + 1, ArgTag.Scratch, at + 1);
+        }
+
+        /// <summary>
+        /// Reserves room for <paramref name="memberCount"/> name/value pairs and returns the frame offset.
+        /// Pair with <see cref="ReleaseFrameArgs"/> in a finally.
+        /// </summary>
+        internal int ReserveMemberPairs(int memberCount)
+        {
+            var offset = _frameTop;
+            _frameTop += Math.Max(memberCount * 2, 1);
+            if (_frameTop > _argFrame.Capacity)
+                throw new InvalidOperationException($"the argument frame holds {_argFrame.Capacity} slots and an object needed {_frameTop}");
+            return offset;
+        }
+
+        /// <summary>
         /// Reads the result the Javascript side wrote into this call's own frame slot.<br/>
         /// A primitive is read straight out of .Net memory with no crossing. Anything else arrives as a
         /// slot id, so an object returned from a call becomes a handle with no crossing and no proxy

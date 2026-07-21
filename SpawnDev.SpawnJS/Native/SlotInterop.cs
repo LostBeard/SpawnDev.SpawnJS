@@ -274,6 +274,21 @@ namespace SpawnDev.SpawnJS
         public static partial string ReadUtf16(double address, double length);
 
         /// <summary>
+        /// Builds a Javascript object from name/value pairs in the frame and returns its slot.<br/>
+        /// One crossing for the whole object however many members it has, against one PER MEMBER plus
+        /// three before.
+        /// </summary>
+        [JSImport("globalThis.__sjsBuildObject")]
+        public static partial double BuildObject(double offset, double count);
+
+        /// <summary>
+        /// Builds the object and ASSIGNS it in the same crossing, so a descriptor written onto a slotted
+        /// parent costs exactly one - and allocates no temporary slot, so none has to be freed.
+        /// </summary>
+        [JSImport("globalThis.__sjsBuildObjectInto")]
+        public static partial void BuildObjectInto(double parentSlot, string key, double offset, double count);
+
+        /// <summary>
         /// Binds the Javascript side to the TRANSPORT argument frame. Called once, by the runtime.
         /// </summary>
         [JSImport("globalThis.__sjsBindArgFrame")]
