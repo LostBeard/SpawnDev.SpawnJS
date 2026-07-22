@@ -12,13 +12,15 @@ JSON-free JavaScript interop for .NET WebAssembly.
 > *Blazor pushes the marshalling decision to the side that can't make it. SpawnJS moves it to the side that can.*
 
 SpawnJS is a direct .NET &harr; JavaScript interop layer built on `JSImport`/`JSExport`/`JSHost`/`JSObject`
-only. It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, headless WASM
-console apps, and Web Workers.
+only. It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, Web Workers,
+and, notably, a **headless .NET WASM console app under Node** with no browser and no DOM at all.
 
-Its API mirrors the Blazor `IJSInProcessRuntime` / `IJSInProcessObjectReference` surface, so existing
-SpawnDev.BlazorJS-style code runs on SpawnJS with little or no change. Where Blazor marshals values by
-serializing them to a JSON string and parsing them on the other side, SpawnJS marshals them directly as
-live JS values - the JSON serializer is gone from the boundary.
+It provides a familiar interop surface - `Get`/`Set`/`Call`/`New` with strongly-typed generic returns -
+but where Blazor marshals values by serializing them to a JSON string and parsing them on the other side,
+SpawnJS marshals them directly as live JS values, so the JSON serializer is gone from the boundary.
+**SpawnDev.BlazorJS 4.0 is built on SpawnJS**, rebasing its Blazor-compatible `IJSInProcessRuntime` /
+`IJSInProcessObjectReference` API onto this JSON-free foundation - so existing SpawnDev.BlazorJS-style code
+carries over with little or no change, while SpawnJS itself keeps no Blazor dependency.
 
 ## Why it exists
 
@@ -33,6 +35,12 @@ live JS values - the JSON serializer is gone from the boundary.
   interop-heavy: every kernel launch plumbs buffers, bind groups and parameters across the boundary
   before any work reaches the GPU. A model forward pass runs thousands of launches - that is where the
   cost concentrates.
+- **Run headless - no browser, no Blazor, no DOM.** Because SpawnJS needs only the .NET WASM runtime
+  primitives, it runs in a plain **.NET WASM console app under Node**. That is what lets SpawnDev.ILGPU
+  run its **entire GPU-compute suite headless in CI** - real WebGPU compute through the
+  [`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) npm package (prebuilt Dawn), no browser
+  required - and it opens .NET WASM JavaScript interop to server-side and command-line scenarios that
+  were previously browser-only.
 - **Simplify Web Worker startup.** Without the Blazor interop layer, the fake-`window` shim
   SpawnDev.BlazorJS.WebWorkers builds to boot a Blazor app inside a worker is no longer needed.
 
@@ -99,10 +107,15 @@ dotnet run --project SpawnJS.TestRunner -- --url "http://localhost:5199/?bench" 
 
 Microbenchmarks prove a layer is fast in isolation; they do not prove it moves real work.
 [SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) runs its **full GPU-compute test suite
-headless on SpawnJS** (Node + Dawn WebGPU): **542 of 551 tests pass with zero SpawnJS interop bugs** - the
-nine remaining failures are Node-DOM, Dawn WGSL strictness, and f64 tolerance, none of them SpawnJS's. The
-same ILGPU source runs unchanged on both interop layers, and kernel output is verified correct on every
-run.
+headless on SpawnJS** - in a .NET WASM console app under Node, driving real WebGPU compute through the
+[`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) npm package (prebuilt Dawn), no browser at all:
+**542 of 551 tests pass with zero SpawnJS interop bugs** - the nine remaining failures are Node-DOM, Dawn
+WGSL strictness, and f64 tolerance, none of them SpawnJS's. The same ILGPU source runs unchanged on both
+interop layers, and kernel output is verified correct on every run.
+
+This doubles as a working **compatibility proof**: SpawnJS interops correctly not just in the browser but
+across the plain Node runtime, a headless .NET WASM console host, and the npm WebGPU toolchain - so you
+can trust it in CI and command-line environments, not only in Blazor.
 
 One honest open item: a synchronizing dispatch round trip (`SynchronizeAsync`) is still slightly slower
 than the pre-transport baseline, and the cause is not yet understood - the callback id was the stated

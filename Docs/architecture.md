@@ -6,45 +6,49 @@
 
 ## The core bend
 
-Instead of trying to make one import handle every type, SpawnJS **reduces every interop operation to a handful of fixed-signature primitives the generator already understands**, carries all variety as opaque `JSObject` handles, and composes the richness back in managed code.
+Instead of trying to make one import handle every type, SpawnJS **reduces every interop operation to a handful of fixed-signature primitives the generator already understands**, carries the arguments in a flat buffer that needs no per-value crossing, and composes the richness back in managed code.
 
-1. **A few generic JS primitives.** A small JS class, `SpawnJSInterop` (in `wwwroot/SpawnDev.SpawnJS.lib.module.js`), exposes generic operations - `getProperty`, `setProperty`, `deleteProperty`, `invokeProperty`, `invokePropertyConstructor`, `hasOwnPropertySafe`, and so on. Each takes a target, an identifier, and an argument array. Identifiers support dotted paths (`"a.b.c"`) and null-conditional segments (`"a?.b"`) via a helper called `pathObjectInfo`.
+1. **A few generic JS primitives.** A small JS class, `SpawnJSInterop` (in `wwwroot/SpawnDev.SpawnJS.lib.module.js`), exposes generic operations - `getProperty`, `setProperty`, `deleteProperty`, `invokeProperty`, `invokePropertyConstructor`, `hasOwnPropertySafe`, and so on. Each takes a target, an identifier, and its arguments. Identifiers support dotted paths (`"a.b.c"`) and null-conditional segments (`"a?.b"`).
 
-2. **One dispatcher, two entry points.** Two `JSImport`-bound functions do all outbound calls:
-   - `_netToJSCall(cmd, argsArray)` - synchronous
-   - `_netToJSCallAsync(cmd, argsArray)` - asynchronous (JS `async`)
+2. **One dispatcher.** A single `JSImport`-bound entry point carries every outbound call, and **only three primitives cross the boundary: a command name, an offset and a length.** On the JavaScript side, `_netToJSCall(cmd, offset, length)` reads that call's arguments from a shared buffer over the `[offset, offset+length)` slice, invokes `this[cmd](...)`, and leaves the result in the first slot of the caller's own region. The .NET side binds this through `SlotInterop.FrameCall(ctx, cmd, offset, length)`.
 
-   `cmd` selects which primitive to run; `argsArray` holds the marshalled arguments.
+3. **Arguments live in .NET memory.** They are written into an **argument frame in .NET's own linear memory**, which JavaScript views directly through the runtime's `HEAPF64` / `HEAPU8` views. A .NET write is a plain array store that costs nothing to "deliver" - so the call carries only `(cmd, offset, length)`, and no per-argument value has to cross. Object references are carried as **integer slots**, not `JSObject` proxies.
 
-3. **Everything is a live `JSObject` array.** The transport is never a serialized string - it is an actual JS array holding actual JS values.
+4. **The result returns in place.** The dispatcher writes the return value back into the first slot of the caller's argument region, so one fixed JS signature can return any type - the .NET side reads that slot back as the caller's target type through the marshaller graph.
 
-4. **The `[ret]` wrap.** Both dispatchers wrap their result in a one-element array: `return [ret]`. This turns an unknown-typed JS return into a known operation: "return a `JSObject`, then read index 0 as the caller's target type." One fixed JS signature can now return any type.
+5. **Managed marshaller graph.** On the .NET side, a registry of `JSMarshaller`s reads and writes typed values. See [writing-marshallers.md](writing-marshallers.md).
 
-5. **Managed marshaller graph.** On the .NET side, a registry of `JSMarshaller`s reads and writes typed values into that `JSObject` array. See [writing-marshallers.md](writing-marshallers.md).
-
-The whole library is one pattern - **typed read/write of a `JSObject` array** - applied across get / set / call / construct, in both directions, sync and async.
+The whole library is one pattern - **typed read/write over a shared buffer** - applied across get / set / call / construct, in both directions, sync and async.
 
 ## Outbound call path (.NET -> JS)
 
-Managed code (`SpawnJSRuntime.Marshal.cs`) does the same four steps for every call:
+Managed code (`SpawnJSRuntime.Marshal.cs`) does the same shape for every call:
 
 ```
 NetRun<T>(cmd, args):
-  jsArgs = NetArrayToJSArray(args)          // marshal each arg into a JS array via the graph
-  ret    = NetToJSCall(cmd, jsArgs)         // JSImport -> _netToJSCall -> primitive -> [ret]
+  offset = <marshal args into the argument frame in .NET memory>
+  FrameCall(ctx, cmd, offset, args.Length)   // only cmd, offset, length cross the boundary
   return GetMarshaller(typeof(T))
-           .JSToNet(typeof(T), ret, 0, ...)  // read index 0 of [ret] back as T
+           .JSToNet(...)                       // read the result back from the frame as T
 ```
 
-`NetRunVoid` skips the return read. `NetRunAsync` / `NetRunVoidAsync` are the exact same shape with an `await` on `_netToJSCallAsync` - adding async required no new mechanism, which is the sign the core bend is right. The `using` on both the argument array and the `[ret]` wrapper keeps the transport `JSObject`s from leaking.
+`NetRunVoid` skips the return read. The frame region unwinds like a stack when the call completes, so nothing is allocated per call. Held-reference operations (a simple key on an object you already hold) take a typed `Reflect` fast path instead of the general dispatcher - one binding, nothing allocated - which is why they are several times faster again than the dotted-path form.
 
-## Why sync and async are separate JS functions
+## Async is the sync path returning a Promise
 
-`_netToJSCall` and `_netToJSCallAsync` cannot be merged. A synchronous `JSImport` pointing at an `async` JS function would marshal the returned Promise as a `JSObject` instead of awaiting it. The value path (returns a `JSObject`) and the void path (ignores the `[ret]`) *can* share one JS function, so there are exactly two JS entry points, not four.
+There is **no async dispatcher.** An async command is just a **synchronous call that happens to return a Promise**, so it rides the same flat buffer as everything else and keeps the same "only primitives cross" property:
+
+```
+NetRunAsync<T>(cmd, args):
+  using var promise = NetRun<Promise>(cmd, args)   // the ordinary synchronous call
+  return await promise.ThenAsync<T>()              // then(resolve, reject) with .NET callbacks
+```
+
+That is what lets the buffer be a stack at all. A real async binding could not use one: the call has not finished when it returns, so its region could not be released in order. Here the synchronous part finishes immediately and the region unwinds; the eventual value arrives later through the callback channel, which has its own storage. No `Task` is ever marshalled across the boundary.
 
 ## Inbound call path (JS -> .NET)
 
-The mirror direction uses the same bend in reverse. A single `JSExport`-style channel - `_JSToNetCall(intent, argsArray)` - carries every inbound call regardless of type or arity: `intent` selects what to run, `argsArray` holds the arguments, which are marshalled **in** through the same graph, and the result is marshalled back **out**. The `intent` is a `string` today and can become an `int` (backed by a message-type `enum`) for a more efficient dispatch key without changing the pattern. This path is wired and fires; inbound argument marshalling and dispatch are still being built out (see [roadmap.md](roadmap.md)).
+The mirror direction uses the same bend in reverse. A single `JSExport` channel - `_JSToNetCall(intent, argsArray)` - carries every inbound call regardless of type or arity: `intent` selects what to run, `argsArray` holds the arguments, which are marshalled **in** through the same graph, and the result is marshalled back **out**. This is the path every DOM event, callback and settled promise takes. The `intent` is a `string` today and can become an `int` (backed by a message-type `enum`) for a more efficient dispatch key without changing the pattern.
 
 ## Where the win is
 

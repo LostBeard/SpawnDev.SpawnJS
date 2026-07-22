@@ -7,7 +7,7 @@ Deeper documentation for **SpawnDev.SpawnJS** - JSON-free JavaScript interop for
 - **[Architecture](architecture.md)** - the core design: how every interop operation collapses to a few fixed `JSImport`/`JSExport` primitives, the `[ret]` array-wrap trick, and the managed marshaller graph that carries all the richness.
 - **[Argument passing](argument-passing.md)** - why the call methods use explicit `0..N`-arg overloads plus an `Apply(object?[])` form instead of `params`, and the silent `params` array-collapse footgun that design avoids.
 - **[Writing marshallers](writing-marshallers.md)** - the `JSMarshaller` contract, how the registry resolves a type to a marshaller, the two design laws (parity-by-default, bring-your-own), and how to register a custom marshaller.
-- **[Roadmap](roadmap.md)** - current state and what is next (chiefly the JS -> .NET inbound dispatch).
+- **[Roadmap](roadmap.md)** - current state and what is next.
 
 ## The one-paragraph version
 
