@@ -13,7 +13,6 @@
         ctxId = 0;
         argFrameAddress = 0;
         probeFrameAddress = 0;
-        argBufferAddress = 0;
         constructor(dotnetRuntime) {
             this.dotnetRuntime = dotnetRuntime;
             this.ctxId = ++SpawnJSInterop._idNext;
@@ -500,20 +499,6 @@ globalThis.__sjsHeapViewNames = function (ctx) {
     for (var i = 0; i < names.length; i++) if (m[names[i]]) found.push(names[i]);
     return found.join(',');
 };
-globalThis.__sjsBindArgBuffer = function (ctx, address, byteLength) {
-    if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument buffer address ${address} is not 8 byte aligned`);
-    SpawnJSInterop.ctx(ctx).argBufferAddress = address;
-    return true;
-};
-// PROBE ONLY: sums `count` float64 arguments .Net wrote at `offset` bytes.
-// The point is not the sum - it is that .Net paid ZERO crossings to write them and ONE to deliver.
-globalThis.__sjsHeapSum = function (ctx, offset, count) {
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var at = (SpawnJSInterop.ctx(ctx).argBufferAddress + offset) >>> 3;
-    var total = 0;
-    for (var i = 0; i < count; i++) total += f64[at + i];
-    return total;
-};
 // PROBE ONLY: reads a .Net string straight out of .Net memory.
 // A .Net string is UTF-16, and a pinned one hands back the address of its FIRST CHARACTER - so
 // HEAPU16 indexes it directly with no copy on the .Net side and no marshalling machinery.
@@ -556,23 +541,7 @@ globalThis.__sjsFrameSum = function (ctx, count) {
     for (var i = 0; i < count; i++) total += f64[at + i * 2];
     return total;
 };
-globalThis.__sjsFrameTaggedSum = function (ctx, count) {
-    var m = globalThis.__sjsHeaps(ctx);
-    var f64 = m.HEAPF64;
-    var u8 = m.HEAPU8;
-    var base = SpawnJSInterop.ctx(ctx).probeFrameAddress;
-    var at = base >>> 3;
-    var total = 0;
-    for (var i = 0; i < count; i++) {
-        var value = f64[at + i * 2];
-        if (u8[base + i * 16 + 8] === 3) value = globalThis.__sjsSlots[value];
-        total += value;
-    }
-    return total;
-};
-// PROBE ONLY: interleaved, but the tag lives in the slot's PADDING as a float64 rather than as a byte.
-// The padding exists either way, so it costs no space - and it needs only ONE heap view and one width
-// of read, where the byte form needs HEAPU8 as well as HEAPF64.
+// PROBE ONLY: interleaved, the tag lives in the slot's PADDING as a float64 - one heap view, one width.
 globalThis.__sjsFrameTaggedSumF64 = function (ctx, count) {
     var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
     var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
@@ -755,63 +724,6 @@ globalThis.__sjsInvokeFrameResult = function (ctx, targetSlot, name, offset, len
     }
     // re-fetch: the call may have re-entered .Net and grown the memory, which detaches the view
     globalThis.__sjsFrameResult(globalThis.__sjsHeaps(ctx).HEAPF64, at, ret);
-};
-// PROBE ONLY: STRING ARGUMENTS, the last undecided piece of the frame layout.
-// A string needs TWO fields - where its characters are, and how many - which is exactly why the
-// runtime's own slot is wider than ours. Either the frame grows an aux field, or strings keep
-// crossing one at a time. Measured rather than chosen.
-//
-// Frame arm: .Net pins each string and writes (address, length) into the slot's value and aux
-// fields, so the strings themselves never cross; Javascript decodes them out of the heap.
-// Stride 24: value +0, tag +8, aux +16.
-globalThis.__sjsFrameStringLength = function (ctx, count) {
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var u16 = globalThis.__sjsHeaps(ctx).HEAPU16;
-    var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
-    var total = 0;
-    for (var i = 0; i < count; i++) {
-        var address = f64[at + i * 3];
-        var length = f64[at + i * 3 + 2];
-        // decode it for real - measuring only the address read would measure nothing
-        var s = String.fromCharCode.apply(null, u16.subarray(address >>> 1, (address >>> 1) + length));
-        total += s.length;
-    }
-    return total;
-};
-// Slot arm: the strings were written across the boundary one at a time, the way they are today.
-globalThis.__sjsSlotStringLength = function (ctx, argsSlot, count) {
-    var a = globalThis.__sjsSlots[argsSlot];
-    var total = 0;
-    for (var i = 0; i < count; i++) total += a[i].length;
-    return total;
-};
-// PROBE ONLY: the SAME sum, but over an argument array held Javascript side - the transport in use
-// today. The Javascript work is identical to __sjsHeapSum by construction, so an A/B between them
-// isolates exactly one thing: what .Net paid to get the arguments here.
-globalThis.__sjsSlotSum = function (ctx, argsSlot, count) {
-    var a = globalThis.__sjsSlots[argsSlot];
-    var total = 0;
-    for (var i = 0; i < count; i++) total += a[i];
-    return total;
-};
-// PROBE ONLY: a heterogeneous argument list, structure of arrays rather than interleaved.
-// Interleaving a tag byte with an eight byte payload gives a stride of 9, which breaks the alignment
-// HEAPF64 indexing needs - so tags live in their own region and payloads in theirs, parallel by
-// index. Both regions are read through the runtime's own views, so both are platform endian.
-// tag 1 = number, 2 = boolean, 3 = slot reference.
-globalThis.__sjsHeapTaggedSum = function (ctx, tagOffset, valueOffset, count) {
-    var m = globalThis.__sjsHeaps(ctx);
-    var u8 = m.HEAPU8;
-    var f64 = m.HEAPF64;
-    var tagAt = SpawnJSInterop.ctx(ctx).argBufferAddress + tagOffset;
-    var valueAt = (SpawnJSInterop.ctx(ctx).argBufferAddress + valueOffset) >>> 3;
-    var total = 0;
-    for (var i = 0; i < count; i++) {
-        var value = f64[valueAt + i];
-        if (u8[tagAt + i] === 3) value = globalThis.__sjsSlots[value];
-        total += value;
-    }
-    return total;
 };
 // A property write whose VALUE type is decided by the .Net binding rather than by this function - the
 // write-side twin of __sjsGet. It covers the cases the typed setters do not: an arbitrary Any value, a

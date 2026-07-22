@@ -61,7 +61,8 @@ namespace SpawnDev.SpawnJS
         private SpawnJSHandle _netToJSBuffer;
         private SpawnJSHandle _jsToNetBuffer;
         /// <summary>
-        /// Outbound call arguments, in .Net's own memory. See <see cref="UseArgFrame"/>.
+        /// Outbound call arguments, in .Net's own memory that Javascript views directly, so a call carries
+        /// only a command name, an offset and a length. See <see cref="HeapArgFrame"/>.
         /// </summary>
         private HeapArgFrame _argFrame = null!;
         /// <summary>

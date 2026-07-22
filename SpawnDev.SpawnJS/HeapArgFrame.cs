@@ -1,36 +1,27 @@
 ﻿using SpawnDev.SpawnJS.Toolbox;
-using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS
 {
     /// <summary>
-    /// PROBE: the INTERLEAVED argument frame - one padded slot per argument, which is the shape the .Net
-    /// runtime's own marshaller uses.
+    /// The outbound argument frame - one padded slot per argument, in .Net's OWN memory, which Javascript
+    /// views directly through the runtime's HEAPF64 view. A .Net write is a plain array store and costs
+    /// NOTHING to deliver; only the call itself - a command name, an offset and a length - crosses.
     /// <br/><br/>
-    /// Read out of the shipped runtime (dotnet.runtime.js): a marshaler argument keeps its value at slot
-    /// offset 0, a handle at 4, a length at 8 and a TYPE TAG BYTE at 12 - all interleaved inside one
-    /// fixed-stride slot, read with <c>HEAPF64[addr&gt;&gt;&gt;3]</c> and <c>HEAPU8[addr]</c>.
-    /// <br/><br/>
-    /// The alignment problem that pushed <see cref="HeapArgBuffer"/> to structure-of-arrays is solved by
-    /// PADDING rather than by splitting: a tag byte next to an eight byte value gives a stride of 9 and
-    /// misaligns every payload, but padding the stride to a multiple of 8 puts every value back on an
-    /// eight byte boundary while keeping an argument's fields together. The runtime pads to 32 because it
-    /// carries six fields; we carry two, so 16 is enough.
+    /// One argument is a value and a tag, both carried as float64 so there is one heap view and one read
+    /// width. The tag lives in the slot's PADDING rather than as a separate byte: a byte tag next to an
+    /// eight byte value gives a stride of 9 and misaligns every payload, so the stride is padded to a
+    /// multiple of 8, which keeps every value 8 byte aligned while keeping an argument's fields together.
     /// <br/><br/>
     /// Layout, per argument, stride 16:
     /// <code>
     ///   +0   value   (float64)   -> HEAPF64[(base + i*16) >>> 3]
-    ///   +8   tag     (uint8)     -> HEAPU8 [ base + i*16 + 8   ]
-    ///   +9   (padding to keep the next value 8 byte aligned)
+    ///   +8   tag     (float64)   -> HEAPF64[(base + i*16) >>> 3 + 1]
     /// </code>
-    /// Exists to be measured against <see cref="HeapArgBuffer"/>, not to be assumed better.
     /// </summary>
     public sealed class HeapArgFrame : IDisposable
     {
         /// <summary>Bytes per argument slot. A multiple of 8, so every value stays 8 byte aligned.</summary>
         public const int Stride = 16;
-        /// <summary>Byte offset of the tag within a slot.</summary>
-        public const int TagOffset = 8;
 
         /// <summary>A number, carried as itself.</summary>
         public const byte TagNumber = 1;
@@ -94,26 +85,9 @@ namespace SpawnDev.SpawnJS
         public void Write(int index, double value) => _frame[index * (Stride / 8)] = value;
 
         /// <summary>
-        /// Writes a value and a BYTE tag - the shape the .Net runtime's own marshaler uses, kept so the
-        /// benchmark can still measure it. MEASURED SLOWER here and not used in production: a byte tag
-        /// costs a span per write on this side and a second heap view plus a mixed width read on the
-        /// other, where an f64 tag in padding that exists anyway costs nothing. Use
-        /// <see cref="WriteTagged"/>.
-        /// </summary>
-        public void WriteTaggedByte(int index, byte tag, double value)
-        {
-            _frame[index * (Stride / 8)] = value;
-            MemoryMarshal.AsBytes(_frame.AsSpan())[index * Stride + TagOffset] = tag;
-        }
-
-        /// <summary>
         /// Writes a value and its tag. No crossing.<br/>
-        /// The tag is a float64 in the slot's PADDING rather than a byte.<br/>
-        /// <br/>
-        /// The padding is there either way, so this costs nothing in space - and it removes two costs the
-        /// byte form pays: a <c>MemoryMarshal.AsBytes</c> span per write on the .Net side, and a second
-        /// heap view lookup plus a mixed width read on the Javascript side. Measured against the byte
-        /// form rather than assumed better.
+        /// Both are float64 - the tag in the slot's PADDING, which exists either way - so writing and
+        /// reading an argument needs one heap view and one read width.
         /// </summary>
         public void WriteTagged(int index, byte tag, double value)
         {
@@ -127,9 +101,6 @@ namespace SpawnDev.SpawnJS
 
         /// <summary>Reads a value back.</summary>
         public double Read(int index) => _frame[index * (Stride / 8)];
-
-        /// <summary>Reads a BYTE tag back. Pairs with <see cref="WriteTaggedByte"/>.</summary>
-        public byte ReadTagByte(int index) => MemoryMarshal.AsBytes(_frame.AsSpan())[index * Stride + TagOffset];
 
         /// <inheritdoc/>
         public void Dispose() => _view.Dispose();

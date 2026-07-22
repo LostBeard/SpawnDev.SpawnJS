@@ -247,18 +247,6 @@ namespace SpawnDev.SpawnJS
         [return: JSMarshalAs<JSType.Any>]
         public static partial object? GetAnyAt(double slot, double index);
 
-        // PROBE: an argument buffer in .Net's OWN memory. See the notes on the Javascript side.
-        // Javascript can view the WebAssembly linear memory directly, so a buffer placed there is free to
-        // BOTH sides - .Net writes are plain stores, Javascript reads are DataView reads - which takes an
-        // N argument call from N+1 crossings down to 1.
-
-        /// <summary>
-        /// Binds the Javascript side to a pinned region of .Net memory. Called once; the view is cached
-        /// and rebound automatically if growing the WebAssembly memory detaches it.
-        /// </summary>
-        [JSImport("globalThis.__sjsBindArgBuffer")]
-        public static partial bool BindArgBuffer(double ctx, double address, double byteLength);
-
         /// <summary>
         /// Which HEAP views the runtime actually exposes, comma separated. The design reads .Net memory
         /// through the runtime's own TypedArray views, so this reports what is really there rather than
@@ -310,41 +298,9 @@ namespace SpawnDev.SpawnJS
         [JSImport("globalThis.__sjsFrameSum")]
         public static partial double FrameSum(double ctx, double count);
 
-        /// <summary>PROBE: the same, reading each slot's inline tag byte - the runtime's own shape.</summary>
-        [JSImport("globalThis.__sjsFrameTaggedSum")]
-        public static partial double FrameTaggedSum(double ctx, double count);
-
-        /// <summary>PROBE: interleaved with the tag as a float64 in the slot's padding - one view, one width.</summary>
+        /// <summary>PROBE: the same, reading each slot's float64 tag in the padding - the transport's shape.</summary>
         [JSImport("globalThis.__sjsFrameTaggedSumF64")]
         public static partial double FrameTaggedSumF64(double ctx, double count);
-
-        /// <summary>PROBE: decodes `count` strings the frame carries as (address, length) - none crossed.</summary>
-        [JSImport("globalThis.__sjsFrameStringLength")]
-        public static partial double FrameStringLength(double ctx, double count);
-
-        /// <summary>PROBE: the same, over strings that crossed the boundary one at a time.</summary>
-        [JSImport("globalThis.__sjsSlotStringLength")]
-        public static partial double SlotStringLength(double ctx, double argsSlot, double count);
-
-        /// <summary>
-        /// PROBE: the same sum over a Javascript side argument array - the transport in use today. The
-        /// Javascript work is identical to <see cref="HeapSum"/>, so an A/B isolates exactly what .Net
-        /// paid to deliver the arguments.
-        /// </summary>
-        [JSImport("globalThis.__sjsSlotSum")]
-        public static partial double SlotSum(double ctx, double argsSlot, double count);
-
-        /// <summary>PROBE: sums `count` float64s .Net wrote at `offset` bytes, delivered in ONE crossing.</summary>
-        [JSImport("globalThis.__sjsHeapSum")]
-        public static partial double HeapSum(double ctx, double offset, double count);
-
-        /// <summary>
-        /// PROBE: the same for a heterogeneous list - tags in one region, payloads in another, parallel by
-        /// index. Structure of arrays rather than interleaved, because an interleaved tag would misalign
-        /// the float64 payloads.
-        /// </summary>
-        [JSImport("globalThis.__sjsHeapTaggedSum")]
-        public static partial double HeapTaggedSum(double ctx, double tagOffset, double valueOffset, double count);
 
         /// <summary>
         /// Own enumerable keys of the slotted object, for reading a record back.<br/>

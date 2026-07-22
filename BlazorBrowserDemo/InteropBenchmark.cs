@@ -188,15 +188,15 @@ namespace BlazorBrowserDemo
             // THE ARGUMENT TRANSPORT ITSELF. Both arms end with Javascript summing the same N doubles,
             // so the Javascript work is identical by construction and the difference is exactly what .Net
             // paid to deliver them:
-            //   slot arm - the buffer lives Javascript side, so each argument costs a boundary crossing
-            //   heap arm - the buffer lives in .Net memory, which Javascript views directly, so the
-            //              writes are plain array stores and only the call itself crosses
-            using var heapArgs = new SJS.HeapArgBuffer(64);
-            heapArgs.Bind(spawn.CtxId);
+            //   JS-side arm - each argument is written across the boundary, so it costs one crossing each
+            //   frame arm   - the arguments live in .Net memory, which Javascript views directly, so the
+            //                 writes are plain array stores and only the call itself crosses
+            using var heapFrame = new SJS.HeapArgFrame(64);
+            heapFrame.BindProbe(spawn.CtxId);
             const int argCount = 5;
             var transportIterations = iterations / 2;
 
-            // The JS side arm writes 5 arguments the way the transport does today - one crossing each.
+            // The JS-side arm writes 5 arguments one crossing each - the transport BlazorJS still uses.
             MeasureOne($"{argCount} args written JS side ({argCount} crossings, no call)", transportIterations,
                 () =>
                 {
@@ -204,71 +204,9 @@ namespace BlazorBrowserDemo
                         for (var a = 0; a < argCount; a++) spawnRef.JSRef!.Set("arg", a + 0.5);
                 });
 
-            // The .Net side arm writes the same 5 arguments AND makes the call. It does strictly MORE
-            // work than the arm above, so if it still wins the result is not a matter of interpretation.
+            // The frame arm writes the same 5 arguments AND makes the call. It does strictly MORE work
+            // than the arm above, so if it still wins the result is not a matter of interpretation.
             MeasureOne($"{argCount} args written .Net side (0 crossings, PLUS the call)", transportIterations,
-                () =>
-                {
-                    for (var i = 0; i < transportIterations; i++)
-                    {
-                        for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.HeapSum(spawn.CtxId, 0, argCount);
-                    }
-                });
-
-            // LAYOUT A/B, both in .Net memory, same argument count, same Javascript work shape.
-            // structure-of-arrays: values packed 8 bytes apart, tags in a separate region
-            // interleaved:         one padded 16 byte slot per argument, tag inside it - the shape the
-            //                      .Net runtime's own marshaller uses
-            using var heapFrame = new SJS.HeapArgFrame(64);
-            heapFrame.BindProbe(spawn.CtxId);
-
-            MeasureOne($"{argCount} args, structure-of-arrays, UNtagged", transportIterations,
-                () =>
-                {
-                    for (var i = 0; i < transportIterations; i++)
-                    {
-                        for (var a = 0; a < argCount; a++) heapArgs.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.HeapSum(spawn.CtxId, 0, argCount);
-                    }
-                });
-
-            MeasureOne($"{argCount} args, interleaved padded, UNtagged", transportIterations,
-                () =>
-                {
-                    for (var i = 0; i < transportIterations; i++)
-                    {
-                        for (var a = 0; a < argCount; a++) heapFrame.Write(a, a + 0.5);
-                        _ = SJS.SlotInterop.FrameSum(spawn.CtxId, argCount);
-                    }
-                });
-
-            // Tagged is the case a real transport actually runs, and it is where the layouts differ most:
-            // SoA reads two regions far apart, interleaved reads one slot twice.
-            MeasureOne($"{argCount} args, structure-of-arrays, TAGGED", transportIterations,
-                () =>
-                {
-                    for (var i = 0; i < transportIterations; i++)
-                    {
-                        for (var a = 0; a < argCount; a++) heapArgs.WriteTagged(a, SJS.HeapArgBuffer.TagNumber, a + 0.5);
-                        _ = SJS.SlotInterop.HeapTaggedSum(spawn.CtxId, heapArgs.TagOffsetFromValues, 0, argCount);
-                    }
-                });
-
-            MeasureOne($"{argCount} args, interleaved padded, TAGGED byte", transportIterations,
-                () =>
-                {
-                    for (var i = 0; i < transportIterations; i++)
-                    {
-                        for (var a = 0; a < argCount; a++) heapFrame.WriteTaggedByte(a, SJS.HeapArgFrame.TagNumber, a + 0.5);
-                        _ = SJS.SlotInterop.FrameTaggedSum(spawn.CtxId, argCount);
-                    }
-                });
-
-            // The byte arm above pays a MemoryMarshal.AsBytes span per write on the .Net side and a second
-            // heap view plus a mixed width read on the Javascript side. Storing the tag as a float64 in the
-            // padding - which exists either way - removes both, and isolates the LAYOUT from that overhead.
-            MeasureOne($"{argCount} args, interleaved padded, TAGGED f64", transportIterations,
                 () =>
                 {
                     for (var i = 0; i < transportIterations; i++)
@@ -278,67 +216,24 @@ namespace BlazorBrowserDemo
                     }
                 });
 
-            // STRING ARGUMENTS - the last undecided piece of the frame layout. A string needs two fields
-            // (where the characters are, how many), which is why the runtime's own slot is wider. Either
-            // the frame grows an aux field, or strings keep crossing one at a time.
-            // Both arms end with Javascript holding the same N strings and summing their lengths.
-            var strings = new[] { "setBindGroup", "compute", "a", "vertexBufferLayoutDescriptor", "rgba8unorm" };
-            using var stringFrame = new SJS.HeapArgFrame3(64);
-            var stringArgsSlot = SJS.SlotInterop.NewArray();
-            var stringIterations = iterations / 4;
-
-            MeasureOne($"{strings.Length} string args, crossing one at a time", stringIterations,
-                () =>
-                {
-                    for (var i = 0; i < stringIterations; i++)
-                    {
-                        for (var a = 0; a < strings.Length; a++) SJS.SlotInterop.SetStringAt(stringArgsSlot, a, strings[a]);
-                        _ = SJS.SlotInterop.SlotStringLength(spawn.CtxId, stringArgsSlot, strings.Length);
-                    }
-                });
-
-            // bind ONCE - binding is itself a crossing, and doing it per iteration would measure that
-            // rather than the transport.
-            stringFrame.Bind(spawn.CtxId);
-            MeasureOne($"{strings.Length} string args, pinned address in frame", stringIterations,
-                () =>
-                {
-                    for (var i = 0; i < stringIterations; i++)
-                    {
-                        for (var a = 0; a < strings.Length; a++) stringFrame.WriteString(a, strings[a]);
-                        _ = SJS.SlotInterop.FrameStringLength(spawn.CtxId, strings.Length);
-                        stringFrame.ReleasePins();
-                    }
-                });
-            // the two-field frame is what the other arms bind; restore it so their numbers stay comparable
-            heapFrame.BindProbe(spawn.CtxId);
-
-            // END TO END: the generic dispatcher, with the argument frame OFF and ON. One variable.
-            // These are the operations that actually reach NetRun - a dotted path defeats the slot fast
-            // paths, so the arguments go through the transport. The obj-ref cases above never get here,
-            // which is why they do not move.
+            // END TO END: the generic dispatcher. These are the operations that actually reach NetRun - a
+            // dotted path defeats the slot fast paths, so the arguments go through the transport frame. The
+            // obj-ref cases above never get here, which is why they do not move.
             var genericIterations = iterations / 2;
-            foreach (var useFrame in new[] { false, true })
-            {
-                SJS.SpawnJSRuntime.UseArgFrame = useFrame;
-                var label = useFrame ? "frame" : "JS-side buffer";
+            MeasureOne("generic get int (dotted)", genericIterations,
+                () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Get<int>($"{Target}.number"); });
 
-                MeasureOne($"generic get int (dotted) - {label}", genericIterations,
-                    () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Get<int>($"{Target}.number"); });
+            MeasureOne("generic call method (dotted)", genericIterations,
+                () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Call<int>($"{Target}.method", i); });
 
-                MeasureOne($"generic call method (dotted) - {label}", genericIterations,
-                    () => { for (var i = 0; i < genericIterations; i++) _ = spawn.Call<int>($"{Target}.method", i); });
-
-                MeasureOne($"generic get object handle (dotted) - {label}", genericIterations,
-                    () =>
+            MeasureOne("generic get object handle (dotted)", genericIterations,
+                () =>
+                {
+                    for (var i = 0; i < genericIterations; i++)
                     {
-                        for (var i = 0; i < genericIterations; i++)
-                        {
-                            using var o = spawn.Get<SJS.SpawnJSObject>($"{Target}.child");
-                        }
-                    });
-            }
-            SJS.SpawnJSRuntime.UseArgFrame = true;
+                        using var o = spawn.Get<SJS.SpawnJSObject>($"{Target}.child");
+                    }
+                });
 
             // The INBOUND direction - Javascript calling .Net. Outbound carries only (cmd, offset,
             // length) over a flat buffer; this measures whether inbound does the same. Every DOM event,

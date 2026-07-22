@@ -189,14 +189,6 @@ namespace SpawnDev.SpawnJS
         int _bufferTop;
 
         /// <summary>
-        /// Whether outbound calls carry their arguments in the ARGUMENT FRAME - .Net's own memory, which
-        /// Javascript views directly - rather than in the Javascript side array.<br/>
-        /// The old path is kept so the two can be measured against each other on demand; it is not a
-        /// fallback for correctness, and both are covered by the same tests.
-        /// </summary>
-        public static bool UseArgFrame { get; set; } = true;
-
-        /// <summary>
         /// A call whose arguments never cross. Only the command name, an offset and a length do.
         /// </summary>
         object? NetRunViaFrame(Type type, string cmd, object?[] args)
@@ -205,8 +197,16 @@ namespace SpawnDev.SpawnJS
             try
             {
                 SlotInterop.FrameCall(CtxId, cmd, offset, args.Length);
+                // the result comes back in the first slot of this call's own region
                 var netRet = ReadFrameResult(type, offset);
+                // A Nullable<T> target is satisfied by a T. There is no boxed Nullable<T> at runtime -
+                // boxing one with a value produces a boxed T - so comparing against the declared type
+                // rejects every non-null nullable value type, Get<int?> included.
                 var expected = Nullable.GetUnderlyingType(type) ?? type;
+                // assignability, not exact equality: a marshaller may legitimately hand back a SUBCLASS of
+                // what was asked for. An async method returning Task<T> actually returns an
+                // AsyncStateMachineBox<T>, and a wrapper marshaller may return a derived wrapper. Exact
+                // equality rejected both while still being no better at catching a genuinely wrong type.
                 if (netRet != null && !expected.IsInstanceOfType(netRet))
                     throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {expected.Name} got {netRet.GetType().Name}");
                 return netRet;
@@ -472,29 +472,7 @@ namespace SpawnDev.SpawnJS
         {
             if (CountCalls) CountCall(cmd);
             args ??= new object?[0];
-            if (UseArgFrame) return NetRunViaFrame(type, cmd, args);
-            var offset = WriteArgs(args);
-            try
-            {
-                NetToJSCall(cmd, offset, args.Length);
-                // the result comes back in the first slot of this call's own region
-                var netRet = MarshallJSToNet(type, _netToJSBuffer, (double)offset);
-                // A Nullable<T> target is satisfied by a T. There is no boxed Nullable<T> at runtime -
-                // boxing one with a value produces a boxed T - so comparing against the declared type
-                // rejects every non-null nullable value type, Get<int?> included.
-                var expected = Nullable.GetUnderlyingType(type) ?? type;
-                // assignability, not exact equality: a marshaller may legitimately hand back a SUBCLASS of
-                // what was asked for. An async method returning Task<T> actually returns an
-                // AsyncStateMachineBox<T>, and a wrapper marshaller may return a derived wrapper. Exact
-                // equality rejected both while still being no better at catching a genuinely wrong type.
-                if (netRet != null && !expected.IsInstanceOfType(netRet))
-                    throw new Exception($"{nameof(SpawnJSRuntime)}.NetRun expected {expected.Name} got {netRet.GetType().Name}");
-                return netRet;
-            }
-            finally
-            {
-                ReleaseArgs(offset);
-            }
+            return NetRunViaFrame(type, cmd, args);
         }
         internal void NetRunVoid(string cmd, object?[]? args = null)
         {

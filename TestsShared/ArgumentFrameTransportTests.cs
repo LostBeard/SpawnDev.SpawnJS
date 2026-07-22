@@ -1,19 +1,18 @@
-﻿using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.Toolbox;
 
 namespace TestsShared
 {
     /// <summary>
-    /// PROBE: an argument buffer in .Net's OWN memory, read by Javascript through the runtime's own HEAP
-    /// TypedArray views.<br/>
+    /// The outbound argument transport: the <see cref="HeapArgFrame"/> that lives in .Net's OWN memory,
+    /// which Javascript views directly through the runtime's HEAP TypedArray views.<br/>
     /// <br/>
-    /// The premise: Javascript can view the WebAssembly linear memory directly, so a buffer there is free
-    /// to BOTH sides - .Net writes are plain array stores, Javascript reads are element reads off
-    /// HEAPF64 - and an N argument call costs one crossing instead of N+1.<br/>
-    /// <br/>
-    /// These establish the premise HOLDS before any transport is built on it.
+    /// The premise: Javascript can view the WebAssembly linear memory directly, so a frame placed there is
+    /// free to BOTH sides - .Net writes are plain array stores, Javascript reads are element reads off
+    /// HEAPF64 - and an N argument call costs one crossing instead of N+1. These prove the premise holds,
+    /// the layout is correct, and the live transport carries every argument shape it can meet.
     /// </summary>
-    public class HeapArgBufferTests(SpawnJSRuntime JS)
+    public class ArgumentFrameTransportTests(SpawnJSRuntime JS)
     {
         /// <summary>
         /// The design reads through HEAPF64 and HEAPU8, so confirm the runtime actually publishes them
@@ -36,21 +35,22 @@ namespace TestsShared
         /// The headline: .Net writes five values with NO crossings, one call delivers them, and Javascript
         /// reads back exactly what .Net wrote.<br/>
         /// The values are deliberately not symmetric under byte reversal, so a byte order problem could
-        /// not pass by coincidence.
+        /// not pass by coincidence. Values differ per index, so a stride mistake shows up as the wrong sum
+        /// rather than passing because every slot held the same thing.
         /// </summary>
         [SpawnJSTest]
-        public async Task JavascriptReadsArgumentsFromDotnetMemoryTest()
+        public async Task FrameReadsEveryValueTest()
         {
-            using var buffer = new HeapArgBuffer(64);
-            buffer.Bind(JS.CtxId);
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
             double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
-            for (var i = 0; i < args.Length; i++) buffer.Write(i, args[i]);
+            for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
 
-            var sum = SlotInterop.HeapSum(JS.CtxId, 0, args.Length);
+            var sum = SlotInterop.FrameSum(JS.CtxId, args.Length);
             var expected = 0d;
             foreach (var a in args) expected += a;
             if (sum != expected)
-                throw new Exception($"Javascript read {sum} from .Net memory, expected {expected}");
+                throw new Exception($"the frame summed to {sum}, expected {expected} - check the stride");
         }
 
         /// <summary>
@@ -60,49 +60,54 @@ namespace TestsShared
         /// flag being passed.
         /// </summary>
         [SpawnJSTest]
-        public async Task ByteOrderAgreesWithoutAnyFlagTest()
+        public async Task ByteOrderAgreesInTheFrameTest()
         {
-            using var buffer = new HeapArgBuffer(64);
-            buffer.Bind(JS.CtxId);
-            buffer.Write(0, 1.0);
-            var one = SlotInterop.HeapSum(JS.CtxId, 0, 1);
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
+            frame.Write(0, 1.0);
+            var one = SlotInterop.FrameSum(JS.CtxId, 1);
             if (one != 1.0)
                 throw new Exception($"Javascript read {one} for 1.0 - a byte reversed 1.0 is a denormal near zero, so the two sides disagree on byte order");
         }
 
         /// <summary>
-        /// The value region must be 8 byte aligned, because HEAPF64 is indexed in ELEMENTS - a misaligned
-        /// address would read the wrong element silently rather than fail. Bind() asserts it; this
-        /// confirms the assertion holds for a real pinned .Net array rather than only being checked.
+        /// Every slot's value must be 8 byte aligned, which is the whole reason the stride is padded.
+        /// Checked across many slots rather than only the first, because a stride that is not a multiple
+        /// of 8 misaligns progressively - slot 0 would pass and slot 1 would not.
         /// </summary>
         [SpawnJSTest]
-        public async Task PinnedValueRegionIsEightByteAlignedTest()
+        public async Task EverySlotValueIsEightByteAlignedTest()
         {
-            using var buffer = new HeapArgBuffer(64);
-            if (buffer.ValueAddress % 8 != 0)
-                throw new Exception($"the pinned double[] landed at {buffer.ValueAddress}, which is not 8 byte aligned");
-            buffer.Bind(JS.CtxId);
+            using var frame = new HeapArgFrame(64);
+            if (HeapArgFrame.Stride % 8 != 0)
+                throw new Exception($"a stride of {HeapArgFrame.Stride} is not a multiple of 8, so values drift out of alignment");
+            for (var i = 0; i < 64; i++)
+            {
+                var slotAddress = frame.Address + i * HeapArgFrame.Stride;
+                if (slotAddress % 8 != 0)
+                    throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
+            }
         }
 
         /// <summary>
-        /// A heterogeneous argument list: tags in one region, values in another, parallel by index. This
-        /// is why the layout is structure of arrays - interleaving a tag byte with an eight byte payload
-        /// gives a stride of 9 and breaks the alignment HEAPF64 indexing needs.
+        /// A heterogeneous argument list carrying a type tag alongside each value - a number, a boolean, a
+        /// number. The tag is a float64 in the slot's padding, so it reads with the same view and width as
+        /// the value; Javascript sums the numbers and skips nothing.
         /// </summary>
         [SpawnJSTest]
         public async Task TaggedArgumentsCarryTypeAndPayloadTest()
         {
-            using var buffer = new HeapArgBuffer(64);
-            buffer.Bind(JS.CtxId);
-            buffer.WriteTagged(0, HeapArgBuffer.TagNumber, 1.5);
-            buffer.WriteTagged(1, HeapArgBuffer.TagBoolean, 1);
-            buffer.WriteTagged(2, HeapArgBuffer.TagNumber, 0.5);
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
+            frame.WriteTagged(0, HeapArgFrame.TagNumber, 1.5);
+            frame.WriteTagged(1, HeapArgFrame.TagBoolean, 1);
+            frame.WriteTagged(2, HeapArgFrame.TagNumber, 0.5);
 
-            var sum = SlotInterop.HeapTaggedSum(JS.CtxId, buffer.TagOffsetFromValues, 0, 3);
+            var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 3);
             if (sum != 3.0)
                 throw new Exception($"tagged arguments summed to {sum}, expected 3.0");
-            if (buffer.ReadTag(1) != HeapArgBuffer.TagBoolean)
-                throw new Exception("the tag byte did not survive the round trip");
+            if (frame.ReadTag(1) != HeapArgFrame.TagBoolean)
+                throw new Exception("the tag did not survive the round trip");
         }
 
         /// <summary>
@@ -113,16 +118,16 @@ namespace TestsShared
         [SpawnJSTest]
         public async Task SlotTaggedArgumentResolvesThroughTheSlotTableTest()
         {
-            using var buffer = new HeapArgBuffer(64);
-            buffer.Bind(JS.CtxId);
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
             // take a real slot the same way the library does, holding a value the sum can verify
             var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
             try
             {
-                buffer.WriteTagged(0, HeapArgBuffer.TagSlot, slot);
-                buffer.WriteTagged(1, HeapArgBuffer.TagNumber, 2);
+                frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
+                frame.WriteTagged(1, HeapArgFrame.TagNumber, 2);
 
-                var sum = SlotInterop.HeapTaggedSum(JS.CtxId, buffer.TagOffsetFromValues, 0, 2);
+                var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 2);
                 if (sum != 42)
                     throw new Exception($"a slot tagged argument summed to {sum}, expected 42 - the slot did not resolve");
             }
@@ -130,6 +135,83 @@ namespace TestsShared
             {
                 SlotInterop.Free(slot);
             }
+        }
+
+        /// <summary>
+        /// The value and its tag share one slot - the tag in the padding next to the value - so writing a
+        /// value must not clear the tag, writing a tag must not touch the value, and neither may bleed into
+        /// a neighbouring slot. That is the failure mode interleaving introduces; structure of arrays could
+        /// not have it, which is why it is checked directly.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task WritingAValueDoesNotDisturbItsTagTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
+            // write the tag FIRST, then the value, so an overlapping value write would clear the tag
+            frame.WriteTagged(0, HeapArgFrame.TagBoolean, 1);
+            frame.Write(0, 7.5);
+            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+                throw new Exception("writing a value cleared the tag of the same slot");
+            if (frame.Read(0) != 7.5)
+                throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
+
+            // a tag write must not touch the value it belongs to
+            frame.WriteTagged(1, HeapArgFrame.TagNumber, 9.25);
+            if (frame.Read(1) != 9.25)
+                throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
+
+            // and a tag on one slot must not bleed into its neighbours
+            frame.Write(2, 4.0);
+            frame.WriteTagged(1, HeapArgFrame.TagSlot, 9.25);
+            if (frame.Read(2) != 4.0)
+                throw new Exception("a tag write bled into the next slot");
+            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+                throw new Exception("a tag write bled into the previous slot");
+        }
+
+        /// <summary>
+        /// Many writes then one read - the shape that matters. .Net pays ZERO crossings for 512 arguments
+        /// and one for the call.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task ManyArgumentsCostOneCrossingTest()
+        {
+            using var frame = new HeapArgFrame(1024);
+            frame.BindProbe(JS.CtxId);
+            const int count = 512;
+            var expected = 0d;
+            for (var i = 0; i < count; i++)
+            {
+                var v = i * 0.25;
+                frame.Write(i, v);
+                expected += v;
+            }
+            var sum = SlotInterop.FrameSum(JS.CtxId, count);
+            if (sum != expected)
+                throw new Exception($"{count} arguments summed to {sum}, expected {expected}");
+        }
+
+        /// <summary>
+        /// The frame must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
+        /// so the collector cannot move it - but a view over memory the collector COULD move would read
+        /// whatever now occupies that address, silently.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task FrameSurvivesCollectionTest()
+        {
+            using var frame = new HeapArgFrame(64);
+            frame.BindProbe(JS.CtxId);
+            frame.Write(0, 987.654);
+
+            for (var i = 0; i < 200; i++) _ = new byte[8192];
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            var value = SlotInterop.FrameSum(JS.CtxId, 1);
+            if (value != 987.654)
+                throw new Exception($"after a collection Javascript read {value}, expected 987.654 - the frame moved");
         }
 
         /// <summary>
@@ -211,99 +293,6 @@ namespace TestsShared
         static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";
 
         /// <summary>
-        /// The INTERLEAVED frame - one padded slot per argument, the shape the runtime's own marshaller
-        /// uses. Values must land where Javascript expects them given a stride of 16 bytes.<br/>
-        /// Deliberately uses values that differ per index, so a stride mistake shows up as the wrong sum
-        /// rather than passing because every slot held the same thing.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task InterleavedFrameReadsEveryValueTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
-            for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
-
-            var sum = SlotInterop.FrameSum(JS.CtxId, args.Length);
-            var expected = 0d;
-            foreach (var a in args) expected += a;
-            if (sum != expected)
-                throw new Exception($"the interleaved frame summed to {sum}, expected {expected} - check the stride");
-        }
-
-        /// <summary>
-        /// The tag byte lives INSIDE the slot, so it shares memory with the padding next to the value.
-        /// Writing a tag must not disturb the value it belongs to, and writing a value must not clear the
-        /// tag - which is the failure mode interleaving introduces and structure-of-arrays cannot have.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task InterleavedTagAndValueDoNotCorruptEachOtherTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            // write the tag FIRST, then the value, so an overlapping value write would clear the tag
-            frame.WriteTaggedByte(0, HeapArgFrame.TagBoolean, 1);
-            frame.Write(0, 7.5);
-            if (frame.ReadTagByte(0) != HeapArgFrame.TagBoolean)
-                throw new Exception("writing a value cleared the tag of the same slot");
-            if (frame.Read(0) != 7.5)
-                throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
-
-            // and the other order - a tag write must not touch the value
-            frame.WriteTaggedByte(1, HeapArgFrame.TagNumber, 9.25);
-            if (frame.Read(1) != 9.25)
-                throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
-
-            // a tag on one slot must not bleed into its neighbours
-            frame.Write(2, 4.0);
-            frame.WriteTaggedByte(1, HeapArgFrame.TagSlot, 9.25);
-            if (frame.Read(2) != 4.0)
-                throw new Exception("a tag write bled into the next slot");
-            if (frame.ReadTagByte(0) != HeapArgFrame.TagBoolean)
-                throw new Exception("a tag write bled into the previous slot");
-        }
-
-        /// <summary>
-        /// The interleaved frame's tagged read, end to end through Javascript - including a slot tag,
-        /// which Javascript resolves against the slot table.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task InterleavedFrameTaggedSumResolvesSlotsTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
-            try
-            {
-                frame.WriteTaggedByte(0, HeapArgFrame.TagSlot, slot);
-                frame.WriteTaggedByte(1, HeapArgFrame.TagNumber, 2);
-                var sum = SlotInterop.FrameTaggedSum(JS.CtxId, 2);
-                if (sum != 42)
-                    throw new Exception($"the interleaved tagged frame summed to {sum}, expected 42");
-            }
-            finally { SlotInterop.Free(slot); }
-        }
-
-        /// <summary>
-        /// Every slot's value must be 8 byte aligned, which is the whole reason the stride is padded.
-        /// Checked across many slots rather than only the first, because a stride that is not a multiple
-        /// of 8 misaligns progressively - slot 0 would pass and slot 1 would not.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task EverySlotValueIsEightByteAlignedTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            if (HeapArgFrame.Stride % 8 != 0)
-                throw new Exception($"a stride of {HeapArgFrame.Stride} is not a multiple of 8, so values drift out of alignment");
-            for (var i = 0; i < 64; i++)
-            {
-                var slotAddress = frame.Address + i * HeapArgFrame.Stride;
-                if (slotAddress % 8 != 0)
-                    throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
-            }
-        }
-
-        /// <summary>
         /// REGRESSION. Binding a probe frame must not disturb the LIVE TRANSPORT.<br/>
         /// <br/>
         /// They shared one global address at first, so binding any probe silently redirected every
@@ -347,14 +336,12 @@ namespace TestsShared
 
         /// <summary>
         /// The transport itself, end to end, over every argument shape it can carry: a number, a boolean,
-        /// null, a string (interned to a slot) and an object (already a slot).<br/>
-        /// Runs the SAME assertions with the frame off and on, so the two transports are held to one
-        /// standard rather than the new one being trusted because it is new.
+        /// null, a string (interned to a slot) and an object (already a slot). Every argument reaches
+        /// Javascript with the type it left .Net with.
         /// </summary>
         [SpawnJSTest]
         public async Task TransportCarriesEveryArgumentShapeTest()
         {
-            var wasFrame = SpawnJSRuntime.UseArgFrame;
             JS.CallVoid("eval",
                 "globalThis.__shapeProbe = function (n, b, s, o, x) {" +
                 "  return `${typeof n}:${n}|${typeof b}:${b}|${typeof s}:${s}|${o === null ? 'null' : typeof o.tag}|${x === null ? 'null' : typeof x}`;" +
@@ -363,19 +350,13 @@ namespace TestsShared
             try
             {
                 using var obj = JS.Get<SpawnJSObject>("__shapeObj")!;
-                foreach (var useFrame in new[] { false, true })
-                {
-                    SpawnJSRuntime.UseArgFrame = useFrame;
-                    var which = useFrame ? "frame" : "buffer";
-                    var got = JS.Call<string>("__shapeProbe", 42.5, true, "hello", obj, null);
-                    const string expected = "number:42.5|boolean:true|string:hello|string|null";
-                    if (got != expected)
-                        throw new Exception($"[{which}] carried '{got}', expected '{expected}'");
-                }
+                var got = JS.Call<string>("__shapeProbe", 42.5, true, "hello", obj, null);
+                const string expected = "number:42.5|boolean:true|string:hello|string|null";
+                if (got != expected)
+                    throw new Exception($"the transport carried '{got}', expected '{expected}'");
             }
             finally
             {
-                SpawnJSRuntime.UseArgFrame = wasFrame;
                 JS.CallVoid("eval", "delete globalThis.__shapeProbe; delete globalThis.__shapeObj");
             }
         }
@@ -498,50 +479,6 @@ namespace TestsShared
             // and the state that replaced them is reachable per context
             if (!JS.Call<bool>("eval", $"globalThis.SpawnJSInterop.byCtx[{JS.CtxId}].argFrameAddress > 0"))
                 throw new Exception("this runtime's frame address is not registered against its own context");
-        }
-
-        /// <summary>
-        /// The buffer must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
-        /// so the collector cannot move it - but a view over memory the collector COULD move would read
-        /// whatever now occupies that address, silently.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task BufferSurvivesCollectionTest()
-        {
-            using var buffer = new HeapArgBuffer(64);
-            buffer.Bind(JS.CtxId);
-            buffer.Write(0, 987.654);
-
-            for (var i = 0; i < 200; i++) _ = new byte[8192];
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            var value = SlotInterop.HeapSum(JS.CtxId, 0, 1);
-            if (value != 987.654)
-                throw new Exception($"after a collection Javascript read {value}, expected 987.654 - the buffer moved");
-        }
-
-        /// <summary>
-        /// Many writes then one read - the shape that matters. .Net paid ZERO crossings for 512 arguments
-        /// and one for the call.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task ManyArgumentsCostOneCrossingTest()
-        {
-            using var buffer = new HeapArgBuffer(1024);
-            buffer.Bind(JS.CtxId);
-            const int count = 512;
-            var expected = 0d;
-            for (var i = 0; i < count; i++)
-            {
-                var v = i * 0.25;
-                buffer.Write(i, v);
-                expected += v;
-            }
-            var sum = SlotInterop.HeapSum(JS.CtxId, 0, count);
-            if (sum != expected)
-                throw new Exception($"{count} arguments summed to {sum}, expected {expected}");
         }
     }
 }
