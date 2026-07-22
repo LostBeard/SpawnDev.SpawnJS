@@ -1,6 +1,5 @@
 <Solution>
   <Project Path="BlazorBrowserDemo/BlazorBrowserDemo.csproj" Id="554f4ea7-74cf-4be2-aad5-a575310ec49c" />
-  <Project Path="SpawnDev.SpawnJS.Blazor/SpawnDev.SpawnJS.Blazor.csproj" Id="fb200a95-dd27-40f2-9855-e5ab2ae3a474" />
   <Project Path="SpawnDev.SpawnJS/SpawnDev.SpawnJS.csproj" Id="d5aca0bf-0dc1-499b-8248-a6219f1d85f8" />
   <Project Path="SpawnJS.TestRunner/SpawnJS.TestRunner.csproj" />
   <Project Path="TestsShared/TestsShared.csproj" Id="66a9f756-ed07-495e-bce3-33ff92a5a26b" />

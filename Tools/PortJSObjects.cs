@@ -70,8 +70,9 @@ var deferred = new Dictionary<string, string>(StringComparer.Ordinal)
 // patterns that mean the wrapper needs design work, not a mechanical copy
 var blockers = new (string Name, Regex Pattern)[]
 {
-    // NOT a blocker: ElementReference members are stripped by Transform and reinstated as extension
-    // methods in SpawnDev.SpawnJS.Blazor. Keeping the Blazor type out of core is the point, not a gap.
+    // NOT a blocker: ElementReference members are stripped by Transform. Keeping the Blazor type out of
+    // core is the point, not a gap - a Blazor host can reinstate them as extension methods where the
+    // Microsoft.AspNetCore.Components dependency is legal.
     // ActionEvent/FuncEvent/CallbackEvent/CallbackRef are ported, so event-bearing wrappers are no
     // longer blocked on the substrate. JSEventCallback has no SpawnJS equivalent yet.
     ("JSEventCallback", new Regex(@"\bJSEventCallback\b")),
@@ -271,8 +272,8 @@ string Transform(string text)
     // ElementReference is Microsoft.AspNetCore.Components - a Blazor type. SpawnJS core has no Blazor
     // dependency by design, which is what lets it run under Avalonia, a console host or a raw worker.
     // The members that take one are pure convenience (a constructor and two explicit conversions per
-    // element wrapper, all single line and each preceded by its doc comment), so they are stripped here
-    // and reinstated as extension methods in SpawnDev.SpawnJS.Blazor, where the dependency is legal.
+    // element wrapper, all single line and each preceded by its doc comment), so they are stripped here.
+    // A Blazor host can reinstate them as extension methods, where the dependency is legal.
     text = Regex.Replace(text, @"^using Microsoft\.AspNetCore\.Components;\s*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"(?:^[ \t]*///[^\r\n]*\r?\n)*^[ \t]*public[^\r\n]*\bElementReference\b[^\r\n]*\r?\n", "", RegexOptions.Multiline);
     text = Regex.Replace(text, @"^using SpawnDev\.BlazorJS[^\r\n]*;\s*\r?\n", "", RegexOptions.Multiline);
