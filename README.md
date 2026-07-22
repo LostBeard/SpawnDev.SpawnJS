@@ -35,6 +35,11 @@ carries over with little or no change, while SpawnJS itself keeps no Blazor depe
   interop-heavy: every kernel launch plumbs buffers, bind groups and parameters across the boundary
   before any work reaches the GPU. A model forward pass runs thousands of launches - that is where the
   cost concentrates.
+- **Trim-safe - which Blazor interop is not.** SpawnJS ships an embedded `ILLink.Descriptors.xml`, so an
+  app can publish **trimmed**: in one test app that cut the published output from ~30 MB to ~9 MB. The
+  marshaller graph reaches members reflectively and the descriptor preserves exactly what it needs, so the
+  full test suite passes trimmed. SpawnDev.BlazorJS's JSON-serialization interop is not trim-friendly this
+  way.
 - **Run headless - no browser, no Blazor, no DOM.** Because SpawnJS needs only the .NET WASM runtime
   primitives, it runs in a plain **.NET WASM console app under Node**. That is what lets SpawnDev.ILGPU
   run its **entire GPU-compute suite headless in CI** - real WebGPU compute through the
