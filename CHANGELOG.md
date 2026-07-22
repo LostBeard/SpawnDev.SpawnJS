@@ -2,10 +2,25 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-The library is pre-release and unpublished: there are no compatibility promises yet, and breaking
-changes are taken deliberately while the shape is still being decided.
+## [1.0.0] - 2026-07-21
 
-## [Unreleased]
+First release. SpawnJS is Javascript interop for .Net WebAssembly that does not serialise: references
+are held as integer slots rather than `JSObject` proxies, and outbound call arguments are written into
+.Net's own memory that Javascript views directly, so a call carries only a command name, an offset and
+a length.
+
+### Removed
+
+- The argument-transport experiments the shipped frame beat, so 1.0.0 exposes only the winner:
+  `HeapArgBuffer` (structure-of-arrays) and `HeapArgFrame3` (stride-24 string frame);
+  `HeapArgFrame.WriteTaggedByte` / `ReadTagByte` (a byte tag, beaten by an f64 tag in the slot's
+  padding); and the `SpawnJSRuntime.UseArgFrame` switch with the old Javascript-side argument array it
+  selected. The probe surface these left behind goes with them - `SlotInterop.BindArgBuffer`,
+  `HeapSum`, `HeapTaggedSum`, `FrameTaggedSum`, `FrameStringLength`, `SlotStringLength`, `SlotSum` and
+  their Javascript counterparts. `SlotInterop` stays public with the production-shape probes.
+- `__sjsBuildObject` and `SlotInterop.BuildObject`. Building a value into a slot and handing the slot
+  back leaks by construction; it is deleted rather than left as a trap. `__sjsBuildObjectInto`, which
+  assigns without allocating a temporary, stays.
 
 ### Fixed
 
@@ -37,12 +52,6 @@ changes are taken deliberately while the shape is still being decided.
   objects, nested objects and unique strings, and that a repeated string still interns exactly once.
   Both leak guards were verified to fail against the reintroduced bugs.
 
-### Removed
-
-- `__sjsBuildObject` and `SlotInterop.BuildObject`. Building a value into a slot and handing the slot
-  back leaks by construction; it is deleted rather than left as a trap. `__sjsBuildObjectInto`, which
-  assigns without allocating a temporary, stays.
-
 ### Performance
 
 Measured on a real GPU adapter (NVIDIA Lovelace, `fallback=False`), SpawnDev.ILGPU WebGPU dispatch:
@@ -63,7 +72,6 @@ still slower than the pre-transport baseline - see Known issues.
   slot leaks are fixed and the table no longer grows, so it is not accumulation either. Next candidates
   are the promise-to-task conversion itself (two `Callback`s plus a `CallbackGroup` per await) and the
   `Promise.ThenCatch` round trip - neither measured yet.
-- `SlotInterop` public vs internal is still undecided.
 
 ## Earlier work
 
