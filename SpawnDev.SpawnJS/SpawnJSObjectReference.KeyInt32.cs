@@ -6,6 +6,20 @@ namespace SpawnDev.SpawnJS
     public partial class SpawnJSObjectReference
     {
         /// <summary>
+        /// Get object property as returnType
+        /// </summary>
+        /// <param name="returnType"></param>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
+        public object? Get(Type returnType, int identifier) => JS.NetRun(returnType, "getProperty", new object[] { JSObject, identifier });
+        /// <summary>
+        /// Get object property as returnType
+        /// </summary>
+        /// <param name="returnType"></param>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
+        public Task<object?> GetAsync(Type returnType, int identifier) => JS.NetRunAsync(returnType, "getProperty", new object[] { JSObject, identifier });
+        /// <summary>
         /// Get object property as T
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -298,7 +312,7 @@ namespace SpawnDev.SpawnJS
         public T NewApply<T>(int identifier, object?[] args) => JS.NetRun<T>("invokePropertyConstructor", new object[] { JSObject, identifier, args });
         #endregion
 
-        #region Call
+        #region Call-T
         /// <summary>
         /// Call the property
         /// </summary>
@@ -412,6 +426,122 @@ namespace SpawnDev.SpawnJS
         /// <param name="args"></param>
         /// <returns></returns>
         public T CallApply<T>(int identifier, object?[] args) => JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
+        #endregion
+
+        #region Call-Type
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier)
+            => CallApply(returnType, identifier, new object?[] { });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1)
+            => CallApply(returnType, identifier, new object?[] { arg1 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
+        /// <summary>
+        /// Call the property
+        /// </summary>
+        public object? Call(Type returnType, int identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
+            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
+        /// <summary>
+        /// Invoke a property and return as type T
+        /// </summary>
+        /// <param name="returnType"></param>
+        /// <param name="identifier"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public object? CallApply(Type returnType, int identifier, object?[] args) => JS.NetRun(returnType, "invokeProperty", new object[] { JSObject, identifier, args });
         #endregion
 
         #region CallVoid
@@ -642,7 +772,7 @@ namespace SpawnDev.SpawnJS
         public Task CallVoidApplyAsync(int identifier, object?[] args) => JS.NetRunVoidAsync("invokeProperty", new object[] { JSObject, identifier, args });
         #endregion
 
-        #region CallAsync
+        #region CallAsync-T
         /// <summary>
         /// Call the property
         /// </summary>
