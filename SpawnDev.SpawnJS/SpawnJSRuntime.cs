@@ -1,6 +1,8 @@
-﻿using SpawnDev.SpawnJS.Marshallers;
+﻿using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Marshallers;
 using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
 using System.Runtime.InteropServices.JavaScript;
+using System.Security.Cryptography;
 
 namespace SpawnDev.SpawnJS
 {
@@ -37,7 +39,6 @@ namespace SpawnDev.SpawnJS
         // Deliberately the backing field and NOT the property everywhere inside this class: reading
         // Instance during construction would recurse into the constructor.
         static SpawnJSRuntime? _instance;
-
         /// <summary>
         /// True once the runtime exists.<br/>
         /// Reading <see cref="Instance"/> creates it, so that property cannot be used to ask whether it
@@ -76,11 +77,77 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
         /// <summary>
+        /// GlobalScope enum
+        /// </summary>
+        public GlobalScope GlobalScope { get; private set; }
+        /// <summary>
+        /// globalThis JSObject instance
+        /// </summary>
+        public SpawnJSObject? GlobalThis { get; private set; }
+        /// <summary>
+        /// If the globalThis is a Window, WindowThis will refer to globalThis, otherwise null.
+        /// </summary>
+        public Window? WindowThis { get; private set; }
+        /// <summary>
+        /// If the globalThis is a DedicatedWorkerGlobalScope, DedicateWorkerThis will refer to globalThis, otherwise null.
+        /// </summary>
+        public DedicatedWorkerGlobalScope? DedicateWorkerThis { get; private set; }
+        /// <summary>
+        /// If the globalThis is a SharedWorkerGlobalScope, SharedWorkerThis will refer to globalThis, otherwise null.
+        /// </summary>
+        public SharedWorkerGlobalScope? SharedWorkerThis { get; private set; }
+        /// <summary>
+        /// If the globalThis is a ServiceWorkerGlobalScope, ServiceWorkerThis will refer to globalThis, otherwise null.
+        /// </summary>
+        public ServiceWorkerGlobalScope? ServiceWorkerThis { get; private set; }
+        /// <summary>
+        /// This app instance's id
+        /// </summary>
+        public string InstanceId { get; }
+        /// <summary>
         /// Create a new instance of SpawnJSRuntime
         /// </summary>
         public SpawnJSRuntime() : base(JSHost.GlobalThis)
         {
             if (_instance != null) throw new Exception("Already exists");
+            var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
+            var chunkSize = 4;
+            InstanceId = string.Join("-", Enumerable.Range(0, id.Length / chunkSize).Select(i => id.Substring(i * chunkSize, chunkSize)));
+            if (IsBrowser)
+            {
+                switch (GlobalScopeName)
+                {
+                    case nameof(Window):
+                        // in firefox browser extension running in content mode, a window and globalThis are not the same so they are loaded separately here to normalize usage
+                        WindowThis = Get<Window>("window");
+                        GlobalThis = Get<Window>("globalThis");
+                        GlobalScope = GlobalScope.Window;
+                        break;
+                    case nameof(DedicatedWorkerGlobalScope):
+                        DedicateWorkerThis = Get<DedicatedWorkerGlobalScope>("globalThis");
+                        GlobalThis = DedicateWorkerThis;
+                        GlobalScope = GlobalScope.DedicatedWorker;
+                        break;
+                    case nameof(SharedWorkerGlobalScope):
+                        SharedWorkerThis = Get<SharedWorkerGlobalScope>("globalThis");
+                        GlobalThis = SharedWorkerThis;
+                        GlobalScope = GlobalScope.SharedWorker;
+                        break;
+                    case nameof(ServiceWorkerGlobalScope):
+                        ServiceWorkerThis = Get<ServiceWorkerGlobalScope>("globalThis");
+                        GlobalThis = ServiceWorkerThis;
+                        GlobalScope = GlobalScope.ServiceWorker;
+                        break;
+                    default:
+                        GlobalThis = Get<SpawnJSObject>("globalThis");
+                        GlobalScope = GlobalScope.BrowserOther;
+                        break;
+                }
+            }
+            else
+            {
+                GlobalScope = GlobalScope.NonBrowser;
+            }
             // add built-in marshallers
             Marshallers.Add(new DefaultMarshaller());
             Marshallers.Add(new ObjectMarshaller());
