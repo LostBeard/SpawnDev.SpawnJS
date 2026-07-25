@@ -94,5 +94,17 @@ namespace SpawnDev.SpawnJS
         /// funnels through here.
         /// </remarks>
         public T As<T>() => JS.NetRun<T>("returnMe", new object[] { JSHandle });
+        /// <summary>
+        /// Marshalls this to Javascript and then returns as type T
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <remarks>
+        /// The handle is passed, not <see cref="JSObject"/>. Passing the JSObject forced the value to be
+        /// resolved to a runtime proxy purely to hand it back across a boundary it never had to cross;
+        /// the handle marshaller assigns slot to slot instead. Every JSRefAs, JSRefCopy and JSRefMove
+        /// funnels through here.
+        /// </remarks>
+        public object As(Type returnType) => JS.NetRun(returnType, "returnMe", new object[] { JSHandle })!;
     }
 }
