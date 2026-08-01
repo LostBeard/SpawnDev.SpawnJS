@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.0</Version>
-		<PackageReleaseNotes>v1.1.0 - Fleshed-out Window wrapper (timers, requestAnimationFrame/requestIdleCallback, fetch, file-system pickers, scroll/resize/move/open/postMessage), SpawnJSRuntime.Fetch, Toolbox.Async helper, parameterless AddSpawnJSRuntime(). Fixes: reading a JS number into Nullable&lt;T&gt; over the frame path; Array&lt;T&gt; deserialization ctor (took IJSInProcessObjectReference, which Activator.CreateInstance could not bind, causing MissingConstructor_Name when marshalling a JS array into Array&lt;T&gt;).</PackageReleaseNotes>
+		<Version>1.1.1-local.1</Version>
+		<PackageReleaseNotes>v1.1.1 - Added Reflect to JSObjects</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

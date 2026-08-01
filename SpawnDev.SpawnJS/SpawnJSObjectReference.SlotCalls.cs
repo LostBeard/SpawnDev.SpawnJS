@@ -1,4 +1,6 @@
-﻿namespace SpawnDev.SpawnJS
+﻿using SpawnDev.SpawnJS.Native;
+
+namespace SpawnDev.SpawnJS
 {
     public partial class SpawnJSObjectReference
     {

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices.JavaScript;
 
-namespace SpawnDev.SpawnJS
+namespace SpawnDev.SpawnJS.Native
 {
     /// <summary>
     /// SPIKE: referencing Javascript objects by an integer slot instead of a .Net <see cref="JSObject"/>.

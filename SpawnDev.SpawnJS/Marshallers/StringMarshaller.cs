@@ -1,3 +1,4 @@
+using SpawnDev.SpawnJS.Native;
 using System.Collections.Concurrent;
 
 namespace SpawnDev.SpawnJS.Marshallers

@@ -1,4 +1,5 @@
-﻿using SpawnDev.SpawnJS.Toolbox;
+﻿using SpawnDev.SpawnJS.Native;
+using SpawnDev.SpawnJS.Toolbox;
 
 namespace SpawnDev.SpawnJS
 {

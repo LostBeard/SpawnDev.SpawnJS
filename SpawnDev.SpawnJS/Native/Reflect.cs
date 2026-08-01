@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices.JavaScript;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace SpawnDev.SpawnJS
+namespace SpawnDev.SpawnJS.Native
 {
     /// <summary>
     /// Typed bindings to the Javascript globalThis.Reflect object used for get/set/apply/construct/deleteProperty interop

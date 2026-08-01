@@ -1,5 +1,6 @@
 ﻿using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Marshallers;
+using SpawnDev.SpawnJS.Native;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices.JavaScript;
 
@@ -542,7 +543,7 @@ namespace SpawnDev.SpawnJS
         /// that region.
         /// </summary>
         private void NetToJSCall(string cmd, int offset, int length)
-            => Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, (double)offset, (double)length });
+            => Native.Reflect.ApplyVoid(_netToJSCall.JSObjectRequired, SpawnJSInterop.JSObjectRequired, new object?[] { cmd, (double)offset, (double)length });
 
         #endregion
     }

@@ -1,8 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
+﻿using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS.Native
 {

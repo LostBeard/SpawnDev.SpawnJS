@@ -1,6 +1,7 @@
 ﻿using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Marshallers;
 using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.Native;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 
@@ -153,8 +154,8 @@ namespace SpawnDev.SpawnJS
             // arguments into it and .Net reads them by index, so no argument array ever crosses.
             _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
             // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
-            Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
-            Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCallById", _JSToNetCallById);
+            Native.Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
+            Native.Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCallById", _JSToNetCallById);
             // This runtime's CONTEXT ID. Every Javascript helper that touches per-runtime state - the
             // heap, the argument frame, the scratch buffer - takes it as its first argument and resolves
             // the owning instance from it. Two .Net apps can share a page (a custom element built on

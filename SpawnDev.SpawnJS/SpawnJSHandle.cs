@@ -1,4 +1,5 @@
 ﻿using SpawnDev.SpawnJS.Extensions;
+using SpawnDev.SpawnJS.Native;
 using System.Runtime.InteropServices.JavaScript;
 
 namespace SpawnDev.SpawnJS

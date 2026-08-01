@@ -1,3 +1,5 @@
+using SpawnDev.SpawnJS.Native;
+
 namespace SpawnDev.SpawnJS
 {
     /// <summary>

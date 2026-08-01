@@ -1,4 +1,6 @@
-﻿namespace SpawnDev.SpawnJS.Marshallers
+﻿using SpawnDev.SpawnJS.Native;
+
+namespace SpawnDev.SpawnJS.Marshallers
 {
     public partial class ObjectMarshaller
     {
