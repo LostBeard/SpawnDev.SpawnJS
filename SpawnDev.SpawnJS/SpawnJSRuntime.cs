@@ -10,7 +10,7 @@ namespace SpawnDev.SpawnJS
     /// SpawnJS runtime for .Net and Javascript interop
     /// </summary>
     [System.Runtime.Versioning.SupportedOSPlatform("browser")]
-    public partial class SpawnJSRuntime : SpawnJSObjectReference
+    public partial class SpawnJSRuntime : SpawnJSObjectReference, IGlobalScopeSource
     {
         /// <summary>
         /// Set to true to see verbose debugging messages
@@ -113,41 +113,6 @@ namespace SpawnDev.SpawnJS
             var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
             var chunkSize = 4;
             InstanceId = string.Join("-", Enumerable.Range(0, id.Length / chunkSize).Select(i => id.Substring(i * chunkSize, chunkSize)));
-            if (IsBrowser)
-            {
-                switch (GlobalScopeName)
-                {
-                    case nameof(Window):
-                        // in firefox browser extension running in content mode, a window and globalThis are not the same so they are loaded separately here to normalize usage
-                        WindowThis = Get<Window>("window");
-                        GlobalThis = Get<Window>("globalThis");
-                        GlobalScope = GlobalScope.Window;
-                        break;
-                    case nameof(DedicatedWorkerGlobalScope):
-                        DedicateWorkerThis = Get<DedicatedWorkerGlobalScope>("globalThis");
-                        GlobalThis = DedicateWorkerThis;
-                        GlobalScope = GlobalScope.DedicatedWorker;
-                        break;
-                    case nameof(SharedWorkerGlobalScope):
-                        SharedWorkerThis = Get<SharedWorkerGlobalScope>("globalThis");
-                        GlobalThis = SharedWorkerThis;
-                        GlobalScope = GlobalScope.SharedWorker;
-                        break;
-                    case nameof(ServiceWorkerGlobalScope):
-                        ServiceWorkerThis = Get<ServiceWorkerGlobalScope>("globalThis");
-                        GlobalThis = ServiceWorkerThis;
-                        GlobalScope = GlobalScope.ServiceWorker;
-                        break;
-                    default:
-                        GlobalThis = Get<SpawnJSObject>("globalThis");
-                        GlobalScope = GlobalScope.BrowserOther;
-                        break;
-                }
-            }
-            else
-            {
-                GlobalScope = GlobalScope.NonBrowser;
-            }
             // add built-in marshallers
             Marshallers.Add(new DefaultMarshaller());
             Marshallers.Add(new ObjectMarshaller());
@@ -200,8 +165,43 @@ namespace SpawnDev.SpawnJS
             // bound once here - binding is itself a crossing, and not paying crossings is the point.
             _argFrame = new HeapArgFrame();
             _argFrame.Bind(CtxId);
-            Initializing = false;
             _instance = this;
+            if (IsBrowser)
+            {
+                switch (GlobalScopeName)
+                {
+                    case nameof(Window):
+                        // in firefox browser extension running in content mode, a window and globalThis are not the same so they are loaded separately here to normalize usage
+                        WindowThis = Get<Window>("window");
+                        GlobalThis = Get<Window>("globalThis");
+                        GlobalScope = GlobalScope.Window;
+                        break;
+                    case nameof(DedicatedWorkerGlobalScope):
+                        DedicateWorkerThis = Get<DedicatedWorkerGlobalScope>("globalThis");
+                        GlobalThis = DedicateWorkerThis;
+                        GlobalScope = GlobalScope.DedicatedWorker;
+                        break;
+                    case nameof(SharedWorkerGlobalScope):
+                        SharedWorkerThis = Get<SharedWorkerGlobalScope>("globalThis");
+                        GlobalThis = SharedWorkerThis;
+                        GlobalScope = GlobalScope.SharedWorker;
+                        break;
+                    case nameof(ServiceWorkerGlobalScope):
+                        ServiceWorkerThis = Get<ServiceWorkerGlobalScope>("globalThis");
+                        GlobalThis = ServiceWorkerThis;
+                        GlobalScope = GlobalScope.ServiceWorker;
+                        break;
+                    default:
+                        GlobalThis = Get<SpawnJSObject>("globalThis");
+                        GlobalScope = GlobalScope.BrowserOther;
+                        break;
+                }
+            }
+            else
+            {
+                GlobalScope = GlobalScope.NonBrowser;
+            }
+            Initializing = false;
         }
         /// <summary>
         /// Returns true while the runtime is initializing
@@ -266,5 +266,19 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <returns></returns>
         public SpawnJSHandle NewEasyPromise() => NetRun<SpawnJSHandle>("newEasyPromise");
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(Request resource) => JS.CallAsync<Response>("fetch", resource);
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(string resource) => JS.CallAsync<Response>("fetch", resource);
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<Response>("fetch", resource, options);
+        /// <inheritdoc/>
+        Task<GlobalScope> IGlobalScopeSource.GetGlobalScope() => Task.FromResult(GlobalScope);
     }
 }

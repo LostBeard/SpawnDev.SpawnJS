@@ -2,6 +2,45 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## [Unreleased]
+
+## [1.1.0] - 2026-07-31
+
+### Added
+
+- **Fleshed-out `Window` wrapper.** Timers (`SetTimeout`/`SetInterval`/`ClearTimeout`/`ClearInterval`),
+  `RequestAnimationFrame`/`CancelAnimationFrame` and `RequestIdleCallback`/`CancelIdleCallback` (each with
+  `Callback`, `Action`, and `Func<Task>` overloads), `Fetch`, `CreateImageBitmap`, the File System Access
+  pickers (`ShowOpenFilePicker`/`ShowSaveFilePicker`/`ShowDirectoryPicker` with support probes),
+  `GetComputedStyle`, `MatchMedia`, `GetSelection`, `GetScreenDetails`, `Open`/`Close`/`Focus`/`Print`/
+  `Stop`, `Alert`/`Confirm`/`Prompt`, `PostMessage`, `QueueMicrotask`, and the window geometry methods
+  (`ResizeBy`/`ResizeTo`/`MoveBy`/`MoveTo`/`Scroll`/`ScrollBy`/`ScrollTo`).
+- **`SpawnJSRuntime.Fetch(...)`** convenience overloads on the global scope, and `IGlobalScopeSource`.
+- **`Toolbox.Async`** helper (`Run`/`RunAsync`) for firing async lambdas without a captured `async void`.
+- **Parameterless `AddSpawnJSRuntime()`** extension overload.
+
+### Fixed
+
+- **Marshalling a Javascript array into `Array<T>` threw `MissingConstructor_Name`.** The generic
+  `Array<TArrayItem>` deserialization constructor took `IJSInProcessObjectReference` (a leftover from the
+  BlazorJS wrappers). `SpawnJSObjectReference` only *implicitly converts* to that interface, and
+  `Activator.CreateInstance(type, new SpawnJSObjectReference(...))` - the path every wrapper is built
+  through in `SpawnJSObjectMarshaller.JSToNet` - does not consider user-defined implicit conversions, so
+  it could not bind the constructor and threw
+  `MissingMethodException: MissingConstructor_Name, SpawnDev.SpawnJS.JSObjects.Array\`1[[...]]` on the
+  first read of any JS array into `Array<T>`. It now takes `SpawnJSObjectReference`, matching the
+  non-generic `Array` and every other wrapper.
+- **Reading a Javascript number into a `Nullable<T>` over the frame path threw instead of returning the
+  value.** `ReadFrameResult`'s primitive fast-path selected on the declared type without unwrapping
+  `Nullable<T>`, so `Get<int?>` matched none of `double`/`int`/`float`/`long`/`bool` and fell through to a
+  marshaller handle built over the scratch buffer at the call's own offset - where the call's first
+  argument still sat. `JS.Get<int?>("navigator.hardwareConcurrency")` failed with
+  `Value is not a Number: [object Window]` while `Get<int>` worked. The fast-path now selects on the
+  underlying type, and the same-offset fallthrough stores the primitive payload into the scratch slot
+  first, so any numeric type the fast-path does not name (`short`, `byte`, `Half`, a numeric enum) reads
+  the returned value rather than the argument. Regression guards: `NullableNumberFromDottedPathTest`,
+  `NonFastNumericFromDottedPathTest`.
+
 ## [1.0.0] - 2026-07-21
 
 First release. SpawnJS is Javascript interop for .Net WebAssembly that does not serialise: references

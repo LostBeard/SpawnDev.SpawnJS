@@ -354,14 +354,31 @@ namespace SpawnDev.SpawnJS
                 {
                     // reading a primitive out of the frame means the whole call moved no data across the
                     // boundary at all. Anything the frame cannot represent goes through the marshaller.
-                    if (type == typeof(double)) return payload;
-                    if (type == typeof(int)) return (int)payload;
-                    if (type == typeof(float)) return (float)payload;
-                    if (type == typeof(long)) return (long)payload;
-                    if (type == typeof(bool)) return payload != 0;
+                    //
+                    // Select on the underlying type so a Nullable<T> is answered by the same primitive that
+                    // answers T. There is no boxed Nullable<T> at runtime - boxing one with a value produces
+                    // a boxed T - so returning the boxed T here satisfies a T? target directly. Without the
+                    // unwrap Get<int?> falls through to the marshaller path below, which builds a handle over
+                    // the scratch buffer at THIS call's offset - exactly where the call's first argument was
+                    // written - and asks Javascript to read that object as a number ("Value is not a Number:
+                    // [object Window]" for JS.Get<int?>("navigator.hardwareConcurrency")).
+                    var numType = Nullable.GetUnderlyingType(type) ?? type;
+                    if (numType == typeof(double)) return payload;
+                    if (numType == typeof(int)) return (int)payload;
+                    if (numType == typeof(float)) return (float)payload;
+                    if (numType == typeof(long)) return (long)payload;
+                    if (numType == typeof(bool)) return payload != 0;
                     break;
                 }
             }
+            // A primitive wanted as a type the fast path does not name - a narrow integer (short, byte),
+            // Half/decimal, or an enum read from a numeric property - still has to reach the marshaller
+            // through a handle. The Slot and Scratch cases already hold their value where that handle reads
+            // (the slot, or the scratch buffer at this offset). A Number/Boolean does NOT: its value is the
+            // frame payload, while the scratch buffer at this offset holds the call's first ARGUMENT. Store
+            // the payload into the scratch slot first so the handle addresses the real value, not the arg.
+            if (tag == ArgTag.Number) _netToJSBuffer.SetProperty((double)offset, payload);
+            else if (tag == ArgTag.Boolean) _netToJSBuffer.SetProperty((double)offset, payload != 0);
             // everything else - a slot id, a scratch value, or a primitive wanted as some other type -
             // is handed to the marshaller registry through a handle on the value.
             using var handle = tag == ArgTag.Slot

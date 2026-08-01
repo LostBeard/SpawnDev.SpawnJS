@@ -131,7 +131,11 @@ static async Task<int> RunAsync(string url, bool headed, bool verbose)
     page.PageError += (_, err) => Console.WriteLine($"  [pageerror] {err}");
 
     Console.WriteLine($"running {url}");
-    await page.GotoAsync(url, new() { WaitUntil = WaitUntilState.NetworkIdle, Timeout = 60000 });
+    // Navigate only until the document is parsed - NOT network-idle. A test that holds a long-lived
+    // connection (a SharedWorker, an open stream) never lets the network go idle, so a network-idle wait
+    // would time out here even though the suite runs fine. The real completion signal is the page's own
+    // "RESULTS:" console line, awaited via finished.Task below.
+    await page.GotoAsync(url, new() { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 60000 });
     var completed = await Task.WhenAny(finished.Task, Task.Delay(TimeSpan.FromMinutes(5)));
 
     Console.WriteLine();

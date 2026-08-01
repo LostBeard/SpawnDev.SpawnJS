@@ -1,4 +1,3 @@
-using Microsoft.JSInterop;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -76,7 +75,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Deserialization constructor
         /// </summary>
         /// <param name="_ref"></param>
-        public Array(IJSInProcessObjectReference _ref) : base(_ref) { }
+        public Array(SpawnJSObjectReference _ref) : base(_ref) { }
         /// <summary>
         /// The Array() constructor creates Array objects.
         /// </summary>

@@ -175,5 +175,78 @@ namespace TestsShared
             var readback = await JS.CallAsync<string>("waitForTask", promise);
             if (readback != value) throw new Exception("Readback Failed");
         }
+
+        /// <summary>
+        /// Reading a Javascript number into a Nullable&lt;T&gt; over the frame path.<br/>
+        /// A dotted identifier is not eligible for the fast property path, so it goes through NetRun and
+        /// ReadFrameResult - the frame fast-path selects on the DECLARED type, and before the fix a
+        /// Nullable&lt;int&gt; matched none of the primitive types there and fell through to a marshaller
+        /// handle built over the scratch buffer at this call's offset, where the call's own first argument
+        /// (the target object) still sat. That threw "Value is not a Number: [object Window]" on
+        /// JS.Get&lt;int?&gt;("navigator.hardwareConcurrency"). This is the regression guard.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NullableNumberFromDottedPathTest()
+        {
+            var root = "_spawnjs_nullable_test";
+            var child = JS.New("Object");
+            child.Set("i", 12);
+            child.Set("d", 3.5);
+            child.Set("b", true);
+            child.Set("nothing", (object?)null);
+            JS.Set(root, child);
+            try
+            {
+                var i = JS.Get<int?>($"{root}.i");
+                if (i != 12) throw new Exception($"Get<int?> expected 12, got {(i.HasValue ? i.Value.ToString() : "null")}");
+
+                var d = JS.Get<double?>($"{root}.d");
+                if (d != 3.5) throw new Exception($"Get<double?> expected 3.5, got {(d.HasValue ? d.Value.ToString() : "null")}");
+
+                var b = JS.Get<bool?>($"{root}.b");
+                if (b != true) throw new Exception($"Get<bool?> expected true, got {(b.HasValue ? b.Value.ToString() : "null")}");
+
+                var l = JS.Get<long?>($"{root}.i");
+                if (l != 12L) throw new Exception($"Get<long?> expected 12, got {(l.HasValue ? l.Value.ToString() : "null")}");
+
+                var f = JS.Get<float?>($"{root}.d");
+                if (f != 3.5f) throw new Exception($"Get<float?> expected 3.5, got {(f.HasValue ? f.Value.ToString() : "null")}");
+
+                // a null Javascript value read as a nullable is null, not an exception and not zero
+                var missing = JS.Get<int?>($"{root}.nothing");
+                if (missing != null) throw new Exception($"Get<int?> of a null property expected null, got {missing.Value}");
+            }
+            finally
+            {
+                JS.Delete(root);
+            }
+        }
+
+        /// <summary>
+        /// Reading a Javascript number into a numeric type the frame fast-path does not name (short here).
+        /// It falls through to the marshaller, and before the fix that handle addressed the scratch buffer
+        /// at this call's offset - the call's first argument - rather than the number the call returned.
+        /// Now the payload is stored into the scratch slot first, so any INumber&lt;T&gt; resolves correctly.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NonFastNumericFromDottedPathTest()
+        {
+            var root = "_spawnjs_narrow_numeric_test";
+            var child = JS.New("Object");
+            child.Set("n", 7);
+            JS.Set(root, child);
+            try
+            {
+                var s = JS.Get<short>($"{root}.n");
+                if (s != 7) throw new Exception($"Get<short> expected 7, got {s}");
+
+                var s2 = JS.Get<short?>($"{root}.n");
+                if (s2 != 7) throw new Exception($"Get<short?> expected 7, got {(s2.HasValue ? s2.Value.ToString() : "null")}");
+            }
+            finally
+            {
+                JS.Delete(root);
+            }
+        }
     }
 }
