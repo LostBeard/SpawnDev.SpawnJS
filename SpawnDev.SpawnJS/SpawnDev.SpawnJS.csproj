@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.1-local.1</Version>
-		<PackageReleaseNotes>v1.1.1 - Added Reflect to JSObjects</PackageReleaseNotes>
+		<Version>1.1.1</Version>
+		<PackageReleaseNotes>v1.1.1 - Added Reflect, NamedNodeMap, CustomElementRegistry, and DOMParser to JSObjects</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
