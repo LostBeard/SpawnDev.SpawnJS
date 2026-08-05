@@ -250,6 +250,63 @@
             }
             return null;
         }
+        // The URL this app was LOADED from - the origin of its own main.* / _framework, NOT the host
+        // page's document.baseURI. Under a CDN load the page and the app live at different URLs, and every
+        // worker entry (main.classic.js / main.module.js / _framework/*) must resolve against the APP's
+        // origin. document.baseURI is a page-coupled Blazor-ism that hands back the page root instead.
+        //
+        // Derived per-runtime from THIS app's OWN dotnetRuntime, so two SpawnJS apps loaded from different
+        // origins on one page each get their own base - a module-scope import.meta.url could not, because
+        // the class-definition guard means app B's lib.module.js body never re-runs.
+        //
+        // Fail-loud multi-candidate, the same shape as #findWasmMemory: the runtime exposes its origin
+        // under different shapes across scopes/versions, so every known shape is tried and the one that
+        // worked is reportable via appBaseUriSource(). Returns '' if none resolve, so the caller can fall
+        // back rather than silently build worker URLs against a wrong base.
+        appBaseUri() {
+            var found = this.#findAppBaseUri();
+            return found ? found.uri : '';
+        }
+        // Which candidate produced appBaseUri(), or '' - diagnostic, mirrors wasmMemoryBufferSource().
+        appBaseUriSource() {
+            var found = this.#findAppBaseUri();
+            return found ? found.source : '';
+        }
+        // Normalizes any URL that lives under the app's _framework/ folder (or the app root itself) to the
+        // app root with a trailing slash: drops a trailing file name, then a trailing "_framework/" segment.
+        #appRootFromLoadUrl(raw) {
+            if (typeof raw !== 'string' || raw.length === 0) return '';
+            if (raw.startsWith('blob:')) return '';
+            var url;
+            try { url = new URL(raw, self?.location?.href); } catch (ex) { return ''; }
+            var path = url.href.replace(/[?#].*$/, '');
+            // strip a trailing file name (a last segment containing a dot), leaving a trailing slash
+            if (!path.endsWith('/')) path = path.substring(0, path.lastIndexOf('/') + 1);
+            // strip a trailing _framework/ so the base is the app root that main.* sits at
+            path = path.replace(/(^|\/)_framework\/$/, '$1');
+            return path;
+        }
+        #findAppBaseUri() {
+            var rt = this.dotnetRuntime;
+            if (!rt) return null;
+            var candidates = [
+                // PROVEN primary (measured across scopes): dotnet.js's own module URL, i.e.
+                // appRoot/_framework/dotnet.<fp>.js - itself import.meta-derived, so it is the real CDN
+                // origin under a CDN load, not the host page. Can be a blob: URL in some worker configs,
+                // which #appRootFromLoadUrl rejects so the resolver falls through to the next candidate.
+                ['Module.mainScriptUrlOrBlob', () => rt.Module?.mainScriptUrlOrBlob],
+                // Robust backup: every boot resource carries an absolute resolvedUrl (appRoot/_framework/*),
+                // always populated even when mainScriptUrlOrBlob is a blob.
+                ['getConfig().resources.assembly[0].resolvedUrl', () => rt.getConfig?.()?.resources?.assembly?.[0]?.resolvedUrl],
+            ];
+            for (var i = 0; i < candidates.length; i++) {
+                var raw;
+                try { raw = candidates[i][1](); } catch (ex) { continue; }
+                var uri = this.#appRootFromLoadUrl(raw);
+                if (uri) return { uri: uri, source: candidates[i][0] };
+            }
+            return null;
+        }
         // returns string[] of [typeof, ...constructorNames]
         // typeof and the prototype chain together are everything needed to identify a value, so they are
         // fetched in a single call. Anything that has to pick a .Net type from a live Javascript value

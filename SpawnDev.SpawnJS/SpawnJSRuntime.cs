@@ -106,6 +106,16 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public string InstanceId { get; }
         /// <summary>
+        /// The URL this app was LOADED from - the origin of its own <c>main.*</c> / <c>_framework</c>, with
+        /// a trailing slash. Unlike the host page's <c>document.baseURI</c>, this stays correct when the app
+        /// is served from a CDN at a different path than the host page, which is what worker entry scripts
+        /// (main.classic.js / main.module.js / _framework/*) must resolve against.<br/>
+        /// Determined per-runtime from THIS app's own dotnet runtime, so two SpawnJS apps loaded from
+        /// different origins on one page each report their own base.<br/>
+        /// Empty string when it could not be determined (e.g. a non-browser host).
+        /// </summary>
+        public string AppBaseUri { get; private set; } = "";
+        /// <summary>
         /// Create a new instance of SpawnJSRuntime
         /// </summary>
         public SpawnJSRuntime() : base(JSHost.GlobalThis)
@@ -202,6 +212,10 @@ namespace SpawnDev.SpawnJS
             {
                 GlobalScope = GlobalScope.NonBrowser;
             }
+            // The app's own load origin, learned from this runtime's own dotnet instance (per-app, so it is
+            // co-existence-safe) rather than from document.baseURI (the page, not the app - wrong under CDN
+            // load). Read once here; consumers such as WebWorkerService resolve worker script URLs against it.
+            AppBaseUri = NetRun<string>("appBaseUri") ?? "";
             Initializing = false;
         }
         /// <summary>

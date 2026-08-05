@@ -171,6 +171,23 @@ The runtime exposes the familiar interop surface: `Get`/`Set`/`Has`/`Delete`,
 strongly-typed generic returns. Set `SpawnJSRuntime.Verbose = true` for step-by-step interop logging to
 the browser console.
 
+### `AppBaseUri` - where the app was loaded from
+
+`JS.AppBaseUri` is the URL the app itself was loaded from - the origin of its own `_framework` / entry
+script, with a trailing slash. Use it to resolve app-relative assets (worker scripts, `HttpClient` base
+address, fetches) in a way that stays correct **even when the app is served from a CDN** at a different
+path than the host page:
+
+```csharp
+var http = new HttpClient { BaseAddress = new Uri(JS.AppBaseUri) };
+```
+
+Unlike `document.baseURI` (the host page's base, which is wrong under a CDN load), `AppBaseUri` is
+determined per-runtime from the app's own .NET WASM runtime, so it is correct in every scope - window,
+dedicated / shared / service worker - and two SpawnJS apps loaded from different origins on one page each
+report their own base. It is an empty string on a non-browser host (e.g. a Node console app).
+`AppBaseUriSource()` reports which runtime shape it resolved from (diagnostic).
+
 ## The core design
 
 `JSImport`/`JSExport` marshalling is frozen at compile time by the source generator - you cannot pick a

@@ -90,6 +90,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public string WasmMemoryBufferSource() => NetRun<string>("wasmMemoryBufferSource");
         /// <summary>
+        /// Which runtime shape <see cref="AppBaseUri"/> was reached through, or an empty string if none
+        /// resolved. Diagnostics, mirroring <see cref="WasmMemoryBufferSource"/>.
+        /// </summary>
+        public string AppBaseUriSource() => NetRun<string>("appBaseUriSource");
+        /// <summary>
         /// Returns the Javascript typeof followed by the value's prototype chain constructor names, most
         /// derived first: ["object", "TypeError", "Error", "Object"].<br/>
         /// One call, because identifying a Javascript value needs both and a marshaller should not pay two

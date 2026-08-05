@@ -4,6 +4,19 @@ All notable changes to SpawnDev.SpawnJS.
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-08-05
+
+### Added
+
+- **`SpawnJSRuntime.AppBaseUri`** - the URL the app was loaded from (its own `main.*` / `_framework`
+  origin), with a trailing slash. Unlike `document.baseURI` (the host page's base), this stays correct
+  when the app is served from a CDN at a different path than the page, which is what worker entry scripts
+  must resolve against. Determined per-runtime from this app's own dotnet runtime
+  (`Module.mainScriptUrlOrBlob`, measured in both window and worker scopes; `getConfig().resources`
+  resolvedUrl as backup), so two SpawnJS apps loaded from different origins on one page each report their
+  own base - no `globalThis`, no page coupling. `AppBaseUriSource()` reports which shape resolved it,
+  mirroring `WasmMemoryBufferSource()`. Guards: `AppBaseUriTests`.
+
 ## [1.1.2] - 2026-08-04
 
 ### Fixed
