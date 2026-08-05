@@ -127,8 +127,9 @@ namespace SpawnDev.SpawnJS
             // add built-in marshallers
             Marshallers.Add(new DefaultMarshaller());
             Marshallers.Add(new ObjectMarshaller());
-            Marshallers.Add(new ArrayMarshaller());
+            Marshallers.Add(new IListMarshaller());
             Marshallers.Add(new ListMarshaller());
+            Marshallers.Add(new ArrayMarshaller());
             Marshallers.Add(new DictionaryMarshaller());
             Marshallers.Add(new ByteArrayMarshaller());
             Marshallers.Add(new StringMarshaller());

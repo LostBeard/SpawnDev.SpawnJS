@@ -3,13 +3,10 @@ using SpawnDev.SpawnJS.JSObjects;
 using TestsShared;
 
 var JS = new SpawnJSRuntime();
-JS.Verbose = false;
+JS.Verbose = true;
 
-
-var window = JS.Get<Window>("window");
-JS.Set("_windows", new Window[] { window, window, window });
-
-var readBack = JS.Get<Window[]>("_windows");
+using var blob = new Blob(["", ""]);
+var nmt = true;
 
 
 // `?filter=Name` in the url runs only the matching tests, so a single page load can be scoped
