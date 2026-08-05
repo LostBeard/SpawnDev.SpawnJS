@@ -23,6 +23,10 @@
         /// </summary>
         public bool IsDisposing { get; set; }
         /// <summary>
+        /// True if Exit was called
+        /// </summary>
+        public bool Exited { get; private set; }
+        /// <summary>
         /// New instance
         /// </summary>
         /// <param name="args"></param>
@@ -51,6 +55,7 @@
         /// <returns></returns>
         public async Task RunAsync()
         {
+            if (Exited || IsDisposed || IsDisposing) return;
             if (_appRun != null) return;
             _appRun = new TaskCompletionSource();
             await _appRun.Task;
@@ -61,6 +66,7 @@
         /// </summary>
         public void Exit()
         {
+            Exited = true;
             _appRun?.SetResult();
         }
         /// <summary>

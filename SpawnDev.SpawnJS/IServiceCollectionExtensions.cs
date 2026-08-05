@@ -39,5 +39,23 @@ namespace SpawnDev.SpawnJS
             await _this.Services.StartBackgroundServices();
             await _this.RunAsync();
         }
+        /// <summary>
+        /// Starts background services based on scope and calls RunAsync to keep the app alive
+        /// </summary>
+        public static async Task SpawnJSRunAsync(this SpawnJSApp _this, Func<SpawnJSApp, Task> whenReady)
+        {
+            await _this.Services.StartBackgroundServices();
+            if (whenReady != null) await whenReady(_this);
+            await _this.RunAsync();
+        }
+        /// <summary>
+        /// Starts background services based on scope and calls RunAsync to keep the app alive
+        /// </summary>
+        public static async Task SpawnJSRunAsync(this SpawnJSApp _this, Action<SpawnJSApp> whenReady)
+        {
+            await _this.Services.StartBackgroundServices();
+            if (whenReady != null) whenReady(_this);
+            await _this.RunAsync();
+        }
     }
 }
