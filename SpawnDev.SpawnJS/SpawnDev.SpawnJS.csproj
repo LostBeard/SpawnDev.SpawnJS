@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.5</Version>
-		<PackageReleaseNotes>v1.1.5 - Added IListMarshaller</PackageReleaseNotes>
+		<Version>1.1.6</Version>
+		<PackageReleaseNotes>v1.1.6 - globalThis SpawnJSInterop cleanup</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
