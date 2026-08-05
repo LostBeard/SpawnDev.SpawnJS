@@ -31,5 +31,13 @@ namespace SpawnDev.SpawnJS
             _this.TryAddSingleton<SpawnJSRuntime>(JS);
             return _this;
         }
+        /// <summary>
+        /// Starts background services based on scope and calls RunAsync to keep the app alive
+        /// </summary>
+        public static async Task SpawnJSRunAsync(this SpawnJSApp _this)
+        {
+            await _this.Services.StartBackgroundServices();
+            await _this.RunAsync();
+        }
     }
 }
