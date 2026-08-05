@@ -23,39 +23,39 @@ namespace SpawnDev.SpawnJS.Native
         /// <summary>
         /// Creates <c>{}</c> in Javascript and returns its slot.
         /// </summary>
-        [JSImport("globalThis.__sjsNewObject")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsNewObject")]
         public static partial double NewObject();
 
         /// <summary>
         /// Creates <c>[]</c> in Javascript and returns its slot.
         /// </summary>
-        [JSImport("globalThis.__sjsNewArray")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsNewArray")]
         public static partial double NewArray();
 
         /// <summary>
         /// Reserves a slot holding undefined, for a handle that will write its own value into it.
         /// </summary>
-        [JSImport("globalThis.__sjsAllocEmpty")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsAllocEmpty")]
         public static partial double AllocEmpty();
 
         /// <summary>
         /// Allocates a slot already holding the given object, in one crossing.
         /// </summary>
-        [JSImport("globalThis.__sjsAllocValue")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsAllocValue")]
         public static partial double AllocValue([JSMarshalAs<JSType.Any>] object value);
 
         /// <summary>
         /// Allocates a slot holding a string, in one crossing. Declared with a string parameter rather
         /// than Any so the runtime uses its string marshaller directly.
         /// </summary>
-        [JSImport("globalThis.__sjsAllocString")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsAllocString")]
         public static partial double AllocString(string value);
 
         /// <summary>
         /// Calls a command through the ARGUMENT FRAME: the arguments are already in .Net memory, so only
         /// the name, an offset and a length cross. The result comes back in the caller's own frame slot.
         /// </summary>
-        [JSImport("globalThis.__sjsFrameCall")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsFrameCall")]
         public static partial void FrameCall(double ctx, string cmd, double offset, double length);
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace SpawnDev.SpawnJS.Native
         /// Replaces build-an-array-and-fill-it, which cost one crossing to create the array, one PER
         /// ARGUMENT to fill it, one to invoke and one to free it.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeFrameVoid")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeFrameVoid")]
         public static partial void InvokeFrameVoid(double ctx, double targetSlot, string name, double offset, double length);
 
         /// <summary>
@@ -72,48 +72,48 @@ namespace SpawnDev.SpawnJS.Native
         /// slot - so a number or boolean result moves no data across the boundary either way, and an
         /// object result arrives as a slot id rather than a proxy.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeFrameResult")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeFrameResult")]
         public static partial void InvokeFrameResult(double ctx, double targetSlot, string name, double offset, double length);
 
         /// <summary>
         /// Releases a slot so it can be reused. Lifetime is explicit here - there is no proxy for the
         /// runtime to collect, which is the trade for not paying to create one.
         /// </summary>
-        [JSImport("globalThis.__sjsFree")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsFree")]
         public static partial void Free(double slot);
 
         /// <summary>
         /// Writes a number to a property of the slotted object.
         /// </summary>
-        [JSImport("globalThis.__sjsSetDouble")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetDouble")]
         public static partial void SetDouble(double slot, string key, double value);
 
         /// <summary>
         /// Writes a string to a property of the slotted object.
         /// </summary>
-        [JSImport("globalThis.__sjsSetString")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetString")]
         public static partial void SetString(double slot, string key, string? value);
 
         /// <summary>
         /// Writes a boolean to a property of the slotted object.
         /// </summary>
-        [JSImport("globalThis.__sjsSetBoolean")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetBoolean")]
         public static partial void SetBoolean(double slot, string key, bool value);
 
         /// <summary>Writes a number at a numeric index, with no string key conversion.</summary>
-        [JSImport("globalThis.__sjsSetDoubleAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetDoubleAt")]
         public static partial void SetDoubleAt(double slot, double index, double value);
 
         /// <summary>Writes a string at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetStringAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetStringAt")]
         public static partial void SetStringAt(double slot, double index, string? value);
 
         /// <summary>Writes a boolean at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetBooleanAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetBooleanAt")]
         public static partial void SetBooleanAt(double slot, double index, bool value);
 
         /// <summary>Assigns a slotted value at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetSlotAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetSlotAt")]
         public static partial void SetSlotAt(double slot, double index, double valueSlot);
 
         /// <summary>
@@ -123,127 +123,127 @@ namespace SpawnDev.SpawnJS.Native
         /// are declared. The point of them is that reading a typed property no longer needs a JSObject for
         /// the object being read FROM, which the fast path used to resolve on every single property access.
         /// </summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial double GetDouble(double slot, string key);
 
         /// <summary>Reads a property as an int.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial int GetInt32(double slot, string key);
 
 
         /// <summary>Reads a property as a bool.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial bool GetBoolean(double slot, string key);
 
         /// <summary>Reads a property as a string, or null if it was null or undefined.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial string? GetString(double slot, string key);
 
         /// <summary>Reads a property as an int, or null if it was null or undefined.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial int? GetInt32Nullable(double slot, string key);
 
         /// <summary>Reads a property as a number, or null if it was null or undefined.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial double? GetDoubleNullable(double slot, string key);
 
         /// <summary>Reads a property as a bool, or null if it was null or undefined.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial bool? GetBooleanNullable(double slot, string key);
 
         /// <summary>Reads a property as a byte array, or null if it was null or undefined.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         public static partial byte[]? GetByteArray(double slot, string key);
 
         // Numeric-key reads. Same Javascript function, bound with a number parameter so an index does not
         // have to become a string first - the read-side counterpart of the SetAt variants.
 
         /// <summary>Reads a property at a numeric index as an int.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial int GetInt32At(double slot, double index);
 
         /// <summary>Reads a property at a numeric index as a number.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial double GetDoubleAt(double slot, double index);
 
         /// <summary>Reads a property at a numeric index as a bool.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial bool GetBooleanAt(double slot, double index);
 
         /// <summary>Reads a property at a numeric index as a string, or null.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial string? GetStringAt(double slot, double index);
 
         /// <summary>Reads a property at a numeric index as a byte array, or null.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial byte[]? GetByteArrayAt(double slot, double index);
 
         /// <summary>
         /// Whether a property exists on the slotted object. <paramref name="useIn"/> selects the
         /// <c>in</c> operator, which walks the prototype chain, over hasOwnProperty.
         /// </summary>
-        [JSImport("globalThis.__sjsHas")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsHas")]
         public static partial bool Has(double slot, string key, bool useIn);
 
         // The value a slot HOLDS, rather than a property of it - what an owning handle needs to read
         // itself. Same one Javascript function at several .Net return types, as above.
 
         /// <summary>Reads the slot's own value as a bool.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial bool SelfBoolean(double slot);
 
         /// <summary>Reads the slot's own value as an int.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial int SelfInt32(double slot);
 
         /// <summary>Reads the slot's own value as a number.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial double SelfDouble(double slot);
 
         /// <summary>Reads the slot's own value as a string, or null.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial string? SelfString(double slot);
 
         /// <summary>Reads the slot's own value as a byte array, or null.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial byte[]? SelfByteArray(double slot);
 
         /// <summary>Reads the slot's own value as an int, or null.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial int? SelfInt32Nullable(double slot);
 
         /// <summary>Reads the slot's own value as a number, or null.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial double? SelfDoubleNullable(double slot);
 
         /// <summary>Reads the slot's own value as a bool, or null.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         public static partial bool? SelfBooleanNullable(double slot);
 
         /// <summary>Reads the slot's own value, letting the runtime decide how it crosses.</summary>
-        [JSImport("globalThis.__sjsSelf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSelf")]
         [return: JSMarshalAs<JSType.Any>]
         public static partial object? SelfAny(double slot);
 
         /// <summary>Reads a property as an int, or null. Numeric index.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial int? GetInt32NullableAt(double slot, double index);
 
         /// <summary>Reads a property as a number, or null. Numeric index.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial double? GetDoubleNullableAt(double slot, double index);
 
         /// <summary>Reads a property as a bool, or null. Numeric index.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         public static partial bool? GetBooleanNullableAt(double slot, double index);
 
         /// <summary>Reads a property, letting the runtime decide how it crosses.</summary>
-        [JSImport("globalThis.__sjsGet")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGet")]
         [return: JSMarshalAs<JSType.Any>]
         public static partial object? GetAny(double slot, string key);
 
         /// <summary>Reads a property at a numeric index, letting the runtime decide how it crosses.</summary>
-        [JSImport("globalThis.__sjsGetAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetAt")]
         [return: JSMarshalAs<JSType.Any>]
         public static partial object? GetAnyAt(double slot, double index);
 
@@ -252,14 +252,14 @@ namespace SpawnDev.SpawnJS.Native
         /// through the runtime's own TypedArray views, so this reports what is really there rather than
         /// relying on what Emscripten normally exports.
         /// </summary>
-        [JSImport("globalThis.__sjsHeapViewNames")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsHeapViewNames")]
         public static partial string HeapViewNames(double ctx);
 
         /// <summary>
         /// PROBE: reads a .Net string straight out of .Net memory, given the address of its first
         /// character and its length in chars. Nothing is copied .Net side and no string marshaller runs.
         /// </summary>
-        [JSImport("globalThis.__sjsReadUtf16")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsReadUtf16")]
         public static partial string ReadUtf16(double ctx, double address, double length);
 
         // No BuildObject. Building an object into a slot and handing the slot back leaked one table entry
@@ -269,20 +269,20 @@ namespace SpawnDev.SpawnJS.Native
         /// How many entries the Javascript slot table holds. Diagnostic, for tests that assert a path
         /// leaves nothing behind - <see cref="SpawnJSHandle.LiveSlotCount"/> only sees handle owned slots.
         /// </summary>
-        [JSImport("globalThis.__sjsSlotTableCount")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSlotTableCount")]
         public static partial double SlotTableCount();
 
         /// <summary>
         /// Builds the object and ASSIGNS it in the same crossing, so a descriptor written onto a slotted
         /// parent costs exactly one - and allocates no temporary slot, so none has to be freed.
         /// </summary>
-        [JSImport("globalThis.__sjsBuildObjectInto")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsBuildObjectInto")]
         public static partial void BuildObjectInto(double ctx, double parentSlot, string key, double offset, double count);
 
         /// <summary>
         /// Binds the Javascript side to the TRANSPORT argument frame. Called once, by the runtime.
         /// </summary>
-        [JSImport("globalThis.__sjsBindArgFrame")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsBindArgFrame")]
         public static partial bool BindArgFrame(double ctx, double address, double byteLength);
 
         /// <summary>
@@ -291,15 +291,15 @@ namespace SpawnDev.SpawnJS.Native
         /// probe silently redirected every live transport call to read the probe's memory: nothing threw,
         /// the values simply came from the wrong place.
         /// </summary>
-        [JSImport("globalThis.__sjsBindProbeFrame")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsBindProbeFrame")]
         public static partial bool BindProbeFrame(double ctx, double address, double byteLength);
 
         /// <summary>PROBE: sums `count` values from the interleaved frame - one padded slot per argument.</summary>
-        [JSImport("globalThis.__sjsFrameSum")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsFrameSum")]
         public static partial double FrameSum(double ctx, double count);
 
         /// <summary>PROBE: the same, reading each slot's float64 tag in the padding - the transport's shape.</summary>
-        [JSImport("globalThis.__sjsFrameTaggedSumF64")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsFrameTaggedSumF64")]
         public static partial double FrameTaggedSumF64(double ctx, double count);
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace SpawnDev.SpawnJS.Native
         /// Null - not an empty array - when the value is null or undefined, so "no object here" stays
         /// distinguishable from "an object with no keys".
         /// </summary>
-        [JSImport("globalThis.__sjsKeys")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsKeys")]
         public static partial string[]? Keys(double slot, bool ownOnly);
 
         // Writes whose VALUE type the binding decides. These exist for the cases the typed setters do not
@@ -315,27 +315,27 @@ namespace SpawnDev.SpawnJS.Native
         // through. Declared separately per value type for the same reason Reflect.Set is.
 
         /// <summary>Writes an arbitrary value to a property.</summary>
-        [JSImport("globalThis.__sjsSetAny")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAny")]
         public static partial void SetAny(double slot, string key, [JSMarshalAs<JSType.Any>] object? value);
 
         /// <summary>Writes an arbitrary value at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetAnyAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAnyAt")]
         public static partial void SetAnyAt(double slot, double index, [JSMarshalAs<JSType.Any>] object? value);
 
         /// <summary>Writes a JSObject the caller genuinely holds to a property.</summary>
-        [JSImport("globalThis.__sjsSetAny")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAny")]
         public static partial void SetJSObject(double slot, string key, JSObject? value);
 
         /// <summary>Writes a JSObject at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetAnyAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAnyAt")]
         public static partial void SetJSObjectAt(double slot, double index, JSObject? value);
 
         /// <summary>Writes a byte array to a property.</summary>
-        [JSImport("globalThis.__sjsSetAny")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAny")]
         public static partial void SetBytes(double slot, string key, byte[]? value);
 
         /// <summary>Writes a byte array at a numeric index.</summary>
-        [JSImport("globalThis.__sjsSetAnyAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetAnyAt")]
         public static partial void SetBytesAt(double slot, double index, byte[]? value);
 
         /// <summary>
@@ -348,7 +348,7 @@ namespace SpawnDev.SpawnJS.Native
         /// "is there an object here" and hands back the reference - with no proxy created, and no slot
         /// allocated that the caller would only have to free.
         /// </summary>
-        [JSImport("globalThis.__sjsGetObjectSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetObjectSlot")]
         public static partial double GetObjectSlot(double slot, string key);
 
         /// <summary>
@@ -356,11 +356,11 @@ namespace SpawnDev.SpawnJS.Native
         /// it. A slot holds any Javascript value, so a wrapper over a primitive works - it is only a
         /// JSObject PROXY that cannot represent one. Still returns 0 for null and undefined.
         /// </summary>
-        [JSImport("globalThis.__sjsGetValueSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetValueSlot")]
         public static partial double GetValueSlot(double slot, string key);
 
         /// <summary>As <see cref="CloneObjectSlot"/>, but accepts a non-reference value.</summary>
-        [JSImport("globalThis.__sjsCloneValueSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsCloneValueSlot")]
         public static partial double CloneValueSlot(double slot);
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace SpawnDev.SpawnJS.Native
         /// <see cref="GetObjectSlot"/>; separate because the shared call buffer is an array and its reads
         /// must not pay a string key conversion per element.
         /// </summary>
-        [JSImport("globalThis.__sjsGetObjectSlotAt")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsGetObjectSlotAt")]
         public static partial double GetObjectSlotAt(double slot, double index);
 
         /// <summary>
@@ -376,52 +376,52 @@ namespace SpawnDev.SpawnJS.Native
         /// ownership of what it points at to another without either becoming a proxy. Same sentinels as
         /// <see cref="GetObjectSlot"/>.
         /// </summary>
-        [JSImport("globalThis.__sjsCloneObjectSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsCloneObjectSlot")]
         public static partial double CloneObjectSlot(double slot);
 
         /// <summary>
         /// Calls a method on the slotted object, discarding the result. Nothing becomes a .Net proxy:
         /// the target, the method and the arguments all stay in Javascript.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeVoid")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeVoid")]
         public static partial void InvokeVoid(double slot, string name, double argsSlot);
 
         /// <summary>
         /// Calls a method on the slotted object and returns its number result.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeDouble")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeDouble")]
         public static partial double InvokeDouble(double slot, string name, double argsSlot);
 
         /// <summary>
         /// Calls a method on the slotted object and returns its string result.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeString")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeString")]
         public static partial string? InvokeString(double slot, string name, double argsSlot);
 
         /// <summary>
         /// Calls a method on the slotted object and returns its boolean result.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeBoolean")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeBoolean")]
         public static partial bool InvokeBoolean(double slot, string name, double argsSlot);
 
         /// <summary>
         /// Calls a method on the slotted object and puts the result in a NEW slot, so an
         /// object-returning call still creates no proxy. The caller owns the returned slot.
         /// </summary>
-        [JSImport("globalThis.__sjsInvokeSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsInvokeSlot")]
         public static partial double InvokeSlot(double slot, string name, double argsSlot);
 
         /// <summary>
         /// typeof the slotted value ("null" for null), so .Net can branch without moving the value.
         /// </summary>
-        [JSImport("globalThis.__sjsTypeOf")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsTypeOf")]
         public static partial string TypeOf(double slot);
 
         /// <summary>
         /// Assigns one slotted object as a property of another - the nesting a descriptor needs, without
         /// either object ever becoming a .Net proxy.
         /// </summary>
-        [JSImport("globalThis.__sjsSetSlot")]
+        [JSImport("globalThis.SpawnJSInterop.__sjsSetSlot")]
         public static partial void SetSlot(double slot, string key, double valueSlot);
     }
 }

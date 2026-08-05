@@ -122,7 +122,7 @@ namespace TestsShared
             using var frame = new HeapArgFrame(64);
             frame.BindProbe(JS.CtxId);
             // take a real slot the same way the library does, holding a value the sum can verify
-            var slot = JS.Call<double>("eval", "globalThis.__sjsAlloc(40)");
+            var slot = JS.Call<double>("eval", "globalThis.SpawnJSInterop.__sjsAlloc(40)");
             try
             {
                 frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
@@ -480,6 +480,26 @@ namespace TestsShared
             // and the state that replaced them is reachable per context
             if (!JS.Call<bool>("eval", $"globalThis.SpawnJSInterop.byCtx[{JS.CtxId}].argFrameAddress > 0"))
                 throw new Exception("this runtime's frame address is not registered against its own context");
+        }
+
+        /// <summary>
+        /// The slot/frame helper functions and the slot table are namespaced under SpawnJSInterop
+        /// (globalThis.SpawnJSInterop.__sjs*), NOT bare page globals - so the only name the interop layer
+        /// puts on globalThis is the class itself. Guards the cleanup: JSImport binds these by that dotted
+        /// name, and re-adding a globalThis.__sjs* shim would be silent pollution of the page global.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task SlotHelpersAreNamespacedUnderSpawnJSInteropTest()
+        {
+            foreach (var name in new[] { "__sjsAlloc", "__sjsFrameCall", "__sjsGet", "__sjsNewObject",
+                                         "__sjsInvokeFrameResult", "__sjsSlots", "__sjsNextSlot" })
+            {
+                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
+                    throw new Exception($"globalThis.{name} exists - the slot helpers should live on SpawnJSInterop, not pollute globalThis");
+                if (!JS.Call<bool>("eval", $"'{name}' in globalThis.SpawnJSInterop"))
+                    throw new Exception($"globalThis.SpawnJSInterop.{name} is missing - JSImport binds the slot helpers by that dotted name");
+            }
+            await Task.CompletedTask;
         }
     }
 }

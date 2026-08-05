@@ -124,7 +124,20 @@ namespace SpawnDev.SpawnJS
         // Slot keys are allocated Javascript side and cross as doubles, never as Int64: a boxed Int64
         // cannot cross as an Any-marshalled key ("ToJSNotImplemented, System.Int64"), and a Javascript
         // number IS a double. Exact integers up to 2^53 is far more slots than a process will allocate.
-        static JSObject Store => _store ??= Reflect.GetJSObject(JSHost.GlobalThis, "__sjsSlots")!;
+        static JSObject Store
+        {
+            get
+            {
+                if (_store is null)
+                {
+                    // The slot table is a static of the SpawnJSInterop class now (globalThis.SpawnJSInterop.__sjsSlots),
+                    // not a bare global - dispose the intermediate class proxy, keep only the table.
+                    using var interop = Reflect.GetJSObject(JSHost.GlobalThis, "SpawnJSInterop")!;
+                    _store = Reflect.GetJSObject(interop, "__sjsSlots")!;
+                }
+                return _store;
+            }
+        }
         /// <summary>
         /// How many slots are currently held in the shared store. Diagnostics only - it should track the
         /// number of live owning handles, so a number that only ever climbs means slots are being leaked.

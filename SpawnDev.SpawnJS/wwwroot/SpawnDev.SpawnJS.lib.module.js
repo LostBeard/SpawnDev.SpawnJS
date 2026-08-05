@@ -16,15 +16,17 @@
         constructor(dotnetRuntime) {
             this.dotnetRuntime = dotnetRuntime;
             this.ctxId = ++SpawnJSInterop._idNext;
-            // The slot helpers are plain globals because JSImport binds to a fixed name and has no
-            // instance to reach through. They therefore take a CONTEXT ID as their first argument and
-            // resolve the instance here - which is how per-runtime state stays per-runtime despite the
-            // functions being shared.
+            // The slot helpers are static members of SpawnJSInterop (globalThis.SpawnJSInterop.__sjs*),
+            // NOT bare globals - only the class name lands on globalThis. JSImport still binds them by that
+            // fixed dotted name; they have no instance to reach through, so they take a CONTEXT ID as their
+            // first argument and resolve the instance here - which is how per-runtime state stays
+            // per-runtime despite the functions being shared.
             SpawnJSInterop.byCtx[this.ctxId] = this;
         }
-        // ctx id -> instance. The slot TABLE is deliberately not in here: slot ids come from one
-        // monotonic counter and are never reused, so two runtimes can share it without being able to
-        // touch each other's entries, and keeping it shared costs the hot path nothing.
+        // ctx id -> instance. The slot TABLE (SpawnJSInterop.__sjsSlots) is deliberately SHARED across
+        // runtimes, not per-instance: slot ids come from one monotonic counter and are never reused, so two
+        // runtimes can share it without being able to touch each other's entries, and keeping it shared
+        // costs the hot path nothing.
         static byCtx = {};
         static ctx(id) {
             var it = SpawnJSInterop.byCtx[id];
@@ -457,47 +459,47 @@
 // deleted rather than leaving a hole. Reuse would be denser, but it would mean a disposed handle that
 // still touched its key would read whatever value now occupies that slot - silently wrong data instead
 // of undefined. ReleasedSlotKeyIsNotReusedTest locks this down; do not "optimise" it into a free list.
-globalThis.__sjsSlots = {};
-globalThis.__sjsNextSlot = 1;
-globalThis.__sjsAlloc = function (value) {
-    var slot = globalThis.__sjsNextSlot++;
-    globalThis.__sjsSlots[slot] = value;
+SpawnJSInterop.__sjsSlots = {};
+SpawnJSInterop.__sjsNextSlot = 1;
+SpawnJSInterop.__sjsAlloc = function (value) {
+    var slot = SpawnJSInterop.__sjsNextSlot++;
+    SpawnJSInterop.__sjsSlots[slot] = value;
     return slot;
 };
-globalThis.__sjsAllocEmpty = function () { return globalThis.__sjsAlloc(void 0); };
+SpawnJSInterop.__sjsAllocEmpty = function () { return SpawnJSInterop.__sjsAlloc(void 0); };
 // Allocates a slot AND stores the value in one crossing. Taking a handle used to be an allocation
 // call followed by a separate Reflect.Set - two crossings to park one object.
-globalThis.__sjsAllocValue = function (value) { return globalThis.__sjsAlloc(value); };
-globalThis.__sjsNewObject = function () { return globalThis.__sjsAlloc({}); };
+SpawnJSInterop.__sjsAllocValue = function (value) { return SpawnJSInterop.__sjsAlloc(value); };
+SpawnJSInterop.__sjsNewObject = function () { return SpawnJSInterop.__sjsAlloc({}); };
 // Allocates a slot holding a string. One crossing, paid once per interned string - every later use
 // of that string is just its slot id, which is a number.
-globalThis.__sjsAllocString = function (value) { return globalThis.__sjsAlloc(value); };
-globalThis.__sjsNewArray = function () { return globalThis.__sjsAlloc([]); };
-globalThis.__sjsFree = function (slot) { delete globalThis.__sjsSlots[slot]; };
+SpawnJSInterop.__sjsAllocString = function (value) { return SpawnJSInterop.__sjsAlloc(value); };
+SpawnJSInterop.__sjsNewArray = function () { return SpawnJSInterop.__sjsAlloc([]); };
+SpawnJSInterop.__sjsFree = function (slot) { delete SpawnJSInterop.__sjsSlots[slot]; };
 // How many entries the slot table actually holds. Diagnostic: SpawnJSHandle.LiveSlotCount only counts
 // the slots a HANDLE owns, so a slot allocated Javascript side and owned by nobody is invisible to it -
 // which is precisely how the object-argument leak went unnoticed. This counts the table itself.
-globalThis.__sjsSlotTableCount = function () { return Object.keys(globalThis.__sjsSlots).length; };
-globalThis.__sjsSetDouble = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
-globalThis.__sjsSetString = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+SpawnJSInterop.__sjsSlotTableCount = function () { return Object.keys(SpawnJSInterop.__sjsSlots).length; };
+SpawnJSInterop.__sjsSetDouble = function (slot, key, value) { SpawnJSInterop.__sjsSlots[slot][key] = value; };
+SpawnJSInterop.__sjsSetString = function (slot, key, value) { SpawnJSInterop.__sjsSlots[slot][key] = value; };
 // Numeric-key variants. The shared call buffer is an ARRAY indexed by offset, so forcing those keys
 // through a string conversion allocated a string per argument and turned an indexed array write into a
 // keyed one. That regressed every call that goes through the dispatcher.
-globalThis.__sjsSetDoubleAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
-globalThis.__sjsSetStringAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
-globalThis.__sjsSetBooleanAt = function (slot, index, value) { globalThis.__sjsSlots[slot][index] = value; };
-globalThis.__sjsSetSlotAt = function (slot, index, valueSlot) { globalThis.__sjsSlots[slot][index] = globalThis.__sjsSlots[valueSlot]; };
-globalThis.__sjsSetBoolean = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
+SpawnJSInterop.__sjsSetDoubleAt = function (slot, index, value) { SpawnJSInterop.__sjsSlots[slot][index] = value; };
+SpawnJSInterop.__sjsSetStringAt = function (slot, index, value) { SpawnJSInterop.__sjsSlots[slot][index] = value; };
+SpawnJSInterop.__sjsSetBooleanAt = function (slot, index, value) { SpawnJSInterop.__sjsSlots[slot][index] = value; };
+SpawnJSInterop.__sjsSetSlotAt = function (slot, index, valueSlot) { SpawnJSInterop.__sjsSlots[slot][index] = SpawnJSInterop.__sjsSlots[valueSlot]; };
+SpawnJSInterop.__sjsSetBoolean = function (slot, key, value) { SpawnJSInterop.__sjsSlots[slot][key] = value; };
 // Reads a property of the slotted object and hands the RAW value back, letting the .Net return type
 // declared on the binding do the conversion. This is the same shape Reflect.get is used in - one
 // Javascript function bound at several return types - and it is why a typed property read needs no
 // proxy for the object it is reading from.
-globalThis.__sjsGet = function (slot, key) { return globalThis.__sjsSlots[slot][key]; };
+SpawnJSInterop.__sjsGet = function (slot, key) { return SpawnJSInterop.__sjsSlots[slot][key]; };
 // The same function under a second name, so the .Net side can bind it with a NUMERIC key parameter and
 // skip converting an index to a string. Javascript does not care - arr[0] and arr["0"] address the same
 // element - but the conversion allocates a string per read, which is what the SetAt variants exist to
 // avoid on the write side.
-globalThis.__sjsGetAt = globalThis.__sjsGet;
+SpawnJSInterop.__sjsGetAt = SpawnJSInterop.__sjsGet;
 // The slot TABLE stays shared, deliberately and measurably. Slot ids come from one monotonic counter
 // and are never reused, so two runtimes cannot reach each other's entries through it, and nothing
 // enumerates or clears it. A per-context table was measured at +11% on the hottest path (0.93us ->
@@ -508,7 +510,7 @@ globalThis.__sjsGetAt = globalThis.__sjsGet;
 // handle reads itself here, and a volatile handle - which borrows its parent's storage - reads
 // parent[key] there. Before, both went through JSParent, which is a JSObject, so every read of a
 // number or a string out of a borrowed handle resolved a proxy for the object holding it.
-globalThis.__sjsSelf = function (slot) { return globalThis.__sjsSlots[slot]; };
+SpawnJSInterop.__sjsSelf = function (slot) { return SpawnJSInterop.__sjsSlots[slot]; };
 
 // ---------------------------------------------------------------------------------------------
 // PROBE: an argument buffer living in .Net's OWN memory rather than in Javascript's.
@@ -542,15 +544,15 @@ globalThis.__sjsSelf = function (slot) { return globalThis.__sjsSlots[slot]; };
 // ⚠️ HEAPF64 is indexed in ELEMENTS, so a byte address becomes address >>> 3. That requires the
 // address to be 8 byte aligned; a misaligned buffer would silently read the wrong element, so the
 // alignment is asserted at bind time rather than assumed.
-globalThis.__sjsHeaps = function (ctx) {
+SpawnJSInterop.__sjsHeaps = function (ctx) {
     var m = SpawnJSInterop.ctx(ctx).dotnetRuntime?.Module;
     if (!m) throw new Error('SpawnJSInterop: the dotnet Module is not reachable');
     return m;
 };
 // Reports which HEAP views this runtime actually exposes, so the design rests on measurement rather
 // than on what Emscripten usually exports.
-globalThis.__sjsHeapViewNames = function (ctx) {
-    var m = globalThis.__sjsHeaps(ctx);
+SpawnJSInterop.__sjsHeapViewNames = function (ctx) {
+    var m = SpawnJSInterop.__sjsHeaps(ctx);
     var names = ['HEAP8', 'HEAPU8', 'HEAP16', 'HEAPU16', 'HEAP32', 'HEAPU32', 'HEAPF32', 'HEAPF64'];
     var found = [];
     for (var i = 0; i < names.length; i++) if (m[names[i]]) found.push(names[i]);
@@ -561,8 +563,8 @@ globalThis.__sjsHeapViewNames = function (ctx) {
 // HEAPU16 indexes it directly with no copy on the .Net side and no marshalling machinery.
 // The address is only valid for the duration of this call, because the string is pinned around the
 // call and released after it. Nothing here may retain the subarray.
-globalThis.__sjsReadUtf16 = function (ctx, address, length) {
-    var u16 = globalThis.__sjsHeaps(ctx).HEAPU16;
+SpawnJSInterop.__sjsReadUtf16 = function (ctx, address, length) {
+    var u16 = SpawnJSInterop.__sjsHeaps(ctx).HEAPU16;
     var at = address >>> 1;
     // fromCharCode.apply blows the argument limit on long strings, so decode those instead. The
     // decoder reads the bytes directly; neither path copies on the .Net side.
@@ -579,19 +581,19 @@ globalThis.__sjsReadUtf16 = function (ctx, address, length) {
 // The probe/benchmark frames deliberately use a DIFFERENT global: they are separate frames, and when
 // they shared this one, binding a probe silently redirected every live transport call to read the
 // probe's memory instead. Nothing threw - the reads simply came from the wrong place.
-globalThis.__sjsBindArgFrame = function (ctx, address, byteLength) {
+SpawnJSInterop.__sjsBindArgFrame = function (ctx, address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: argument frame address ${address} is not 8 byte aligned`);
     SpawnJSInterop.ctx(ctx).argFrameAddress = address;
     return true;
 };
 // The probe frame's address - benchmarks and layout tests only, never the transport.
-globalThis.__sjsBindProbeFrame = function (ctx, address, byteLength) {
+SpawnJSInterop.__sjsBindProbeFrame = function (ctx, address, byteLength) {
     if (address % 8 !== 0) throw new Error(`SpawnJSInterop: probe frame address ${address} is not 8 byte aligned`);
     SpawnJSInterop.ctx(ctx).probeFrameAddress = address;
     return true;
 };
-globalThis.__sjsFrameSum = function (ctx, count) {
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+SpawnJSInterop.__sjsFrameSum = function (ctx, count) {
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
     var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
     var total = 0;
     // stride 16 bytes = 2 float64 elements
@@ -599,13 +601,13 @@ globalThis.__sjsFrameSum = function (ctx, count) {
     return total;
 };
 // PROBE ONLY: interleaved, the tag lives in the slot's PADDING as a float64 - one heap view, one width.
-globalThis.__sjsFrameTaggedSumF64 = function (ctx, count) {
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+SpawnJSInterop.__sjsFrameTaggedSumF64 = function (ctx, count) {
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
     var at = SpawnJSInterop.ctx(ctx).probeFrameAddress >>> 3;
     var total = 0;
     for (var i = 0; i < count; i++) {
         var value = f64[at + i * 2];
-        if (f64[at + i * 2 + 1] === 3) value = globalThis.__sjsSlots[value];
+        if (f64[at + i * 2 + 1] === 3) value = SpawnJSInterop.__sjsSlots[value];
         total += value;
     }
     return total;
@@ -636,11 +638,11 @@ const SJS_TAG_OBJECT = 7;    // an object built HERE out of a nested frame regio
 // Must match ArgTag.InlinePackLimit.
 const SJS_INLINE_BASE = 1048576;
 
-globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
+SpawnJSInterop.__sjsFrameArg = function (f64, at, i, scratch) {
     var o = at + i * 2;
     switch (f64[o + 1]) {
         case SJS_TAG_NUMBER: return f64[o];
-        case SJS_TAG_SLOT: return globalThis.__sjsSlots[f64[o]];
+        case SJS_TAG_SLOT: return SpawnJSInterop.__sjsSlots[f64[o]];
         case SJS_TAG_BOOLEAN: return f64[o] !== 0;
         case SJS_TAG_NULL: return null;
         case SJS_TAG_UNDEFINED: return void 0;
@@ -650,7 +652,7 @@ globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
         case SJS_TAG_OBJECT: {
             var p = f64[o];
             var n = p % SJS_INLINE_BASE;
-            return globalThis.__sjsBuildFromFrame(f64, (p - n) / SJS_INLINE_BASE, n, scratch);
+            return SpawnJSInterop.__sjsBuildFromFrame(f64, (p - n) / SJS_INLINE_BASE, n, scratch);
         }
         default: throw new Error(`SpawnJSInterop: argument ${i} has unknown tag ${f64[o + 1]}`);
     }
@@ -660,22 +662,22 @@ globalThis.__sjsFrameArg = function (f64, at, i, scratch) {
 // A primitive goes into the frame itself, so .Net reads it with no crossing. Anything else takes a
 // slot, which means an object returned from a call reaches .Net as a slot id - also no crossing, and
 // no proxy.
-globalThis.__sjsFrameResult = function (f64, at, value) {
+SpawnJSInterop.__sjsFrameResult = function (f64, at, value) {
     if (value === null) { f64[at] = 0; f64[at + 1] = SJS_TAG_NULL; return; }
     if (value === void 0) { f64[at] = 0; f64[at + 1] = SJS_TAG_UNDEFINED; return; }
     var t = typeof value;
     if (t === "number") { f64[at] = value; f64[at + 1] = SJS_TAG_NUMBER; return; }
     if (t === "boolean") { f64[at] = value ? 1 : 0; f64[at + 1] = SJS_TAG_BOOLEAN; return; }
-    f64[at] = globalThis.__sjsAlloc(value);
+    f64[at] = SpawnJSInterop.__sjsAlloc(value);
     f64[at + 1] = SJS_TAG_SLOT;
 };
-globalThis.__sjsFrameCall = function (ctx, cmd, offset, length) {
+SpawnJSInterop.__sjsFrameCall = function (ctx, cmd, offset, length) {
     var interop = SpawnJSInterop.ctx(ctx);
     var scratch = interop.netToJSBuffer;
     var base = interop.argFrameAddress;
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
     var at = (base >>> 3) + offset * 2;
-    var A = globalThis.__sjsFrameArg;
+    var A = SpawnJSInterop.__sjsFrameArg;
     // dispatch by arity rather than spreading a slice - the spread is the only branch that allocates
     var ret;
     switch (length) {
@@ -694,7 +696,7 @@ globalThis.__sjsFrameCall = function (ctx, cmd, offset, length) {
     // RE-FETCH the view before writing the result. The call may have re-entered .Net - a callback, a
     // marshaller reading a property - and anything that grows the WebAssembly memory DETACHES the view
     // captured above. Writing through the stale one would throw, or worse, write nowhere.
-    globalThis.__sjsFrameResult(globalThis.__sjsHeaps(ctx).HEAPF64, at, ret);
+    SpawnJSInterop.__sjsFrameResult(SpawnJSInterop.__sjsHeaps(ctx).HEAPF64, at, ret);
 };
 // Building an OBJECT whose members are already in the frame.
 //
@@ -709,8 +711,8 @@ globalThis.__sjsFrameCall = function (ctx, cmd, offset, length) {
 // argument.
 // Takes the scratch array rather than a context id, because __sjsFrameArg has scratch but no context -
 // and an inline object argument is built straight from there.
-globalThis.__sjsBuildFromFrame = function (f64, at, count, scratch) {
-    var A = globalThis.__sjsFrameArg;
+SpawnJSInterop.__sjsBuildFromFrame = function (f64, at, count, scratch) {
+    var A = SpawnJSInterop.__sjsFrameArg;
     var obj = {};
     for (var i = 0; i < count; i++) {
         obj[A(f64, at, i * 2, scratch)] = A(f64, at, i * 2 + 1, scratch);
@@ -722,11 +724,11 @@ globalThis.__sjsBuildFromFrame = function (f64, at, count, scratch) {
 // nothing freed it. An object argument is carried as SJS_TAG_OBJECT and built in place instead.
 // Builds the object AND assigns it, so the whole descriptor costs exactly one crossing - no temporary
 // slot is allocated, so none has to be freed either.
-globalThis.__sjsBuildObjectInto = function (ctx, parentSlot, key, offset, count) {
+SpawnJSInterop.__sjsBuildObjectInto = function (ctx, parentSlot, key, offset, count) {
     var interop = SpawnJSInterop.ctx(ctx);
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
     var at = (interop.argFrameAddress >>> 3) + offset * 2;
-    globalThis.__sjsSlots[parentSlot][key] = globalThis.__sjsBuildFromFrame(f64, at, count, interop.netToJSBuffer);
+    SpawnJSInterop.__sjsSlots[parentSlot][key] = SpawnJSInterop.__sjsBuildFromFrame(f64, at, count, interop.netToJSBuffer);
 };
 // Calling a METHOD with its arguments already in the frame.
 //
@@ -736,19 +738,19 @@ globalThis.__sjsBuildObjectInto = function (ctx, parentSlot, key, offset, count)
 // arguments were already sitting in .Net memory.
 //
 // Now the target is a slot, the arguments are frame slots, and the whole call is ONE crossing.
-globalThis.__sjsInvokeFrameArgs = function (ctx, f64, at, length) {
-    var A = globalThis.__sjsFrameArg;
+SpawnJSInterop.__sjsInvokeFrameArgs = function (ctx, f64, at, length) {
+    var A = SpawnJSInterop.__sjsFrameArg;
     var scratch = SpawnJSInterop.ctx(ctx).netToJSBuffer;
     var out = new Array(length);
     for (var i = 0; i < length; i++) out[i] = A(f64, at, i, scratch);
     return out;
 };
-globalThis.__sjsInvokeFrameVoid = function (ctx, targetSlot, name, offset, length) {
+SpawnJSInterop.__sjsInvokeFrameVoid = function (ctx, targetSlot, name, offset, length) {
     var interop = SpawnJSInterop.ctx(ctx);
-    var target = globalThis.__sjsSlots[targetSlot];
+    var target = SpawnJSInterop.__sjsSlots[targetSlot];
     var at = (interop.argFrameAddress >>> 3) + offset * 2;
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var A = globalThis.__sjsFrameArg;
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
+    var A = SpawnJSInterop.__sjsFrameArg;
     var scratch = interop.netToJSBuffer;
     // dispatch by arity so the common shapes allocate no argument array at all
     switch (length) {
@@ -757,18 +759,18 @@ globalThis.__sjsInvokeFrameVoid = function (ctx, targetSlot, name, offset, lengt
         case 2: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); return;
         case 3: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); return;
         case 4: target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); return;
-        default: target[name].apply(target, globalThis.__sjsInvokeFrameArgs(ctx, f64, at, length)); return;
+        default: target[name].apply(target, SpawnJSInterop.__sjsInvokeFrameArgs(ctx, f64, at, length)); return;
     }
 };
 // Same, and the result goes back into the caller's own frame slot - so a call that returns a number
 // or a boolean moves no data across the boundary in either direction, and one that returns an object
 // hands back a slot id rather than a proxy.
-globalThis.__sjsInvokeFrameResult = function (ctx, targetSlot, name, offset, length) {
+SpawnJSInterop.__sjsInvokeFrameResult = function (ctx, targetSlot, name, offset, length) {
     var interop = SpawnJSInterop.ctx(ctx);
-    var target = globalThis.__sjsSlots[targetSlot];
+    var target = SpawnJSInterop.__sjsSlots[targetSlot];
     var at = (interop.argFrameAddress >>> 3) + offset * 2;
-    var f64 = globalThis.__sjsHeaps(ctx).HEAPF64;
-    var A = globalThis.__sjsFrameArg;
+    var f64 = SpawnJSInterop.__sjsHeaps(ctx).HEAPF64;
+    var A = SpawnJSInterop.__sjsFrameArg;
     var scratch = interop.netToJSBuffer;
     var ret;
     switch (length) {
@@ -777,23 +779,23 @@ globalThis.__sjsInvokeFrameResult = function (ctx, targetSlot, name, offset, len
         case 2: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch)); break;
         case 3: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch)); break;
         case 4: ret = target[name](A(f64, at, 0, scratch), A(f64, at, 1, scratch), A(f64, at, 2, scratch), A(f64, at, 3, scratch)); break;
-        default: ret = target[name].apply(target, globalThis.__sjsInvokeFrameArgs(ctx, f64, at, length)); break;
+        default: ret = target[name].apply(target, SpawnJSInterop.__sjsInvokeFrameArgs(ctx, f64, at, length)); break;
     }
     // re-fetch: the call may have re-entered .Net and grown the memory, which detaches the view
-    globalThis.__sjsFrameResult(globalThis.__sjsHeaps(ctx).HEAPF64, at, ret);
+    SpawnJSInterop.__sjsFrameResult(SpawnJSInterop.__sjsHeaps(ctx).HEAPF64, at, ret);
 };
 // A property write whose VALUE type is decided by the .Net binding rather than by this function - the
 // write-side twin of __sjsGet. It covers the cases the typed setters do not: an arbitrary Any value, a
 // JSObject the caller genuinely holds, and a byte array. In every one of them the value was never the
 // problem; the PARENT had to become a proxy just to be written through, and that is what this removes.
-globalThis.__sjsSetAny = function (slot, key, value) { globalThis.__sjsSlots[slot][key] = value; };
-globalThis.__sjsSetAnyAt = globalThis.__sjsSetAny;
+SpawnJSInterop.__sjsSetAny = function (slot, key, value) { SpawnJSInterop.__sjsSlots[slot][key] = value; };
+SpawnJSInterop.__sjsSetAnyAt = SpawnJSInterop.__sjsSetAny;
 // Own enumerable keys of a slotted object, so a record can be read back without proxying it.
 // Returns NULL - not an empty array - for null and undefined, so a caller can tell "there is no object
 // here" from "an object with no keys". The proxy path it replaces made that distinction by handing back
 // a null JSObject, and collapsing the two would turn a null record into an empty one.
-globalThis.__sjsKeys = function (slot, ownOnly) {
-    var target = globalThis.__sjsSlots[slot];
+SpawnJSInterop.__sjsKeys = function (slot, ownOnly) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
     if (target === void 0 || target === null) return null;
     if (ownOnly) return Object.keys(target);
     var out = [];
@@ -801,11 +803,11 @@ globalThis.__sjsKeys = function (slot, ownOnly) {
     return out;
 };
 // Whether a property exists, without materialising the object to ask.
-globalThis.__sjsHas = function (slot, key, useIn) {
-    var target = globalThis.__sjsSlots[slot];
+SpawnJSInterop.__sjsHas = function (slot, key, useIn) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
     return useIn ? (key in target) : Object.prototype.hasOwnProperty.call(target, key);
 };
-globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlots[slot][key] = globalThis.__sjsSlots[valueSlot]; };
+SpawnJSInterop.__sjsSetSlot = function (slot, key, valueSlot) { SpawnJSInterop.__sjsSlots[slot][key] = SpawnJSInterop.__sjsSlots[valueSlot]; };
 
 // Slot-native READS. These are the other half of the slot table: writing a descriptor without a proxy
 // was only ever half the path, because every value READ back out of Javascript - every JS.Get<Window>,
@@ -819,73 +821,73 @@ globalThis.__sjsSetSlot = function (slot, key, valueSlot) { globalThis.__sjsSlot
 // Neither is ever a valid slot: allocation starts at 1 and never reuses a key.
 // A function counts as a reference. Javascript functions are legitimate wrapper targets, and typeof
 // reports them separately from "object", so omitting them here would reject every one of them.
-globalThis.__sjsIsRef = function (v) { var t = typeof v; return t === "object" || t === "function"; };
+SpawnJSInterop.__sjsIsRef = function (v) { var t = typeof v; return t === "object" || t === "function"; };
 // As __sjsGetObjectSlot, but a value that is NOT a reference is slotted rather than refused. A slot
 // holds any Javascript value, so a wrapper over a primitive - StringPrimitive is the one that exists -
 // works perfectly well; it is only a JSObject PROXY that cannot represent one, which is why that path
 // throws "JSObject proxy of string is not supported".
 // Still returns 0 for null and undefined: those are absence, not a value to wrap.
-globalThis.__sjsGetValueSlot = function (slot, key) {
-    var v = globalThis.__sjsSlots[slot][key];
+SpawnJSInterop.__sjsGetValueSlot = function (slot, key) {
+    var v = SpawnJSInterop.__sjsSlots[slot][key];
     if (v === void 0 || v === null) return 0;
-    return globalThis.__sjsAlloc(v);
+    return SpawnJSInterop.__sjsAlloc(v);
 };
-globalThis.__sjsCloneValueSlot = function (slot) {
-    var v = globalThis.__sjsSlots[slot];
+SpawnJSInterop.__sjsCloneValueSlot = function (slot) {
+    var v = SpawnJSInterop.__sjsSlots[slot];
     if (v === void 0 || v === null) return 0;
-    return globalThis.__sjsAlloc(v);
+    return SpawnJSInterop.__sjsAlloc(v);
 };
-globalThis.__sjsGetObjectSlot = function (slot, key) {
-    var v = globalThis.__sjsSlots[slot][key];
+SpawnJSInterop.__sjsGetObjectSlot = function (slot, key) {
+    var v = SpawnJSInterop.__sjsSlots[slot][key];
     if (v === void 0 || v === null) return 0;
-    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+    return SpawnJSInterop.__sjsIsRef(v) ? SpawnJSInterop.__sjsAlloc(v) : -1;
 };
 // Same read, addressed by numeric index. The shared call buffer is an ARRAY, so its reads must not pay
 // a string key conversion per element - the same reason the SetAt variants exist.
-globalThis.__sjsGetObjectSlotAt = function (slot, index) {
-    var v = globalThis.__sjsSlots[slot][index];
+SpawnJSInterop.__sjsGetObjectSlotAt = function (slot, index) {
+    var v = SpawnJSInterop.__sjsSlots[slot][index];
     if (v === void 0 || v === null) return 0;
-    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+    return SpawnJSInterop.__sjsIsRef(v) ? SpawnJSInterop.__sjsAlloc(v) : -1;
 };
 // Takes a SECOND, independent slot on the value a slot already holds, so one handle can hand ownership
 // of what it points at to another without either becoming a proxy. The two slots are separate
 // references to the same Javascript value: freeing one does not disturb the other.
-globalThis.__sjsCloneObjectSlot = function (slot) {
-    var v = globalThis.__sjsSlots[slot];
+SpawnJSInterop.__sjsCloneObjectSlot = function (slot) {
+    var v = SpawnJSInterop.__sjsSlots[slot];
     if (v === void 0 || v === null) return 0;
-    return globalThis.__sjsIsRef(v) ? globalThis.__sjsAlloc(v) : -1;
+    return SpawnJSInterop.__sjsIsRef(v) ? SpawnJSInterop.__sjsAlloc(v) : -1;
 };
 
 // Slot-native invocation. `this`, the method, and the argument array all live in Javascript, so a call
 // makes NO .Net proxy at all - the only things crossing are a slot number, a name, and a slot number.
 // The old path had to materialise a JSObject for the target AND the arguments just to hand them over,
 // which is why building a descriptor cheaply in slots still ended up creating proxies at call time.
-globalThis.__sjsInvokeVoid = function (slot, name, argsSlot) {
-    var target = globalThis.__sjsSlots[slot];
-    target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+SpawnJSInterop.__sjsInvokeVoid = function (slot, name, argsSlot) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
+    target[name].apply(target, SpawnJSInterop.__sjsSlots[argsSlot]);
 };
-globalThis.__sjsInvokeDouble = function (slot, name, argsSlot) {
-    var target = globalThis.__sjsSlots[slot];
-    return target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+SpawnJSInterop.__sjsInvokeDouble = function (slot, name, argsSlot) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
+    return target[name].apply(target, SpawnJSInterop.__sjsSlots[argsSlot]);
 };
-globalThis.__sjsInvokeString = function (slot, name, argsSlot) {
-    var target = globalThis.__sjsSlots[slot];
-    var r = target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+SpawnJSInterop.__sjsInvokeString = function (slot, name, argsSlot) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
+    var r = target[name].apply(target, SpawnJSInterop.__sjsSlots[argsSlot]);
     return r === void 0 || r === null ? null : r;
 };
-globalThis.__sjsInvokeBoolean = function (slot, name, argsSlot) {
-    var target = globalThis.__sjsSlots[slot];
-    return !!target[name].apply(target, globalThis.__sjsSlots[argsSlot]);
+SpawnJSInterop.__sjsInvokeBoolean = function (slot, name, argsSlot) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
+    return !!target[name].apply(target, SpawnJSInterop.__sjsSlots[argsSlot]);
 };
 // Returns the RESULT IN A NEW SLOT, so an object-returning call still never becomes a proxy unless the
 // caller genuinely needs one.
-globalThis.__sjsInvokeSlot = function (slot, name, argsSlot) {
-    var target = globalThis.__sjsSlots[slot];
-    return globalThis.__sjsAlloc(target[name].apply(target, globalThis.__sjsSlots[argsSlot]));
+SpawnJSInterop.__sjsInvokeSlot = function (slot, name, argsSlot) {
+    var target = SpawnJSInterop.__sjsSlots[slot];
+    return SpawnJSInterop.__sjsAlloc(target[name].apply(target, SpawnJSInterop.__sjsSlots[argsSlot]));
 };
 // typeof of a slot's value, so .Net can tell "returned an object" from "returned a primitive" without
 // dragging the value across.
-globalThis.__sjsTypeOf = function (slot) {
-    var v = globalThis.__sjsSlots[slot];
+SpawnJSInterop.__sjsTypeOf = function (slot) {
+    var v = SpawnJSInterop.__sjsSlots[slot];
     return v === null ? "null" : typeof v;
 };
