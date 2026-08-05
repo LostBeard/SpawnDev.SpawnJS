@@ -4,6 +4,21 @@ All notable changes to SpawnDev.SpawnJS.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-08-04
+
+### Fixed
+
+- **`DOMParser.ParseFromString`** was passing the input HTML string *as the method name*
+  (`JSRef.Call<Document>(input, mimeType)` instead of `JSRef.Call<Document>("parseFromString", input, mimeType)`),
+  so every call threw `TypeError: target[name] is not a function` at runtime while compiling clean. Added a
+  `PortedDOMParserParseFromStringTest` regression guard.
+
+### Changed
+
+- Restored the test harness build: `ArgumentFrameTransportTests` needed `using SpawnDev.SpawnJS.Native`
+  and `JSInteropTestsCore` needed `Reflect` qualified to `Native.Reflect` after the `Native.Reflect`
+  namespace correction and the addition of `JSObjects.Reflect`.
+
 ## [1.1.0] - 2026-07-31
 
 ### Added

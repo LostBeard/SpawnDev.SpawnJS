@@ -101,6 +101,24 @@ namespace TestsShared
         }
 
         /// <summary>
+        /// DOMParser.ParseFromString exercises a ported method that takes two string arguments and returns
+        /// a constructed Document. It is a regression guard: the auto-ported wrapper once passed the input
+        /// string AS the method name (Call&lt;Document&gt;(input, mimeType) instead of
+        /// Call&lt;Document&gt;("parseFromString", input, mimeType)), which threw "target[name] is not a
+        /// function" at runtime while compiling clean. This parses known markup and reads the result back.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task PortedDOMParserParseFromStringTest()
+        {
+            HostCapabilities.RequireBrowser();
+            using var parser = new DOMParser();
+            using var doc = parser.ParseFromString("<div id=\"spawnjs-domparser-test\">hello dom</div>", "text/html");
+            using var el = doc.GetElementById("spawnjs-domparser-test");
+            if (el == null) throw new Exception("ParseFromString did not produce a document containing the parsed element");
+            if (el.TextContent != "hello dom") throw new Exception($"Expected parsed textContent 'hello dom', got '{el.TextContent}'");
+        }
+
+        /// <summary>
         /// JSRefCopy hands back an independent wrapper over the same Javascript object, so disposing the
         /// copy must leave the original usable. This is the ported-surface view of the handle refcount.
         /// </summary>

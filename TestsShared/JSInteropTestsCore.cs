@@ -110,8 +110,10 @@ namespace TestsShared
         public async Task VolatileHandleDoesNotDisposeParentTest()
         {
             using var parent = JS.NewJSArray();
-            Reflect.Set(parent.JSObject!, 0, "first");
-            Reflect.Set(parent.JSObject!, 1, "second");
+            // Native.Reflect (low-level JSImport) - qualified to disambiguate from JSObjects.Reflect,
+            // which is also in scope via the JSObjects using and has an incompatible Set signature.
+            SpawnDev.SpawnJS.Native.Reflect.Set(parent.JSObject!, 0, "first");
+            SpawnDev.SpawnJS.Native.Reflect.Set(parent.JSObject!, 1, "second");
             // borrow the parent, then release the borrow
             using (var borrowed = new SpawnJSHandle(parent, 0, true))
             {

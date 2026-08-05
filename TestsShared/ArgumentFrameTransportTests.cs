@@ -1,4 +1,5 @@
 using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.Native;
 using SpawnDev.SpawnJS.Toolbox;
 
 namespace TestsShared
