@@ -15,7 +15,8 @@ namespace SpawnDev.SpawnJS
         /// <returns></returns>
         public static IServiceCollection AddSpawnJSRuntime(this IServiceCollection _this) => _this.AddSpawnJSRuntime(out var _);
         /// <summary>
-        /// Adds the SpawnJSRuntime singleton service and initializes it.
+        /// Adds the SpawnJSRuntime singleton service and initializes it.<br/>
+        /// Also adds BackgroundServiceManager if not already added
         /// </summary>
         /// <param name="_this"></param>
         /// <param name="JS">SpawnJSRuntime singleton instance</param>
@@ -30,32 +31,6 @@ namespace SpawnDev.SpawnJS
             // register SpawnJSRuntime
             _this.TryAddSingleton<SpawnJSRuntime>(JS);
             return _this;
-        }
-        /// <summary>
-        /// Starts background services based on scope and calls RunAsync to keep the app alive
-        /// </summary>
-        public static async Task SpawnJSRunAsync(this SpawnJSApp _this)
-        {
-            await _this.Services.StartBackgroundServices();
-            await _this.RunAsync();
-        }
-        /// <summary>
-        /// Starts background services based on scope and calls RunAsync to keep the app alive
-        /// </summary>
-        public static async Task SpawnJSRunAsync(this SpawnJSApp _this, Func<SpawnJSApp, Task> whenReady)
-        {
-            await _this.Services.StartBackgroundServices();
-            if (whenReady != null) await whenReady(_this);
-            await _this.RunAsync();
-        }
-        /// <summary>
-        /// Starts background services based on scope and calls RunAsync to keep the app alive
-        /// </summary>
-        public static async Task SpawnJSRunAsync(this SpawnJSApp _this, Action<SpawnJSApp> whenReady)
-        {
-            await _this.Services.StartBackgroundServices();
-            if (whenReady != null) whenReady(_this);
-            await _this.RunAsync();
         }
     }
 }

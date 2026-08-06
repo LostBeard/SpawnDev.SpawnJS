@@ -3,9 +3,9 @@
     /// <summary>
     /// SpawnJS app
     /// </summary>
-    public class SpawnJSApp : IDisposable, IAsyncDisposable
+    public class SpawnJSApp
     {
-        private TaskCompletionSource? _appRun = null;
+        private TaskCompletionSource _appRun = new TaskCompletionSource();
         /// <summary>
         /// App startup args
         /// </summary>
@@ -17,15 +17,23 @@
         /// <summary>
         /// True if disposed
         /// </summary>
-        public bool IsDisposed { get; set; }
+        public bool IsDisposed { get; private set; }
         /// <summary>
         /// True if disposing
         /// </summary>
-        public bool IsDisposing { get; set; }
+        public bool IsDisposing { get; private set; }
         /// <summary>
         /// True if Exit was called
         /// </summary>
         public bool Exited { get; private set; }
+        /// <summary>
+        /// True if Starting
+        /// </summary>
+        public bool Starting { get; private set; }
+        /// <summary>
+        /// True if Running
+        /// </summary>
+        public bool Running { get; private set; }
         /// <summary>
         /// New instance
         /// </summary>
@@ -37,28 +45,59 @@
             Services = services;
         }
         /// <summary>
-        /// Dispose the app and resources
+        /// Starts background services based on scope and keeps the app alive until Exit is called.
         /// </summary>
-        public void Dispose()
-        {
-            if (IsDisposed || IsDisposing) return;
-            IsDisposing = true;
-            // dispose
-            if (Services is IAsyncDisposable asyncDisposable) _ = asyncDisposable.DisposeAsync();
-            else if (Services is IDisposable disposable) disposable.Dispose();
-            IsDisposed = true;
-            IsDisposing = false;
-        }
-        /// <summary>
-        /// Run the app
-        /// </summary>
-        /// <returns></returns>
         public async Task RunAsync()
         {
-            if (Exited || IsDisposed || IsDisposing) return;
-            if (_appRun != null) return;
-            _appRun = new TaskCompletionSource();
-            await _appRun.Task;
+            if (Exited || Starting || Running) return;
+            Starting = true;
+            await Services.StartBackgroundServices();
+            Starting = false;
+            if (!Exited)
+            {
+                Running = true;
+                await _appRun.Task;
+                Running = false;
+                Exited = true;
+            }
+            await DisposeAsync();
+        }
+        /// <summary>
+        /// Starts background services based on scope and keeps the app alive until Exit is called.
+        /// </summary>
+        public async Task RunAsync(Func<SpawnJSApp, Task> whenReady)
+        {
+            if (Exited || Starting || Running) return;
+            Starting = true;
+            await Services.StartBackgroundServices();
+            Starting = false;
+            if (!Exited)
+            {
+                Running = true;
+                if (whenReady != null) await whenReady(this);
+                await _appRun.Task;
+                Running = false;
+                Exited = true;
+            }
+            await DisposeAsync();
+        }
+        /// <summary>
+        /// Starts background services based on scope and keeps the app alive until Exit is called.
+        /// </summary>
+        public async Task RunAsync(Action<SpawnJSApp> whenReady)
+        {
+            if (Exited || Starting || Running) return;
+            Starting = true;
+            await Services.StartBackgroundServices();
+            Starting = false;
+            if (!Exited)
+            {
+                Running = true;
+                if (whenReady != null) whenReady(this);
+                await _appRun.Task;
+                Running = false;
+                Exited = true;
+            }
             await DisposeAsync();
         }
         /// <summary>
@@ -66,14 +105,14 @@
         /// </summary>
         public void Exit()
         {
+            if (Exited) return;
             Exited = true;
-            _appRun?.SetResult();
+            _appRun.TrySetResult();
         }
         /// <summary>
         /// Dispose the app and resources
         /// </summary>
-        /// <returns></returns>
-        public async ValueTask DisposeAsync()
+        async ValueTask DisposeAsync()
         {
             if (IsDisposed || IsDisposing) return;
             IsDisposing = true;

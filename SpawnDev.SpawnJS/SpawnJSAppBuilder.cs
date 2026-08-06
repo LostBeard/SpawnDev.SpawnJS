@@ -7,6 +7,7 @@ namespace SpawnDev.SpawnJS
     /// </summary>
     public class SpawnJSAppBuilder
     {
+        SpawnJSApp? _app = null;
         /// <summary>
         /// App startup args
         /// </summary>
@@ -23,16 +24,33 @@ namespace SpawnDev.SpawnJS
         {
             Args = args;
             Services = new ServiceCollection();
+            Services.AddSingleton(sp => _app!);
+            Services.AddSpawnJSRuntime();
         }
         /// <summary>
-        /// Creates a default app
+        /// Creates a default SpawnJSAppBuilder with the default services:<br/>
+        /// BackgroundServiceManager - handles auto-starting IBackground services when SpawnJSApp.RunAsync() is called<br/>
+        /// SpawnJSRuntime - Required Javascript runtime<br/>
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
         public static SpawnJSAppBuilder CreateDefault(string[]? args = null)
         {
             var builder = new SpawnJSAppBuilder(args);
-            // empty
+            return builder;
+        }
+        /// <summary>
+        /// Creates a default SpawnJSAppBuilder with the default services:<br/>
+        /// BackgroundServiceManager - handles auto-starting IBackground services when SpawnJSApp.RunAsync() is called<br/>
+        /// SpawnJSRuntime - Required Javascript runtime<br/>
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="js">The SpawnJSRuntime singleton</param>
+        /// <returns></returns>
+        public static SpawnJSAppBuilder CreateDefault(string[]? args, out SpawnJSRuntime js)
+        {
+            var builder = new SpawnJSAppBuilder(args);
+            js = SpawnJSRuntime.Instance;
             return builder;
         }
         /// <summary>
@@ -41,11 +59,9 @@ namespace SpawnDev.SpawnJS
         /// <returns></returns>
         public SpawnJSApp Build()
         {
-            SpawnJSApp? app = null;
-            Services.AddSingleton(sp => app!);
             var serviceProvider = Services.BuildServiceProvider();
-            app = new SpawnJSApp(Args, serviceProvider);
-            return app;
+            _app = new SpawnJSApp(Args, serviceProvider);
+            return _app;
         }
     }
 }
