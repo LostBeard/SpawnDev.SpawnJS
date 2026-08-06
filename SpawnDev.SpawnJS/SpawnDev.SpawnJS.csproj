@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.7</Version>
-		<PackageReleaseNotes>v1.1.7 - SpawnJSAppBuilder RunAsync and default services simplified</PackageReleaseNotes>
+		<Version>1.1.8</Version>
+		<PackageReleaseNotes>v1.1.8 - Added missing Event constructor</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
