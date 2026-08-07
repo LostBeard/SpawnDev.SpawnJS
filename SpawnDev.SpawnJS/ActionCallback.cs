@@ -1,5 +1,5 @@
 ﻿using SpawnDev.SpawnJS.JSObjects;
-namespace SpawnDev.SpawnJS.JSObjects
+namespace SpawnDev.SpawnJS
 {
     /// <summary>
     /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
