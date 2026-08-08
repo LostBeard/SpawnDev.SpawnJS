@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.9</Version>
-		<PackageReleaseNotes>v1.1.8 - Added missing Event constructor</PackageReleaseNotes>
+		<Version>1.1.10</Version>
+		<PackageReleaseNotes>v1.1.10 - Added missing KeyboardEvent and InputEvent constructors</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

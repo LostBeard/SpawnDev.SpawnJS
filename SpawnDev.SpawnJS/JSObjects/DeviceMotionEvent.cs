@@ -16,6 +16,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="_ref"></param>
         public DeviceMotionEvent(SpawnJSObjectReference _ref) : base(_ref) { }
         /// <summary>
+        /// The Event() constructor creates a new Event object. An event created in this way is called a synthetic event, as opposed to an event fired by the browser, and can be dispatched by a script.
+        /// </summary>
+        /// <param name="type">A string with the name of the event.</param>
+        /// <param name="options"></param>
+        public DeviceMotionEvent(string type, EventOptions? options = null) : base(options == null ? JS.New(nameof(DeviceMotionEvent), type) : JS.New(nameof(DeviceMotionEvent), type, options)) { }
+        /// <summary>
         /// An object giving the acceleration of the device on the three axis X, Y and Z. Acceleration is expressed in m/s².
         /// </summary>
         public DeviceMotionXYZ Acceleration => JSRef!.Get<DeviceMotionXYZ>("acceleration");

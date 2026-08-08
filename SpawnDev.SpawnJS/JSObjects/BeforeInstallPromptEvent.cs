@@ -17,6 +17,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="_ref"></param>
         public BeforeInstallPromptEvent(SpawnJSObjectReference _ref) : base(_ref) { }
         /// <summary>
+        /// The Event() constructor creates a new Event object. An event created in this way is called a synthetic event, as opposed to an event fired by the browser, and can be dispatched by a script.
+        /// </summary>
+        /// <param name="type">A string with the name of the event.</param>
+        /// <param name="options"></param>
+        public BeforeInstallPromptEvent(string type, EventOptions? options = null) : base(options == null ? JS.New(nameof(BeforeInstallPromptEvent), type) : JS.New(nameof(BeforeInstallPromptEvent), type, options)) { }
+        /// <summary>
         /// Returns an array of string items containing the platforms on which the event was dispatched. This is provided for user agents that want to present a choice of versions to the user such as, for example, "web" or "play" which would allow the user to choose between a web version or an Android version.
         /// </summary>
         public string[] Platforms => JSRef!.Get<string[]>("platforms");
