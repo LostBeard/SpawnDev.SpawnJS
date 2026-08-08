@@ -4,6 +4,21 @@ All notable changes to SpawnDev.SpawnJS.
 
 ## [Unreleased]
 
+## [1.1.9] - 2026-08-07
+
+### Added
+
+- **Trusted Types wrappers** (`JSObjects/TrustedTypes/`): `TrustedTypePolicyFactory` (`window.trustedTypes`),
+  `TrustedTypePolicy`, `TrustedHTML`, `TrustedScript`, `TrustedScriptURL`, and `TrustedTypePolicyOptions`.
+  These let code create a Trusted Type policy and produce approved values on a page whose CSP enforces
+  `require-trusted-types-for 'script'` (e.g. YouTube, Gmail), where a plain string is refused at an
+  injection sink. `CreatePolicy` takes `Callback`s (not `new Function`, which such a page's `unsafe-eval`
+  block would also refuse) and builds the policy-options record explicitly so the JS keys are exact.
+- **`DOMParser.ParseFromString(TrustedHTML, mimeType)`** overload - `parseFromString` is a Trusted Types
+  sink and throws `This document requires 'TrustedHTML'` for a plain string under enforcement, so callers
+  that may run on such a page pass a `TrustedHTML` produced by a policy. Kept in sync with the same addition
+  in SpawnDev.BlazorJS.
+
 ## [1.1.4] - 2026-08-05
 
 ### Added
