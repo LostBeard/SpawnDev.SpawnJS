@@ -6,10 +6,12 @@ using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {
+    [Obsolete("Use MutationObserverOptions")]
+    public class MutationObserveOptions : MutationObserverOptions { }
     /// <summary>
     /// MutationObserver.observe options
     /// </summary>
-    public class MutationObserveOptions
+    public class MutationObserverOptions
     {
         /// <summary>
         /// Set to true to extend monitoring to the entire subtree of nodes rooted at target. All of the other properties are then extended to all of the nodes in the subtree instead of applying solely to the target node. The default value is false.

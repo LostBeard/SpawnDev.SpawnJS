@@ -17,6 +17,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback"></param>
         public MutationObserver(ActionCallback<Array<MutationRecord>, MutationObserver> callback) : base(JS.New(nameof(MutationObserver), callback)) { }
         /// <summary>
+        /// Creates a new instance of MutationObserver
+        /// </summary>
+        /// <param name="callback"></param>
+        public MutationObserver(ActionCallback<Array<MutationRecord>> callback) : base(JS.New(nameof(MutationObserver), callback)) { }
+        /// <summary>
+        /// Creates a new instance of MutationObserver
+        /// </summary>
+        /// <param name="callback"></param>
+        public MutationObserver(ActionCallback callback) : base(JS.New(nameof(MutationObserver), callback)) { }
+        /// <summary>
         /// Deserialization constructor
         /// </summary>
         /// <param name="_ref"></param>
@@ -33,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="target">A DOM Node (which may be an Element) within the DOM tree to watch for changes, or to be the root of a subtree of nodes to be watched.</param>
         /// <param name="options">An object providing options that describe which DOM mutations should be reported to mutationObserver's callback. At a minimum, one of childList, attributes, and/or characterData must be true when you call observe(). Otherwise, a TypeError exception will be thrown.</param>
-        public void Observe(Node target, MutationObserveOptions options) => JSRef!.CallVoid("observe", target, options);
+        public void Observe(Node target, MutationObserverOptions options) => JSRef!.CallVoid("observe", target, options);
         /// <summary>
         /// Removes all pending notifications from the MutationObserver's notification queue and returns them in a new Array of MutationRecord objects.
         /// </summary>
