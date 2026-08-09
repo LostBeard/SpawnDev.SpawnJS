@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>1.1.12</Version>
-		<PackageReleaseNotes>v1.1.12 - Added mssing DataTransfer constructor</PackageReleaseNotes>
+		<Version>1.1.13</Version>
+		<PackageReleaseNotes>v1.1.13 - Added HTMLStyleElement</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
