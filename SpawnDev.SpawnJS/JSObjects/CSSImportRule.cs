@@ -1,4 +1,4 @@
-// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>

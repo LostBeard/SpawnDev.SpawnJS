@@ -41,7 +41,7 @@ global using GPUSize32Out = System.UInt32;
 global using GPUSize64 = System.UInt64;
 global using GPUSize64Out = System.UInt64;
 global using GPUStencilValue = System.UInt32;
-// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Toolbox;

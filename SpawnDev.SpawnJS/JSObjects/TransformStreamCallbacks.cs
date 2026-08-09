@@ -1,4 +1,4 @@
-// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+
 using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects

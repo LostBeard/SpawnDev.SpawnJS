@@ -55,7 +55,7 @@ global using ImageBitmapSource = SpawnDev.SpawnJS.Union<
     SpawnDev.SpawnJS.JSObjects.Blob,
     SpawnDev.SpawnJS.JSObjects.ImageData
 >;
-// <auto-ported> from SpawnDev.BlazorJS by Tools/PortJSObjects.cs - do not hand edit
+
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Toolbox;
