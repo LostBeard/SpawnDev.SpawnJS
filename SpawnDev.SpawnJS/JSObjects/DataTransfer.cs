@@ -16,6 +16,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="_ref"></param>
         public DataTransfer(SpawnJSObjectReference _ref) : base(_ref) { }
         /// <summary>
+        /// The DataTransfer constructor creates a new DataTransfer object instance.
+        /// </summary>
+        public DataTransfer() : base(JS.New(nameof(DataTransfer))) { }
+        /// <summary>
         /// Gives a DataTransferItemList object which is a list of all of the drag data.
         /// </summary>
         public DataTransferItemList Items => JSRef!.Get<DataTransferItemList>("items");

@@ -18,7 +18,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// A FileList that represents the files selected for upload.
         /// </summary>
-        public FileList? Files => JSRef!.Get<FileList?>("files");
+        public FileList? Files { get => JSRef!.Get<FileList?>("files"); set => JSRef!.Set("files", value); }
         /// <summary>
         /// A string that represents the current value of the control.
         /// </summary>
