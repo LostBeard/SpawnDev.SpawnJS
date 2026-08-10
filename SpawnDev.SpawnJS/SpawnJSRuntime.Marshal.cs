@@ -350,6 +350,8 @@ namespace SpawnDev.SpawnJS
         {
             var tag = _argFrame.ReadTag(offset);
             var payload = _argFrame.Read(offset);
+            if (typeof(IJSPrimitiveWrapper).IsAssignableFrom(type))
+                Console.WriteLine($"[SJSDBG] ReadFrameResult type={type.Name} tag={tag} payload={payload}");
             switch (tag)
             {
                 case ArgTag.Null:

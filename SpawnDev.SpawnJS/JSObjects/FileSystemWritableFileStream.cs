@@ -52,6 +52,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task Write(string data) => JSRef!.CallVoidAsync("write", data);
         /// <summary>
+        /// Writes a JS String held JS-side (a <see cref="String"/> reference) into the file at the current
+        /// cursor offset, without marshaling its contents through the .NET heap. Pairs with
+        /// <see cref="Blob.TextAsString"/> for read-transform-write pipelines that keep content JS-side.
+        /// </summary>
+        public Task Write(String data) => JSRef!.CallVoidAsync("write", data);
+        /// <summary>
         /// The write() method of the FileSystemWritableFileStream interface writes content into the file the method is called on, at the current file cursor offset.
         /// </summary>
         /// <param name="data"></param>

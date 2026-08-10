@@ -106,12 +106,17 @@ namespace SpawnDev.SpawnJS.Native
         #endregion
 
         #region Reflect.get
-        /// <summary>
-        /// Reads <c>target[key]</c> through <c>Reflect.get</c>.
-        /// Returns the result as a JSObject, or null if it was null or undefined.
-        /// </summary>
-        [JSImport("globalThis.Reflect.get")]
-        public static partial JSObject? GetJSObject(JSObject target, [JSMarshalAs<Any>] object key);
+
+
+        // WHY THE FUCK ARE WE FUCKING STILL USING GODDAMN JSOBJECT WHEN WE CLEARLY FUCKIGN DECIDED IT WAS SHIT FOR SO MANY GODDAMN REASONS!!!!!!!!
+
+
+        ///// <summary>
+        ///// Reads <c>target[key]</c> through <c>Reflect.get</c>.
+        ///// Returns the result as a JSObject, or null if it was null or undefined.
+        ///// </summary>
+        //[JSImport("globalThis.Reflect.get")]
+        //public static partial JSObject? GetJSObject(JSObject target, [JSMarshalAs<Any>] object key);
 
         /// <summary>
         /// Reads <c>target[key]</c> through <c>Reflect.get</c>.

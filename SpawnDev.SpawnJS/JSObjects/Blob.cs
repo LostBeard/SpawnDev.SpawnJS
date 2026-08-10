@@ -77,6 +77,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<string> Text() => JSRef!.CallAsync<string>("text");
         /// <summary>
+        /// Returns the entire contents as a JS String held JS-side (a <see cref="String"/> reference), NOT
+        /// marshaled into the .NET heap. Use this to search/replace file contents via JS RegExp without
+        /// bringing the (potentially large) text across the interop boundary; marshal back only the small
+        /// result (a match count, matched lines, etc.).
+        /// </summary>
+        public Task<String> TextAsString() => JSRef!.CallAsync<String>("text");
+        /// <summary>
         /// Returns a promise that resolves with an ArrayBuffer containing the entire contents of the Blob as binary data.
         /// </summary>
         /// <returns></returns>

@@ -25,10 +25,13 @@
             // primitive, and that restriction is what made StringPrimitive - and with it the string
             // HeapView path - unusable in this library until the reads became slot native.
             var allowNonReference = typeof(IJSPrimitiveWrapper).IsAssignableFrom(type);
+            if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet {type.Name} allowNonRef={allowNonReference}");
             if (jsHandle.TryTakeOwnedValue(out var owned, allowNonReference))
             {
+                if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet took owned (null? {owned == null})");
                 return owned == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(owned));
             }
+            if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet FELL THROUGH to AsJSObject");
             var value = jsHandle.AsJSObject();
             return value == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(value));
         }

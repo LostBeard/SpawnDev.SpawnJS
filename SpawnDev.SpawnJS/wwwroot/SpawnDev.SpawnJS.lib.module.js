@@ -184,13 +184,6 @@
             }
             return new ctor(buffer, address, byteLength / elementSize);
         }
-        // Assigns a record (a plain object of string keys) built .Net-side onto parent[key].
-        // assignRecord was removed. It rebuilt a record from its own string keys to drop the enumerable
-        // Symbol the .Net runtime tags every object it PROXIES with - which a record-typed web API chokes
-        // on, because it enumerates every own key and converts each to a string ("Cannot convert a Symbol
-        // value to a string", WebGPU createComputePipeline constants).
-        // The marshallers now write objects through the slot table, so a descriptor is never proxied and
-        // never tagged. Stripping the tag is unnecessary once nothing applies it.
         // returns string[] of the target's property names.
         // hasOwnProperty true restricts to the object's own enumerable keys (Object.keys); false walks the
         // prototype chain too, which is what you need to enumerate a DOM object's API rather than just the

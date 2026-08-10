@@ -193,8 +193,11 @@ namespace SpawnDev.SpawnJS.JSObjects
             var t = new TaskCompletionSource<TResult>();
             var callbacks = new CallbackGroup();
             var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
+            var _dbg = typeof(IJSPrimitiveWrapper).IsAssignableFrom(typeof(TResult));
+            if (_dbg) Console.WriteLine($"[SJSDBG] ThenAsync<{typeof(TResult).Name}> registered");
             ThenCatch(callbacks.Add(Callback.Create<TResult>((result) =>
             {
+                if (_dbg) Console.WriteLine($"[SJSDBG] ThenAsync<{typeof(TResult).Name}> RESOLVED, result null? {result == null}");
                 if (t.TrySetResult(result))
                 {
                     cancellationTokenSource?.Dispose();

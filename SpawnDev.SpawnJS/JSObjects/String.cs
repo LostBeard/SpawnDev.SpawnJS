@@ -7,8 +7,15 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// <summary>
     /// The String object is used to represent and manipulate a sequence of characters.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+    /// <br/>
+    /// Implements <see cref="IJSPrimitiveWrapper"/> because a JS string value is almost always a PRIMITIVE
+    /// (e.g. the result of <c>blob.text()</c> / <c>String.prototype</c> methods), not a boxed String object.
+    /// A slot holds a primitive just fine, so this wrapper carries either; without the marker the marshaller
+    /// refused a primitive and any async read of one (TextAsString, Match, Replace results...) hung forever
+    /// waiting on a value that never marshalled. String.prototype methods work on a primitive via auto-boxing,
+    /// so nothing else changes.
     /// </summary>
-    public class String : SpawnJSObject
+    public class String : SpawnJSObject, IJSPrimitiveWrapper
     {
         /// <summary>
         /// Implicit conversion to .Net string
@@ -40,5 +47,30 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <returns></returns>
         public override string ToString() => ValueOf();
+
+        // --- String methods that keep the text JS-side (results returned as JS refs unless a small,
+        //     bounded value like a count or match list is the whole point) --------------------------------
+        /// <summary>The number of UTF-16 code units, read JS-side (no marshaling of the text).</summary>
+        public int Length => JSRef!.Get<int>("length");
+        /// <summary>Whether the string contains <paramref name="search"/>.</summary>
+        public bool Includes(string search) => JSRef!.Call<bool>("includes", search);
+        /// <summary>Extracts a section as a new JS String (held JS-side).</summary>
+        public String Slice(int start) => JSRef!.Call<String>("slice", start);
+        /// <summary>Extracts a section as a new JS String (held JS-side).</summary>
+        public String Slice(int start, int end) => JSRef!.Call<String>("slice", start, end);
+        /// <summary>Splits the string by a separator into a JS Array of substrings (held JS-side).</summary>
+        public Array Split(string separator) => JSRef!.Call<Array>("split", separator);
+        /// <summary>Splits the string by a RegExp into a JS Array of substrings (held JS-side).</summary>
+        public Array Split(RegExp separator) => JSRef!.Call<Array>("split", separator);
+        /// <summary>Replaces matches of a RegExp, returning a NEW JS String held JS-side (the content
+        /// never enters the .NET heap). Use a global ("g") RegExp to replace all. Replacement supports
+        /// JS patterns like $1, $&amp;.</summary>
+        public String Replace(RegExp pattern, string replacement) => JSRef!.Call<String>("replace", pattern, replacement);
+        /// <summary>Replaces the first literal occurrence, returning a new JS String held JS-side.</summary>
+        public String Replace(string search, string replacement) => JSRef!.Call<String>("replace", search, replacement);
+        /// <summary>Runs match() against a RegExp and returns the JS result Array held JS-side (null if no
+        /// match). With a global RegExp this is the array of matched substrings; read Length for a count
+        /// without marshaling, or ToList&lt;string&gt;() to bring the (bounded) matches into .NET.</summary>
+        public Array? Match(RegExp pattern) => JSRef!.Call<Array?>("match", pattern);
     }
 }
