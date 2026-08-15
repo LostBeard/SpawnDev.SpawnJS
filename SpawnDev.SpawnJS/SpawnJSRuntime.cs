@@ -311,23 +311,56 @@ namespace SpawnDev.SpawnJS
             return diff;
         }
         /// <summary>
+        /// Get document
+        /// </summary>
+        /// <returns></returns>
+        public Document? GetDocument() => Get<Document>("document");
+        /// <summary>
         /// Returns value as type T
         /// </summary>
         /// <typeparam name="T">The type to return value as</typeparam>
         /// <typeparam name="T1">The value</typeparam>
         /// <returns>value as type T</returns>
-        public T As<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T1 value) => InteropCall<T1, T>("returnMe", value);
+        public T ReturnAs<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T1 value) => InteropCall<T1, T>("returnMe", value);
         /// <summary>
         /// Returns value as type
         /// </summary>
         /// <param name="type">The type to return value as</param>
         /// <param name="value">The value</param>
         /// <returns>value as type T</returns>
-        public object? As(Type type, object? value) => ((Delegate)As<object, object>).InvokeGeneric([value?.GetType() ?? typeof(object), type], value);
+        public object? ReturnAs(Type type, object? value) => ((Delegate)ReturnAs<object, object>).InvokeGeneric([value?.GetType() ?? typeof(object), type], value);
         /// <summary>
         /// Compares two values using Javascript equality.<br/>
         /// full == true uses strict equality (===), otherwise loose equality (==)
         /// </summary>
         public bool ObjectEquals<T1, T2>(T1 obj1, T2 obj2, bool full = false) => InteropCall<T1, T2, bool, bool>("objectEquals", obj1, obj2, full);
+        /// <summary>
+        /// Log to the Javascript console (console.log)
+        /// </summary>
+        /// <param name="args"></param>
+        public void Log(params object?[] args)
+        {
+            CallApplyVoid("console.log", args);
+        }
+        /// <summary>
+        /// Log an error to the Javascript console (console.error)
+        /// </summary>
+        /// <param name="args"></param>
+        public void LogError(params object?[] args)
+        {
+            CallApplyVoid("console.error", args);
+        }
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(Request resource) => CallAsync<Request, Response>("fetch", resource);
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(string resource) => CallAsync<string, Response>("fetch", resource);
+        /// <summary>
+        /// Calls fetch
+        /// </summary>
+        public Task<Response> Fetch(string resource, FetchOptions options) => CallAsync<string, FetchOptions, Response>("fetch", resource, options);
     }
 }

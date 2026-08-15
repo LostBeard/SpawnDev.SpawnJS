@@ -66,7 +66,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 throw new Exception($"Union arm not found for JS value (typeof={typeInfo.TypeOf}, constructor={typeInfo.ConstructorName}) in Union<{arms}>");
             }
             // Re-marshal the JS value as the selected arm's .Net type, then build the Union around it.
-            var netValue = JS.As(armType, value);
+            var netValue = JS.ReturnAs(armType, value);
             value.Dispose();
             return (TUnion)Activator.CreateInstance(typeof(TUnion), new object?[] { netValue })!;
         }

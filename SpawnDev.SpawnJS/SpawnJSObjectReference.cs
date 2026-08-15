@@ -107,12 +107,15 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns the referenced Javascript value as type T
         /// </summary>
-        public T As<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(bool dispose = false)
+        public T As<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
         {
-            var ret = JS.As<SpawnJSObjectReference, T>(this);
-            if (dispose) Dispose();
+            var ret = JS.ReturnAs<SpawnJSObjectReference, T>(this);
             return ret;
         }
+        /// <summary>
+        /// Returns the referenced Javascript value as type T
+        /// </summary>
+        public object? As(Type type) => ((Delegate)As<object>).InvokeGeneric(type);
         #region ReleaseAs
         /// <summary>
         /// releases the SpawnJSObject reference and returns underlying value

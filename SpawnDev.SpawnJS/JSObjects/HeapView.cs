@@ -489,7 +489,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public ArrayBuffer ToArrayBuffer(long byteOffset, long byteLength)
         {
-            return JS.As<HeapViewDescriptor, ArrayBuffer>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.ArrayBuffer, true));
+            return JS.ReturnAs<HeapViewDescriptor, ArrayBuffer>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.ArrayBuffer, true));
         }
         /// <summary>
         /// Creates a copy of the data and returns it as an ArrayBuffer
@@ -505,7 +505,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public SharedArrayBuffer ToSharedArrayBuffer(long byteOffset, long byteLength)
         {
-            return JS.As<HeapViewDescriptor, SharedArrayBuffer>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.SharedArrayBuffer, true));
+            return JS.ReturnAs<HeapViewDescriptor, SharedArrayBuffer>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.SharedArrayBuffer, true));
         }
         /// <summary>
         /// Creates a copy of the data and returns it as a TypedArray
@@ -555,7 +555,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             // byteLength must be sized by the TARGET view's element size, not the HeapView's source ElementSize -
             // they differ for cross-type views (e.g. HeapView<double>.As<Uint8Array>()). Using the source size
             // over-sized the descriptor (elementCount * 8 instead of * 1) -> reviver built an oversized/OOB view.
-            var typedArray = JS.As<HeapViewDescriptor, TTypedArray>(new HeapViewDescriptor(Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize<TTypedArray>(), viewType));
+            var typedArray = JS.ReturnAs<HeapViewDescriptor, TTypedArray>(new HeapViewDescriptor(Address + byteOffset, elementCount * TypedArray.GetTypedArrayElementSize<TTypedArray>(), viewType));
             ToDispose(typedArray);
             return typedArray;
         }
@@ -607,7 +607,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public DataView AsDataView(long byteOffset, long byteLength)
         {
-            var jsView = JS.As<HeapViewDescriptor, DataView>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.DataView))!;
+            var jsView = JS.ReturnAs<HeapViewDescriptor, DataView>(new HeapViewDescriptor(Address + byteOffset, byteLength, JSArrayBufferView.DataView))!;
             ToDispose(jsView);
             return jsView;
         }
