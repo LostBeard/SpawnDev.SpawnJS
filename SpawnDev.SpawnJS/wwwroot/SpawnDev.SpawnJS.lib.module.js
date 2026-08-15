@@ -17,7 +17,7 @@
     if (globalThis.SpawnJSInterop) return;
     class SpawnJSInterop {
         // enables verbose logging
-        static verbose = !!globalThis.spawnJSInteropVerbose;
+        static verbose = globalThis.spawnJSInteropVerbose;
         // ArrayBufferView constructors
         static HeapViewCtors = [
             globalThis.BigInt64Array,                     // 0: BigInt64Array
@@ -89,7 +89,7 @@
             resolveVoid,
             resolveDouble,
             resolveBoolean,
-            resolveVoidString,
+            resolveString,
             resolveDoubleNullable,
             resolveBooleanNullable,
             resolveInt32,
@@ -106,7 +106,7 @@
             // attach the heap buffer to instanceInfo so it can be monitored for detach events
             var heapBuffer = SpawnJSInterop.wasmMemoryBuffer(dotnet);
 
-            var instanceInfo = { heapBuffer, dotnet, dotnetId, onMethodAdded, resolveVoid, resolveDouble, resolveBoolean, resolveVoidString, resolveDoubleNullable, resolveBooleanNullable, resolveInt32, resolveInt32Nullable, handleCallback, onDetachedHeap };
+            var instanceInfo = { heapBuffer, dotnet, dotnetId, onMethodAdded, resolveVoid, resolveDouble, resolveBoolean, resolveString, resolveDoubleNullable, resolveBooleanNullable, resolveInt32, resolveInt32Nullable, handleCallback, onDetachedHeap };
             SpawnJSInterop._instances[dotnetId] = instanceInfo;
 
             instanceInfo.heapBufferSize = heapBuffer.byteLength;
