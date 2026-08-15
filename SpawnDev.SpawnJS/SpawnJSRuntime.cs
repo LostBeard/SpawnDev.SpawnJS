@@ -204,6 +204,8 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new BigIntegerNullableMarshaller());
             // .Net: SpawnJSObject <-> JS: Any
             Marshallers.Add(new SpawnJSObjectMarshaller<SpawnJSObject>());
+            // .Net: Enum <-> JS: Number
+            Marshallers.Add(new EnumMarshallerFactory());
             // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
             // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
             DotnetInstance = new SpawnJSObjectReference(

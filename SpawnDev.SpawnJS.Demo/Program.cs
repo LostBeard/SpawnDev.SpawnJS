@@ -17,6 +17,12 @@ var constructorNames = JS.ConstructorNames();
 if (!constructorNames.SequenceEqual(["Window", "EventTarget", "Object"])) throw new Exception("Incorrect constructor names.");
 if (JS.Keys().Count == 0) throw new Exception("Expected more than 0 keys");
 
+var t = JSArrayBufferView.DataView;
+
+JS.Set("_art", t);
+var r = JS.Get<JSArrayBufferView>("_art");
+
+var nmt22 = true;
 
 
 
