@@ -13,7 +13,7 @@ JSON-free JavaScript interop for .NET WebAssembly.
 
 SpawnJS is a direct .NET &harr; JavaScript interop layer built on entirely on `JSImport`/`JSExport`.
 `JSObject` and `JSHost` are intentionally avoided due to `Symbol tagging`, which makes objects incompatible with 
-some browser API calls, shared JSObject handles which causes `Dispose chaos`, and an inaability to represent
+some browser API calls, shared JSObject handles which causes `Dispose chaos`, and an inability to reference
 any Javascript type. It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, 
 Web Workers, and, notably, a **headless .NET WASM console app under Node** with no browser and no DOM at all.
 
