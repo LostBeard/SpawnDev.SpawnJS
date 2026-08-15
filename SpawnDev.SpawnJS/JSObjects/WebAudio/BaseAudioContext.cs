@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -52,7 +51,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="length">An integer representing the size of the buffer in sample-frames (where each sample-frame is the size of a sample in bytes multiplied by numOfChannels). To determine the length to use for a specific number of seconds of audio, use numSeconds * sampleRate.</param>
         /// <param name="sampleRate">The sample rate of the linear audio data in sample-frames per second. All browsers must support sample rates in at least the range 8,000 Hz to 96,000 Hz.</param>
         /// <returns>An AudioBuffer configured based on the specified options.</returns>
-        public AudioBuffer CreateBuffer(int numOfChannels, long length, float sampleRate) => JSRef!.Call<AudioBuffer>("createBuffer", numOfChannels, length, sampleRate);
+        public AudioBuffer CreateBuffer(int numOfChannels, long length, float sampleRate) => JSRef!.Call<int, long, float, AudioBuffer>("createBuffer", numOfChannels, length, sampleRate);
         /// <summary>
         /// Creates an AudioBufferSourceNode, which can be used to play and manipulate audio data contained within an AudioBuffer object. AudioBuffers are created using AudioContext.createBuffer() or returned by AudioContext.decodeAudioData() when it successfully decodes an audio track.
         /// </summary>
@@ -74,7 +73,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <returns></returns>
         public DelayNode CreateDelay(float? maxDelayTime = null)
-            => maxDelayTime == null ? JSRef!.Call<DelayNode>("createDelay") : JSRef!.Call<DelayNode>("createDelay", maxDelayTime);
+            => maxDelayTime == null ? JSRef!.Call<DelayNode>("createDelay") : JSRef!.Call<float?, DelayNode>("createDelay", maxDelayTime);
         /// <summary>
         /// The createConvolver() method of the BaseAudioContext interface creates a ConvolverNode, which is commonly used to apply reverb effects to your audio. See the spec definition of Convolution for more information
         /// </summary>
@@ -83,11 +82,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a ChannelMergerNode, which is used to combine channels from multiple audio streams into a single audio stream.
         /// </summary>
-        public ChannelMergerNode CreateChannelMerger(int numberOfInputs = 6) => JSRef!.Call<ChannelMergerNode>("createChannelMerger", numberOfInputs);
+        public ChannelMergerNode CreateChannelMerger(int numberOfInputs = 6) => JSRef!.Call<int, ChannelMergerNode>("createChannelMerger", numberOfInputs);
         /// <summary>
         /// Creates a ChannelSplitterNode, which is used to access the individual channels of an audio stream and process them separately.
         /// </summary>
-        public ChannelSplitterNode CreateChannelSplitter(int numberOfOutputs = 6) => JSRef!.Call<ChannelSplitterNode>("createChannelSplitter", numberOfOutputs);
+        public ChannelSplitterNode CreateChannelSplitter(int numberOfOutputs = 6) => JSRef!.Call<int, ChannelSplitterNode>("createChannelSplitter", numberOfOutputs);
         /// <summary>
         /// Creates a StereoPannerNode, which can be used to apply a stereo panning effect to your audio source.
         /// </summary>
@@ -103,7 +102,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates an IIRFilterNode, which represents an infinite impulse response filter that can be configured as a low-pass filter, high-pass filter, etc.
         /// </summary>
-        public IIRFilterNode CreateIIRFilter(Float32Array feedforward, Float32Array feedback) => JSRef!.Call<IIRFilterNode>("createIIRFilter", feedforward, feedback);
+        public IIRFilterNode CreateIIRFilter(Float32Array feedforward, Float32Array feedback) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Float32Array, global::SpawnDev.SpawnJS.JSObjects.Float32Array, IIRFilterNode>("createIIRFilter", feedforward, feedback);
         /// <summary>
         /// Creates a MediaStreamAudioDestinationNode associated with a MediaStream representing an audio stream which may be stored in a file or sent to another computer.
         /// </summary>
@@ -117,7 +116,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="audioData">An ArrayBuffer containing the audio data to decode (e.g., MP3, WAV, OGG, FLAC).</param>
         /// <returns>An AudioBuffer containing the decoded PCM audio data.</returns>
-        public Task<AudioBuffer> DecodeAudioData(ArrayBuffer audioData) => JSRef!.CallAsync<AudioBuffer>("decodeAudioData", audioData);
+        public Task<AudioBuffer> DecodeAudioData(ArrayBuffer audioData) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, AudioBuffer>("decodeAudioData", audioData);
 
         /// <summary>
         /// Creates an OscillatorNode, a source representing a periodic waveform. It basically generates a tone.
@@ -127,7 +126,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a PeriodicWave, used to define a periodic waveform that can be used to shape the output of an OscillatorNode.
         /// </summary>
-        public PeriodicWave CreatePeriodicWave(Float32Array real, Float32Array imag) => JSRef!.Call<PeriodicWave>("createPeriodicWave", real, imag);
+        public PeriodicWave CreatePeriodicWave(Float32Array real, Float32Array imag) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Float32Array, global::SpawnDev.SpawnJS.JSObjects.Float32Array, PeriodicWave>("createPeriodicWave", real, imag);
 
         /// <summary>
         /// A statechange event is fired at a BaseAudioContext object when its state member changes.

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -28,49 +27,49 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string? Item(int index) => JSRef!.Call<string?>("item", index);
+        public string? Item(int index) => JSRef!.Call<int, string?>("item", index);
         /// <summary>
         /// Returns true if the list contains the given token, otherwise false.
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public bool Contains(string token) => JSRef!.Call<bool>("contains", token);
+        public bool Contains(string token) => JSRef!.Call<string, bool>("contains", token);
         /// <summary>
         /// Adds the specified tokens to the list.
         /// </summary>
         /// <param name="tokens"></param>
-        public void Add(params string[] tokens) => JSRef!.CallVoidApply("add", tokens);
+        public void Add(params string[] tokens) => JSRef!.CallApplyVoid("add", tokens);
         /// <summary>
         /// Removes the specified tokens from the list.
         /// </summary>
         /// <param name="tokens"></param>
-        public void Remove(params string[] tokens) => JSRef!.CallVoidApply("remove", tokens);
+        public void Remove(params string[] tokens) => JSRef!.CallApplyVoid("remove", tokens);
         /// <summary>
         /// The replace() method of the DOMTokenList interface replaces an existing token with a new token. If the first token doesn't exist, replace() returns false immediately, without adding the new token to the token list.
         /// </summary>
         /// <param name="oldToken">A string representing the token you want to replace.</param>
         /// <param name="newToken">A string representing the token you want to replace oldToken with.</param>
         /// <returns>A boolean value, which is true if oldToken was successfully replaced, or false if not.</returns>
-        public bool Replace(string oldToken, string newToken) => JSRef!.Call<bool>("replace", oldToken, newToken);
+        public bool Replace(string oldToken, string newToken) => JSRef!.Call<string, string, bool>("replace", oldToken, newToken);
         /// <summary>
         /// Returns true if the given token is in the associated attribute's supported tokens.
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public bool Supports(string token) => JSRef!.Call<bool>("supports", token);
+        public bool Supports(string token) => JSRef!.Call<string, bool>("supports", token);
         /// <summary>
         /// The toggle() method of the DOMTokenList interface removes an existing token from the list and returns false. If the token doesn't exist it's added and the function returns true.
         /// </summary>
         /// <param name="token">A string representing the token you want to toggle.</param>
         /// <param name="force">If included, turns the toggle into a one way-only operation. If set to false, then token will only be removed, but not added. If set to true, then token will only be added, but not removed.</param>
         /// <returns></returns>
-        public bool Toggle(string token, bool force) => JSRef!.Call<bool>("toggle", token, force);
+        public bool Toggle(string token, bool force) => JSRef!.Call<string, bool, bool>("toggle", token, force);
         /// <summary>
         /// The toggle() method of the DOMTokenList interface removes an existing token from the list and returns false. If the token doesn't exist it's added and the function returns true.
         /// </summary>
         /// <param name="token">A string representing the token you want to toggle.</param>
         /// <returns></returns>
-        public bool Toggle(string token) => JSRef!.Call<bool>("toggle", token);
+        public bool Toggle(string token) => JSRef!.Call<string, bool>("toggle", token);
         /// <summary>
         /// Returns an iterator, allowing you to go through all key/value pairs contained in this object.
         /// </summary>

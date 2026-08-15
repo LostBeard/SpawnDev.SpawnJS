@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Create a new instance of Date from .Net DateTime
         /// </summary>
         /// <param name="dateTime"></param>
-        public Date(DateTime dateTime) : base(JS.New(nameof(Date), dateTime.GetEpochTime())) { }
+        public Date(DateTime dateTime) : base(JS.New<object?>(nameof(Date), dateTime.GetEpochTime())) { }
         /// <summary>
         /// Deserialization constructor
         /// </summary>

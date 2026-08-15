@@ -1,7 +1,5 @@
+using System.Numerics;
 
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,7 +27,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        public static BigInt64Array From<T>(IEnumerable<T> values) where T : struct => JS.Call<BigInt64Array>($"{nameof(BigInt64Array)}.from", values);
+        public static BigInt64Array From<T>(IEnumerable<T> values) where T : struct => JS.Call<IEnumerable<T>, BigInt64Array>($"{nameof(BigInt64Array)}.from", values);
         /// <summary>
         /// Deserialization constructor
         /// </summary>
@@ -48,12 +46,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Creates a new BigInt64Array object.
         /// </summary>
         /// <param name="array"></param>
-        public BigInt64Array(BigInt<long>[] array) : base(JS.New(nameof(BigInt64Array), array)) { }
+        public BigInt64Array(BigInt[] array) : base(JS.New(nameof(BigInt64Array), array)) { }
         /// <summary>
         /// Creates a new BigInt64Array object.
         /// </summary>
         /// <param name="array"></param>
-        public BigInt64Array(Array<BigInt<long>> array) : base(JS.New(nameof(BigInt64Array), array)) { }
+        public BigInt64Array(Array<BigInt> array) : base(JS.New(nameof(BigInt64Array), array)) { }
         /// <summary>
         /// Creates a new BigInt64Array object.
         /// </summary>
@@ -110,14 +108,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
-        public BigInt64Array Slice(long start) => JSRef!.Call<BigInt64Array>("slice", start);
+        public BigInt64Array Slice(long start) => JSRef!.Call<long, BigInt64Array>("slice", start);
         /// <summary>
         /// Extracts a section of an array and returns a new array. See also Array.prototype.slice().
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public BigInt64Array Slice(long start, long end) => JSRef!.Call<BigInt64Array>("slice", start, end);
+        public BigInt64Array Slice(long start, long end) => JSRef!.Call<long, long, BigInt64Array>("slice", start, end);
         /// <summary>
         /// The subarray() method of TypedArray instances returns a new typed array on the same ArrayBuffer store and with the same element types as this typed array. The begin offset is inclusive and the end offset is exclusive.
         /// </summary>
@@ -128,20 +126,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="start">Element to begin at. The offset is inclusive. The whole array will be included in the new view if this value is not specified.</param>
         /// <returns></returns>
-        public BigInt64Array SubArray(long start) => JSRef!.Call<BigInt64Array>("subarray", start);
+        public BigInt64Array SubArray(long start) => JSRef!.Call<long, BigInt64Array>("subarray", start);
         /// <summary>
         /// The subarray() method of TypedArray instances returns a new typed array on the same ArrayBuffer store and with the same element types as this typed array. The begin offset is inclusive and the end offset is exclusive.
         /// </summary>
         /// <param name="start">Element to begin at. The offset is inclusive. The whole array will be included in the new view if this value is not specified.</param>
         /// <param name="end">Element to end at. The offset is exclusive. If not specified, all elements from the one specified by begin to the end of the array are included in the new view.</param>
         /// <returns></returns>
-        public BigInt64Array SubArray(long start, long end) => JSRef!.Call<BigInt64Array>("subarray", start, end);
+        public BigInt64Array SubArray(long start, long end) => JSRef!.Call<long, long, BigInt64Array>("subarray", start, end);
         /// <summary>
         /// Takes an integer value and returns the item at that index. This method allows for negative integers, which count back from the last item.
         /// </summary>
         /// <param name="index">Zero-based index of the typed array element to be returned, converted to an integer. Negative index counts back from the end of the typed array — if index &lt; 0, index + array.length is accessed.</param>
         /// <returns>The element in the typed array matching the given index. Always returns undefined if index &lt; -array.length or index &gt;= array.length without attempting to access the corresponding property.</returns>
-        public override long At(long index) => JSRef!.Call<BigInt<long>>("at", index);
+        public override long At(long index) => (long)JSRef!.Call<long, BigInteger>("at", index);
         /// <summary>
         /// Gets or sets the element at the given index
         /// </summary>
@@ -149,8 +147,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>The value of the element at the given index if getting</returns>
         public override long this[long i]
         {
-            get => JSRef!.Get<BigInt<long>>(i);
-            set => JSRef!.Set(i, (BigInt<long>)value);
+            get => (long)JSRef!.Get<BigInteger>(i);
+            set => JSRef!.Set(i, (BigInteger)value);
         }
     }
 }

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public Task<WindowClient> Navigate(string url) => JSRef!.CallAsync<WindowClient>("navigate", url);
+        public Task<WindowClient> Navigate(string url) => JSRef!.CallAsync<string, WindowClient>("navigate", url);
         /// <summary>
         /// A boolean that indicates whether the current client has focus.
         /// </summary>

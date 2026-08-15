@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -37,6 +36,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TextTrackCue? GetCueById(string id) => JSRef!.Call<TextTrackCue>("getCueById", id);
+        public TextTrackCue? GetCueById(string id) => JSRef!.Call<string, TextTrackCue>("getCueById", id);
     }
 }

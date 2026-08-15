@@ -1,90 +1,56 @@
-﻿using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.JSObjects;
+using SpawnDev.SpawnJS.Marshaller;
 using SpawnDev.SpawnJS.Marshallers;
-using SpawnDev.SpawnJS.Marshallers.SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.Native;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices.JavaScript;
 using System.Security.Cryptography;
 
 namespace SpawnDev.SpawnJS
 {
     /// <summary>
-    /// SpawnJS runtime for .Net and Javascript interop
+    /// The entry point for all .Net to Javascript interop in SpawnJS.<br/>
+    /// <br/>
+    /// Design rule that defines this library: <see cref="JSObject"/> (Microsoft's WASM interop handle) is
+    /// NOT used anywhere. Its disposal quirk was the multi-year blocker for the previous interop attempts,
+    /// and it leaked into Gemineachy. The ONLY place a <see cref="JSObject"/> is permitted is the single
+    /// _registerInstance call that hands this app's DotnetInstance to the JS side -
+    /// and never again. Everything else references JS values by a numeric id (see
+    /// <see cref="SpawnJSObjectReference"/>), so nothing crosses the boundary that needs disposing on the
+    /// Microsoft interop table.<br/>
+    /// <br/>
+    /// The runtime itself is a <see cref="SpawnJSObjectReference"/> whose id is GlobalThisId,
+    /// so calling <c>JS.PropertyGet*/PropertySet</c> operates directly on the JS <c>globalThis</c>.
     /// </summary>
-    [System.Runtime.Versioning.SupportedOSPlatform("browser")]
     public partial class SpawnJSRuntime : SpawnJSObjectReference, IGlobalScopeSource
     {
         /// <summary>
-        /// Set to true to see verbose debugging messages
+        /// True when running on the browser-wasm runtime. It asks the .Net runtime rather than Javascript,
+        /// so it is valid before any interop has happened.<br/>
+        /// ⚠️ This does NOT mean "running in a browser". A WebAssembly console app on Node also reports
+        /// true, because it targets the same runtime - measured: the console host reports IsBrowser=True
+        /// with a global scope of "Object". To ask whether there is a page, use <see cref="IsWindow"/>.
+        /// SpawnDev.BlazorJS has the same semantics.
         /// </summary>
-        public bool Verbose
-        {
-            get => _verbose;
-            set
-            {
-                _verbose = value;
-                if (SpawnJSInterop?.IsDisposed == false) SpawnJSInterop.SetProperty("verbose", value);
-            }
-        }
-        bool _verbose = false;
+        public bool IsBrowser => OperatingSystem.IsBrowser();
+        internal SpawnJSObjectReference SpawnJSInterop { get; } = new SpawnJSObjectReference(SpawnJSInteropId);
         /// <summary>
-        /// SpawnJSRuntime instance.<br/>
-        /// Creating it on first access rather than returning null makes the runtime independent of
-        /// startup ordering. A library that reaches for the runtime (SpawnDev.ILGPU asking for
-        /// <c>navigator</c>, for example) cannot know whether the app has constructed one yet, and
-        /// when this returned null the failure surfaced as a NullReferenceException deep inside that
-        /// library - usually swallowed by a catch and reported as "feature not available".<br/>
-        /// An app that wants to configure the runtime still constructs it itself at startup, exactly
-        /// as before; this only covers the case where something asks first.
+        /// The constructor name of globalThis, which is what identifies the scope: "Window",
+        /// "DedicatedWorkerGlobalScope", "SharedWorkerGlobalScope", "ServiceWorkerGlobalScope" - or on a
+        /// non browser host, something else entirely.
         /// </summary>
-        public static SpawnJSRuntime Instance => _instance ??= new SpawnJSRuntime();
-        // Deliberately the backing field and NOT the property everywhere inside this class: reading
-        // Instance during construction would recurse into the constructor.
-        static SpawnJSRuntime? _instance;
-        /// <summary>
-        /// True once the runtime exists.<br/>
-        /// Reading <see cref="Instance"/> creates it, so that property cannot be used to ask whether it
-        /// is there - the question would answer itself. This asks without creating, which is what code
-        /// running at shutdown, in a diagnostic, or on a path that must not force initialisation needs.
-        /// </summary>
-        public static bool IsCreated => _instance != null;
-        /// <summary>
-        /// SpawnJSInterop Javascript instance
-        /// </summary>
-        private SpawnJSHandle SpawnJSInterop;
-        /// <summary>
-        /// SpawnJSInterop._netToJSCall function handle
-        /// </summary>
-        private SpawnJSHandle _netToJSCall;
-        /// <summary>
-        /// SpawnJSInterop.netToJSBuffer - the flat stack that carries arguments over and results back for
-        /// every synchronous call. Held for the life of the runtime, so no object reference is marshalled
-        /// per call; only the command name, an offset and a length cross the boundary.
-        /// </summary>
-        private SpawnJSHandle _netToJSBuffer;
-        private SpawnJSHandle _jsToNetBuffer;
-        /// <summary>
-        /// Outbound call arguments, in .Net's own memory that Javascript views directly, so a call carries
-        /// only a command name, an offset and a length. See <see cref="HeapArgFrame"/>.
-        /// </summary>
-        private HeapArgFrame _argFrame = null!;
-        /// <summary>
-        /// This runtime's context id, as known to the Javascript side. Every helper that touches
-        /// per-runtime state takes it, so state stays per-runtime even though the helpers are shared
-        /// globals - JSImport binds to a fixed name and has no instance to reach through.
-        /// </summary>
-        public double CtxId { get; private set; }
-        /// <summary>
-        /// JSObject marshallers used for marshalling data between .Net and Javasript
-        /// </summary>
-        public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
+        public string GlobalScopeName => _globalScopeName ??= ConstructorName() ?? "";
+        string? _globalScopeName;
+
+        /// <inheritdoc/>
+        Task<GlobalScope> IGlobalScopeSource.GetGlobalScope() => Task.FromResult(GlobalScope);
         /// <summary>
         /// GlobalScope enum
         /// </summary>
         public GlobalScope GlobalScope { get; private set; }
         /// <summary>
-        /// globalThis JSObject instance
+        /// GlobalThis
         /// </summary>
-        public SpawnJSObject? GlobalThis { get; private set; }
+        public SpawnJSObject GlobalThis { get; private set; }
         /// <summary>
         /// If the globalThis is a Window, WindowThis will refer to globalThis, otherwise null.
         /// </summary>
@@ -115,69 +81,148 @@ namespace SpawnDev.SpawnJS
         /// Empty string when it could not be determined (e.g. a non-browser host).
         /// </summary>
         public string AppBaseUri { get; private set; } = "";
+
         /// <summary>
-        /// Create a new instance of SpawnJSRuntime
+        /// True when running in a page rather than a worker
         /// </summary>
-        public SpawnJSRuntime() : base(JSHost.GlobalThis)
+        public bool IsWindow => GlobalScopeName == "Window";
+
+        /// <summary>
+        /// True in a dedicated worker
+        /// </summary>
+        public bool IsDedicatedWorkerGlobalScope => GlobalScopeName == "DedicatedWorkerGlobalScope";
+
+        /// <summary>
+        /// True in a shared worker
+        /// </summary>
+        public bool IsSharedWorkerGlobalScope => GlobalScopeName == "SharedWorkerGlobalScope";
+
+        /// <summary>
+        /// True in a service worker
+        /// </summary>
+        public bool IsServiceWorkerGlobalScope => GlobalScopeName == "ServiceWorkerGlobalScope";
+
+        /// <summary>
+        /// True in any kind of worker
+        /// </summary>
+        public bool IsWorker => IsDedicatedWorkerGlobalScope || IsSharedWorkerGlobalScope || IsServiceWorkerGlobalScope;
+        /// <summary>
+        /// The process-wide singleton. Created on first access if it does not already exist.
+        /// </summary>
+        public static SpawnJSRuntime Instance => _instance ??= new SpawnJSRuntime();
+        private static SpawnJSRuntime? _instance;
+        /// <summary>
+        /// True once the singleton has been constructed.
+        /// </summary>
+        public static bool IsCreated => _instance != null;
+        /// <summary>
+        /// The ordered set of marshallers that convert values between .Net and Javascript. A marshaller is
+        /// selected by asking each (last registered wins) whether it can handle a given .Net type - see
+        /// <see cref="GetMarshaller{TType}"/>.
+        /// </summary>
+        public IList<JSMarshaller> Marshallers { get; private set; } = new List<JSMarshaller>();
+        /// <summary>
+        /// A reference to this .Net WASM app's DotnetInstance held on the JS side. Used to reach the
+        /// assembly's [JSExport] methods (e.g. to resolve async calls) - see <see cref="InteropCallApplyAsync{T}"/>.
+        /// </summary>
+        public SpawnJSObjectReference DotnetInstance { get; private set; }
+        /// <summary>
+        /// When true, marshaller selection is logged to the console. Off by default so libraries stay quiet.
+        /// </summary>
+        public bool Verbose
         {
-            if (_instance != null) throw new Exception("Already exists");
+            get => _verbose;
+            set
+            {
+                if (_verbose == value) return;
+                _verbose = value;
+                Set("SpawnJSInterop.verbose", _verbose);
+            }
+        }
+        bool _verbose = false;
+        internal string[] InteropMethods;
+        /// <summary>
+        /// Creates the runtime. The base id is GlobalThisId so the instance addresses JS
+        /// <c>globalThis</c> directly. Registers the built-in marshallers in priority order (last wins).
+        /// </summary>
+        private SpawnJSRuntime() : base(GlobalThisId)
+        {
+            _instance = this;
             var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
             var chunkSize = 4;
             InstanceId = string.Join("-", Enumerable.Range(0, id.Length / chunkSize).Select(i => id.Substring(i * chunkSize, chunkSize)));
-            // add built-in marshallers
-            Marshallers.Add(new DefaultMarshaller());
+            //AppJsonContext.Init();
+            // Registration order matters: GetMarshaller scans this list in REVERSE, so a marshaller added
+            // later takes precedence when more than one reports it can marshal a type. The more specific /
+            // higher-priority handlers (arrays, object references) are therefore added last.
+            // .Net POCO <-> plain JS object (property-walk clone, honours Json attributes). Most generic, so
+            // registered FIRST = lowest priority; any more specific marshaller below wins the reverse scan.
+            Marshallers.Add(new PocoMarshaller<object>());
+            // VoidType - nothing is marshalled
+            Marshallers.Add(new VoidTypeMarshaller());
+            // .Net: object <-> JS: Object
             Marshallers.Add(new ObjectMarshaller());
-            Marshallers.Add(new IListMarshaller());
-            Marshallers.Add(new ListMarshaller());
-            Marshallers.Add(new ArrayMarshaller());
-            Marshallers.Add(new DictionaryMarshaller());
-            Marshallers.Add(new ByteArrayMarshaller());
+            // .Net: string <-> JS: string
             Marshallers.Add(new StringMarshaller());
+            // .Net: INumber<> <-> JS: Number
+            Marshallers.Add(new INumberMarshaller<float>());
+            // .Net: double <-> JS: Number
+            Marshallers.Add(new DoubleMarshaller());
+            // .Net: double? <-> JS: Number?
+            Marshallers.Add(new DoubleNullableMarshaller());
+            // .Net: double <-> JS: Number
+            Marshallers.Add(new Int32Marshaller());
+            // .Net: double? <-> JS: Number?
+            Marshallers.Add(new Int32NullableMarshaller());
+            // .Net: bool <-> JS: bool
             Marshallers.Add(new BooleanMarshaller());
-            Marshallers.Add(new NumberMarshaller());
+            // .Net: bool? <-> JS: bool?
+            Marshallers.Add(new BooleanNullableMarshaller());
+            // .Net: Tuple, ValueTuple <-> JS: Array
+            Marshallers.Add(new ITupleMarshallerFactory());
+            // .Net: SpawnJSObjectReference <-> JS: Any
             Marshallers.Add(new SpawnJSObjectReferenceMarshaller());
-            Marshallers.Add(new SpawnJSObjectMarshaller());
-            Marshallers.Add(new JSObjectMarshaller());
-            Marshallers.Add(new StructMarshaller());
-            Marshallers.Add(new DelegateMarshaller());
-            Marshallers.Add(new IMarshalOutByJSHandleMarshaller());
-            Marshallers.Add(new SpawnJSHandleMarshaller());
-            Marshallers.Add(new UnionMarshaller());
-            Marshallers.Add(new EnumMarshaller());
-            Marshallers.Add(new EnumStringMarshaller());
-            Marshallers.Add(new DateTimeMarshaller());
-            Marshallers.Add(new EpochDateTimeMarshaller());
-            // after StructMarshaller and ObjectMarshaller deliberately: matching runs in reverse
-            // registration order, and a ValueTuple is a struct while a Tuple is a class, so both of
-            // those would otherwise claim tuples first and property-walk them into {Item1, Item2, ...}
-            // instead of producing the Javascript array a tuple is meant to be
-            Marshallers.Add(new TupleMarshaller());
-            // also after ObjectMarshaller: a Task is a plain class, so it would otherwise be property
-            // walked into {result, id, status, ...} instead of crossing as the Promise it corresponds to
+            // .Net: T[] <-> JS: Array<>
+            Marshallers.Add(new ArrayMarshaller<object>());
+            // .Net: List<> <-> JS: Array<>
+            Marshallers.Add(new ListMarshaller<object>());
+            // .Net: HeapViewDescriptor -> JS: ArrayBufferView (TypedArray, DataView; copy or persistent)
+            Marshallers.Add(new HeapViewDescriptorMarshaller());
+            // .Net: Action, Action<>, Func<> -> JS: Function
+            Marshallers.Add(new CallbackMarshaller<Callback>());
+            // .Net: byte[] <-> JS: Uint8Array
+            Marshallers.Add(new ByteArrayMarshaller());
+            // .Net: Task, Task<> <-> JS: Promise, Promise<T>
             Marshallers.Add(new TaskMarshaller());
-            // create a new instance of SpawnJSInterop Javascript class for interop with this isntance of .Net
-            SpawnJSInterop = JSHandle.InvokePropertyConstructor("SpawnJSInterop", JSHost.DotnetInstance)!;
-            // get _netToJSCall function in SpawnJSInterop
-            _netToJSCall = SpawnJSInterop.GetPropertyAsJSHandle("_netToJSCall") ?? throw new Exception("SpawnJSInterop._netToJSCall not found");
-            // One handle to the call buffer, held for the life of the runtime
-            _netToJSBuffer = SpawnJSInterop.GetPropertyAsJSHandle("netToJSBuffer") ?? throw new Exception("SpawnJSInterop.netToJSBuffer not found");
-            // One handle to the inbound buffer, held for the life of the runtime. Javascript writes call
-            // arguments into it and .Net reads them by index, so no argument array ever crosses.
-            _jsToNetBuffer = SpawnJSInterop.GetPropertyAsJSHandle("jsToNetBuffer") ?? throw new Exception("SpawnJSInterop.jsToNetBuffer not found");
-            // set _JSToNetCall to _JSToNetCall on SpawnJSInterop JS instance
-            Native.Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCall", _JSToNetCall);
-            Native.Reflect.Set(SpawnJSInterop.JSObject!, "_JSToNetCallById", _JSToNetCallById);
-            // This runtime's CONTEXT ID. Every Javascript helper that touches per-runtime state - the
-            // heap, the argument frame, the scratch buffer - takes it as its first argument and resolves
-            // the owning instance from it. Two .Net apps can share a page (a custom element built on
-            // SpawnJS dropped onto a page that already runs one) and neither can reach the other's memory.
-            CtxId = SpawnJSInterop.GetPropertyAsInt32("ctxId");
-            // The ARGUMENT FRAME: pinned .Net memory that Javascript views directly, so outbound call
-            // arguments are written with plain stores and nothing crosses to deliver them. Allocated and
-            // bound once here - binding is itself a crossing, and not paying crossings is the point.
-            _argFrame = new HeapArgFrame();
-            _argFrame.Bind(CtxId);
-            _instance = this;
+            // .Net: BingInteger <-> JS: BigInt
+            Marshallers.Add(new BigIntegerMarshaller());
+            // .Net: Union <-> JS: Any
+            Marshallers.Add(new UnionMarshallerFactory());
+            // .Net: Action, Action<>, Func<> -> JS: Function
+            Marshallers.Add(new DelegateMarshallerFactory());
+            // .Net: BingInteger? <-> JS: BigInt?
+            Marshallers.Add(new BigIntegerNullableMarshaller());
+            // .Net: SpawnJSObject <-> JS: Any
+            Marshallers.Add(new SpawnJSObjectMarshaller<SpawnJSObject>());
+            // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
+            // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
+            DotnetInstance = new SpawnJSObjectReference(
+                _registerInstance(JSHost.DotnetInstance,
+                MappedMethodsChanged,
+                AsyncCallResolvedVoid,
+                ResolveDouble,
+                ResolveBoolean,
+                ResolveString,
+                ResolveDoubleNullable,
+                ResolveBooleanNullable,
+                ResolveInt32,
+                ResolveInt32Nullable,
+                OnDetachedHeap,
+                Callback.HandleCallback));
+            // load method names to enable indexed based interop calling (vs string)
+            InteropMethods = _refreshMethodMap();
+            HeapSize = GetHeapSize();
+
             if (IsBrowser)
             {
                 switch (GlobalScopeName)
@@ -212,89 +257,77 @@ namespace SpawnDev.SpawnJS
             else
             {
                 GlobalScope = GlobalScope.NonBrowser;
+                GlobalThis = Get<SpawnJSObject>("globalThis");
             }
-            // The app's own load origin, learned from this runtime's own dotnet instance (per-app, so it is
-            // co-existence-safe) rather than from document.baseURI (the page, not the app - wrong under CDN
-            // load). Read once here; consumers such as WebWorkerService resolve worker script URLs against it.
-            AppBaseUri = NetRun<string>("appBaseUri") ?? "";
-            Initializing = false;
+            AppBaseUri = SpawnJSInterop.Call<SpawnJSObjectReference, string>("appBaseUri", DotnetInstance) ?? "";
+            Console.WriteLine($"SpawnJSRuntime: {GlobalScopeName} {AppBaseUri}");
         }
         /// <summary>
-        /// Returns true while the runtime is initializing
+        /// The last reported size of the .Net heap
         /// </summary>
-        public bool Initializing { get; } = true;
-        /// <summary>
-        /// Log to the Javascript console (console.log)
-        /// </summary>
-        /// <param name="args"></param>
-        public void Log(params object?[] args)
+        public long HeapSize { get; private set; } = 0;
+        void OnDetachedHeap(long oldSize, long newSize)
         {
-            CallVoidApply("console.log", args);
+            HeapSize = newSize;
+            Console.WriteLine($"OnDetachedHeap: {oldSize} > {HeapSize}");
+            OnHeapGrow?.Invoke(oldSize, newSize);
         }
         /// <summary>
-        /// Log an error to the Javascript console (console.error)
+        /// Fired on a heap detach event
         /// </summary>
-        /// <param name="args"></param>
-        public void LogError(params object?[] args)
-        {
-            CallVoidApply("console.error", args);
-        }
+        public event Action<long, long>? OnHeapGrow;
         /// <summary>
-        /// JS ➡️ .Net method
-        /// </summary>
-        /// <summary>
-        /// Carries only primitives, the mirror of <c>_netToJSCall</c>: Javascript has already written the
-        /// arguments into <c>jsToNetBuffer</c> and passes the region it used.<br/>
-        /// Returns true when a result was written back into the first slot of that region, so a void
-        /// handler - a DOM event, the most frequent inbound call there is - costs no result write at all.
-        /// </summary>
-        private bool _JSToNetCall(string cmd, double offset, double length)
-            => Callback.JSToNetDispatch(cmd, _jsToNetBuffer, (int)offset, (int)length);
-        /// <summary>
-        /// The same, for an anonymous callback addressed by NUMBER. Its id is generated and carries no
-        /// meaning, but it crossed on every invocation as a string - a marshalled string per DOM event or
-        /// per resolved promise. A number costs nothing to carry.
-        /// </summary>
-        private bool _JSToNetCallById(double id, double offset, double length)
-            => Callback.JSToNetDispatchById(id, _jsToNetBuffer, (int)offset, (int)length);
-        /// <summary>
-        /// Create a new Javascript Object as JSObject
+        /// Get the current heap size
         /// </summary>
         /// <returns></returns>
-        public SpawnJSHandle NewJSObject()
-        {
-            if (CountCalls) CountCall("js:newObject");
-            // Javascript creates the object and hands back its slot. The old path built it through the
-            // generic dispatcher AND made a JSObject proxy for it: 21us against 1.3us, for `{}`.
-            return new SpawnJSHandle(SlotInterop.NewObject());
-        }
+        public long GetHeapSize() => InteropCall<double, long>("getHeapSize", DotnetInstance.Id);
         /// <summary>
-        /// Create a new Javascript Array as JSObject
+        /// Force the heap to grow. Useful for debugging heap growth issues.
         /// </summary>
         /// <returns></returns>
-        public SpawnJSHandle NewJSArray()
+        public long GrowHeap()
         {
-            if (CountCalls) CountCall("js:newArray");
-            return new SpawnJSHandle(SlotInterop.NewArray());
+            var tmp = new List<byte[]>();
+            var heapSize = GetHeapSize();
+            long diff = 0;
+            while (true)
+            {
+                try
+                {
+                    var sizeNow = GetHeapSize();
+                    diff = sizeNow - heapSize;
+                    if (diff > 0) break;
+                    var data = new byte[5000000];
+                    tmp.Add(data);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"GrowHeap eror: {ex.ToString()}");
+                    break;
+                }
+            }
+            tmp.Clear();
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+            return diff;
         }
         /// <summary>
-        /// Create a new Javascript Promise as JSObject with `resolve` and `reject` attached as properties
+        /// Returns value as type T
         /// </summary>
-        /// <returns></returns>
-        public SpawnJSHandle NewEasyPromise() => NetRun<SpawnJSHandle>("newEasyPromise");
+        /// <typeparam name="T">The type to return value as</typeparam>
+        /// <typeparam name="T1">The value</typeparam>
+        /// <returns>value as type T</returns>
+        public T As<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T1 value) => InteropCall<T1, T>("returnMe", value);
         /// <summary>
-        /// Calls fetch
+        /// Returns value as type
         /// </summary>
-        public Task<Response> Fetch(Request resource) => JS.CallAsync<Response>("fetch", resource);
+        /// <param name="type">The type to return value as</param>
+        /// <param name="value">The value</param>
+        /// <returns>value as type T</returns>
+        public object? As(Type type, object? value) => ((Delegate)As<object, object>).InvokeGeneric([value?.GetType() ?? typeof(object), type], value);
         /// <summary>
-        /// Calls fetch
+        /// Compares two values using Javascript equality.<br/>
+        /// full == true uses strict equality (===), otherwise loose equality (==)
         /// </summary>
-        public Task<Response> Fetch(string resource) => JS.CallAsync<Response>("fetch", resource);
-        /// <summary>
-        /// Calls fetch
-        /// </summary>
-        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<Response>("fetch", resource, options);
-        /// <inheritdoc/>
-        Task<GlobalScope> IGlobalScopeSource.GetGlobalScope() => Task.FromResult(GlobalScope);
+        public bool ObjectEquals<T1, T2>(T1 obj1, T2 obj2, bool full = false) => InteropCall<T1, T2, bool, bool>("objectEquals", obj1, obj2, full);
     }
 }

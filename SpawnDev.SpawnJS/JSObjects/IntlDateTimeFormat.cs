@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -55,28 +54,28 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="date">The date to format</param>
         /// <returns>A string representing the given date formatted according to the locale and formatting options</returns>
-        public string Format(DateTime date) => JSRef!.Call<string>("format", date);
+        public string Format(DateTime date) => JSRef!.Call<global::System.DateTime, string>("format", date);
 
         /// <summary>
         /// Formats a date according to the locale and formatting options of this Intl.DateTimeFormat object.
         /// </summary>
         /// <param name="date">The date to format (as milliseconds since epoch)</param>
         /// <returns>A string representing the given date formatted according to the locale and formatting options</returns>
-        public string Format(long date) => JSRef!.Call<string>("format", date);
+        public string Format(long date) => JSRef!.Call<long, string>("format", date);
 
         /// <summary>
         /// Returns an Array of objects representing the date string in parts that can be used for custom locale-aware formatting.
         /// </summary>
         /// <param name="date">The date to format</param>
         /// <returns>An Array of objects containing the formatted date in parts</returns>
-        public IntlDateTimeFormatPart[] FormatToParts(DateTime date) => JSRef!.Call<IntlDateTimeFormatPart[]>("formatToParts", date);
+        public IntlDateTimeFormatPart[] FormatToParts(DateTime date) => JSRef!.Call<global::System.DateTime, IntlDateTimeFormatPart[]>("formatToParts", date);
 
         /// <summary>
         /// Returns an Array of objects representing the date string in parts that can be used for custom locale-aware formatting.
         /// </summary>
         /// <param name="date">The date to format (as milliseconds since epoch)</param>
         /// <returns>An Array of objects containing the formatted date in parts</returns>
-        public IntlDateTimeFormatPart[] FormatToParts(long date) => JSRef!.Call<IntlDateTimeFormatPart[]>("formatToParts", date);
+        public IntlDateTimeFormatPart[] FormatToParts(long date) => JSRef!.Call<long, IntlDateTimeFormatPart[]>("formatToParts", date);
 
         /// <summary>
         /// Formats a date range in the most concise way based on the locale and options provided when instantiating Intl.DateTimeFormat object.
@@ -84,7 +83,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="startDate">The start date</param>
         /// <param name="endDate">The end date</param>
         /// <returns>A string representing the given date range formatted according to the locale and formatting options</returns>
-        public string FormatRange(DateTime startDate, DateTime endDate) => JSRef!.Call<string>("formatRange", startDate, endDate);
+        public string FormatRange(DateTime startDate, DateTime endDate) => JSRef!.Call<global::System.DateTime, global::System.DateTime, string>("formatRange", startDate, endDate);
 
         /// <summary>
         /// Formats a date range in the most concise way based on the locale and options provided when instantiating Intl.DateTimeFormat object.
@@ -92,7 +91,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="startDate">The start date (as milliseconds since epoch)</param>
         /// <param name="endDate">The end date (as milliseconds since epoch)</param>
         /// <returns>A string representing the given date range formatted according to the locale and formatting options</returns>
-        public string FormatRange(long startDate, long endDate) => JSRef!.Call<string>("formatRange", startDate, endDate);
+        public string FormatRange(long startDate, long endDate) => JSRef!.Call<long, long, string>("formatRange", startDate, endDate);
 
         /// <summary>
         /// Returns an Array of objects representing the date range string in parts that can be used for custom locale-aware formatting.
@@ -100,7 +99,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="startDate">The start date</param>
         /// <param name="endDate">The end date</param>
         /// <returns>An Array of objects containing the formatted date range in parts</returns>
-        public IntlDateTimeFormatPart[] FormatRangeToParts(DateTime startDate, DateTime endDate) => JSRef!.Call<IntlDateTimeFormatPart[]>("formatRangeToParts", startDate, endDate);
+        public IntlDateTimeFormatPart[] FormatRangeToParts(DateTime startDate, DateTime endDate) => JSRef!.Call<global::System.DateTime, global::System.DateTime, IntlDateTimeFormatPart[]>("formatRangeToParts", startDate, endDate);
 
         /// <summary>
         /// Returns an Array of objects representing the date range string in parts that can be used for custom locale-aware formatting.
@@ -108,7 +107,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="startDate">The start date (as milliseconds since epoch)</param>
         /// <param name="endDate">The end date (as milliseconds since epoch)</param>
         /// <returns>An Array of objects containing the formatted date range in parts</returns>
-        public IntlDateTimeFormatPart[] FormatRangeToParts(long startDate, long endDate) => JSRef!.Call<IntlDateTimeFormatPart[]>("formatRangeToParts", startDate, endDate);
+        public IntlDateTimeFormatPart[] FormatRangeToParts(long startDate, long endDate) => JSRef!.Call<long, long, IntlDateTimeFormatPart[]>("formatRangeToParts", startDate, endDate);
 
         /// <summary>
         /// Returns a new object with properties reflecting the locale and date and time formatting options computed during initialization of this Intl.DateTimeFormat object.
@@ -121,7 +120,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="locales">A string with a BCP 47 language tag, or an array of such strings</param>
         /// <returns>An array of strings representing a subset of the given locale tags that are supported in date and time formatting</returns>
-        public static string[] SupportedLocalesOf(Union<string, string[]> locales) => JS.Call<string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales);
+        public static string[] SupportedLocalesOf(Union<string, string[]> locales) => JS.Call<global::SpawnDev.SpawnJS.Union<string, string[]>, string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales);
 
         /// <summary>
         /// Returns an array containing those of the provided locales that are supported in date and time formatting without having to fall back to the runtime's default locale.
@@ -129,7 +128,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="locales">A string with a BCP 47 language tag, or an array of such strings</param>
         /// <param name="options">An object with a localeMatcher property</param>
         /// <returns>An array of strings representing a subset of the given locale tags that are supported in date and time formatting</returns>
-        public static string[] SupportedLocalesOf(Union<string, string[]> locales, IntlDateTimeFormatOptions options) => JS.Call<string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales, options);
+        public static string[] SupportedLocalesOf(Union<string, string[]> locales, IntlDateTimeFormatOptions options) => JS.Call<global::SpawnDev.SpawnJS.Union<string, string[]>, global::SpawnDev.SpawnJS.JSObjects.IntlDateTimeFormatOptions, string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales, options);
         #endregion
     }
 }

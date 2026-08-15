@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -28,7 +27,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="fsHandle"></param>
         /// <returns></returns>
-        public bool IsSameEntry(FileSystemHandle fsHandle) => JSRef!.Call<bool>("isSameEntry", fsHandle);
+        public bool IsSameEntry(FileSystemHandle fsHandle) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle, bool>("isSameEntry", fsHandle);
         /// <summary>
         /// Returns a FileSystemDirectoryHandle or FileSystemFileHandle based on the FileSystemHandle.Kind
         /// </summary>
@@ -123,11 +122,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>A string representing the permission state (e.g., "granted", "denied", "prompt").</returns>
         public async Task<string> QueryPermission(bool writePermission = false)
         {
-            if (JSRef!.IsUndefined("queryPermission"))
+            if (!JSRef!.Exists("queryPermission"))
             {
                 return PERMISSION_GRANTED;
             }
-            return await JSRef!.CallAsync<string>("queryPermission", new FilePermissionsOptions(writePermission));
+            return await JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle.FilePermissionsOptions, string>("queryPermission", new FilePermissionsOptions(writePermission));
         }
 
         /// <summary>
@@ -137,11 +136,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>A string representing the new permission state (e.g., "granted", "denied", "prompt").</returns>
         public async Task<string> RequestPermission(bool writePermission = false)
         {
-            if (JSRef!.IsUndefined("requestPermission"))
+            if (!JSRef!.Exists("requestPermission"))
             {
                 return PERMISSION_GRANTED;
             }
-            return await JSRef!.CallAsync<string>("requestPermission", new FilePermissionsOptions(writePermission));
+            return await JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle.FilePermissionsOptions, string>("requestPermission", new FilePermissionsOptions(writePermission));
         }
         /// <summary>
         /// "granted"

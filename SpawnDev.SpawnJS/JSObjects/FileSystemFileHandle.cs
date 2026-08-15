@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -30,7 +29,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<FileSystemWritableFileStream> CreateWritable(FileSystemCreateWritableOptions options) => JSRef!.CallAsync<FileSystemWritableFileStream>("createWritable", options);
+        public Task<FileSystemWritableFileStream> CreateWritable(FileSystemCreateWritableOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemCreateWritableOptions, FileSystemWritableFileStream>("createWritable", options);
         /// <summary>
         /// Returns the file's size<br/>
         /// non-standard
@@ -57,6 +56,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <returns></returns>
         public Task<FileSystemSyncAccessHandle> CreateSyncAccessHandle(FileSystemSyncAccessOptions? options = null)
-            => options == null ? JSRef!.CallAsync<FileSystemSyncAccessHandle>("createSyncAccessHandle") : JSRef!.CallAsync<FileSystemSyncAccessHandle>("createSyncAccessHandle", options);
+            => options == null ? JSRef!.CallAsync<FileSystemSyncAccessHandle>("createSyncAccessHandle") : JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncAccessOptions, FileSystemSyncAccessHandle>("createSyncAccessHandle", options);
     }
 }

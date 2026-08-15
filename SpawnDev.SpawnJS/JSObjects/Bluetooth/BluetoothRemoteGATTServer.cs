@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -34,12 +33,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="bluetoothServiceUUID">A Bluetooth service universally unique identifier for a specified device, that is either a 128-bit UUID, a 16-bit or 32-bit UUID alias, or a string from the list of GATT assigned services keys.</param>
         /// <returns>A Promise that resolves to a BluetoothRemoteGATTService object.</returns>
-        public Task<BluetoothRemoteGATTService> GetPrimaryService(string bluetoothServiceUUID) => JSRef!.CallAsync<BluetoothRemoteGATTService>("getPrimaryService", bluetoothServiceUUID);
+        public Task<BluetoothRemoteGATTService> GetPrimaryService(string bluetoothServiceUUID) => JSRef!.CallAsync<string, BluetoothRemoteGATTService>("getPrimaryService", bluetoothServiceUUID);
         /// <summary>
         /// The BluetoothRemoteGATTServer.getPrimaryServices() method returns a promise to a list of primary BluetoothRemoteGATTService objects offered by the Bluetooth device for a specified BluetoothServiceUUID.
         /// </summary>
         /// <param name="bluetoothServiceUUID">A Bluetooth service universally unique identifier for a specified device.</param>
         /// <returns>A Promise that resolves to a list of BluetoothRemoteGATTService objects.</returns>
-        public Task<BluetoothRemoteGATTService[]> GetPrimaryServices(string bluetoothServiceUUID) => JSRef!.CallAsync<BluetoothRemoteGATTService[]>("getPrimaryServices", bluetoothServiceUUID);
+        public Task<BluetoothRemoteGATTService[]> GetPrimaryServices(string bluetoothServiceUUID) => JSRef!.CallAsync<string, BluetoothRemoteGATTService[]>("getPrimaryServices", bluetoothServiceUUID);
     }
 }

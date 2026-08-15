@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,8 +28,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         public int LastIndex { get => JSRef!.Get<int>("lastIndex"); set => JSRef!.Set("lastIndex", value); }
         /// <summary>Tests for a match against a .NET string. NOTE: brings the string into JS - prefer the
         /// <see cref="String"/> overload when the text is already held JS-side.</summary>
-        public bool Test(string str) => JSRef!.Call<bool>("test", str);
+        public bool Test(string str) => JSRef!.Call<string, bool>("test", str);
         /// <summary>Tests for a match against a JS String held JS-side (no marshaling of the text).</summary>
-        public bool Test(String str) => JSRef!.Call<bool>("test", str);
+        public bool Test(String str) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.String, bool>("test", str);
     }
 }

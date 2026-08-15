@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public Task<WakeLockSentinel> Request(string type = "screen") => JSRef!.CallAsync<WakeLockSentinel>("request", type);
+        public Task<WakeLockSentinel> Request(string type = "screen") => JSRef!.CallAsync<string, WakeLockSentinel>("request", type);
     }
 }

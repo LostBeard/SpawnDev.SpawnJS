@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="init">Optional configuration for the quad layer.</param>
         /// <returns></returns>
         public XRQuadLayer CreateQuadLayer(HTMLVideoElement video, XRMediaQuadLayerInit? init = null)
-            => init == null ? JSRef!.Call<XRQuadLayer>("createQuadLayer", video) : JSRef!.Call<XRQuadLayer>("createQuadLayer", video, init);
+            => init == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, XRQuadLayer>("createQuadLayer", video) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.XRMediaQuadLayerInit, XRQuadLayer>("createQuadLayer", video, init);
         /// <summary>
         /// Creates an XRCylinderLayer that displays a video on a cylinder surface in the XR scene.
         /// </summary>
@@ -33,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="init">Optional configuration for the cylinder layer.</param>
         /// <returns></returns>
         public XRCylinderLayer CreateCylinderLayer(HTMLVideoElement video, XRMediaCylinderLayerInit? init = null)
-            => init == null ? JSRef!.Call<XRCylinderLayer>("createCylinderLayer", video) : JSRef!.Call<XRCylinderLayer>("createCylinderLayer", video, init);
+            => init == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, XRCylinderLayer>("createCylinderLayer", video) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.XRMediaCylinderLayerInit, XRCylinderLayer>("createCylinderLayer", video, init);
         /// <summary>
         /// Creates an XREquirectLayer that displays a video on an equirectangular surface in the XR scene.
         /// </summary>
@@ -41,7 +40,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="init">Optional configuration for the equirect layer.</param>
         /// <returns></returns>
         public XREquirectLayer CreateEquirectLayer(HTMLVideoElement video, XRMediaEquirectLayerInit? init = null)
-            => init == null ? JSRef!.Call<XREquirectLayer>("createEquirectLayer", video) : JSRef!.Call<XREquirectLayer>("createEquirectLayer", video, init);
+            => init == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, XREquirectLayer>("createEquirectLayer", video) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.XRMediaEquirectLayerInit, XREquirectLayer>("createEquirectLayer", video, init);
     }
 
     /// <summary>

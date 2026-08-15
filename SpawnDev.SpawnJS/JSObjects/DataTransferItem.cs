@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -43,15 +42,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasGetAsEntry => !JSRef!.IsUndefined("getAsEntry");
+        public bool HasGetAsEntry => !!JSRef!.Exists("getAsEntry");
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasWebkitGetAsEntry => !JSRef!.IsUndefined("webkitGetAsEntry");
+        public bool HasWebkitGetAsEntry => !!JSRef!.Exists("webkitGetAsEntry");
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasGetAsFileSystemHandle => !JSRef!.IsUndefined("getAsFileSystemHandle");
+        public bool HasGetAsFileSystemHandle => !!JSRef!.Exists("getAsFileSystemHandle");
         /// <summary>
         /// Returns a FileSystemEntry object if the drag data item is a file or directory, or null otherwise.<br/>
         /// webkitGetAsEntry is used if it is found, getAsEntry is used if it is found, otherwise null is returned.

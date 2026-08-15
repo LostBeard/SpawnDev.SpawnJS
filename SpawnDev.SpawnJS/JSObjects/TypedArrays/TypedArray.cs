@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -11,7 +8,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
     /// </summary>
     /// <typeparam name="TElement">The TypedArray element .Net type</typeparam>
-    public abstract class TypedArray<TElement> : TypedArray where TElement : struct
+    public abstract class TypedArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement> : TypedArray where TElement : struct
     {
         /// <summary>
         /// Deserialization constructor
@@ -25,13 +22,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a number value of the element size.
         /// </summary>
-        public static int BYTES_PER_ELEMENT { get; } = Marshal.SizeOf<TElement>();
+        public static int BYTES_PER_ELEMENT { get; } = System.Runtime.InteropServices.Marshal.SizeOf<TElement>();
         /// <summary>
         /// Takes an integer value and returns the item at that index. This method allows for negative integers, which count back from the last item.
         /// </summary>
         /// <param name="index">Zero-based index of the typed array element to be returned, converted to an integer. Negative index counts back from the end of the typed array — if index &lt; 0, index + array.length is accessed.</param>
         /// <returns>The element in the typed array matching the given index. Always returns undefined if index &lt; -array.length or index &gt;= array.length without attempting to access the corresponding property.</returns>
-        public virtual TElement At(long index) => JSRef!.Call<TElement>("at", index);
+        public virtual TElement At(long index) => JSRef!.Call<long, TElement>("at", index);
         /// <summary>
         /// Gets or sets the element at the given index
         /// </summary>
@@ -86,7 +83,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual TypedArray Fill(TElement value) => JSRef!.Call<TypedArray>("fill", value);
+        public virtual TypedArray Fill(TElement value) => JSRef!.Call<TElement, TypedArray>("fill", value);
         /// <summary>
         /// Fills all the elements of an array from a start index to an end index with a static value.
         /// </summary>
@@ -106,12 +103,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="byteOffset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067",
+            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
         public TypedArray ReCast(Type typedArray, long byteOffset, long length) => Buffer.Using(o => (TypedArray)Activator.CreateInstance(typedArray, o, ByteOffset + byteOffset, length)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset
         /// </summary>
         /// <param name="typedArray"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067",
+            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
         public TypedArray ReCast(Type typedArray) => Buffer.Using(o => (TypedArray)Activator.CreateInstance(typedArray, o, ByteOffset, ByteLength)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset, returning length number of items in the resulting typed array
@@ -120,12 +121,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="byteOffset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
+            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
         public TTypedArray ReCast<TTypedArray>(long byteOffset, long length) where TTypedArray : TypedArray => Buffer.Using(o => (TTypedArray)Activator.CreateInstance(typeof(TTypedArray), o, ByteOffset + byteOffset, length)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset
         /// </summary>
         /// <typeparam name="TTypedArray"></typeparam>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
+            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
         public TTypedArray ReCast<TTypedArray>() where TTypedArray : TypedArray => Buffer.Using(o => (TTypedArray)Activator.CreateInstance(typeof(TTypedArray), o, ByteOffset, ByteLength)!);
         /// <summary>
         /// Deserialization constructor
@@ -320,7 +325,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="srcData"></param>
         /// <param name="destByteOffset"></param>
-        public void Write<T>(T[] srcData, long destByteOffset = 0) where T : struct => Write<T>(srcData, destByteOffset, 0, srcData.Length);
+        public void Write<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] srcData, long destByteOffset = 0) where T : struct => Write<T>(srcData, destByteOffset, 0, srcData.Length);
         /// <summary>
         /// Writes an array of struct to this TypedArray. This is a direct byte for byte copy with no type conversions.
         /// </summary>
@@ -330,7 +335,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcOffset"></param>
         /// <param name="length"></param>
         /// <exception cref="NotImplementedException"></exception>
-        public void Write<T>(T[] srcData, long destByteOffset, long srcOffset, long length) where T : struct
+        public void Write<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] srcData, long destByteOffset, long srcOffset, long length) where T : struct
         {
             if (destByteOffset < 0) new IndexOutOfRangeException(nameof(destByteOffset));
             if (length == 0) return;
@@ -355,7 +360,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset"></param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public long Read<T>(long srcByteOffset, T[] buffer, long offset, long count) where T : struct
+        public long Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcByteOffset, T[] buffer, long offset, long count) where T : struct
         {
             if (srcByteOffset < 0) new IndexOutOfRangeException(nameof(srcByteOffset));
             var tSize = Marshal.SizeOf<T>();
@@ -382,7 +387,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="count"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public T[] Read<T>(long srcByteOffset, long count) where T : struct
+        public T[] Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcByteOffset, long count) where T : struct
         {
             if (srcByteOffset < 0) new IndexOutOfRangeException(nameof(srcByteOffset));
             if (count == 0) return new T[0];
@@ -407,14 +412,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcByteOffset"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public T[] Read<T>(long srcByteOffset = 0) where T : struct => Read<T>(srcByteOffset, (ByteLength - srcByteOffset) / Marshal.SizeOf<T>());
+        public T[] Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcByteOffset = 0) where T : struct => Read<T>(srcByteOffset, (ByteLength - srcByteOffset) / Marshal.SizeOf<T>());
         /// <summary>
         /// Read an array of type T starting at this TypedArray's ByteOffset + byteOffset
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="start">Element Index to start</param>
         /// <returns>Array of type T</returns>
-        public T[] ToArray<T>(long start = 0) where T : struct => Read<T>(start * Marshal.SizeOf<T>());
+        public T[] ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long start = 0) where T : struct => Read<T>(start * Marshal.SizeOf<T>());
         /// <summary>        
         /// Read an array of type T starting at this TypedArray's ByteOffset + byteOffset
         /// </summary>
@@ -422,7 +427,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="start">Element Index to start</param>
         /// <param name="count">Number of type T to read</param>
         /// <returns>Array of type T</returns>
-        public T[] ToArray<T>(long start, long count) where T : struct => Read<T>(start * Marshal.SizeOf<T>(), count);
+        public T[] ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long start, long count) where T : struct => Read<T>(start * Marshal.SizeOf<T>(), count);
         /// <summary>
         /// Copies elements of type T from this TypedArray tp the destination
         /// </summary>
@@ -432,14 +437,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="destOffset">Destination offset</param>
         /// <param name="count">Count</param>
         /// <returns></returns>
-        public long ToArray<T>(long srcOffset, T[] dest, long destOffset, long count) where T : struct => Read<T>(srcOffset * Marshal.SizeOf<T>(), dest, destOffset, count);
+        public long ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcOffset, T[] dest, long destOffset, long count) where T : struct => Read<T>(srcOffset * Marshal.SizeOf<T>(), dest, destOffset, count);
         /// <summary>
         /// Writes an array of struct to this TypedArray
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="srcData"></param>
         /// <param name="destOffset">The destination index to start copying to</param>
-        public void FromArray<T>(T[] srcData, long destOffset = 0) where T : struct => Write<T>(srcData, destOffset * Marshal.SizeOf<T>());
+        public void FromArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] srcData, long destOffset = 0) where T : struct => Write<T>(srcData, destOffset * Marshal.SizeOf<T>());
         /// <summary>
         /// Writes an array of struct to this TypedArray
         /// </summary>
@@ -448,7 +453,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="destOffset">The destination index to start copying to</param>
         /// <param name="srcOffset">The source index to start copying from</param>
         /// <param name="length">The number of items to copy</param>
-        public void FromArray<T>(T[] srcData, long destOffset, long srcOffset, long length) where T : struct => Write<T>(srcData, destOffset * Marshal.SizeOf<T>(), srcOffset, length);
+        public void FromArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] srcData, long destOffset, long srcOffset, long length) where T : struct => Write<T>(srcData, destOffset * Marshal.SizeOf<T>(), srcOffset, length);
         static Dictionary<Type, int> TypedArrayElementSize = new Dictionary<Type, int>
         {
             { typeof(Uint8ClampedArray), 1 },

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -8,14 +9,14 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// array never materialises the whole thing on the .Net side.
     /// </summary>
     /// <typeparam name="TArrayItem">The type each item is marshalled to</typeparam>
-    public class Array<TArrayItem> : Array, IEnumerable<TArrayItem>
+    public class Array<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TArrayItem> : Array//, IEnumerable<TArrayItem>
     {
-        #region IEnumerable
-        /// <inheritdoc/>
-        public IEnumerator<TArrayItem> GetEnumerator() => new SimpleEnumerator<TArrayItem>((i) => GetItem(i), () => Length);
-        /// <inheritdoc/>
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        #endregion
+        //#region IEnumerable
+        ///// <inheritdoc/>
+        //public IEnumerator<TArrayItem> GetEnumerator() => new SimpleEnumerator<TArrayItem>((i) => GetItem(i), () => Length);
+        ///// <inheritdoc/>
+        //IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        //#endregion
         /// <summary>
         /// Explicit cast to .Net array
         /// </summary>
@@ -111,7 +112,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public TArrayItem At(int index) => JSRef!.Call<TArrayItem>("at", index);
+        public TArrayItem At(int index) => JSRef!.Call<int, TArrayItem>("at", index);
         /// <summary>
         /// Removes the last element from an array and returns that element.
         /// </summary>
@@ -139,17 +140,17 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="array"></param>
         /// <returns></returns>
-        public Array<TArrayItem> Concat(Array<TArrayItem> array) => JSRef!.Call<Array<TArrayItem>>("concat", array);
+        public Array<TArrayItem> Concat(Array<TArrayItem> array) => JSRef!.Call<Array<TArrayItem>, Array<TArrayItem>>("concat", array);
         /// <summary>
         /// Returns a new array containing the results of invoking a function on every element in the calling array.
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
         /// <param name="mapTo"></param>
         /// <returns></returns>
-        public Array<TResult> Map<TResult>(Func<TArrayItem, TResult> mapTo)
+        public Array<TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<TArrayItem, TResult> mapTo)
         {
             using var cb = Callback.Create(mapTo);
-            return JSRef!.Call<Array<TResult>>("map", cb);
+            return JSRef!.Call<FuncCallback<TArrayItem, TResult>, Array<TResult>>("map", cb);
         }
         /// <summary>
         /// Returns a new array containing all elements of the calling array for which the provided filtering function returns true.
@@ -159,7 +160,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public Array<TArrayItem> Filter(Func<TArrayItem, bool> filter)
         {
             using var cb = Callback.Create(filter);
-            return JSRef!.Call<Array<TArrayItem>>("filter", cb);
+            return JSRef!.Call<FuncCallback<TArrayItem, bool>, Array<TArrayItem>>("filter", cb);
         }
         /// <summary>
         /// Extracts a section of the calling array and returns a new array.
@@ -176,7 +177,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - If start &gt;= array.length, nothing is extracted.
         /// </param>
         /// <returns>A new array containing the extracted elements.</returns>
-        public override Array<TArrayItem> Slice(int start) => JSRef!.Call<Array<TArrayItem>>("slice", start);
+        public override Array<TArrayItem> Slice(int start) => JSRef!.Call<int, Array<TArrayItem>>("slice", start);
         /// <summary>
         /// Extracts a section of the calling array and returns a new array.
         /// </summary>
@@ -194,7 +195,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - If end implies a position before or at the position that start implies, nothing is extracted.<br/>
         /// </param>
         /// <returns>A new array containing the extracted elements.</returns>
-        public override Array<TArrayItem> Slice(int start, int end) => JSRef!.Call<Array<TArrayItem>>("slice", start, end);
+        public override Array<TArrayItem> Slice(int start, int end) => JSRef!.Call<int, int, Array<TArrayItem>>("slice", start, end);
         /// <summary>
         /// Adds and/or removes elements from an array.
         /// </summary>
@@ -206,7 +207,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - If start is omitted (and splice() is called with no arguments), nothing is deleted. This is different from passing undefined, which is converted to 0.<br/>
         /// </param>
         /// <returns></returns>
-        public override Array<TArrayItem> Splice(int start) => JSRef!.Call<Array<TArrayItem>>("splice", start);
+        public override Array<TArrayItem> Splice(int start) => JSRef!.Call<int, Array<TArrayItem>>("splice", start);
         /// <summary>
         /// Adds and/or removes elements from an array.
         /// </summary>
@@ -223,7 +224,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - If deleteCount is 0 or negative, no elements are removed. In this case, you should specify at least one new element (see below).
         /// </param>
         /// <returns></returns>
-        public override Array<TArrayItem> Splice(int start, int deleteCount) => JSRef!.Call<Array<TArrayItem>>("splice", start, deleteCount);
+        public override Array<TArrayItem> Splice(int start, int deleteCount) => JSRef!.Call<int, int, Array<TArrayItem>>("splice", start, deleteCount);
         /// <summary>
         /// Adds and/or removes elements from an array.
         /// </summary>

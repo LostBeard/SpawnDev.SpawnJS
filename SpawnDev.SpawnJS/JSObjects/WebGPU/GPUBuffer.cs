@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -44,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="offset">A number representing the offset, in bytes, from the start of the GPUBuffer's mapped range to the start of the range to be returned in the ArrayBuffer. If offset is omitted, it defaults to 0.</param>
         /// <returns>An ArrayBuffer.</returns>
-        public ArrayBuffer GetMappedRange(long offset) => JSRef!.Call<ArrayBuffer>("getMappedRange", offset);
+        public ArrayBuffer GetMappedRange(long offset) => JSRef!.Call<long, ArrayBuffer>("getMappedRange", offset);
         /// <summary>
         /// The getMappedRange() method of the GPUBuffer interface returns an ArrayBuffer containing the mapped contents of the GPUBuffer in the specified range.<br/>
         /// This can only happen once the GPUBuffer has been successfully mapped with GPUBuffer.mapAsync() (this can be checked via GPUBuffer.mapState). While the GPUBuffer is mapped it cannot be used in any GPU commands.<br/>
@@ -53,7 +52,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset">A number representing the offset, in bytes, from the start of the GPUBuffer's mapped range to the start of the range to be returned in the ArrayBuffer. If offset is omitted, it defaults to 0.</param>
         /// <param name="size">A number representing the size, in bytes, of the ArrayBuffer to return. If size is omitted, the range extends to the end of the GPUBuffer's mapped range.</param>
         /// <returns>An ArrayBuffer.</returns>
-        public ArrayBuffer GetMappedRange(long offset, long size) => JSRef!.Call<ArrayBuffer>("getMappedRange", offset, size);
+        public ArrayBuffer GetMappedRange(long offset, long size) => JSRef!.Call<long, long, ArrayBuffer>("getMappedRange", offset, size);
         /// <summary>
         /// The mapAsync() method of the GPUBuffer interface maps the specified range of the GPUBuffer. It returns a Promise that resolves when the GPUBuffer's content is ready to be accessed. While the GPUBuffer is mapped it cannot be used in any GPU commands.<br/>
         /// Once the buffer is successfully mapped (which can be checked via GPUBuffer.mapState), calls to GPUBuffer.getMappedRange() will return an ArrayBuffer containing the GPUBuffer's current values, to be read and updated by JavaScript as required.<br/>

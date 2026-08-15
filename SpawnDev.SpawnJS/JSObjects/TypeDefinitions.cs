@@ -58,4 +58,3 @@ global using ImageBitmapSource = SpawnDev.SpawnJS.Union<
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;

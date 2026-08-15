@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -16,24 +15,24 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="alias">A string containing a 16-bit or 32-bit UUID alias.</param>
         /// <returns>A 128-bit UUID.</returns>
-        public static string CanonicalUUID(uint alias) => JS.Call<string>("BluetoothUUID.canonicalUUID", alias);
+        public static string CanonicalUUID(uint alias) => JS.Call<uint, string>("BluetoothUUID.canonicalUUID", alias);
         /// <summary>
         /// Returns the 128-bit UUID representing a registered characteristic when passed a name or the 16- or 32-bit UUID alias.
         /// </summary>
         /// <param name="name">A string containing the name of the characteristic.</param>
         /// <returns>A 128-bit UUID.</returns>
-        public static string GetCharacteristic(string name) => JS.Call<string>("BluetoothUUID.getCharacteristic", name);
+        public static string GetCharacteristic(string name) => JS.Call<string, string>("BluetoothUUID.getCharacteristic", name);
         /// <summary>
         /// Returns a UUID representing a registered descriptor when passed a name or the 16- or 32-bit UUID alias.
         /// </summary>
         /// <param name="name">A string containing the name of the descriptor.</param>
         /// <returns>A 128-bit UUID.</returns>
-        public static string GetDescriptor(string name) => JS.Call<string>("BluetoothUUID.getDescriptor", name);
+        public static string GetDescriptor(string name) => JS.Call<string, string>("BluetoothUUID.getDescriptor", name);
         /// <summary>
         /// Returns a UUID representing a registered service when passed a name or the 16- or 32-bit UUID alias.
         /// </summary>
         /// <param name="name">A string containing the name of the service.</param>
         /// <returns>A 128-bit UUID.</returns>
-        public static string GetService(string name) => JS.Call<string>("BluetoothUUID.getService", name);
+        public static string GetService(string name) => JS.Call<string, string>("BluetoothUUID.getService", name);
     }
 }

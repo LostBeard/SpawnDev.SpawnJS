@@ -1,8 +1,4 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
-namespace SpawnDev.SpawnJS.JSObjects
+﻿namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// The TextDecoder interface represents a decoder for a specific text encoding, such as UTF-8, ISO-8859-2, KOI8-R, GBK, etc. A decoder takes a stream of bytes as input and emits a stream of code points.<br/>
@@ -28,37 +24,37 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public string Decode(ArrayBuffer data) => JSRef!.Call<string>("decode", data);
+        public string Decode(ArrayBuffer data) => JSRef!.Call<ArrayBuffer, string>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public StringPrimitive DecodeToPrimitive(ArrayBuffer data) => JSRef!.Call<StringPrimitive>("decode", data);
+        public StringPrimitive DecodeToPrimitive(ArrayBuffer data) => JSRef!.Call<ArrayBuffer, StringPrimitive>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public string Decode(DataView data) => JSRef!.Call<string>("decode", data);
+        public string Decode(DataView data) => JSRef!.Call<DataView, string>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public StringPrimitive DecodeToPrimitive(DataView data) => JSRef!.Call<StringPrimitive>("decode", data);
+        public StringPrimitive DecodeToPrimitive(DataView data) => JSRef!.Call<DataView, StringPrimitive>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public string Decode(TypedArray data) => JSRef!.Call<string>("decode", data);
+        public string Decode(TypedArray data) => JSRef!.Call<TypedArray, string>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public StringPrimitive DecodeToPrimitive(TypedArray data) => JSRef!.Call<StringPrimitive>("decode", data);
+        public StringPrimitive DecodeToPrimitive(TypedArray data) => JSRef!.Call<TypedArray, StringPrimitive>("decode", data);
         /// <summary>
         /// Returns a string containing the text decoded with the method of the specific TextDecoder object.
         /// </summary>

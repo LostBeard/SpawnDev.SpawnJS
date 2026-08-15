@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpawnDev.SpawnJS
 {
@@ -59,7 +60,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <typeparam name="T">The type to return</typeparam>
         /// <returns>Value as T if Value is type T</returns>
-        public T As<T>() => Value is T t ? t : default(T)!;
+        public T As<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => Value is T t ? t : default(T)!;
     }
     /// <summary>
     /// Union type
@@ -114,7 +115,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2
             )
@@ -147,7 +148,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2> Map<TResult>(Func<T1, Union<TResult, T2>> map)
+        public Union<TResult, T2> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2>> map)
         {
             switch (_type)
             {
@@ -159,7 +160,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult> Map<TResult>(Func<T2, Union<T1, TResult>> map)
+        public Union<T1, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult>> map)
         {
             switch (_type)
             {
@@ -313,7 +314,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3
@@ -357,7 +358,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3> Map<TResult>(Func<T1, Union<TResult, T2, T3>> map)
+        public Union<TResult, T2, T3> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3>> map)
         {
             switch (_type)
             {
@@ -370,7 +371,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3> Map<TResult>(Func<T2, Union<T1, TResult, T3>> map)
+        public Union<T1, TResult, T3> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3>> map)
         {
             switch (_type)
             {
@@ -383,7 +384,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult> Map<TResult>(Func<T3, Union<T1, T2, TResult>> map)
+        public Union<T1, T2, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult>> map)
         {
             switch (_type)
             {
@@ -600,7 +601,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -655,7 +656,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4>> map)
+        public Union<TResult, T2, T3, T4> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4>> map)
         {
             switch (_type)
             {
@@ -669,7 +670,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4>> map)
+        public Union<T1, TResult, T3, T4> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4>> map)
         {
             switch (_type)
             {
@@ -683,7 +684,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4>> map)
+        public Union<T1, T2, TResult, T4> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4>> map)
         {
             switch (_type)
             {
@@ -697,7 +698,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult>> map)
+        public Union<T1, T2, T3, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult>> map)
         {
             switch (_type)
             {
@@ -983,7 +984,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -1049,7 +1050,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5>> map)
+        public Union<TResult, T2, T3, T4, T5> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5>> map)
         {
             switch (_type)
             {
@@ -1064,7 +1065,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5>> map)
+        public Union<T1, TResult, T3, T4, T5> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5>> map)
         {
             switch (_type)
             {
@@ -1079,7 +1080,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5>> map)
+        public Union<T1, T2, TResult, T4, T5> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5>> map)
         {
             switch (_type)
             {
@@ -1094,7 +1095,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5>> map)
+        public Union<T1, T2, T3, TResult, T5> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5>> map)
         {
             switch (_type)
             {
@@ -1109,7 +1110,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult>> map)
+        public Union<T1, T2, T3, T4, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult>> map)
         {
             switch (_type)
             {
@@ -1470,7 +1471,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -1547,7 +1548,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5, T6> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6>> map)
+        public Union<TResult, T2, T3, T4, T5, T6> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6>> map)
         {
             switch (_type)
             {
@@ -1563,7 +1564,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5, T6> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6>> map)
+        public Union<T1, TResult, T3, T4, T5, T6> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6>> map)
         {
             switch (_type)
             {
@@ -1579,7 +1580,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5, T6> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6>> map)
+        public Union<T1, T2, TResult, T4, T5, T6> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6>> map)
         {
             switch (_type)
             {
@@ -1595,7 +1596,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5, T6> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6>> map)
+        public Union<T1, T2, T3, TResult, T5, T6> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6>> map)
         {
             switch (_type)
             {
@@ -1611,7 +1612,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult, T6> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6>> map)
+        public Union<T1, T2, T3, T4, TResult, T6> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6>> map)
         {
             switch (_type)
             {
@@ -1627,7 +1628,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, TResult> Map<TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult>> map)
+        public Union<T1, T2, T3, T4, T5, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult>> map)
         {
             switch (_type)
             {
@@ -2069,7 +2070,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -2157,7 +2158,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5, T6, T7> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7>> map)
+        public Union<TResult, T2, T3, T4, T5, T6, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7>> map)
         {
             switch (_type)
             {
@@ -2174,7 +2175,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5, T6, T7> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7>> map)
+        public Union<T1, TResult, T3, T4, T5, T6, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7>> map)
         {
             switch (_type)
             {
@@ -2191,7 +2192,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5, T6, T7> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7>> map)
+        public Union<T1, T2, TResult, T4, T5, T6, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7>> map)
         {
             switch (_type)
             {
@@ -2208,7 +2209,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5, T6, T7> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7>> map)
+        public Union<T1, T2, T3, TResult, T5, T6, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7>> map)
         {
             switch (_type)
             {
@@ -2225,7 +2226,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult, T6, T7> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7>> map)
+        public Union<T1, T2, T3, T4, TResult, T6, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7>> map)
         {
             switch (_type)
             {
@@ -2242,7 +2243,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, TResult, T7> Map<TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7>> map)
+        public Union<T1, T2, T3, T4, T5, TResult, T7> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7>> map)
         {
             switch (_type)
             {
@@ -2259,7 +2260,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, TResult> Map<TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult>> map)
+        public Union<T1, T2, T3, T4, T5, T6, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult>> map)
         {
             switch (_type)
             {
@@ -2788,7 +2789,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -2887,7 +2888,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5, T6, T7, T8> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8>> map)
+        public Union<TResult, T2, T3, T4, T5, T6, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2905,7 +2906,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5, T6, T7, T8> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8>> map)
+        public Union<T1, TResult, T3, T4, T5, T6, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2923,7 +2924,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5, T6, T7, T8> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8>> map)
+        public Union<T1, T2, TResult, T4, T5, T6, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2941,7 +2942,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5, T6, T7, T8> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8>> map)
+        public Union<T1, T2, T3, TResult, T5, T6, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2959,7 +2960,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult, T6, T7, T8> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8>> map)
+        public Union<T1, T2, T3, T4, TResult, T6, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2977,7 +2978,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, TResult, T7, T8> Map<TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8>> map)
+        public Union<T1, T2, T3, T4, T5, TResult, T7, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8>> map)
         {
             switch (_type)
             {
@@ -2995,7 +2996,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, TResult, T8> Map<TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8>> map)
+        public Union<T1, T2, T3, T4, T5, T6, TResult, T8> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8>> map)
         {
             switch (_type)
             {
@@ -3013,7 +3014,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, TResult> Map<TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult>> map)
         {
             switch (_type)
             {
@@ -3635,7 +3636,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -3746,7 +3747,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9>> map)
+        public Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3765,7 +3766,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9>> map)
+        public Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3784,7 +3785,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9>> map)
+        public Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3803,7 +3804,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9>> map)
+        public Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3822,7 +3823,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9>> map)
+        public Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3841,7 +3842,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9> Map<TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9>> map)
+        public Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3860,7 +3861,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9> Map<TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9>> map)
+        public Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9>> map)
         {
             switch (_type)
             {
@@ -3879,7 +3880,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9> Map<TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9>> map)
         {
             switch (_type)
             {
@@ -3898,7 +3899,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult> Map<TResult>(Func<T9, Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T9, Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult>> map)
         {
             switch (_type)
             {
@@ -4619,7 +4620,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a value based on the type contained in the union
         /// </summary>
-        public T Match<T>(
+        public T Match<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
             Func<T1, T> matchT1,
             Func<T2, T> matchT2,
             Func<T3, T> matchT3,
@@ -4741,7 +4742,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9, T10> Map<TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9, T10>> map)
+        public Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T1, Union<TResult, T2, T3, T4, T5, T6, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4761,7 +4762,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9, T10> Map<TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9, T10>> map)
+        public Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T2, Union<T1, TResult, T3, T4, T5, T6, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4781,7 +4782,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9, T10> Map<TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9, T10>> map)
+        public Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T3, Union<T1, T2, TResult, T4, T5, T6, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4801,7 +4802,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9, T10> Map<TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9, T10>> map)
+        public Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T4, Union<T1, T2, T3, TResult, T5, T6, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4821,7 +4822,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9, T10> Map<TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9, T10>> map)
+        public Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T5, Union<T1, T2, T3, T4, TResult, T6, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4841,7 +4842,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9, T10> Map<TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9, T10>> map)
+        public Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T6, Union<T1, T2, T3, T4, T5, TResult, T7, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4861,7 +4862,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9, T10> Map<TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9, T10>> map)
+        public Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T7, Union<T1, T2, T3, T4, T5, T6, TResult, T8, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4881,7 +4882,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9, T10> Map<TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9, T10>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T8, Union<T1, T2, T3, T4, T5, T6, T7, TResult, T9, T10>> map)
         {
             switch (_type)
             {
@@ -4901,7 +4902,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult, T10> Map<TResult>(Func<T9, Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult, T10>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult, T10> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T9, Union<T1, T2, T3, T4, T5, T6, T7, T8, TResult, T10>> map)
         {
             switch (_type)
             {
@@ -4921,7 +4922,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Returns a Union
         /// </summary>
-        public Union<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> Map<TResult>(Func<T10, Union<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>> map)
+        public Union<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(Func<T10, Union<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>> map)
         {
             switch (_type)
             {

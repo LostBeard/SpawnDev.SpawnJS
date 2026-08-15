@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -15,13 +14,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="keygenAlgorithm"></param>
         /// <returns></returns>
-        public static RTCCertificate GenerateCertificate(RsaHashedKeyGenParams keygenAlgorithm) => JS.Call<RTCCertificate>("generateCertificate", keygenAlgorithm);
+        public static RTCCertificate GenerateCertificate(RsaHashedKeyGenParams keygenAlgorithm) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.RsaHashedKeyGenParams, RTCCertificate>("generateCertificate", keygenAlgorithm);
         /// <summary>
         /// Creates an X.509 certificate and its corresponding private key, returning a Promise that resolves with the new RTCCertificate once it is generated.
         /// </summary>
         /// <param name="keygenAlgorithm"></param>
         /// <returns></returns>
-        public static RTCCertificate GenerateCertificate(string keygenAlgorithm) => JS.Call<RTCCertificate>("generateCertificate", keygenAlgorithm);
+        public static RTCCertificate GenerateCertificate(string keygenAlgorithm) => JS.Call<string, RTCCertificate>("generateCertificate", keygenAlgorithm);
         /// <summary>
         /// Deserialization constructor
         /// </summary>
@@ -100,7 +99,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="candidate"></param>
         /// <returns></returns>
-        public Promise AddIceCandidatePromise(RTCIceCandidate candidate) => JSRef!.Call<Promise>("addIceCandidate", candidate);
+        public Promise AddIceCandidatePromise(RTCIceCandidate candidate) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.RTCIceCandidate, Promise>("addIceCandidate", candidate);
         /// <summary>
         /// When a website or app using RTCPeerConnection receives a new ICE candidate from the remote peer over its signaling channel, it delivers the newly-received candidate to the browser's ICE agent by calling RTCPeerConnection.addIceCandidate(). This adds this new remote candidate to the RTCPeerConnection's remote description, which describes the state of the remote end of the connection.
         /// </summary>
@@ -121,14 +120,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<RTCSessionDescription> CreateAnswer(RTCAnswerOptions options) => JSRef!.CallAsync<RTCSessionDescription>("createAnswer", options);
+        public Task<RTCSessionDescription> CreateAnswer(RTCAnswerOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.RTCAnswerOptions, RTCSessionDescription>("createAnswer", options);
         /// <summary>
         /// The createDataChannel() method on the RTCPeerConnection interface creates a new channel linked with the remote peer, over which any kind of data may be transmitted. This can be useful for back-channel content, such as images, file transfer, text chat, game update packets, and so forth.
         /// </summary>
         /// <param name="label"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public RTCDataChannel CreateDataChannel(string label, RTCDataChannelOptions? options = null) => JSRef!.Call<RTCDataChannel>("createDataChannel", label, options);
+        public RTCDataChannel CreateDataChannel(string label, RTCDataChannelOptions? options = null) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.RTCDataChannelOptions, RTCDataChannel>("createDataChannel", label, options!);
         /// <summary>
         /// The createOffer() method of the RTCPeerConnection interface initiates the creation of an SDP offer for the purpose of starting a new WebRTC connection to a remote peer. The SDP offer includes information about any MediaStreamTrack objects already attached to the WebRTC session, codec, and options supported by the browser, and any candidates already gathered by the ICE agent, for the purpose of being sent over the signaling channel to a potential peer to request a connection or to update the configuration of an existing connection.
         /// </summary>
@@ -139,7 +138,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<RTCSessionDescription> CreateOffer(RTCOfferOptions options) => JSRef!.CallAsync<RTCSessionDescription>("createOffer", options);
+        public Task<RTCSessionDescription> CreateOffer(RTCOfferOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.RTCOfferOptions, RTCSessionDescription>("createOffer", options);
         /// <summary>
         /// The RTCPeerConnection method setLocalDescription() changes the local description associated with the connection. This description specifies the properties of the local end of the connection, including the media format. The method takes a single parameter—the session description—and it returns a Promise which is fulfilled once the description has been changed, asynchronously.
         /// </summary>
@@ -162,7 +161,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="desc"></param>
         /// <returns></returns>
-        public Promise SetRemoteDescriptionPromise(RTCSessionDescription desc) => JSRef!.Call<Promise>("setRemoteDescription", desc);
+        public Promise SetRemoteDescriptionPromise(RTCSessionDescription desc) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.RTCSessionDescription, Promise>("setRemoteDescription", desc);
         /// <summary>
         /// The WebRTC API's RTCPeerConnection interface offers the restartIce() method to allow a web application to easily request that ICE candidate gathering be redone on both ends of the connection. This simplifies the process by allowing the same method to be used by either the caller or the receiver to trigger an ICE restart.
         /// </summary>
@@ -172,33 +171,33 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="track">A MediaStreamTrack object representing the media track to add to the peer connection.</param>
         /// <returns>The RTCRtpSender object which will be used to transmit the media data.</returns>
-        public RTCRtpSender AddTrack(MediaStreamTrack track) => JSRef!.Call<RTCRtpSender>("addTrack", track);
+        public RTCRtpSender AddTrack(MediaStreamTrack track) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.MediaStreamTrack, RTCRtpSender>("addTrack", track);
         /// <summary>
         /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
         /// </summary>
         /// <param name="trackOrKind"></param>
         /// <returns></returns>
-        public RTCRtpTransceiver AddTransceiver(string trackOrKind) => JSRef!.Call<RTCRtpTransceiver>("addTransceiver", trackOrKind);
+        public RTCRtpTransceiver AddTransceiver(string trackOrKind) => JSRef!.Call<string, RTCRtpTransceiver>("addTransceiver", trackOrKind);
         /// <summary>
         /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
         /// </summary>
         /// <param name="trackOrKind"></param>
         /// <returns></returns>
-        public RTCRtpTransceiver AddTransceiver(MediaStreamTrack trackOrKind) => JSRef!.Call<RTCRtpTransceiver>("addTransceiver", trackOrKind);
-        /// <summary>
-        /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
-        /// </summary>
-        /// <param name="trackOrKind"></param>
-        /// <param name="init"></param>
-        /// <returns></returns>
-        public RTCRtpTransceiver AddTransceiver(string trackOrKind, RTCRtpTransceiverOptions init) => JSRef!.Call<RTCRtpTransceiver>("addTransceiver", trackOrKind, init);
+        public RTCRtpTransceiver AddTransceiver(MediaStreamTrack trackOrKind) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.MediaStreamTrack, RTCRtpTransceiver>("addTransceiver", trackOrKind);
         /// <summary>
         /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
         /// </summary>
         /// <param name="trackOrKind"></param>
         /// <param name="init"></param>
         /// <returns></returns>
-        public RTCRtpTransceiver AddTransceiver(MediaStreamTrack trackOrKind, RTCRtpTransceiverOptions init) => JSRef!.Call<RTCRtpTransceiver>("addTransceiver", trackOrKind, init);
+        public RTCRtpTransceiver AddTransceiver(string trackOrKind, RTCRtpTransceiverOptions init) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.RTCRtpTransceiverOptions, RTCRtpTransceiver>("addTransceiver", trackOrKind, init);
+        /// <summary>
+        /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
+        /// </summary>
+        /// <param name="trackOrKind"></param>
+        /// <param name="init"></param>
+        /// <returns></returns>
+        public RTCRtpTransceiver AddTransceiver(MediaStreamTrack trackOrKind, RTCRtpTransceiverOptions init) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.MediaStreamTrack, global::SpawnDev.SpawnJS.JSObjects.RTCRtpTransceiverOptions, RTCRtpTransceiver>("addTransceiver", trackOrKind, init);
         /// <summary>
         /// The RTCPeerConnection method addTrack() adds a new media track to the set of tracks which will be transmitted to the other peer.
         /// </summary>
@@ -231,7 +230,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="selector">A MediaStreamTrack for which to gather statistics. If this is null (the default value), statistics will be gathered for the entire RTCPeerConnection.</param>
         /// <returns></returns>
-        public Task<RTCStatsReport> GetStats(MediaStreamTrack? selector = null) => JSRef!.CallAsync<RTCStatsReport>("getStats", selector);
+        public Task<RTCStatsReport> GetStats(MediaStreamTrack? selector = null) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.MediaStreamTrack, RTCStatsReport>("getStats", selector!);
         /// <summary>
         /// Returns an array of RTCRtpTransceiver objects being used to send and receive data on the connection.
         /// </summary>

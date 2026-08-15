@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -60,10 +59,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// absolute orientation data; otherwise, requests relative orientation data.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a string indicating the
         /// permission status, such as "granted", "denied", or "prompt".</returns>
-        public static Task<string> RequestPermission(bool absolute = false) => JS.CallAsync<string>("DeviceOrientationEvent.requestPermission", absolute);
+        public static Task<string> RequestPermission(bool absolute = false) => JS.CallAsync<bool, string>("DeviceOrientationEvent.requestPermission", absolute);
         /// <summary>
         /// Returns true if the DeviceOrientationEvent.requestPermission method is supported in the current environment.
         /// </summary>
-        public static bool RequestPermissionSupported => JS.IsUndefined("DeviceOrientationEvent?.requestPermission") == false;
+        public static bool RequestPermissionSupported => !JS.Exists("DeviceOrientationEvent?.requestPermission") == false;
     }
 }

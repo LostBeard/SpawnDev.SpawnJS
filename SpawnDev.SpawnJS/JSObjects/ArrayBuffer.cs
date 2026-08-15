@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
+using System.Diagnostics.CodeAnalysis;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -100,7 +97,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static ArrayBuffer Create<T>(T[] data, long offset = 0) where T : struct
+        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset = 0) where T : struct
         {
             using var heapView = HeapView.Create(data, offset);
             return heapView.ToArrayBuffer();
@@ -113,7 +110,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static ArrayBuffer Create<T>(T[] data, long offset, long length) where T : struct
+        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset, long length) where T : struct
         {
             using var heapView = HeapView.Create(data, offset, length);
             return heapView.ToArrayBuffer();
@@ -202,7 +199,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="newByteLength"></param>
         /// <returns></returns>
-        public ArrayBuffer Transfer(long newByteLength) => JSRef!.Call<ArrayBuffer>("transfer", newByteLength);
+        public ArrayBuffer Transfer(long newByteLength) => JSRef!.Call<long, ArrayBuffer>("transfer", newByteLength);
         /// <summary>
         /// Creates a new ArrayBuffer with the same byte content as this buffer, then detaches this buffer.
         /// </summary>
@@ -218,14 +215,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
-        public ArrayBuffer Slice(long start) => JSRef!.Call<ArrayBuffer>("slice", start);
+        public ArrayBuffer Slice(long start) => JSRef!.Call<long, ArrayBuffer>("slice", start);
         /// <summary>
         /// Returns a new ArrayBuffer whose contents are a copy of this ArrayBuffer's bytes from begin (inclusive) up to end (exclusive). If either begin or end is negative, it refers to an index from the end of the array, as opposed to from the beginning.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public ArrayBuffer Slice(long start, long end) => JSRef!.Call<ArrayBuffer>("slice", start, end);
+        public ArrayBuffer Slice(long start, long end) => JSRef!.Call<long, long, ArrayBuffer>("slice", start, end);
         /// <summary>
         /// Creates a new non-resizable ArrayBuffer with the same byte content as this buffer, then detaches this buffer.
         /// </summary>
@@ -236,6 +233,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="newByteLength"></param>
         /// <returns></returns>
-        public ArrayBuffer TransferToFixedLength(long newByteLength) => JSRef!.Call<ArrayBuffer>("transferToFixedLength", newByteLength);
+        public ArrayBuffer TransferToFixedLength(long newByteLength) => JSRef!.Call<long, ArrayBuffer>("transferToFixedLength", newByteLength);
     }
 }

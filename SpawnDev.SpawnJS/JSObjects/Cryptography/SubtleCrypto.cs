@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -31,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </param>
         /// <param name="data">An ArrayBuffer, a TypedArray or a DataView object containing the data to be digested.</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the digest.</returns>
-        public Task<ArrayBuffer> Digest(string algorithm, BufferSource data) => JSRef!.CallAsync<ArrayBuffer>("digest", algorithm, data);
+        public Task<ArrayBuffer> Digest(string algorithm, BufferSource data) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, ArrayBuffer>("digest", algorithm, data);
         /// <summary>
         /// The decrypt() method of the SubtleCrypto interface decrypts some encrypted data. It takes as arguments a key to decrypt with, some optional extra parameters, and the data to decrypt (also known as "ciphertext"). It returns a Promise which will be fulfilled with the decrypted data (also known as "plaintext").<br/>
         /// </summary>
@@ -46,7 +46,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="key">A CryptoKey containing the key to be used for decryption. If using RSA-OAEP, this is the privateKey property of the CryptoKeyPair object.</param>
         /// <param name="data">An ArrayBuffer, a TypedArray, or a DataView containing the data to be decrypted (also known as ciphertext).</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the plaintext.</returns>
-        public Task<ArrayBuffer> Decrypt(EncryptParams algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<ArrayBuffer>("decrypt", algorithm, key, data);
+        public Task<ArrayBuffer> Decrypt(EncryptParams algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.EncryptParams, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, ArrayBuffer>("decrypt", algorithm, key, data);
         /// <summary>
         /// The encrypt() method of the SubtleCrypto interface encrypts data. It takes as its arguments a key to encrypt with, some algorithm-specific parameters, and the data to encrypt(also known as "plaintext"). It returns a Promise which will be fulfilled with the encrypted data(also known as "ciphertext").
         /// </summary>
@@ -61,7 +61,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="key">A CryptoKey containing the key to be used for encryption.</param>
         /// <param name="data">An ArrayBuffer, a TypedArray, or a DataView containing the data to be encrypted (also known as the plaintext).</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the "ciphertext".</returns>
-        public Task<ArrayBuffer> Encrypt(EncryptParams algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<ArrayBuffer>("encrypt", algorithm, key, data);
+        public Task<ArrayBuffer> Encrypt(EncryptParams algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.EncryptParams, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, ArrayBuffer>("encrypt", algorithm, key, data);
         /// <summary>
         /// The exportKey() method of the SubtleCrypto interface exports a key: that is, it takes as input a CryptoKey object and gives you the key in an external, portable format.
         /// To export a key, the key must have CryptoKey.extractable set to true.
@@ -79,41 +79,41 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// If format was jwk, then the Promise that fulfills with a JSON object containing the key.<br/>
         /// Otherwise the Promise that fulfills with an ArrayBuffer containing the key.
         /// </returns>
-        public Task<T> ExportKey<T>(string format, CryptoKey key) => JSRef!.CallAsync<T>("exportKey", format, key);
+        public Task<T> ExportKey<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string format, CryptoKey key) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, T>("exportKey", format, key);
         /// <summary>
         /// Export key in SubjectPublicKeyInfo format.<br/>
         /// Can be used to export RSA or Elliptic Curve public keys.
         /// </summary>
         /// <param name="key">the CryptoKey to export</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the key</returns>
-        public Task<ArrayBuffer> ExportKeySpki(CryptoKey key) => JSRef!.CallAsync<ArrayBuffer>("exportKey", "spki", key);
+        public Task<ArrayBuffer> ExportKeySpki(CryptoKey key) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, ArrayBuffer>("exportKey", "spki", key);
         /// <summary>
         /// Export key in PKCS #8 format. Can be used to export RSA or Elliptic Curve private keys.
         /// </summary>
         /// <param name="key">the CryptoKey to export</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the key</returns>
-        public Task<ArrayBuffer> ExportKeyPkcs8(CryptoKey key) => JSRef!.CallAsync<ArrayBuffer>("exportKey", "pkcs8", key);
+        public Task<ArrayBuffer> ExportKeyPkcs8(CryptoKey key) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, ArrayBuffer>("exportKey", "pkcs8", key);
         /// <summary>
         /// You can use this format to export AES or HMAC secret keys, or Elliptic Curve public keys.<br/>
         /// In this format the key is supplied as an ArrayBuffer containing the raw bytes for the key.
         /// </summary>
         /// <param name="key">the CryptoKey to export</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the key</returns>
-        public Task<ArrayBuffer> ExportKeyRaw(CryptoKey key) => JSRef!.CallAsync<ArrayBuffer>("exportKey", "raw", key);
+        public Task<ArrayBuffer> ExportKeyRaw(CryptoKey key) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, ArrayBuffer>("exportKey", "raw", key);
         /// <summary>
         /// You can use JSON Web Key format to export RSA or Elliptic Curve public or private keys, as well as AES and HMAC secret keys.<br/>
         /// JSON Web Key format is defined in RFC 7517. It describes a way to represent public, private, and secret keys as JSON objects.
         /// </summary>
         /// <param name="key">the CryptoKey to export</param>
         /// <returns>A Promise that fulfills with a JSON object containing the key</returns>
-        public Task<SpawnJSObject> ExportKeyJwk(CryptoKey key) => JSRef!.CallAsync<SpawnJSObject>("exportKey", "jwk", key);
+        public Task<SpawnJSObject> ExportKeyJwk(CryptoKey key) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, SpawnJSObject>("exportKey", "jwk", key);
         /// <summary>
         /// You can use JSON Web Key format to export RSA or Elliptic Curve public or private keys, as well as AES and HMAC secret keys.<br/>
         /// JSON Web Key format is defined in RFC 7517. It describes a way to represent public, private, and secret keys as JSON objects.
         /// </summary>
         /// <param name="key">the CryptoKey to export</param>
         /// <returns>A Promise that fulfills with a JSON object containing the key</returns>
-        public Task<TJWK> ExportKey<TJWK>(CryptoKey key) where TJWK : JWK => JSRef!.CallAsync<TJWK>("exportKey", "jwk", key);
+        public Task<TJWK> ExportKey<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TJWK>(CryptoKey key) where TJWK : JWK => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, TJWK>("exportKey", "jwk", key);
         /// <summary>
         /// Use the generateKey() method of the SubtleCrypto interface to generate a new key (for symmetric algorithms) or key pair (for public-key algorithms).
         /// </summary>
@@ -127,7 +127,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="extractable">A boolean value indicating whether it will be possible to export the key using SubtleCrypto.exportKey() or SubtleCrypto.wrapKey().</param>
         /// <param name="keyUsages">An Array indicating what can be done with the key. Possible array values are: encrypt, decrypt, sign, verify, deriveKey, deriveBits, wrapKey, or unwrapKey.</param>
         /// <returns>A Promise that fulfills with a CryptoKey (for symmetric algorithms) or a CryptoKeyPair (for public-key algorithms).</returns>
-        public Task<T> GenerateKey<T>(Union<RsaHashedKeyGenParams, EcKeyGenParams, HmacKeyGenParams, AesKeyGenParams> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<T>("generateKey", algorithm, extractable, keyUsages);
+        public Task<T> GenerateKey<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Union<RsaHashedKeyGenParams, EcKeyGenParams, HmacKeyGenParams, AesKeyGenParams> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.RsaHashedKeyGenParams, global::SpawnDev.SpawnJS.JSObjects.EcKeyGenParams, global::SpawnDev.SpawnJS.JSObjects.HmacKeyGenParams, global::SpawnDev.SpawnJS.JSObjects.AesKeyGenParams>, bool, global::System.Collections.Generic.IEnumerable<string>, T>("generateKey", algorithm, extractable, keyUsages);
         /// <summary>
         /// The importKey() method of the SubtleCrypto interface imports a key: that is, it takes as input a key in an external, portable format and gives you a CryptoKey object that you can use in the Web Crypto API.
         /// </summary>
@@ -143,7 +143,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="extractable">A boolean value indicating whether it will be possible to export the key using SubtleCrypto.exportKey() or SubtleCrypto.wrapKey().</param>
         /// <param name="keyUsages">An Array indicating what can be done with the key. Possible array values are: encrypt, decrypt, sign, verify, deriveKey, deriveBits, wrapKey, or unwrapKey.</param>
         /// <returns>A Promise that fulfills with the imported key as a CryptoKey object.</returns>
-        public Task<CryptoKey> ImportKey(string format, Union<ArrayBuffer, TypedArray, DataView, byte[], JWK> keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<CryptoKey>("importKey", format, keyData, algorithm, extractable, keyUsages);
+        public Task<CryptoKey> ImportKey(string format, Union<ArrayBuffer, TypedArray, DataView, byte[], JWK> keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[], global::SpawnDev.SpawnJS.JSObjects.JWK>, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoImportParams, string>, bool, global::System.Collections.Generic.IEnumerable<string>, CryptoKey>("importKey", format, keyData, algorithm, extractable, keyUsages);
         /// <summary>
         /// The importKey() method of the SubtleCrypto interface imports a key: that is, it takes as input a key in an external, portable format and gives you a CryptoKey object that you can use in the Web Crypto API.
         /// </summary>
@@ -152,7 +152,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="extractable">A boolean value indicating whether it will be possible to export the key using SubtleCrypto.exportKey() or SubtleCrypto.wrapKey().</param>
         /// <param name="keyUsages">An Array indicating what can be done with the key. Possible array values are: encrypt, decrypt, sign, verify, deriveKey, deriveBits, wrapKey, or unwrapKey.</param>
         /// <returns>A Promise that fulfills with the imported key as a CryptoKey object.</returns>
-        public Task<CryptoKey> ImportKey(JWK keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<CryptoKey>("importKey", "jwk", keyData, algorithm, extractable, keyUsages);
+        public Task<CryptoKey> ImportKey(JWK keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.JWK, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoImportParams, string>, bool, global::System.Collections.Generic.IEnumerable<string>, CryptoKey>("importKey", "jwk", keyData, algorithm, extractable, keyUsages);
         /// <summary>
         /// The importKey() method of the SubtleCrypto interface imports a key: that is, it takes as input a key in an external, portable format and gives you a CryptoKey object that you can use in the Web Crypto API.
         /// </summary>
@@ -169,7 +169,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="extractable">A boolean value indicating whether it will be possible to export the key using SubtleCrypto.exportKey() or SubtleCrypto.wrapKey().</param>
         /// <param name="keyUsages">An Array indicating what can be done with the key. Possible array values are: encrypt, decrypt, sign, verify, deriveKey, deriveBits, wrapKey, or unwrapKey.</param>
         /// <returns>A Promise that fulfills with the imported key as a CryptoKey object.</returns>
-        public Task<T> ImportKey<T>(string format, Union<ArrayBuffer, TypedArray, DataView, byte[], JWK> keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<T>("importKey", format, keyData, algorithm, extractable, keyUsages);
+        public Task<T> ImportKey<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string format, Union<ArrayBuffer, TypedArray, DataView, byte[], JWK> keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[], global::SpawnDev.SpawnJS.JSObjects.JWK>, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoImportParams, string>, bool, global::System.Collections.Generic.IEnumerable<string>, T>("importKey", format, keyData, algorithm, extractable, keyUsages);
         /// <summary>
         /// The importKey() method of the SubtleCrypto interface imports a key: that is, it takes as input a key in an external, portable format and gives you a CryptoKey object that you can use in the Web Crypto API.
         /// </summary>
@@ -179,7 +179,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="extractable">A boolean value indicating whether it will be possible to export the key using SubtleCrypto.exportKey() or SubtleCrypto.wrapKey().</param>
         /// <param name="keyUsages">An Array indicating what can be done with the key. Possible array values are: encrypt, decrypt, sign, verify, deriveKey, deriveBits, wrapKey, or unwrapKey.</param>
         /// <returns>A Promise that fulfills with the imported key as a CryptoKey object.</returns>
-        public Task<T> ImportKey<T>(JWK keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<T>("importKey", "jwk", keyData, algorithm, extractable, keyUsages);
+        public Task<T> ImportKey<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(JWK keyData, Union<CryptoImportParams, string> algorithm, bool extractable, IEnumerable<string> keyUsages) where T : CryptoKeyBase => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.JWK, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoImportParams, string>, bool, global::System.Collections.Generic.IEnumerable<string>, T>("importKey", "jwk", keyData, algorithm, extractable, keyUsages);
         /// <summary>
         /// The sign() method of the SubtleCrypto interface generates a digital signature.<br/>
         /// It takes as its arguments a key to sign with, some algorithm-specific parameters, and the data to sign. It returns a Promise which will be fulfilled with the signature.
@@ -188,7 +188,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="key">A CryptoKey object containing the key to be used for signing. If algorithm identifies a public-key cryptosystem, this is the private key.</param>
         /// <param name="data">An ArrayBuffer, a TypedArray, byte array or a DataView object containing the data to be signed.</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the signature.</returns>
-        public Task<ArrayBuffer> Sign(Union<CryptoSignParams, string> algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<ArrayBuffer>("sign", algorithm, key, data);
+        public Task<ArrayBuffer> Sign(Union<CryptoSignParams, string> algorithm, CryptoKey key, BufferSource data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoSignParams, string>, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, ArrayBuffer>("sign", algorithm, key, data);
         /// <summary>
         /// The verify() method of the SubtleCrypto interface verifies a digital signature.<br/>
         /// It takes as its arguments a key to verify the signature with, some algorithm-specific parameters, the signature, and the original signed data.It returns a Promise which will be fulfilled with a boolean value indicating whether the signature is valid.
@@ -198,7 +198,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="signature">An ArrayBuffer, a TypedArray, byte array or a DataView object containing the signature to verify.</param>
         /// <param name="data">An ArrayBuffer, a TypedArray, byte array or a DataView object containing the data whose signature is to be verified.</param>
         /// <returns>A Promise that fulfills with a boolean value: true if the signature is valid, false otherwise.</returns>
-        public Task<bool> Verify(Union<CryptoSignParams, string> algorithm, CryptoKey key, BufferSource signature, BufferSource data) => JSRef!.CallAsync<bool>("verify", algorithm, key, signature, data);
+        public Task<bool> Verify(Union<CryptoSignParams, string> algorithm, CryptoKey key, BufferSource signature, BufferSource data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.CryptoSignParams, string>, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, bool>("verify", algorithm, key, signature, data);
         /// <summary>
         /// The unwrapKey() method of the SubtleCrypto interface "unwraps" a key. This means that it takes as its input a key that has been exported and then encrypted (also called "wrapped"). It decrypts the key and then imports it, returning a CryptoKey object that can be used in the Web Crypto API.
         /// </summary>
@@ -239,7 +239,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// unwrapKey: The key may be used to unwrap a key.<br/>
         /// </param>
         /// <returns>A Promise that fulfills with the unwrapped key as a CryptoKey object.</returns>
-        public Task<CryptoKey> UnwrapKey(string format, ArrayBuffer wrappedKey, CryptoKey unwrappingKey, EncryptParams unwrapAlgo, CryptoImportParams unwrappedKeyAlgo, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<CryptoKey>("unwrapKey", format, wrappedKey, unwrappingKey, unwrapAlgo, unwrappedKeyAlgo, extractable, keyUsages);
+        public Task<CryptoKey> UnwrapKey(string format, ArrayBuffer wrappedKey, CryptoKey unwrappingKey, EncryptParams unwrapAlgo, CryptoImportParams unwrappedKeyAlgo, bool extractable, IEnumerable<string> keyUsages) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.JSObjects.EncryptParams, global::SpawnDev.SpawnJS.JSObjects.CryptoImportParams, bool, global::System.Collections.Generic.IEnumerable<string>, CryptoKey>("unwrapKey", format, wrappedKey, unwrappingKey, unwrapAlgo, unwrappedKeyAlgo, extractable, keyUsages);
         /// <summary>
         /// The wrapKey() method of the SubtleCrypto interface "wraps" a key. This means that it exports the key in an external, portable format, then encrypts the exported key. Wrapping a key helps protect it in untrusted environments, such as inside an otherwise unprotected data store or in transmission over an unprotected network.
         /// </summary>
@@ -261,7 +261,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - To use AES-KW, pass an AesKwParams object.
         /// </param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the encrypted exported key.</returns>
-        public Task<ArrayBuffer> WrapKey(string format, CryptoKey key, CryptoKey wrappingKey, EncryptParams wrapAlgo) => JSRef!.CallAsync<ArrayBuffer>("wrapKey", format, key, wrappingKey, wrapAlgo);
+        public Task<ArrayBuffer> WrapKey(string format, CryptoKey key, CryptoKey wrappingKey, EncryptParams wrapAlgo) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.JSObjects.EncryptParams, ArrayBuffer>("wrapKey", format, key, wrappingKey, wrapAlgo);
         /// <summary>
         /// The deriveKey() method of the SubtleCrypto interface can be used to derive a secret key from a master key.<br/>
         /// It takes as arguments some initial key material, the derivation algorithm to use, and the desired properties for the key to derive. It returns a Promise which will be fulfilled with a CryptoKey object representing the new key.<br/>
@@ -296,7 +296,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// unwrapKey: The key may be used to unwrap a key.<br/>
         /// </param>
         /// <returns>A Promise that fulfills with a CryptoKey.</returns>
-        public Task<CryptoKey> DeriveKey(KeyDeriveParams algorithm, CryptoKey baseKey, Union<HmacKeyGenParams, AesKeyGenParams, HkdfParams, Pbkdf2Params> derivedKeyAlgorithm, bool extractable, string[] keyUsages) => JSRef!.CallAsync<CryptoKey>("deriveKey", algorithm, baseKey, derivedKeyAlgorithm, extractable, keyUsages);
+        public Task<CryptoKey> DeriveKey(KeyDeriveParams algorithm, CryptoKey baseKey, Union<HmacKeyGenParams, AesKeyGenParams, HkdfParams, Pbkdf2Params> derivedKeyAlgorithm, bool extractable, string[] keyUsages) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.KeyDeriveParams, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HmacKeyGenParams, global::SpawnDev.SpawnJS.JSObjects.AesKeyGenParams, global::SpawnDev.SpawnJS.JSObjects.HkdfParams, global::SpawnDev.SpawnJS.JSObjects.Pbkdf2Params>, bool, string[], CryptoKey>("deriveKey", algorithm, baseKey, derivedKeyAlgorithm, extractable, keyUsages);
         /// <summary>
         /// The deriveBits() method of the SubtleCrypto interface can be used to derive an array of bits from a base key.<br/>
         /// It takes as its arguments the base key, the derivation algorithm to use, and the length of the bits to derive. It returns a Promise which will be fulfilled with an ArrayBuffer containing the derived bits.<br/>
@@ -312,7 +312,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="baseKey">A CryptoKey representing the input to the derivation algorithm. If algorithm is ECDH, this will be the ECDH private key. Otherwise it will be the initial key material for the derivation function: for example, for PBKDF2 it might be a password, imported as a CryptoKey using SubtleCrypto.importKey().</param>
         /// <param name="length">A number representing the number of bits to derive. To be compatible with all browsers, the number should be a multiple of 8.</param>
         /// <returns>A Promise that fulfills with an ArrayBuffer containing the derived bits.</returns>
-        public Task<ArrayBuffer> DeriveBits(KeyDeriveParams algorithm, CryptoKey baseKey, int length) => JSRef!.CallAsync<ArrayBuffer>("deriveBits", algorithm, baseKey, length);
+        public Task<ArrayBuffer> DeriveBits(KeyDeriveParams algorithm, CryptoKey baseKey, int length) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.KeyDeriveParams, global::SpawnDev.SpawnJS.JSObjects.CryptoKey, int, ArrayBuffer>("deriveBits", algorithm, baseKey, length);
         #endregion
     }
 }

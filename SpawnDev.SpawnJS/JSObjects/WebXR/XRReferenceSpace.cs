@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="originOffset">An XRRigidTransform specifying the offset to the origin of the new reference space. These values are added to the position and orientation of the current reference space and then the result is used as the position and orientation of the newly created XRReferenceSpace.</param>
         /// <returns>A new XRReferenceSpace object describing a reference space with the same native origin as the reference space on which the method was called, but with an origin offset indicating the distance from the object to the point given by originOffset.<br/>
         /// If the object on which you call this method is an XRBoundedReferenceSpace, the returned object is one as well. The boundsGeometry of the new reference space is set to the original object's boundsGeometry with each of its points multiplied by the inverse of originOffset.</returns>
-        public XRReferenceSpace GetOffsetReferenceSpace(XRRigidTransform originOffset) => JSRef!.Call<XRReferenceSpace>("getOffsetReferenceSpace", originOffset);
+        public XRReferenceSpace GetOffsetReferenceSpace(XRRigidTransform originOffset) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.XRRigidTransform, XRReferenceSpace>("getOffsetReferenceSpace", originOffset);
         /// <summary>
         /// The reset event is sent to an XRReferenceSpace object when the browser detects a discontinuity between the tracked object's origin and the user's environment or location. This can happen, for example, after the user recalibrates their XR device, or if the device automatically adjusts its origin after losing and regaining tracking.
         /// </summary>

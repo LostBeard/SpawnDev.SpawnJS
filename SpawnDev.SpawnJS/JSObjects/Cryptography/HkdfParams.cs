@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpawnDev.SpawnJS.JSObjects

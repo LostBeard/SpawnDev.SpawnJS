@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -24,6 +23,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public Touch Items(int i) => JSRef!.Call<Touch>("item", i);
+        public Touch Items(int i) => JSRef!.Call<int, Touch>("item", i);
     }
 }

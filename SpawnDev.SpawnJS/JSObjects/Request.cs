@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -118,7 +118,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public Task<T> Json<T>() => JSRef!.CallAsync<T>("json");
+        public Task<T> Json<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.CallAsync<T>("json");
         /// <summary>
         /// Returns a promise that resolves with a text representation of the request body.
         /// </summary>

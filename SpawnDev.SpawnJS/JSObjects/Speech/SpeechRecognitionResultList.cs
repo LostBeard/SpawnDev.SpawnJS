@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -22,6 +21,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Indexer for accessing SpeechRecognitionResult objects.
         /// </summary>
-        public SpeechRecognitionResult this[int index] => JSRef!.Call<SpeechRecognitionResult>("item", index);
+        public SpeechRecognitionResult this[int index] => JSRef!.Call<int, SpeechRecognitionResult>("item", index);
     }
 }

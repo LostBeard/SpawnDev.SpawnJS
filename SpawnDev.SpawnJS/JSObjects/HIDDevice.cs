@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -88,7 +87,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Receives a feature report from this HID device in the form of a Promise which resolves with a DataView. This allows typed access to the contents of this message.
         /// </summary>
         /// <param name="reportId">An 8-bit report ID. If the HID device does not use report IDs, send 0.</param>
-        public Task<DataView> ReceiveFeatureReport(byte reportId) => JSRef!.CallAsync<DataView>("receiveFeatureReport", reportId);
+        public Task<DataView> ReceiveFeatureReport(byte reportId) => JSRef!.CallAsync<byte, DataView>("receiveFeatureReport", reportId);
 
         #endregion
 

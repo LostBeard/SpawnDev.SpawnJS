@@ -1,22 +1,12 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+﻿using SpawnDev.SpawnJS.Marshaller;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
-    /// <summary>
-    /// Marshalls Boolean
-    /// </summary>
-    public class BooleanMarshaller : JSMarshaller<bool>
+    /// <summary>Marshals <see cref="bool"/> to/from a JS boolean (no conversion needed).</summary>
+    public class BooleanMarshaller : JSMarshallerFromBoolean<bool>
     {
-        /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsBoolean();
-        /// <inheritdoc/>
-        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => jsParent.SetProperty(jsKey, (bool)value!);
-        /// <inheritdoc/>
-        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
-        {
-            tag = ArgTag.Boolean;
-            payload = (bool)value ? 1 : 0;
-            return true;
-        }
+        public override bool JSToNet(bool value) => value;
+        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, bool value) => jsParent.PropertySet(jsKey, value);
+        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, bool value) => jsParent.PropertySet(jsKey, value);
     }
 }

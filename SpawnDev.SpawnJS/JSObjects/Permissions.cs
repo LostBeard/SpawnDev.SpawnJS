@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="permissionDescriptor"></param>
         /// <returns></returns>
-        public Task<PermissionStatus> Query(PermissionDescriptor permissionDescriptor) => JSRef!.CallAsync<PermissionStatus>("query", permissionDescriptor);
+        public Task<PermissionStatus> Query(PermissionDescriptor permissionDescriptor) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.PermissionDescriptor, PermissionStatus>("query", permissionDescriptor);
     }
 }

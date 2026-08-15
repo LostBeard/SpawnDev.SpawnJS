@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="event"></param>
         /// <returns></returns>
-        public bool DispatchEvent(Event @event) => JSRef!.Call<bool>("dispatchEvent", @event);
+        public bool DispatchEvent(Event @event) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Event, bool>("dispatchEvent", @event);
         /// <summary>
         /// Registers an event handler of a specific event type on the EventTarget.
         /// </summary>
@@ -123,7 +123,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, TResult>(string type, Func<T1, TResult> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, TResult>(string type, Func<T1, TResult> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -164,7 +164,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2, TResult>(string type, Func<T1, T2, TResult> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, TResult>(string type, Func<T1, T2, TResult> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -207,7 +207,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2, T3, TResult>(string type, Func<T1, T2, T3, TResult> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, TResult>(string type, Func<T1, T2, T3, TResult> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -252,7 +252,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2, T3, T4, TResult>(string type, Func<T1, T2, T3, T4, TResult> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, TResult>(string type, Func<T1, T2, T3, T4, TResult> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -352,7 +352,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, TResult>(string type, Func<T1, TResult> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, TResult>(string type, Func<T1, TResult> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -411,7 +411,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2, TResult>(string type, Func<T1, T2, TResult> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, TResult>(string type, Func<T1, T2, TResult> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -472,7 +472,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2, T3, TResult>(string type, Func<T1, T2, T3, TResult> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, TResult>(string type, Func<T1, T2, T3, TResult> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -535,7 +535,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2, T3, T4, TResult>(string type, Func<T1, T2, T3, T4, TResult> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, TResult>(string type, Func<T1, T2, T3, T4, TResult> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -633,7 +633,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1>(string type, Action<T1> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1>(string type, Action<T1> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -672,7 +672,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2>(string type, Action<T1, T2> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2>(string type, Action<T1, T2> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -713,7 +713,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2, T3>(string type, Action<T1, T2, T3> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3>(string type, Action<T1, T2, T3> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -756,7 +756,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="useCapture"></param>
-        public void AddEventListener<T1, T2, T3, T4>(string type, Action<T1, T2, T3, T4> listener, bool useCapture = false)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4>(string type, Action<T1, T2, T3, T4> listener, bool useCapture = false)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -851,7 +851,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1>(string type, Action<T1> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1>(string type, Action<T1> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -907,7 +907,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2>(string type, Action<T1, T2> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2>(string type, Action<T1, T2> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -965,7 +965,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2, T3>(string type, Action<T1, T2, T3> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3>(string type, Action<T1, T2, T3> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {
@@ -1025,7 +1025,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type"></param>
         /// <param name="listener"></param>
         /// <param name="options"></param>
-        public void AddEventListener<T1, T2, T3, T4>(string type, Action<T1, T2, T3, T4> listener, AddEventListenerOptions options)
+        public void AddEventListener<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4>(string type, Action<T1, T2, T3, T4> listener, AddEventListenerOptions options)
         {
             if (!CallBackInfos.TryGetValue(listener, out CallBackInfo? info))
             {

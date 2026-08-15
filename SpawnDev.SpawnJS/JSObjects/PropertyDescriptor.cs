@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,15 +24,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the property has a getter.
         /// </summary>
-        public bool HasGetter => !JSRef!.IsUndefined("get");
+        public bool HasGetter => !!JSRef!.Exists("get");
         /// <summary>
         /// Returns true if the property has a setter.
         /// </summary>
-        public bool HasSetter => !JSRef!.IsUndefined("set");
+        public bool HasSetter => !!JSRef!.Exists("set");
         /// <summary>
         /// Returns true if the property has a value property.
         /// </summary>
-        public bool HasValueProperty => !JSRef!.IsUndefined("value");
+        public bool HasValueProperty => !!JSRef!.Exists("value");
         /// <summary>
         /// Returns true if the property can be read.
         /// </summary>

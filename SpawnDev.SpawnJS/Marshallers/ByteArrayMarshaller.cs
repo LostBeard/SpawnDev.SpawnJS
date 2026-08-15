@@ -1,20 +1,58 @@
-using System.Runtime.InteropServices.JavaScript;
+﻿using SpawnDev.SpawnJS.Marshaller;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
-    /// <summary>
-    /// Marshalls byte[]
-    /// </summary>
-    public class ByteArrayMarshaller : JSMarshaller<byte[]>
+    public class ByteArrayMarshaller : JSMarshallerFromSpawnJSObjectReference<byte[]?>
     {
-        /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsHandle) => jsHandle.AsByteArray();
-        /// <inheritdoc/>
-        /// <inheritdoc/>
-        /// <remarks>
-        /// Slot native: the bytes were never the problem, but the PARENT had to become a JSObject proxy
-        /// purely to be written through.
-        /// </remarks>
-        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value) => jsParent.SetProperty(jsKey, (byte[]?)value);
+        public override byte[]? JSToNet(SpawnJSObjectReference value)
+        {
+            if (value == null) return null;
+            var byteLength = (long)value.PropertyGetDouble("byteLength");
+            var ret = new byte[byteLength];
+            if (byteLength == 0) return ret;
+            unsafe
+            {
+                fixed (byte* ptr = ret)
+                {
+                    var address = (double)(IntPtr)ptr;
+                    JS.InteropCall<double, SpawnJSObjectReference, double, double, double, VoidType>("writeArrayBufferViewToHeap", JS.DotnetInstance.Id, value, 0, address, byteLength);
+                }
+            }
+            return ret;
+        }
+        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, byte[]? value)
+        {
+            if (value == null)
+            {
+                jsParent.PropertySetNull(jsKey);
+                return;
+            }
+            unsafe
+            {
+                fixed (byte* ptr = value)
+                {
+                    IntPtr address = (IntPtr)ptr;
+                    var heapViewDescriptor = new HeapViewDescriptor(address, value.Length, true);
+                    jsParent.PropertySet(jsKey, heapViewDescriptor);
+                }
+            }
+        }
+        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, byte[]? value)
+        {
+            if (value == null)
+            {
+                jsParent.PropertySetNull(jsKey);
+                return;
+            }
+            unsafe
+            {
+                fixed (byte* ptr = value)
+                {
+                    IntPtr address = (IntPtr)ptr;
+                    var heapViewDescriptor = new HeapViewDescriptor(address, value.Length, true);
+                    jsParent.PropertySet(jsKey, heapViewDescriptor);
+                }
+            }
+        }
     }
 }

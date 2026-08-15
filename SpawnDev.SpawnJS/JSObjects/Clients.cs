@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Task<Client> Get(string id) => JSRef!.CallAsync<Client>("get", id);
+        public Task<Client> Get(string id) => JSRef!.CallAsync<string, Client>("get", id);
         /// <summary>
         /// Returns a Promise for an array of Client objects. An options argument allows you to control the types of clients returned.
         /// </summary>
@@ -31,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Array<Client>> MatchAll(ClientsMatchAllOptions options) => JSRef!.CallAsync<Array<Client>>("matchAll", options);
+        public Task<Array<Client>> MatchAll(ClientsMatchAllOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ClientsMatchAllOptions, Array<Client>>("matchAll", options);
         /// <summary>
         /// The openWindow() method of the Clients interface creates a new top level browsing context and loads a given URL. If the calling script doesn't have permission to show popups, openWindow() will throw an InvalidAccessError.<br/>
         /// In Firefox, the method is allowed to show popups only when called as the result of a notification click event.<br/>
@@ -39,7 +38,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public Task<WindowClient> OpenWindow(string url) => JSRef!.CallAsync<WindowClient>("openWindow", url);
+        public Task<WindowClient> OpenWindow(string url) => JSRef!.CallAsync<string, WindowClient>("openWindow", url);
         /// <summary>
         /// Allows an active service worker to set itself as the controller for all clients within its scope.<br/>
         /// Usually called in the service worker 'activate' event

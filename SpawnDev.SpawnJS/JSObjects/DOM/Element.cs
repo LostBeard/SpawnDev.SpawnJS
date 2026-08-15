@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,40 +25,40 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public NodeList<Element> QuerySelectorAll(string selector) => JSRef!.Call<NodeList<Element>>("querySelectorAll", selector);
+        public NodeList<Element> QuerySelectorAll(string selector) => JSRef!.Call<string, NodeList<Element>>("querySelectorAll", selector);
         /// <summary>
         /// The Element method querySelectorAll() returns a static (not live) NodeList representing a list of elements matching the specified group of selectors which are descendants of the element on which the method was called.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public NodeList<T> QuerySelectorAll<T>(string selector) where T : Element => JSRef!.Call<NodeList<T>>("querySelectorAll", selector);
+        public NodeList<T> QuerySelectorAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string selector) where T : Element => JSRef!.Call<string, NodeList<T>>("querySelectorAll", selector);
         /// <summary>
         /// The querySelector() method of the Element interface returns the first element that is a descendant of the element on which it is invoked that matches the specified group of selectors.
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public Element? QuerySelector(string selector) => JSRef!.Call<Element?>("querySelector", selector);
+        public Element? QuerySelector(string selector) => JSRef!.Call<string, Element?>("querySelector", selector);
         /// <summary>
         /// The querySelector() method of the Element interface returns the first element that is a descendant of the element on which it is invoked that matches the specified group of selectors.
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public TElement? QuerySelector<TElement>(string selector) where TElement : Element => JSRef!.Call<TElement?>("querySelector", selector);
+        public TElement? QuerySelector<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string selector) where TElement : Element => JSRef!.Call<string, TElement?>("querySelector", selector);
         /// <summary>
         /// The closest() method of the Element interface traverses the element and its parents (heading toward the document root) until it finds a node that matches the specified CSS selector.
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public TElement? Closest<TElement>(string selector) where TElement : Element => JSRef!.Call<TElement?>("closest", selector);
+        public TElement? Closest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string selector) where TElement : Element => JSRef!.Call<string, TElement?>("closest", selector);
         /// <summary>
         /// The checkVisibility() method of the Element interface checks whether the element is visible.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public bool CheckVisibility(CheckVisibilityOptions? options = null) => options == null ? JSRef!.Call<bool>("checkVisibility") : JSRef!.Call<bool>("checkVisibility", options);
+        public bool CheckVisibility(CheckVisibilityOptions? options = null) => options == null ? JSRef!.Call<bool>("checkVisibility") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.CheckVisibilityOptions, bool>("checkVisibility", options);
         /// <summary>
         /// Returns the size of an element and its position relative to the viewport.
         /// </summary>
@@ -86,7 +86,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string? GetAttribute(string name) => JSRef!.Call<string?>("getAttribute", name);
+        public string? GetAttribute(string name) => JSRef!.Call<string, string?>("getAttribute", name);
         /// <summary>
         /// Removes the named attribute from the current node.
         /// </summary>
@@ -102,22 +102,22 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Inserts a set of Node objects or strings in the children list of the Element's parent, just after the Element.
         /// </summary>
         /// <param name="nodes"></param>
-        public void After(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("after", nodes);
+        public void After(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("after", nodes);
         /// <summary>
         /// The Element.append() method inserts a set of Node objects or string objects after the last child of the Element. String objects are inserted as equivalent Text nodes.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Append(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("append", nodes);
+        public void Append(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("append", nodes);
         /// <summary>
         /// Inserts a set of Node objects or strings before the first child of the element.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Prepend(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("prepend", nodes);
+        public void Prepend(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("prepend", nodes);
         /// <summary>
         /// The Element.before() method inserts a set of Node or string objects in the children list of this Element's parent, just before this Element. String objects are inserted as equivalent Text nodes.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Before(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("before", nodes);
+        public void Before(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("before", nodes);
         /// <summary>
         /// Removes the element from the children list of its parent.
         /// </summary>
@@ -128,23 +128,23 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public ShadowRoot AttachShadow(AttachShadowRootOptions options) => JSRef!.Call<ShadowRoot>("attachShadow", options);
+        public ShadowRoot AttachShadow(AttachShadowRootOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.AttachShadowRootOptions, ShadowRoot>("attachShadow", options);
         /// <summary>
         /// Returns a boolean indicating whether the specified element has the specified attribute or not.
         /// </summary>
-        public bool HasAttribute(string name) => JSRef!.Call<bool>("hasAttribute", name);
+        public bool HasAttribute(string name) => JSRef!.Call<string, bool>("hasAttribute", name);
         /// <summary>
         /// Toggles a boolean attribute (removing it if present, adding it if absent). Returns true if the attribute is present after the call, false otherwise.
         /// </summary>
-        public bool ToggleAttribute(string name) => JSRef!.Call<bool>("toggleAttribute", name);
+        public bool ToggleAttribute(string name) => JSRef!.Call<string, bool>("toggleAttribute", name);
         /// <summary>
         /// Toggles a boolean attribute. If force is true, adds the attribute; if false, removes it.
         /// </summary>
-        public bool ToggleAttribute(string name, bool force) => JSRef!.Call<bool>("toggleAttribute", name, force);
+        public bool ToggleAttribute(string name, bool force) => JSRef!.Call<string, bool, bool>("toggleAttribute", name, force);
         /// <summary>
         /// Returns true if the element would be selected by the specified selector string.
         /// </summary>
-        public bool Matches(string selectors) => JSRef!.Call<bool>("matches", selectors);
+        public bool Matches(string selectors) => JSRef!.Call<string, bool>("matches", selectors);
         /// <summary>
         /// Scrolls the element into the visible area of the browser window.
         /// </summary>
@@ -164,7 +164,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="position">One of "beforebegin", "afterbegin", "beforeend", "afterend".</param>
         /// <param name="element">The element to insert.</param>
-        public Element? InsertAdjacentElement(string position, Element element) => JSRef!.Call<Element?>("insertAdjacentElement", position, element);
+        public Element? InsertAdjacentElement(string position, Element element) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.Element, Element?>("insertAdjacentElement", position, element);
         /// <summary>
         /// Designates a specific element as the capture target of future pointer events.
         /// </summary>
@@ -176,7 +176,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the element has pointer capture for the pointer identified by the given pointer ID.
         /// </summary>
-        public bool HasPointerCapture(int pointerId) => JSRef!.Call<bool>("hasPointerCapture", pointerId);
+        public bool HasPointerCapture(int pointerId) => JSRef!.Call<int, bool>("hasPointerCapture", pointerId);
         /// <summary>
         /// Returns a collection of DOMRect objects that indicate the bounding rectangles for each CSS border box in a client.
         /// </summary>
@@ -184,11 +184,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Replaces the element in the children list of its parent with a set of Node or string objects.
         /// </summary>
-        public void ReplaceWith(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("replaceWith", nodes);
+        public void ReplaceWith(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("replaceWith", nodes);
         /// <summary>
         /// Replaces the existing children of a node with a specified new set of children.
         /// </summary>
-        public void ReplaceChildren(params Union<Node, string>[] nodes) => JSRef!.CallVoidApply("replaceChildren", nodes);
+        public void ReplaceChildren(params Union<Node, string>[] nodes) => JSRef!.CallApplyVoid("replaceChildren", nodes);
         #endregion
 
         #region Properties

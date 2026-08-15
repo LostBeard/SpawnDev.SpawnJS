@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -70,7 +67,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public MediaStreamTrack? GetTrackById(string id) => JSRef!.Call<MediaStreamTrack?>("getTrackById", id);
+        public MediaStreamTrack? GetTrackById(string id) => JSRef!.Call<string, MediaStreamTrack?>("getTrackById", id);
         /// <summary>
         /// Returns the total number of tracks
         /// </summary>

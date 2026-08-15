@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -29,7 +28,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public VTTRegion Item(int index) => JSRef!.Call<VTTRegion>("item", index);
+        public VTTRegion Item(int index) => JSRef!.Call<int, VTTRegion>("item", index);
         /// <summary>
         /// Returns the VTTRegion object at the specified index.
         /// </summary>
@@ -42,6 +41,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public VTTRegion? GetRegionById(string id) => JSRef!.Call<VTTRegion?>("getRegionById", id);
+        public VTTRegion? GetRegionById(string id) => JSRef!.Call<string, VTTRegion?>("getRegionById", id);
     }
 }

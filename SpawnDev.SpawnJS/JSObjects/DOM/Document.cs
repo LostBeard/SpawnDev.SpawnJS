@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -28,14 +28,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Text CreateTextNode(string data) => JSRef!.Call<Text>("createTextNode", data);
+        public Text CreateTextNode(string data) => JSRef!.Call<string, Text>("createTextNode", data);
         /// <summary>
         /// In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.
         /// </summary>
         /// <typeparam name="T">Element type</typeparam>
         /// <param name="tagName"></param>
         /// <returns></returns>
-        public T CreateElement<T>(string tagName) where T : Element => JSRef!.Call<T>("createElement", tagName);
+        public T CreateElement<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string tagName) where T : Element => JSRef!.Call<string, T>("createElement", tagName);
         /// <summary>
         /// In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.
         /// </summary>
@@ -43,20 +43,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="tagName"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T CreateElement<T>(string tagName, ElementCreationOptions options) where T : Element => JSRef!.Call<T>("createElement", tagName, options);
+        public T CreateElement<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string tagName, ElementCreationOptions options) where T : Element => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, T>("createElement", tagName, options);
         /// <summary>
         /// In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.
         /// </summary>
         /// <param name="tagName"></param>
         /// <returns></returns>
-        public Element CreateElement(string tagName) => JSRef!.Call<Element>("createElement", tagName);
+        public Element CreateElement(string tagName) => JSRef!.Call<string, Element>("createElement", tagName);
         /// <summary>
         /// In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.
         /// </summary>
         /// <param name="tagName"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Element CreateElement(string tagName, ElementCreationOptions options) => JSRef!.Call<Element>("createElement", tagName, options);
+        public Element CreateElement(string tagName, ElementCreationOptions options) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, Element>("createElement", tagName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -65,7 +65,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <param name="options">An optional ElementCreationOptions object containing a single property named is, whose value is the tag name for a custom element previously defined using customElements.define()</param>
         /// <returns>TElement</returns>
-        public TElement CreateElementNS<TElement>(string namespaceURI, string qualifiedName, ElementCreationOptions options) where TElement : Element => JSRef!.Call<TElement>("createElementNS", namespaceURI, qualifiedName, options);
+        public TElement CreateElementNS<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string namespaceURI, string qualifiedName, ElementCreationOptions options) where TElement : Element => JSRef!.Call<string, string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, TElement>("createElementNS", namespaceURI, qualifiedName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -73,7 +73,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <param name="options">An optional ElementCreationOptions object containing a single property named is, whose value is the tag name for a custom element previously defined using customElements.define()</param>
         /// <returns>TElement</returns>
-        public Element CreateElementNS(string namespaceURI, string qualifiedName, ElementCreationOptions options) => JSRef!.Call<Element>("createElementNS", namespaceURI, qualifiedName, options);
+        public Element CreateElementNS(string namespaceURI, string qualifiedName, ElementCreationOptions options) => JSRef!.Call<string, string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, Element>("createElementNS", namespaceURI, qualifiedName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -81,14 +81,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="namespaceURI">A string that specifies the namespace URI to associate with the element. The namespaceURI property of the created element is initialized with the value of namespaceURI. See Valid Namespace URIs.</param>
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <returns>TElement</returns>
-        public TElement CreateElementNS<TElement>(string namespaceURI, string qualifiedName) where TElement : Element => JSRef!.Call<TElement>("createElementNS", namespaceURI, qualifiedName);
+        public TElement CreateElementNS<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string namespaceURI, string qualifiedName) where TElement : Element => JSRef!.Call<string, string, TElement>("createElementNS", namespaceURI, qualifiedName);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
         /// <param name="namespaceURI">A string that specifies the namespace URI to associate with the element. The namespaceURI property of the created element is initialized with the value of namespaceURI. See Valid Namespace URIs.</param>
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <returns>TElement</returns>
-        public Element CreateElementNS(string namespaceURI, string qualifiedName) => JSRef!.Call<Element>("createElementNS", namespaceURI, qualifiedName);
+        public Element CreateElementNS(string namespaceURI, string qualifiedName) => JSRef!.Call<string, string, Element>("createElementNS", namespaceURI, qualifiedName);
         /// <summary>
         /// The Document method exitFullscreen() requests that the element on this document which is currently being presented in fullscreen mode be taken out of fullscreen mode, restoring the previous state of the screen. This usually reverses the effects of a previous call to Element.requestFullscreen().
         /// </summary>
@@ -108,40 +108,40 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="selector">A string containing one or more selectors to match against. This string must be a valid CSS selector string; if it's not, a SyntaxError exception is thrown. See Locating DOM elements using selectors for more information about using selectors to identify elements. Multiple selectors may be specified by separating them using commas.</param>
         /// <returns>A non-live NodeList containing one Element object for each element that matches at least one of the specified selectors or an empty NodeList in case of no matches.</returns>
-        public NodeList QuerySelectorAll(string selector) => JSRef!.Call<NodeList>("querySelectorAll", selector);
+        public NodeList QuerySelectorAll(string selector) => JSRef!.Call<string, NodeList>("querySelectorAll", selector);
         /// <summary>
         /// The Document method querySelectorAll() returns a static (not live) NodeList representing a list of the document's elements that match the specified group of selectors.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public NodeList<T> QuerySelectorAll<T>(string selector) where T : Node => JSRef!.Call<NodeList<T>>("querySelectorAll", selector);
+        public NodeList<T> QuerySelectorAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string selector) where T : Node => JSRef!.Call<string, NodeList<T>>("querySelectorAll", selector);
         /// <summary>
         /// The Document method querySelector() returns the first Element within the document that matches the specified selector, or group of selectors. If no matches are found, null is returned.
         /// </summary>
         /// <param name="selector">A string containing one or more selectors to match. This string must be a valid CSS selector string; if it isn't, a SyntaxError exception is thrown. See Locating DOM elements using selectors for more about selectors and how to manage them.</param>
         /// <returns>An Element object representing the first element in the document that matches the specified set of CSS selectors, or null is returned if there are no matches.</returns>
-        public Element? QuerySelector(string selector) => JSRef!.Call<Element?>("querySelector", selector);
+        public Element? QuerySelector(string selector) => JSRef!.Call<string, Element?>("querySelector", selector);
         /// <summary>
         /// The Document method querySelector() returns the first Element within the document that matches the specified selector, or group of selectors. If no matches are found, null is returned.
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public TElement? QuerySelector<TElement>(string selector) where TElement : Element => JSRef!.Call<TElement?>("querySelector", selector);
+        public TElement? QuerySelector<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string selector) where TElement : Element => JSRef!.Call<string, TElement?>("querySelector", selector);
         /// <summary>
         /// Returns an object reference to the identified element.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Element? GetElementById(string id) => JSRef!.Call<Element?>("getElementById", id);
+        public Element? GetElementById(string id) => JSRef!.Call<string, Element?>("getElementById", id);
         /// <summary>
         /// Returns an object reference to the identified element.
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TElement? GetElementById<TElement>(string id) where TElement : Element => JSRef!.Call<TElement?>("getElementById", id);
+        public TElement? GetElementById<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string id) where TElement : Element => JSRef!.Call<string, TElement?>("getElementById", id);
         /// <summary>
         /// The hasFocus() method of the Document interface returns a boolean value indicating whether the document or any element inside the document has focus. This method can be used to determine whether the active element in a document has focus.
         /// </summary>
@@ -159,12 +159,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The Document.append() method inserts a set of Node objects or string objects after the last child of the document. String objects are inserted as equivalent Text nodes.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Append(params Union<string, Node>[] nodes) => JSRef!.CallVoidApply("append", nodes);
+        public void Append(params Union<string, Node>[] nodes) => JSRef!.CallApplyVoid("append", nodes);
         /// <summary>
         /// The Document.prepend() method inserts a set of Node objects or string objects before the first child of the document. String objects are inserted as equivalent Text nodes.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Prepend(params Union<string, Node>[] nodes) => JSRef!.CallVoidApply("prepend", nodes);
+        public void Prepend(params Union<string, Node>[] nodes) => JSRef!.CallApplyVoid("prepend", nodes);
         /// <summary>
         /// The Window.getSelection() method returns a Selection object representing the range of text selected by the user or the current position of the caret.
         /// </summary>
@@ -173,11 +173,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a list of elements with the given class name.
         /// </summary>
-        public HTMLCollection GetElementsByClassName(string classNames) => JSRef!.Call<HTMLCollection>("getElementsByClassName", classNames);
+        public HTMLCollection GetElementsByClassName(string classNames) => JSRef!.Call<string, HTMLCollection>("getElementsByClassName", classNames);
         /// <summary>
         /// Returns a list of elements with the given tag name.
         /// </summary>
-        public HTMLCollection GetElementsByTagName(string tagName) => JSRef!.Call<HTMLCollection>("getElementsByTagName", tagName);
+        public HTMLCollection GetElementsByTagName(string tagName) => JSRef!.Call<string, HTMLCollection>("getElementsByTagName", tagName);
         /// <summary>
         /// Creates a new empty DocumentFragment into which DOM nodes can be added to build an offscreen DOM tree.
         /// </summary>
@@ -185,15 +185,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a new comment node and returns it.
         /// </summary>
-        public Comment CreateComment(string data) => JSRef!.Call<Comment>("createComment", data);
+        public Comment CreateComment(string data) => JSRef!.Call<string, Comment>("createComment", data);
         /// <summary>
         /// Imports a node from an external document.
         /// </summary>
-        public Node ImportNode(Node node, bool deep = false) => JSRef!.Call<Node>("importNode", node, deep);
+        public Node ImportNode(Node node, bool deep = false) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool, Node>("importNode", node, deep);
         /// <summary>
         /// Adopts a node from an external document. The node and its subtree are removed from the document it's in.
         /// </summary>
-        public Node AdoptNode(Node node) => JSRef!.Call<Node>("adoptNode", node);
+        public Node AdoptNode(Node node) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, Node>("adoptNode", node);
         /// <summary>
         /// Creates a new Range object.
         /// </summary>

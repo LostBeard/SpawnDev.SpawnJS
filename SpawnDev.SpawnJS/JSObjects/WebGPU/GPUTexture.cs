@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -61,7 +60,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a GPUTextureView representing a specific view of the GPUTexture with the given descriptor.
         /// </summary>
-        public GPUTextureView CreateView(GPUTextureViewDescriptor descriptor) => JSRef!.Call<GPUTextureView>("createView", descriptor);
+        public GPUTextureView CreateView(GPUTextureViewDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUTextureViewDescriptor, GPUTextureView>("createView", descriptor);
 
         /// <summary>
         /// Destroys the GPUTexture.

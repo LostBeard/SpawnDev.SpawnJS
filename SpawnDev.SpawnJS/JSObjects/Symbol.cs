@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -14,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// This is a non-standard implementation of the Symbol constructor which in Javascript will throw an exception. Call Symbol(description)
         /// </summary>
         /// <param name="description">A string. A description of the symbol which can be used for debugging but not to access the symbol itself.</param>
-        public Symbol(string description) : base(JS.Call<SpawnJSObjectReference>(nameof(Symbol), description)) { }
+        public Symbol(string description) : base(JS.Call<string, SpawnJSObjectReference>(nameof(Symbol), description)) { }
 
         /// <summary>
         /// This is a non-standard implementation of the Symbol constructor which in Javascript will throw an exception. Calls Symbol()
@@ -58,12 +57,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key">String, required. The key for the symbol (and also used for the description of the symbol).</param>
         /// <returns></returns>
-        public static Symbol For(string key) => JS.Call<Symbol>($"{nameof(Symbol)}.for", key);
+        public static Symbol For(string key) => JS.Call<string, Symbol>($"{nameof(Symbol)}.for", key);
         /// <summary>
         /// The Symbol.keyFor() static method retrieves a shared symbol key from the global symbol registry for the given symbol.
         /// </summary>
         /// <param name="sym">Symbol, required. The symbol to find a key for.</param>
         /// <returns></returns>
-        public static string? KeyFor(Symbol sym) => JS.Call<string?>($"{nameof(Symbol)}.keyFor", sym);
+        public static string? KeyFor(Symbol sym) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Symbol, string?>($"{nameof(Symbol)}.keyFor", sym);
     }
 }

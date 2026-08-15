@@ -1,188 +1,291 @@
-﻿using SpawnDev.SpawnJS.JSObjects;
+using System.Diagnostics.CodeAnalysis;
 namespace SpawnDev.SpawnJS
 {
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
     public class ActionCallback : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback?(Action? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback?(Action? callback) => callback == null ? null : new ActionCallback(callback);
+        Action _callback;
+        public ActionCallback(Action action, bool once = false) : base(once)
         {
-            ((Action)Func)();
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback();
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1>?(Action<T1>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1>?(Action<T1>? callback) => callback == null ? null : new ActionCallback<T1>(callback);
+        Action<T1> _callback;
+        public ActionCallback(Action<T1> action, bool once = false) : base(once)
         {
-            ((Action<T1>)Func)((T1)args[0]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2>?(Action<T1, T2>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2>?(Action<T1, T2>? callback) => callback == null ? null : new ActionCallback<T1, T2>(callback);
+        Action<T1, T2> _callback;
+        public ActionCallback(Action<T1, T2> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2>)Func)((T1)args[0]!, (T2)args[1]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2, T3> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2, T3>?(Action<T1, T2, T3>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2, T3> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3>?(Action<T1, T2, T3>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3>(callback);
+        Action<T1, T2, T3> _callback;
+        public ActionCallback(Action<T1, T2, T3> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2, T3>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2, T3, T4> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2, T3, T4>?(Action<T1, T2, T3, T4>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2, T3, T4> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4>?(Action<T1, T2, T3, T4>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4>(callback);
+        Action<T1, T2, T3, T4> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2, T3, T4>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2, T3, T4, T5> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2, T3, T4, T5>?(Action<T1, T2, T3, T4, T5>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2, T3, T4, T5> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5>?(Action<T1, T2, T3, T4, T5>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5>(callback);
+        Action<T1, T2, T3, T4, T5> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2, T3, T4, T5>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2, T3, T4, T5, T6> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T6> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6>?(Action<T1, T2, T3, T4, T5, T6>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2, T3, T4, T5, T6> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6>?(Action<T1, T2, T3, T4, T5, T6>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5, T6>(callback);
+        Action<T1, T2, T3, T4, T5, T6> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5, T6> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2, T3, T4, T5, T6>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!, (T6)args[5]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4),
+                argsCount <= 5 ? default! : args.Get<T6>(5));
         }
     }
     /// <summary>
-    /// A Callback object wraps a .Net method and can be passed to Javascript and called directly.
+    /// An Action Callback
     /// </summary>
-    public class ActionCallback<T1, T2, T3, T4, T5, T6, T7> : Callback
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T7> : Callback
     {
-        /// <summary>
-        /// Implicitly converts a .Net method into a Callback
-        /// </summary>
-        /// <param name="callback">.Net target method</param>
-        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6, T7>?(Action<T1, T2, T3, T4, T5, T6, T7>? callback) => callback == null ? null : callback.CallbackGet(true);
-        /// <summary>
-        /// Creates a new instance
-        /// </summary>
-        /// <param name="callback"></param>
-        /// <param name="once">If true, the Callback will be disposed after the first call</param>
-        public ActionCallback(Action<T1, T2, T3, T4, T5, T6, T7> callback, bool once = false) : base(callback, once) { }
-        /// <inheritdoc/>
-        internal override object? InvokeHandler(object?[] args)
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6, T7>?(Action<T1, T2, T3, T4, T5, T6, T7>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5, T6, T7>(callback);
+        Action<T1, T2, T3, T4, T5, T6, T7> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5, T6, T7> action, bool once = false) : base(once)
         {
-            ((Action<T1, T2, T3, T4, T5, T6, T7>)Func)((T1)args[0]!, (T2)args[1]!, (T3)args[2]!, (T4)args[3]!, (T5)args[4]!, (T6)args[5]!, (T7)args[6]!);
-            return null;
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4),
+                argsCount <= 5 ? default! : args.Get<T6>(5),
+                argsCount <= 6 ? default! : args.Get<T7>(6));
+        }
+    }
+    /// <summary>
+    /// An Action Callback
+    /// </summary>
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T8> : Callback
+    {
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8>?(Action<T1, T2, T3, T4, T5, T6, T7, T8>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8>(callback);
+        Action<T1, T2, T3, T4, T5, T6, T7, T8> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5, T6, T7, T8> action, bool once = false) : base(once)
+        {
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4),
+                argsCount <= 5 ? default! : args.Get<T6>(5),
+                argsCount <= 6 ? default! : args.Get<T7>(6),
+                argsCount <= 7 ? default! : args.Get<T8>(7));
+        }
+    }
+    /// <summary>
+    /// An Action Callback
+    /// </summary>
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T9> : Callback
+    {
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9>?(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9>(callback);
+        Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> action, bool once = false) : base(once)
+        {
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4),
+                argsCount <= 5 ? default! : args.Get<T6>(5),
+                argsCount <= 6 ? default! : args.Get<T7>(6),
+                argsCount <= 7 ? default! : args.Get<T8>(7),
+                argsCount <= 8 ? default! : args.Get<T9>(8));
+        }
+    }
+    /// <summary>
+    /// An Action Callback
+    /// </summary>
+    public class ActionCallback<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T10> : Callback
+    {
+        /// <summary>Implicitly converts a .Net delegate into a ActionCallback.</summary>
+        public static implicit operator ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>?(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>? callback) => callback == null ? null : new ActionCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(callback);
+        Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> _callback;
+        public ActionCallback(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> action, bool once = false) : base(once)
+        {
+            _callback = action;
+        }
+        /// <summary>
+        /// argsis the incoming data AND where the outgoing result will be written (at index 0)
+        /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
+        /// </summary>
+        /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        {
+            _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
+                argsCount <= 1 ? default! : args.Get<T2>(1),
+                argsCount <= 2 ? default! : args.Get<T3>(2),
+                argsCount <= 3 ? default! : args.Get<T4>(3),
+                argsCount <= 4 ? default! : args.Get<T5>(4),
+                argsCount <= 5 ? default! : args.Get<T6>(5),
+                argsCount <= 6 ? default! : args.Get<T7>(6),
+                argsCount <= 7 ? default! : args.Get<T8>(7),
+                argsCount <= 8 ? default! : args.Get<T9>(8),
+                argsCount <= 9 ? default! : args.Get<T10>(9));
         }
     }
 }

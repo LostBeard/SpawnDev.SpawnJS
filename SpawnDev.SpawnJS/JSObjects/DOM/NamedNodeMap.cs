@@ -18,25 +18,25 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name">A string with the name of the desired attribute.</param>
         /// <returns>An Attr corresponding to the name given in parameter, or null if none has been found.</returns>
-        public Attr? GetNamedItem(string name) => JSRef!.Call<Attr>("getNamedItem", name);
+        public Attr? GetNamedItem(string name) => JSRef!.Call<string, Attr>("getNamedItem", name);
         /// <summary>
         /// The setNamedItem() method of the NamedNodeMap interface puts the Attr identified by its name in the map. If there is already an Attr with the same name in the map, it is replaced.
         /// </summary>
         /// <param name="attr">the attribute to insert in the map.</param>
         /// <returns>Returns the old attribute if replaced, or null if the attribute is new.</returns>
-        public Attr? SetNamedItem(Attr attr) => JSRef!.Call<Attr>("setNamedItem", attr);
+        public Attr? SetNamedItem(Attr attr) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Attr, Attr>("setNamedItem", attr);
         /// <summary>
         /// The removeNamedItem() method of the NamedNodeMap interface removes the Attr corresponding to the given name from the map.
         /// </summary>
         /// <param name="name">The name of the attribute to remove from the map.</param>
         /// <returns>The removed Attr.</returns>
-        public Attr? RemoveNamedItem(string name) => JSRef!.Call<Attr>("removeNamedItem", name);
+        public Attr? RemoveNamedItem(string name) => JSRef!.Call<string, Attr>("removeNamedItem", name);
         /// <summary>
         /// The item() method of the NamedNodeMap interface returns the item in the map matching the index.
         /// </summary>
         /// <param name="index">A number representing the index of the item you want to return.</param>
         /// <returns>An Attr or null if the number is greater than or equal to the length of the map.</returns>
-        public Attr? Item(int index) => JSRef!.Call<Attr>("item", index);
+        public Attr? Item(int index) => JSRef!.Call<int, Attr>("item", index);
         /// <summary>
         /// Returns the item in the map matching the index.
         /// </summary>
@@ -51,13 +51,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Warning: namespace is the URI of the namespace, not the prefix.</param>
         /// <param name="localName">A string with the localName of the desired attribute.</param>
         /// <returns>An Attr corresponding to the namespace and local name given in parameters, or null if none has been found.</returns>
-        public Attr? GetNamedItemNS(string nameSpace, string localName) => JSRef!.Call<Attr>("getNamedItemNS", nameSpace, localName);
+        public Attr? GetNamedItemNS(string nameSpace, string localName) => JSRef!.Call<string, string, Attr>("getNamedItemNS", nameSpace, localName);
         /// <summary>
         /// The setNamedItemNS() method of the NamedNodeMap interface puts the Attr identified by its name in the map. If there was already an Attr with the same name in the map, it is replaced.
         /// </summary>
         /// <param name="attr">The attribute to insert in the map.</param>
         /// <returns>Returns the old attribute if replaced, or null if the attribute is new.</returns>
-        public Attr? SetNamedItemNS(Attr attr) => JSRef!.Call<Attr>("setNamedItemNS", attr);
+        public Attr? SetNamedItemNS(Attr attr) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Attr, Attr>("setNamedItemNS", attr);
         /// <summary>
         /// The removeNamedItemNS() method of the NamedNodeMap interface removes the Attr corresponding to the given namespace and local name from the map.
         /// </summary>
@@ -65,7 +65,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Warning: namespace is the URI of the namespace, not the prefix.</param>
         /// <param name="localName">The local name of the attribute to remove from the map.</param>
         /// <returns>The removed Attr.</returns>
-        public Attr? RemoveNamedItemNS(string nameSpace, string localName) => JSRef!.Call<Attr>("removeNamedItemNS", nameSpace, localName);
+        public Attr? RemoveNamedItemNS(string nameSpace, string localName) => JSRef!.Call<string, string, Attr>("removeNamedItemNS", nameSpace, localName);
         /// <summary>
         /// Returns the list as a list
         /// </summary>

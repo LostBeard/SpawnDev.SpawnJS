@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -11,7 +12,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// base already carries the whole Then/ThenCatch/ThenAsync surface including typed overloads, so the
     /// generic form only has to fix TResult in the signatures.
     /// </remarks>
-    public class Promise<TResult> : Promise
+    public class Promise<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult> : Promise
     {
         /// <summary>
         /// Explicit conversion from a Task&lt;TResult> to a Promise&lt;TResult>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public Task<InkPresenter> RequestPresenter(InkPresenterParam param) => JSRef!.CallAsync<InkPresenter>("requestPresenter", param);
+        public Task<InkPresenter> RequestPresenter(InkPresenterParam param) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.InkPresenterParam, InkPresenter>("requestPresenter", param);
     }
 }

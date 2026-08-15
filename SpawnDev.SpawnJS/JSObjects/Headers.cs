@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -53,7 +52,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string Get(string name) => JSRef!.Call<string>("get", name);
+        public string Get(string name) => JSRef!.Call<string, string>("get", name);
         /// <summary>
         /// Returns an array containing the values of all Set-Cookie headers associated with a response.
         /// </summary>
@@ -64,7 +63,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool Has(string name) => JSRef!.Call<bool>("has", name);
+        public bool Has(string name) => JSRef!.Call<string, bool>("has", name);
         /// <summary>
         /// Returns an iterator allowing you to go through all keys of the key/value pairs contained in this object.
         /// </summary>

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T ResultAs<T>() => JSRef!.Get<T>("result");
+        public T ResultAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("result");
         /// <summary>
         /// The file's contents. This property is only valid after the read operation is complete, and the format of the data depends on which of the methods was used to initiate the read operation.
         /// </summary>

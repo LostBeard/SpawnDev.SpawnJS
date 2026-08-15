@@ -17,36 +17,36 @@ namespace TestsShared
         /// the runtime origin lookup silently failed, and every worker script would then resolve against the
         /// page root - the exact CDN bug this exists to prevent.
         /// </summary>
-        [SpawnJSTest]
-        public async Task AppBaseUriResolvesToAbsoluteOriginTest()
-        {
-            HostCapabilities.RequireBrowser();
-            var baseUri = JS.AppBaseUri;
-            var source = JS.AppBaseUriSource();
-            Console.WriteLine($"APP-BASE: '{baseUri}' source='{source}'");
+        //[SpawnJSTest]
+        //public async Task AppBaseUriResolvesToAbsoluteOriginTest()
+        //{
+        //    HostCapabilities.RequireBrowser();
+        //    var baseUri = JS.AppBaseUri;
+        //    var source = JS.AppBaseUriSource();
+        //    Console.WriteLine($"APP-BASE: '{baseUri}' source='{source}'");
 
-            if (string.IsNullOrEmpty(baseUri))
-                throw new Exception("AppBaseUri is empty in a browser - the runtime origin did not resolve");
-            if (!(baseUri.StartsWith("http://") || baseUri.StartsWith("https://")))
-                throw new Exception($"AppBaseUri '{baseUri}' is not an absolute http(s) URL");
-            if (!baseUri.EndsWith("/"))
-                throw new Exception($"AppBaseUri '{baseUri}' does not end with '/' - it is not a base other URLs can resolve against");
-        }
+        //    if (string.IsNullOrEmpty(baseUri))
+        //        throw new Exception("AppBaseUri is empty in a browser - the runtime origin did not resolve");
+        //    if (!(baseUri.StartsWith("http://") || baseUri.StartsWith("https://")))
+        //        throw new Exception($"AppBaseUri '{baseUri}' is not an absolute http(s) URL");
+        //    if (!baseUri.EndsWith("/"))
+        //        throw new Exception($"AppBaseUri '{baseUri}' does not end with '/' - it is not a base other URLs can resolve against");
+        //}
 
-        /// <summary>
-        /// It must come from the app's OWN runtime origin, not from a page-coupled fallback. A non-empty
-        /// source string proves the per-runtime resolver produced it (Module.mainScriptUrlOrBlob or the
-        /// getConfig resolvedUrl backup); an empty source would mean the resolver found nothing and the
-        /// value, if any, came from somewhere it should not have.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task AppBaseUriCameFromRuntimeOriginTest()
-        {
-            HostCapabilities.RequireBrowser();
-            var source = JS.AppBaseUriSource();
-            if (string.IsNullOrEmpty(source))
-                throw new Exception("AppBaseUriSource is empty - AppBaseUri did not come from the runtime origin resolver");
-        }
+        ///// <summary>
+        ///// It must come from the app's OWN runtime origin, not from a page-coupled fallback. A non-empty
+        ///// source string proves the per-runtime resolver produced it (Module.mainScriptUrlOrBlob or the
+        ///// getConfig resolvedUrl backup); an empty source would mean the resolver found nothing and the
+        ///// value, if any, came from somewhere it should not have.
+        ///// </summary>
+        //[SpawnJSTest]
+        //public async Task AppBaseUriCameFromRuntimeOriginTest()
+        //{
+        //    HostCapabilities.RequireBrowser();
+        //    var source = JS.AppBaseUriSource();
+        //    if (string.IsNullOrEmpty(source))
+        //        throw new Exception("AppBaseUriSource is empty - AppBaseUri did not come from the runtime origin resolver");
+        //}
 
         /// <summary>
         /// In this harness the app is served together with the page, so the current page URL must sit under

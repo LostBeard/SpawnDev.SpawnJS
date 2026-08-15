@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -54,7 +53,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<GPUDevice> RequestDevice(GPUDeviceDescriptor options) => JSRef!.CallAsync<GPUDevice>("requestDevice", options);
+        public Task<GPUDevice> RequestDevice(GPUDeviceDescriptor options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.GPUDeviceDescriptor, GPUDevice>("requestDevice", options);
         #endregion
     }
 }

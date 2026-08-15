@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -31,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="kind">A string indicating the type of media for which the browser's send capabilities are requested. The supported media kinds are: audio and video.</param>
         /// <returns>A new object that indicates what capabilities the browser has for sending the specified media kind over an RTCPeerConnection. If the browser doesn't have any support for the given media kind, the returned value is null.</returns>
-        public static RTCRtpSenderCapabilities GetCapabilities(string kind) => JS.Call<RTCRtpSenderCapabilities>("RTCRtpSender.getCapabilities", kind);
+        public static RTCRtpSenderCapabilities GetCapabilities(string kind) => JS.Call<string, RTCRtpSenderCapabilities>("RTCRtpSender.getCapabilities", kind);
 
         /// <summary>
         /// The RTCRtpSender.replaceTrack() method replaces the track currently being used as the sender's source with a new MediaStreamTrack.
@@ -47,7 +46,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The setStreams() method of the RTCRtpSender interface sets the streams associated with this sender's track.
         /// </summary>
         /// <param name="mediaStreams">An array of MediaStream objects (or a single MediaStream) which identify the streams to which the sender's track should belong.</param>
-        public void SetStreams(params MediaStream[] mediaStreams) => JSRef!.CallVoidApply("setStreams", mediaStreams);
+        public void SetStreams(params MediaStream[] mediaStreams) => JSRef!.CallApplyVoid("setStreams", mediaStreams);
         /// <summary>
         /// Returns the current sender parameters including per-encoding simulcast
         /// configuration (<see cref="RTCRtpSendParameters.Encodings"/>), codec and

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -39,7 +38,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="channel">The channel property is an index representing the particular channel to get data for. An index value of 0 represents the first channel. If the channel index value is greater than of equal to AudioBuffer.numberOfChannels, an INDEX_SIZE_ERR exception will be thrown.</param>
         /// <returns></returns>
-        public Float32Array GetChannelData(int channel) => JSRef!.Call<Float32Array>("getChannelData", channel);
+        public Float32Array GetChannelData(int channel) => JSRef!.Call<int, Float32Array>("getChannelData", channel);
         /// <summary>
         /// The copyFromChannel() method of the AudioBuffer interface copies the audio sample data from the specified channel of the AudioBuffer to a specified Float32Array.
         /// </summary>

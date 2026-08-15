@@ -1,8 +1,4 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {

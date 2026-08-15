@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -43,21 +42,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to initialize the new matrix with.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromMatrix(DOMMatrixInit other) => JS.New<DOMMatrixReadOnly>("DOMMatrixReadOnly", other);
+        public static DOMMatrixReadOnly FromMatrix(DOMMatrixInit other) => JS.New<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrixReadOnly>("DOMMatrixReadOnly", other);
 
         /// <summary>
         /// The DOMMatrixReadOnly.fromFloat32Array() method creates a new DOMMatrixReadOnly object given a Float32Array representing a 4x4 matrix.
         /// </summary>
         /// <param name="array32">A Float32Array representing a 4x4 matrix.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromFloat32Array(Float32Array array32) => JS.New<DOMMatrixReadOnly>("DOMMatrixReadOnly", array32);
+        public static DOMMatrixReadOnly FromFloat32Array(Float32Array array32) => JS.New<global::SpawnDev.SpawnJS.JSObjects.Float32Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array32);
 
         /// <summary>
         /// The DOMMatrixReadOnly.fromFloat64Array() method creates a new DOMMatrixReadOnly object given a Float64Array representing a 4x4 matrix.
         /// </summary>
         /// <param name="array64">A Float64Array representing a 4x4 matrix.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromFloat64Array(Float64Array array64) => JS.New<DOMMatrixReadOnly>("DOMMatrixReadOnly", array64);
+        public static DOMMatrixReadOnly FromFloat64Array(Float64Array array64) => JS.New<global::SpawnDev.SpawnJS.JSObjects.Float64Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array64);
 
         /// <summary>
         /// The DOMMatrixReadOnly.is2D property returns a boolean value indicating whether the matrix is 2D or 3D.
@@ -76,7 +75,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="ty">The y-axis translation value.</param>
         /// <param name="tz">The z-axis translation value.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly Translate(double tx, double ty, double tz = 0) => JSRef!.Call<DOMMatrixReadOnly>("translate", tx, ty, tz);
+        public DOMMatrixReadOnly Translate(double tx, double ty, double tz = 0) => JSRef!.Call<double, double, double, DOMMatrixReadOnly>("translate", tx, ty, tz);
 
         /// <summary>
         /// The DOMMatrixReadOnly.scale() method returns a new DOMMatrixReadOnly object which is the result of the scaling of the matrix by the specified x, y, and z values.
@@ -88,7 +87,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="originY">The y-axis coordinate of the origin point for the scaling operation.</param>
         /// <param name="originZ">The z-axis coordinate of the origin point for the scaling operation.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly Scale(double scaleX, double scaleY = 1, double scaleZ = 1, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<DOMMatrixReadOnly>("scale", scaleX, scaleY, scaleZ, originX, originY, originZ);
+        public DOMMatrixReadOnly Scale(double scaleX, double scaleY = 1, double scaleZ = 1, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<double, double, double, double, double, double, DOMMatrixReadOnly>("scale", scaleX, scaleY, scaleZ, originX, originY, originZ);
 
         /// <summary>
         /// The DOMMatrixReadOnly.scaleNonUniform() method returns a new DOMMatrixReadOnly object which is the result of the non-uniform scaling of the matrix by the specified x, y, and z values.
@@ -97,7 +96,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="scaleY">The y-axis scaling value.</param>
         /// <param name="scaleZ">The z-axis scaling value.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly ScaleNonUniform(double scaleX, double scaleY = 1, double scaleZ = 1) => JSRef!.Call<DOMMatrixReadOnly>("scaleNonUniform", scaleX, scaleY, scaleZ);
+        public DOMMatrixReadOnly ScaleNonUniform(double scaleX, double scaleY = 1, double scaleZ = 1) => JSRef!.Call<double, double, double, DOMMatrixReadOnly>("scaleNonUniform", scaleX, scaleY, scaleZ);
 
         /// <summary>
         /// The DOMMatrixReadOnly.rotate() method returns a new DOMMatrixReadOnly object which is the result of the rotation of the matrix by the specified angle.
@@ -106,7 +105,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="rotY">The y-axis rotation value.</param>
         /// <param name="rotZ">The z-axis rotation value.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly Rotate(double rotX, double rotY = 0, double rotZ = 0) => JSRef!.Call<DOMMatrixReadOnly>("rotate", rotX, rotY, rotZ);
+        public DOMMatrixReadOnly Rotate(double rotX, double rotY = 0, double rotZ = 0) => JSRef!.Call<double, double, double, DOMMatrixReadOnly>("rotate", rotX, rotY, rotZ);
 
         /// <summary>
         /// The DOMMatrixReadOnly.rotateAxisAngle() method returns a new DOMMatrixReadOnly object which is the result of the rotation of the matrix by the specified angle around the specified axis.
@@ -116,28 +115,28 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="z">The z-axis coordinate of the axis of rotation.</param>
         /// <param name="angle">The angle of rotation, in degrees.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly RotateAxisAngle(double x, double y, double z, double angle) => JSRef!.Call<DOMMatrixReadOnly>("rotateAxisAngle", x, y, z, angle);
+        public DOMMatrixReadOnly RotateAxisAngle(double x, double y, double z, double angle) => JSRef!.Call<double, double, double, double, DOMMatrixReadOnly>("rotateAxisAngle", x, y, z, angle);
 
         /// <summary>
         /// The DOMMatrixReadOnly.skewX() method returns a new DOMMatrixReadOnly object which is the result of the skewing of the matrix along the x-axis by the specified angle.
         /// </summary>
         /// <param name="sx">The angle of skewing along the x-axis, in degrees.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly SkewX(double sx) => JSRef!.Call<DOMMatrixReadOnly>("skewX", sx);
+        public DOMMatrixReadOnly SkewX(double sx) => JSRef!.Call<double, DOMMatrixReadOnly>("skewX", sx);
 
         /// <summary>
         /// The DOMMatrixReadOnly.skewY() method returns a new DOMMatrixReadOnly object which is the result of the skewing of the matrix along the y-axis by the specified angle.
         /// </summary>
         /// <param name="sy">The angle of skewing along the y-axis, in degrees.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly SkewY(double sy) => JSRef!.Call<DOMMatrixReadOnly>("skewY", sy);
+        public DOMMatrixReadOnly SkewY(double sy) => JSRef!.Call<double, DOMMatrixReadOnly>("skewY", sy);
 
         /// <summary>
         /// The DOMMatrixReadOnly.multiply() method returns a new DOMMatrixReadOnly object which is the result of the multiplication of the matrix by the specified matrix.
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to multiply the matrix by.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly Multiply(DOMMatrixInit other) => JSRef!.Call<DOMMatrixReadOnly>("multiply", other);
+        public DOMMatrixReadOnly Multiply(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrixReadOnly>("multiply", other);
 
         /// <summary>
         /// The DOMMatrixReadOnly.flipX() method returns a new DOMMatrixReadOnly object which is the result of the flipping of the matrix along the x-axis.
@@ -162,7 +161,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="point">A DOMPointInit dictionary or another DOMPoint object to transform.</param>
         /// <returns>A new DOMPoint object.</returns>
-        public DOMPoint TransformPoint(DOMPointInit point) => JSRef!.Call<DOMPoint>("transformPoint", point);
+        public DOMPoint TransformPoint(DOMPointInit point) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMPointInit, DOMPoint>("transformPoint", point);
 
         /// <summary>
         /// The DOMMatrixReadOnly.toFloat32Array() method returns a new Float32Array object which is the result of the conversion of the matrix to a 4x4 matrix.

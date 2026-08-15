@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -37,7 +34,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="bluetoothDescriptorUUID"></param>
         /// <returns></returns>
-        public Task<BluetoothRemoteGATTDescriptor> GetDescriptor(string bluetoothDescriptorUUID) => JSRef!.CallAsync<BluetoothRemoteGATTDescriptor>("getDescriptor", bluetoothDescriptorUUID);
+        public Task<BluetoothRemoteGATTDescriptor> GetDescriptor(string bluetoothDescriptorUUID) => JSRef!.CallAsync<string, BluetoothRemoteGATTDescriptor>("getDescriptor", bluetoothDescriptorUUID);
         /// <summary>
         /// Returns a Promise that resolves to an Array of all BluetoothRemoteGATTDescriptor objects for a given descriptor UUID.
         /// </summary>

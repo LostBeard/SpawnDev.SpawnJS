@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -51,7 +50,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Creates a reader and locks the stream to it. While the stream is locked, no other reader can be acquired until this one is released.
         /// </summary>
         /// <returns></returns>
-        public ReadableStreamBYOBReader GetReaderBYOB() => JSRef!.Call<ReadableStreamBYOBReader>("getReader", new ReadableStreamGetReaderOptions { Mode = "byob" });
+        public ReadableStreamBYOBReader GetReaderBYOB() => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ReadableStreamGetReaderOptions, ReadableStreamBYOBReader>("getReader", new ReadableStreamGetReaderOptions { Mode = "byob" });
         /// <summary>
         /// The pipeTo() method of the ReadableStream interface pipes the current ReadableStream to a given WritableStream and returns a Promise that fulfills when the piping process completes successfully, or rejects if any errors were encountered.<br/>
         /// Piping a stream will generally lock it for the duration of the pipe, preventing other readers from locking it.<br/>
@@ -73,7 +72,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="transformStream">A TransformStream (or an object with the structure {writable, readable}) consisting of a readable stream and a writable stream working together to transform some data from one form to another. Data written to the writable stream can be read in some transformed state by the readable stream. For example, a TextDecoder, has bytes written to it and strings read from it, while a video decoder has encoded bytes written to it and uncompressed video frames read from it.</param>
         /// <returns>The readable side of the transformStream.</returns>
-        public ReadableStream PipeThrough(TransformStream transformStream) => JSRef!.Call<ReadableStream>("pipeThrough", transformStream);
+        public ReadableStream PipeThrough(TransformStream transformStream) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TransformStream, ReadableStream>("pipeThrough", transformStream);
         /// <summary>
         /// The pipeThrough() method of the ReadableStream interface provides a chainable way of piping the current stream through a transform stream or any other writable/readable pair.<br/>
         /// Piping a stream will generally lock it for the duration of the pipe, preventing other readers from locking it.
@@ -81,7 +80,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="transformStream">A TransformStream (or an object with the structure {writable, readable}) consisting of a readable stream and a writable stream working together to transform some data from one form to another. Data written to the writable stream can be read in some transformed state by the readable stream. For example, a TextDecoder, has bytes written to it and strings read from it, while a video decoder has encoded bytes written to it and uncompressed video frames read from it.</param>
         /// <param name="options">The options that should be used when piping to the writable stream.</param>
         /// <returns>The readable side of the transformStream.</returns>
-        public ReadableStream PipeThrough(TransformStream transformStream, PipeThroughOptions options) => JSRef!.Call<ReadableStream>("pipeThrough", transformStream, options);
+        public ReadableStream PipeThrough(TransformStream transformStream, PipeThroughOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TransformStream, global::SpawnDev.SpawnJS.JSObjects.PipeThroughOptions, ReadableStream>("pipeThrough", transformStream, options);
         /// <summary>
         /// The tee() method of the ReadableStream interface tees the current readable stream, returning a two-element array containing the two resulting branches as new ReadableStream instances.
         /// This is useful for allowing two readers to read a stream sequentially or simultaneously, perhaps at different speeds.For example, you might do this in a ServiceWorker if you want to fetch a response from the server and stream it to the browser, but also stream it to the ServiceWorker cache.Since a response body cannot be consumed more than once, you'd need two copies to do this.

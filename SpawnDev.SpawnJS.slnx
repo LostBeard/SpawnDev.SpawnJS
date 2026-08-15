@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../../SpawnDev.SpawnJS.Core/SpawnDev.SpawnJS.Core/SpawnDev.SpawnJS.Core/SpawnDev.SpawnJS.Core.csproj" />
   <Project Path="SpawnDev.SpawnJS/SpawnDev.SpawnJS.csproj" Id="d5aca0bf-0dc1-499b-8248-a6219f1d85f8" />
   <Project Path="SpawnJS.TestRunner/SpawnJS.TestRunner.csproj" />
   <Project Path="TestsShared/TestsShared.csproj" Id="66a9f756-ed07-495e-bce3-33ff92a5a26b" />

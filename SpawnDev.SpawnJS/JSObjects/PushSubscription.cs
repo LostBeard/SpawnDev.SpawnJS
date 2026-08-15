@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -37,6 +36,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="keyName"></param>
         /// <returns></returns>
-        public ArrayBuffer GetKey(string keyName) => JSRef!.Call<ArrayBuffer>("getKey", keyName);
+        public ArrayBuffer GetKey(string keyName) => JSRef!.Call<string, ArrayBuffer>("getKey", keyName);
     }
 }

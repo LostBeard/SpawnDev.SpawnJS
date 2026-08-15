@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -79,12 +78,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static string CreateObjectURL(Blob obj) => JS.Call<string>("URL.createObjectURL", obj);
+        public static string CreateObjectURL(Blob obj) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Blob, string>("URL.createObjectURL", obj);
         /// <summary>
         /// Revokes an object URL previously created using URL.createObjectURL().
         /// </summary>
         /// <param name="objectUrl"></param>
-        public static void RevokeObjectURL(string objectUrl) => JS.Call<string>("URL.revokeObjectURL", objectUrl);
+        public static void RevokeObjectURL(string objectUrl) => JS.Call<string, string>("URL.revokeObjectURL", objectUrl);
         /// <summary>
         /// Returns a string containing the whole URL. It is a synonym for URL.href, though it can't be used to modify the value
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Text.Json;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -35,7 +34,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string? Key(int index) => JSRef!.Call<string?>("key", index);
+        public string? Key(int index) => JSRef!.Call<int, string?>("key", index);
         /// <summary>
         /// When passed a key name and value, will add that key to the storage, or update that key's value if it already exists.
         /// </summary>
@@ -46,19 +45,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns keys using Object.keys
         /// </summary>
         /// <returns></returns>
-        public List<string> GetItemKeys() => JS.Call<List<string>>("Object.keys", JSRef);
+        public List<string> GetItemKeys() => JS.Call<global::SpawnDev.SpawnJS.SpawnJSObjectReference, List<string>>("Object.keys", JSRef!);
         /// <summary>
         /// When passed a key name, will return that key's value.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public string? GetItem(string key) => JSRef!.Call<string?>("getItem", key);
+        public string? GetItem(string key) => JSRef!.Call<string, string?>("getItem", key);
         /// <summary>
         /// Tests for a key's existence using hasOwnProperty
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public bool ItemExists(string key) => JSRef!.Call<bool>("hasOwnProperty", key);
+        public bool ItemExists(string key) => JSRef!.Call<string, bool>("hasOwnProperty", key);
         /// <summary>
         /// When passed a key name, will remove that key from the storage.
         /// </summary>
@@ -74,6 +73,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the deserialized type T and its members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve T yourself.")]
         public T GetJSON<T>(string key)
         {
             var str = GetItem(key);
@@ -86,6 +86,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="value"></param>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the serialized type T and its members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve T yourself.")]
         public void SetJSON<T>(string key, T value) => JSRef!.CallVoid("setItem", key, JsonSerializer.Serialize(value, DefaultJsonSerializerOptions));
         #endregion
     }

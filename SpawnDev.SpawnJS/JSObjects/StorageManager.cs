@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -13,7 +12,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if OffscreenCanvas appears to be supported
         /// </summary>
-        public static bool Supported => SpawnJSRuntime.Instance?.IsUndefined("navigator.storage") == false;
+        public static bool Supported => !SpawnJSRuntime.Instance?.Exists("navigator.storage") == false;
         /// <summary>
         /// Deserialization constructor
         /// </summary>

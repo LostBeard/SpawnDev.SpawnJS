@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -9,7 +9,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// https://developer.mozilla.org/en-US/docs/Web/API/IDBRequest
     /// </summary>
     /// <typeparam name="TResult">The type to use for the Result property</typeparam>
-    public class IDBRequest<TResult> : IDBRequest
+    public class IDBRequest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult> : IDBRequest
     {
         /// <summary>
         /// Deserialization constructor
@@ -83,13 +83,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T ResultAs<T>() => JSRef!.Get<T>("result");
+        public T ResultAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("result");
         /// <summary>
         /// An object representing the source of the request, such as an IDBIndex, IDBObjectStore or IDBCursor.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T SourceAs<T>() => JSRef!.Get<T>("source");
+        public T SourceAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("source");
         /// <summary>
         /// The state of the request. Every request starts in the pending state. The state changes to done when the request completes successfully or when an error occurs.
         /// </summary>

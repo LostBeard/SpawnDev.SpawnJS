@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,6 +28,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<ColorSelectionResult> Open(EyeDropperOptions options) => JSRef!.CallAsync<ColorSelectionResult>("open", options);
+        public Task<ColorSelectionResult> Open(EyeDropperOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.EyeDropperOptions, ColorSelectionResult>("open", options);
     }
 }

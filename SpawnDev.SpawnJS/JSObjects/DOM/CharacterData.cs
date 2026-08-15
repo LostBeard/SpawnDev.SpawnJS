@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -81,7 +80,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset">The index of the first character to include</param>
         /// <param name="count">The number of characters to return</param>
         /// <returns>A string containing the specified part of the node's data</returns>
-        public string SubstringData(int offset, int count) => JSRef!.Call<string>("substringData", offset, count);
+        public string SubstringData(int offset, int count) => JSRef!.Call<int, int, string>("substringData", offset, count);
         #endregion
     }
 }

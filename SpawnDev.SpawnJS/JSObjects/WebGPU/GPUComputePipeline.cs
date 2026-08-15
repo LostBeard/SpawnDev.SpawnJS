@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -17,6 +16,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index">Index into the pipeline layout’s [[bindGroupLayouts]] sequence.</param>
         /// <returns>GPUBindGroupLayout</returns>
-        public GPUBindGroupLayout GetBindGroupLayout(int index) => JSRef!.Call<GPUBindGroupLayout>("getBindGroupLayout", index);
+        public GPUBindGroupLayout GetBindGroupLayout(int index) => JSRef!.Call<int, GPUBindGroupLayout>("getBindGroupLayout", index);
     }
 }

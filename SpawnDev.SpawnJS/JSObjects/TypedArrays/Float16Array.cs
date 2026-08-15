@@ -1,7 +1,3 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -26,7 +22,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="values"></param>
         /// <returns></returns>
-        public static Float16Array From<T>(IEnumerable<T> values) where T : struct => JS.Call<Float16Array>($"{nameof(Float16Array)}.from", values);
+        public static Float16Array From<T>(IEnumerable<T> values) where T : struct => JS.Call< IEnumerable < T > ,Float16Array >($"{nameof(Float16Array)}.from", values);
         /// <summary>
         /// Deserialization constructor
         /// </summary>
@@ -102,14 +98,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="start"></param>
         /// <returns></returns>
-        public Float16Array Slice(long start) => JSRef!.Call<Float16Array>("slice", start);
+        public Float16Array Slice(long start) => JSRef!.Call<long,Float16Array>("slice", start);
         /// <summary>
         /// Extracts a section of an array and returns a new array. See also Array.prototype.slice().
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public Float16Array Slice(long start, long end) => JSRef!.Call<Float16Array>("slice", start, end);
+        public Float16Array Slice(long start, long end) => JSRef!.Call<long, long, Float16Array>("slice", start, end);
         /// <summary>
         /// The subarray() method of TypedArray instances returns a new typed array on the same ArrayBuffer store and with the same element types as this typed array. The begin offset is inclusive and the end offset is exclusive.
         /// </summary>
@@ -120,13 +116,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="start">Element to begin at. The offset is inclusive. The whole array will be included in the new view if this value is not specified.</param>
         /// <returns></returns>
-        public Float16Array SubArray(long start) => JSRef!.Call<Float16Array>("subarray", start);
+        public Float16Array SubArray(long start) => JSRef!.Call<long, Float16Array>("subarray", start);
         /// <summary>
         /// The subarray() method of TypedArray instances returns a new typed array on the same ArrayBuffer store and with the same element types as this typed array. The begin offset is inclusive and the end offset is exclusive.
         /// </summary>
         /// <param name="start">Element to begin at. The offset is inclusive. The whole array will be included in the new view if this value is not specified.</param>
         /// <param name="end">Element to end at. The offset is exclusive. If not specified, all elements from the one specified by begin to the end of the array are included in the new view.</param>
         /// <returns></returns>
-        public Float16Array SubArray(long start, long end) => JSRef!.Call<Float16Array>("subarray", start, end);
+        public Float16Array SubArray(long start, long end) => JSRef!.Call<long, long, Float16Array>("subarray", start, end);
     }
 }

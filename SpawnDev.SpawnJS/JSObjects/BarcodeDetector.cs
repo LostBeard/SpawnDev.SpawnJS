@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -33,12 +32,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Checks if BarcodeDetector is defined in the global scope
         /// </summary>
         /// <returns></returns>
-        public static bool IsDefined() => !JS.IsUndefined("BarcodeDetector");
+        public static bool IsDefined() => !!JS.Exists("BarcodeDetector");
         /// <summary>
         /// The detect() method of the BarcodeDetector interface returns a Promise which fulfills with an Array of detected barcodes within an image.
         /// </summary>
         /// <param name="imageBitmapSource">Receives an ImageBitmapSource as a parameter. This can be an element, a Blob of type image or an ImageData object.</param>
         /// <returns></returns>
-        public Task<Array<DetectedBarcode>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<Array<DetectedBarcode>>("detect", imageBitmapSource);
+        public Task<Array<DetectedBarcode>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.Element, global::SpawnDev.SpawnJS.JSObjects.ImageData, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas>, Array<DetectedBarcode>>("detect", imageBitmapSource);
     }
 }

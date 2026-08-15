@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -39,6 +38,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Indexer for accessing SpeechGrammar objects.
         /// </summary>
-        public SpeechGrammar this[int index] => JSRef!.Call<SpeechGrammar>("item", index);
+        public SpeechGrammar this[int index] => JSRef!.Call<int, SpeechGrammar>("item", index);
     }
 }

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -19,19 +19,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The importScripts() method of the WorkerGlobalScope interface synchronously imports one or more scripts into the worker's scope.
         /// </summary>
         /// <param name="scripts"></param>
-        public void ImportScripts(params string[] scripts) => JSRef!.CallVoidApply("importScripts", scripts);
+        public void ImportScripts(params string[] scripts) => JSRef!.CallApplyVoid("importScripts", scripts);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(Request resource) => JS.CallAsync<Response>("fetch", resource);
+        public Task<Response> Fetch(Request resource) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(string resource) => JS.CallAsync<Response>("fetch", resource);
+        public Task<Response> Fetch(string resource) => JS.CallAsync<string, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<Response>("fetch", resource, options);
+        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<string, global::SpawnDev.SpawnJS.FetchOptions, Response>("fetch", resource, options);
         /// <summary>
         /// The structuredClone() method of the Window interface creates a deep clone of a given value using the structured clone algorithm.<br/>
         /// The method also allows transferable objects in the original value to be transferred rather than cloned to the new object. Transferred objects are detached from the original object and attached to the new object; they are no longer accessible in the original object.
@@ -40,7 +40,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T StructuredClone<T>(object value, StructuredCloneOptions options) => JSRef!.Call<T>("structuredClone", value, options);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, global::SpawnDev.SpawnJS.JSObjects.StructuredCloneOptions, T>("structuredClone", value, options);
         /// <summary>
         /// The structuredClone() method of the Window interface creates a deep clone of a given value using the structured clone algorithm.<br/>
         /// The method also allows transferable objects in the original value to be transferred rather than cloned to the new object. Transferred objects are detached from the original object and attached to the new object; they are no longer accessible in the original object.
@@ -48,28 +48,28 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <returns></returns>
-        public T StructuredClone<T>(object value) => JSRef!.Call<T>("structuredClone", value);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value) => JSRef!.Call<object, T>("structuredClone", value);
         /// <summary>
         /// Schedules a function to execute in a given amount of time.
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Callback callback, double delay) => JSRef!.Call<long>("setTimeout", callback, delay);
+        public long SetTimeout(Callback callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.Callback, double, long>("setTimeout", callback, delay);
         /// <summary>
         /// Schedules a function to execute in a given amount of time.
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Action callback, double delay) => JSRef!.Call<long>("setTimeout", ActionCallback.CreateOne(callback), delay);
+        public long SetTimeout(Action callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback, double, long>("setTimeout", ActionCallback.CreateOne(callback), delay);
         /// <summary>
         /// Schedules a function to execute in a given amount of time.
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Func<Task> callback, double delay) => JSRef!.Call<long>("setTimeout", Callback.CreateOne(callback), delay);
+        public long SetTimeout(Func<Task> callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.FuncCallback<global::System.Threading.Tasks.Task>, double, long>("setTimeout", Callback.CreateOne(callback), delay);
         /// <summary>
         /// The setInterval() method of the Window interface repeatedly calls a function or executes a code snippet, with a fixed time delay between each call.<br/>
         /// This method returns an interval ID which uniquely identifies the interval, so you can remove it later by calling clearInterval().
@@ -77,7 +77,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetInterval(Callback callback, double delay) => JSRef!.Call<long>("setInterval", callback, delay);
+        public long SetInterval(Callback callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.Callback, double, long>("setInterval", callback, delay);
         /// <summary>
         /// Cancels the delayed execution set using setInterval().
         /// </summary>
@@ -98,20 +98,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, ImageBitmap>("createImageBitmap", image);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
@@ -121,7 +121,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sw">The width of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
         /// <summary>
         /// Returns the CacheStorage object associated with the current context. This object enables functionality such as storing assets for offline use, and generating custom responses to requests
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -33,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public string RemoveProperty(string property) => JSRef!.Call<string>("removeProperty", property);
+        public string RemoveProperty(string property) => JSRef!.Call<string, string>("removeProperty", property);
         /// <summary>
         /// Modifies an existing CSS property or creates a new CSS property in the declaration block.
         /// </summary>
@@ -46,19 +45,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public string GetPropertyValue(string property) => JSRef!.Call<string>("getPropertyValue", property);
+        public string GetPropertyValue(string property) => JSRef!.Call<string, string>("getPropertyValue", property);
         /// <summary>
         /// Returns a CSS property name by its index, or the empty string if the index is out-of-bounds.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string Item(int index) => JSRef!.Call<string>("item", index);
+        public string Item(int index) => JSRef!.Call<int, string>("item", index);
         /// <summary>
         /// Returns the optional priority, "important".
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public string GetPropertyPriority(string property) => JSRef!.Call<string>("getPropertyPriority", property);
+        public string GetPropertyPriority(string property) => JSRef!.Call<string, string>("getPropertyPriority", property);
         /// <summary>
         /// Get, set, or remove a CSS property from the declaration block.
         /// </summary>

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -44,55 +44,55 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Inserts a set of Node objects or string objects after the last child of the document fragment.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Append(params Union<string, Node>[] nodes) => JSRef!.CallVoidApply("append", nodes);
+        public void Append(params Union<string, Node>[] nodes) => JSRef!.CallApplyVoid("append", nodes);
         /// <summary>
         /// Inserts a set of Node objects or string objects before the first child of the document fragment.
         /// </summary>
         /// <param name="nodes"></param>
-        public void Prepend(params Union<string, Node>[] nodes) => JSRef!.CallVoidApply("prepend", nodes);
+        public void Prepend(params Union<string, Node>[] nodes) => JSRef!.CallApplyVoid("prepend", nodes);
         /// <summary>
         /// Replaces the existing children of a DocumentFragment with a specified new set of children.
         /// </summary>
         /// <param name="nodes"></param>
-        public void ReplaceChildren(params Union<string, Node>[] nodes) => JSRef!.CallVoidApply("replaceChildren", nodes);
+        public void ReplaceChildren(params Union<string, Node>[] nodes) => JSRef!.CallApplyVoid("replaceChildren", nodes);
         /// <summary>
         /// Returns a NodeList of all the Element nodes within the DocumentFragment that match the specified selectors.
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public NodeList QuerySelectorAll(string selector) => JSRef!.Call<NodeList>("querySelectorAll", selector);
+        public NodeList QuerySelectorAll(string selector) => JSRef!.Call<string, NodeList>("querySelectorAll", selector);
         /// <summary>
         /// Returns a NodeList of all the Element nodes within the DocumentFragment that match the specified selectors.
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public NodeList<T> QuerySelectorAll<T>(string selector) where T : Node => JSRef!.Call<NodeList<T>>("querySelectorAll", selector);
+        public NodeList<T> QuerySelectorAll<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string selector) where T : Node => JSRef!.Call<string, NodeList<T>>("querySelectorAll", selector);
         /// <summary>
         /// Returns the first Element node within the DocumentFragment, in document order, that matches the specified selectors.
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public Element? QuerySelector(string selector) => JSRef!.Call<Element?>("querySelector", selector);
+        public Element? QuerySelector(string selector) => JSRef!.Call<string, Element?>("querySelector", selector);
         /// <summary>
         /// Returns the first Element node within the DocumentFragment, in document order, that matches the specified selectors.
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public TElement? QuerySelector<TElement>(string selector) where TElement : Element => JSRef!.Call<TElement?>("querySelector", selector);
+        public TElement? QuerySelector<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string selector) where TElement : Element => JSRef!.Call<string, TElement?>("querySelector", selector);
         /// <summary>
         /// Returns the first Element node within the DocumentFragment, in document order, that matches the specified ID. Functionally equivalent to Document.getElementById().
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public Element? GetElementById(string id) => JSRef!.Call<Element?>("getElementById", id);
+        public Element? GetElementById(string id) => JSRef!.Call<string, Element?>("getElementById", id);
         /// <summary>
         /// Returns the first Element node within the DocumentFragment, in document order, that matches the specified ID. Functionally equivalent to Document.getElementById().
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TElement? GetElementById<TElement>(string id) where TElement : Element => JSRef!.Call<TElement?>("getElementById", id);
+        public TElement? GetElementById<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string id) where TElement : Element => JSRef!.Call<string, TElement?>("getElementById", id);
         #endregion
     }
 }

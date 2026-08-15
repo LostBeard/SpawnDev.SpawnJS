@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 
 using System.Text.Json.Serialization;
 
@@ -88,7 +89,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// Options for the TransformStream constructor.<br/>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class TransformStreamCallbacks<T> : TransformStreamCallbacks
+    public class TransformStreamCallbacks<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : TransformStreamCallbacks
     {
         /// <summary>
         /// Creates a new instance of TransformerAsync with the specified callbacks.

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -84,38 +83,38 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(Action<double, XRFrame?> callback) => JSRef!.Call<long>("requestAnimationFrame", Callback.CreateOne(callback));
+        public long RequestAnimationFrame(Action<double, XRFrame?> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<double, global::SpawnDev.SpawnJS.JSObjects.XRFrame>, long>("requestAnimationFrame", Callback.CreateOne(callback)!);
         /// <summary>
         /// Schedules the specified method to be called the next time the user agent is working on rendering an animation frame for the WebXR device. Returns an integer value which can be used to identify the request for the purposes of canceling the callback using cancelAnimationFrame(). This method is comparable to the Window.requestAnimationFrame() method.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(ActionCallback<double, XRFrame?> callback) => JSRef!.Call<long>("requestAnimationFrame", callback);
+        public long RequestAnimationFrame(ActionCallback<double, XRFrame?> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<double, global::SpawnDev.SpawnJS.JSObjects.XRFrame>, long>("requestAnimationFrame", callback!);
         /// <summary>
         /// Requests an XRHitTestSource object that handles hit test subscription.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<XRHitTestSource> RequestHitTestSource(XRHitTestOptionsInit options) => JSRef!.CallAsync<XRHitTestSource>("requestHitTestSource", options);
+        public Task<XRHitTestSource> RequestHitTestSource(XRHitTestOptionsInit options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.XRHitTestOptionsInit, XRHitTestSource>("requestHitTestSource", options);
         /// <summary>
         /// The requestHitTestSourceForTransientInput() method of the XRSession interface returns a Promise that resolves with an XRTransientInputHitTestSource object that can be passed to XRFrame.getHitTestResultsForTransientInput().
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<XRTransientInputHitTestSource> RequestHitTestSourceForTransientInput(XRTransientInputHitTestOptionsInit options) => JSRef!.CallAsync<XRTransientInputHitTestSource>("requestHitTestSourceForTransientInput", options);
+        public Task<XRTransientInputHitTestSource> RequestHitTestSourceForTransientInput(XRTransientInputHitTestOptionsInit options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.XRTransientInputHitTestOptionsInit, XRTransientInputHitTestSource>("requestHitTestSourceForTransientInput", options);
         /// <summary>
         /// The requestLightProbe() method of the XRSession interface returns a Promise that resolves with an XRLightProbe object that estimates lighting information at a given point in the user's environment.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
         public Task<XRLightProbe> RequestLightProbe(XRLightProbeInit? options = null)
-            => options == null ? JSRef!.CallAsync<XRLightProbe>("requestLightProbe") : JSRef!.CallAsync<XRLightProbe>("requestLightProbe", options);
+            => options == null ? JSRef!.CallAsync<XRLightProbe>("requestLightProbe") : JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.XRLightProbeInit, XRLightProbe>("requestLightProbe", options);
         /// <summary>
         /// Requests that a new XRReferenceSpace of the specified type be created. Returns a promise which resolves with the XRReferenceSpace or XRBoundedReferenceSpace which was requested, or throws a NotSupportedError DOMException if the requested space type isn't supported by the device.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public Task<XRReferenceSpace> RequestReferenceSpace(EnumString<XRReferenceSpaceType> type) => JSRef!.CallAsync<XRReferenceSpace>("requestReferenceSpace", type);
+        public Task<XRReferenceSpace> RequestReferenceSpace(EnumString<XRReferenceSpaceType> type) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.EnumString<global::SpawnDev.SpawnJS.JSObjects.XRReferenceSpaceType>, XRReferenceSpace>("requestReferenceSpace", type);
         /// <summary>
         /// Updates the properties of the session's render state.
         /// </summary>

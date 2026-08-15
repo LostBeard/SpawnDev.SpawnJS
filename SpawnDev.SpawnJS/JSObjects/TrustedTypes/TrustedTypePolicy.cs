@@ -22,16 +22,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// resulting <see cref="TrustedHTML"/>. Throws if the policy was created without a <c>createHTML</c>
         /// callback.
         /// </summary>
-        public TrustedHTML CreateHTML(string input) => JSRef!.Call<TrustedHTML>("createHTML", input);
+        public TrustedHTML CreateHTML(string input) => JSRef!.Call<string, TrustedHTML>("createHTML", input);
         /// <summary>
         /// Runs <paramref name="input"/> through this policy's <c>createScript</c> callback and returns the
         /// resulting <see cref="TrustedScript"/>.
         /// </summary>
-        public TrustedScript CreateScript(string input) => JSRef!.Call<TrustedScript>("createScript", input);
+        public TrustedScript CreateScript(string input) => JSRef!.Call<string, TrustedScript>("createScript", input);
         /// <summary>
         /// Runs <paramref name="input"/> through this policy's <c>createScriptURL</c> callback and returns the
         /// resulting <see cref="TrustedScriptURL"/>.
         /// </summary>
-        public TrustedScriptURL CreateScriptURL(string input) => JSRef!.Call<TrustedScriptURL>("createScriptURL", input);
+        public TrustedScriptURL CreateScriptURL(string input) => JSRef!.Call<string, TrustedScriptURL>("createScriptURL", input);
     }
 }

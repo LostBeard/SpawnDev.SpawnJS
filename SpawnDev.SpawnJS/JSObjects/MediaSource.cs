@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -48,13 +47,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool IsTypeSupported(string type) => JS.Call<bool>("MediaSource.isTypeSupported", type);
+        public static bool IsTypeSupported(string type) => JS.Call<string, bool>("MediaSource.isTypeSupported", type);
         /// <summary>
         /// The addSourceBuffer() method of the MediaSource interface creates a new SourceBuffer of the given MIME type and adds it to the MediaSource's sourceBuffers list. The new SourceBuffer is also returned.
         /// </summary>
         /// <param name="mimeType">A string specifying the MIME type of the SourceBuffer to create and add to the MediaSource.</param>
         /// <returns>A SourceBuffer object representing the new source buffer that has been created and added to the media source.</returns>
-        public SourceBuffer AddSourceBuffer(string mimeType) => JSRef!.Call<SourceBuffer>("addSourceBuffer", mimeType);
+        public SourceBuffer AddSourceBuffer(string mimeType) => JSRef!.Call<string, SourceBuffer>("addSourceBuffer", mimeType);
         /// <summary>
         /// The clearLiveSeekableRange() method of the MediaSource interface clears a seekable range previously set with a call to setLiveSeekableRange().
         /// </summary>

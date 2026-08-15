@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Text.Json.Serialization;
 namespace SpawnDev.SpawnJS.JSObjects
 {
@@ -50,7 +50,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T CurrentTargetAs<T>() where T : EventTarget => JSRef!.Get<T>("currentTarget");
+        public T CurrentTargetAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : EventTarget => JSRef!.Get<T>("currentTarget");
         /// <summary>
         /// Indicates whether or not the call to event.preventDefault() canceled the event.
         /// </summary>
@@ -72,7 +72,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T TargetAs<T>() where T : EventTarget => JSRef!.Get<T>("target");
+        public T TargetAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : EventTarget => JSRef!.Get<T>("target");
         /// <summary>
         /// The time at which the event was created (in milliseconds). By specification, this value is time since epoch—but in reality, browsers' definitions vary. In addition, work is underway to change this to be a DOMHighResTimeStamp instead.
         /// </summary>
@@ -108,7 +108,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// https://developer.mozilla.org/en-US/docs/Web/API/Event
     /// </summary>
     /// <typeparam name="TTarget"></typeparam>
-    public class Event<TTarget> : Event where TTarget : EventTarget
+    public class Event<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTarget> : Event where TTarget : EventTarget
     {
         /// <summary>
         /// Deserialization constructor

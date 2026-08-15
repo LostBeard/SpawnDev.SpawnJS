@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -44,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="offset">The index immediately before which to break the text node.</param>
         /// <returns>Returns the newly created Text node that contains the text after the specified offset point.</returns>
-        public Text SplitText(int offset) => JSRef!.Call<Text>("splitText", offset);
+        public Text SplitText(int offset) => JSRef!.Call<int, Text>("splitText", offset);
         #endregion
     }
 }

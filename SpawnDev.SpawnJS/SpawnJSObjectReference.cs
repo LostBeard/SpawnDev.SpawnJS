@@ -1,110 +1,234 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+using SpawnDev.SpawnJS.Marshaller;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace SpawnDev.SpawnJS
 {
     /// <summary>
-    /// SpawnJSObject wraps a JSObject and enables interop using SpawnJSRuntime Marshallers
+    /// A handle to a Javascript value, addressed by a numeric id rather than a Microsoft <c>JSObject</c>.
+    /// The JS side keeps the actual value in its object table (see SpawnJSInterop.spawnJSObjects) keyed by
+    /// this <see cref="Id"/>; disposing this handle releases that entry so JS can garbage-collect it.<br/>
+    /// <br/>
+    /// Negative ids are reserved sentinels (globalThis / undefined / null / the object table itself) that
+    /// have no table entry and are never released. Positive ids are real held values. This id-only model is
+    /// what lets the whole library avoid <c>JSObject</c> and its disposal quirk.
     /// </summary>
-    [System.Runtime.Versioning.SupportedOSPlatform("browser")]
     public partial class SpawnJSObjectReference : IDisposable
     {
-        /// <summary>
-        /// Explciit conversion with JSObject
-        /// </summary>
-        public static explicit operator JSObject(SpawnJSObjectReference value) => value == null ? null! : value.JSObject;
-        /// <summary>
-        /// Explciit conversion with JSObject
-        /// </summary>
-        public static explicit operator SpawnJSObjectReference(JSObject value) => value == null ? null! : new SpawnJSObjectReference(value);
-        /// <summary>
-        /// SpawnJSRuntime
-        /// </summary>
-        public SpawnJSRuntime JS => SpawnJSRuntime.Instance ?? throw new InvalidOperationException("SpawnJSRuntime has not been created.");
-        /// <summary>
-        /// Returns true if JSObject is null or disposed
-        /// </summary>
-        public bool IsDisposed => JSHandle.IsDisposed != false;
-        /// <summary>
-        /// If true, the JSObject will be disposed when this is disposed.<br/>
-        /// Note: SpawnJSObjectReference auto-disposes via a finalizer.
-        /// </summary>
-        public bool OwnsJSObject { get; set; } = true;
-        /// <summary>
-        /// JSObjectHandle holds the JSObject with auto-reacquistion
-        /// </summary>
-        public SpawnJSHandle JSHandle { get; private set; }
-        /// <summary>
-        /// JSObject that points to the JAvascript data
-        /// </summary>
-        public JSObject JSObject => JSHandle.JSObjectRequired;
-        /// <summary>
-        /// Create a new instance of SpawnJSObject to wrap a JSObject
-        /// </summary>
-        /// <param name="jsObject"></param>
-        public SpawnJSObjectReference(JSObject jsObject)
+        internal static SpawnJSObjectReference? FromID(double fromJS, bool nonNullable = false, bool preventDispose = false)
         {
-            JSHandle = new SpawnJSHandle(jsObject);
+            var isValid = fromJS != NullId && fromJS != UndefinedId && fromJS != double.NaN && fromJS != 0;
+            return !nonNullable && !isValid ? null : new SpawnJSObjectReference(fromJS) { PreventDispose = preventDispose };
         }
         /// <summary>
-        /// Create a new instance around a handle that already holds the Javascript value, TAKING
-        /// OWNERSHIP of it - the handle is disposed with this reference.<br/>
-        /// This is the path a read takes now. Constructing from a <see cref="JSObject"/> forces the value
-        /// to be resolved to a runtime proxy first, which is the most expensive operation in the library;
-        /// a handle can address the value through the slot table instead and never make one.
+        /// If true, this item will not dispose when dispsoe is called
         /// </summary>
-        /// <param name="jsHandle">The handle to take ownership of</param>
-        public SpawnJSObjectReference(SpawnJSHandle jsHandle)
+        public bool PreventDispose { get; set; }
+        /// <summary>Sentinel id for JS <c>globalThis</c>.</summary>
+        public const double GlobalThisId = -1;
+        /// <summary>Sentinel id for JS <c>undefined</c> (also the id a handle is set to once released).</summary>
+        public const double UndefinedId = -2;
+        /// <summary>Sentinel id for JS <c>null</c>.</summary>
+        public const double NullId = -3;
+        /// <summary>Sentinel id for the JS object table itself.</summary>
+        public const double SpawnJSObjectsId = -4;
+        /// <summary>Sentinel id for SpawnJSInterop.</summary>
+        public const double SpawnJSInteropId = -5;
+        /// <summary>True once this handle has been disposed (its JS table entry released).</summary>
+        public bool IsDisposed { get; private set; }
+        /// <summary>Shortcut to the runtime singleton.</summary>
+        static SpawnJSRuntime JS => SpawnJSRuntime.Instance;
+        /// <summary>The JS object table id this handle references. Set to <see cref="UndefinedId"/> once released.</summary>
+        public double Id { get; private set; }
+        /// <summary>True if this handle references JS <c>undefined</c> (or has been released).</summary>
+        public bool IsUndefined => Id == UndefinedId;
+        /// <summary>True if this handle references JS <c>null</c>.</summary>
+        public bool IsNull => Id == NullId;
+        /// <summary>True if this handle references JS <c>globalThis</c>.</summary>
+        public bool IsGlobalThis => Id == GlobalThisId;
+        /// <summary>
+        /// Constructor.name
+        /// </summary>
+        public string ConstructorName()
         {
-            JSHandle = jsHandle ?? throw new ArgumentNullException(nameof(jsHandle));
+            if (_typeOf == null) GetTypeInfo();
+            return _constructorName!;
+        }
+        ///// <summary>
+        ///// Constructor.name
+        ///// </summary>
+        public string TypeOf()
+        {
+            if (_typeOf == null) GetTypeInfo();
+            return _typeOf!;
+        }
+        private void GetTypeInfo()
+        {
+            try
+            {
+                var tmp = SpawnJSRuntime._getTypeInfo(Id) ?? "";
+                var parts = tmp.Split(" ");
+                _typeOf = parts[0];
+                _constructorName = parts.Length > 1 ? parts[1] : "";
+            }
+            catch { }
+            if (string.IsNullOrEmpty(_typeOf)) _typeOf = "undefined";
+            if (string.IsNullOrEmpty(_constructorName)) _constructorName = "";
+        }
+        string? _constructorName = null;
+        string? _typeOf = null;
+        public (string TypeOf, string ConstructorName) TypeInfo() => (TypeOf(), ConstructorName());
+
+        /// <summary>The object's own enumerable property names (Object.keys).</summary>
+        public List<string> Keys(bool hasOwnProperty = false)
+            => JS.SpawnJSInterop.Call<SpawnJSObjectReference, bool, List<string>>("objectKeys", this, hasOwnProperty);
+
+        /// <summary>Awaits a promise-valued property, discarding the result.</summary>
+        public Task GetVoidAsync(string key) => GetAsync<VoidType>(key);
+
+        /// <summary>The constructor names down the prototype chain (most-derived first).</summary>
+        public List<string> ConstructorNames()
+        {
+            if (_constructorNames != null) return _constructorNames;
+            try
+            {
+                _constructorNames ??= JS.SpawnJSInterop.Call<SpawnJSObjectReference, List<string>>("getConstructorNames", this);
+            }
+            catch { }
+            _constructorNames ??= new List<string>();
+            return _constructorNames;
+        }
+        List<string>? _constructorNames = null;
+        /// <summary>Wraps an existing JS object table id.</summary>
+        public SpawnJSObjectReference(double sjsId)
+        {
+            Id = sjsId;
         }
         /// <summary>
-        /// Dispose resources
+        /// Returns the referenced Javascript value as type T
         /// </summary>
-        /// <param name="disposing"></param>
+        public T As<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(bool dispose = false)
+        {
+            var ret = JS.As<SpawnJSObjectReference, T>(this);
+            if (dispose) Dispose();
+            return ret;
+        }
+        #region ReleaseAs
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public double? ReleaseAsDoubleNullable()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseDoubleNullable(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public bool? ReleaseAsBooleanNullable()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseBooleanNullable(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public int ReleaseAsInt32()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseInt32(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public int? ReleaseAsInt32Nullable()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseInt32Nullable(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public double ReleaseAsDouble()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseDouble(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public bool ReleaseAsBoolean()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseBoolean(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        public string ReleaseAsString()
+        {
+            var ret = SpawnJSRuntime.SpawnJSObjectReleaseString(Id);
+            Id = UndefinedId;
+            Dispose();
+            return ret;
+        }
+        /// <summary>
+        /// releases the SpawnJSObject reference and returns underlying value
+        /// </summary>
+        [RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
+        public T ReleaseAsJson<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(JsonSerializerOptions? serializerOptions = null)
+        {
+            var json = SpawnJSRuntime.SpawnJSObjectReleaseJson(Id);
+            var ret = json == null ? default : JsonSerializer.Deserialize<T>(json, serializerOptions);
+            Id = UndefinedId;
+            Dispose();
+            return ret!;
+        }
+        #endregion
+        /// <summary>
+        /// Releases the JS object table entry so the underlying value can be garbage-collected on the JS
+        /// side. Only positive ids reference a real table entry; the negative sentinels (globalThis, null,
+        /// etc.) have nothing to release.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (IsDisposed) return;
-            if (OwnsJSObject) JSHandle?.Dispose();
+            if (IsDisposed || PreventDispose) return;
+            IsDisposed = true;
+            var id = Id;
+            Id = UndefinedId;
+            if (id > 0)
+            {
+                SpawnJSRuntime.SpawnJSObjectRelease(id);
+            }
         }
-        /// <summary>
-        /// Release the JSObject, and other resources
-        /// </summary>
+        public double MoveId()
+        {
+            var id = Id;
+            Id = UndefinedId;
+            return id;
+        }
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (IsDisposed) return;
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        /// <summary>
-        /// Finalizer
-        /// </summary>
         ~SpawnJSObjectReference()
         {
             Dispose(false);
         }
-        /// <summary>
-        /// Marshalls this to Javascript and then returns as type T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        /// <remarks>
-        /// The handle is passed, not <see cref="JSObject"/>. Passing the JSObject forced the value to be
-        /// resolved to a runtime proxy purely to hand it back across a boundary it never had to cross;
-        /// the handle marshaller assigns slot to slot instead. Every JSRefAs, JSRefCopy and JSRefMove
-        /// funnels through here.
-        /// </remarks>
-        public T As<T>() => JS.NetRun<T>("returnMe", new object[] { JSHandle });
-        /// <summary>
-        /// Marshalls this to Javascript and then returns as type T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        /// <remarks>
-        /// The handle is passed, not <see cref="JSObject"/>. Passing the JSObject forced the value to be
-        /// resolved to a runtime proxy purely to hand it back across a boundary it never had to cross;
-        /// the handle marshaller assigns slot to slot instead. Every JSRefAs, JSRefCopy and JSRefMove
-        /// funnels through here.
-        /// </remarks>
-        public object As(Type returnType) => JS.NetRun(returnType, "returnMe", new object[] { JSHandle })!;
     }
 }

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Read(ArrayBuffer buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("read", buffer) : JSRef!.Call<long>("read", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, long>("read", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("read", buffer, options);
         /// <summary>
         /// The read() method of the FileSystemSyncAccessHandle interface reads the content of the file associated with the handle into a specified buffer, optionally at a given offset.
         /// </summary>
@@ -40,7 +39,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Read(TypedArray buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("read", buffer) : JSRef!.Call<long>("read", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TypedArray, long>("read", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("read", buffer, options);
         /// <summary>
         /// The read() method of the FileSystemSyncAccessHandle interface reads the content of the file associated with the handle into a specified buffer, optionally at a given offset.
         /// </summary>
@@ -48,7 +47,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Read(DataView buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("read", buffer) : JSRef!.Call<long>("read", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DataView, long>("read", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DataView, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("read", buffer, options);
         /// <summary>
         /// The read() method of the FileSystemSyncAccessHandle interface reads the content of the file associated with the handle into a specified buffer, optionally at a given offset.
         /// </summary>
@@ -58,7 +57,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public long Read(byte[] buffer, FileSystemSyncReadWriteOptions? options = null)
         {
             using var heapView = (HeapView)buffer;
-            return options == null ? JSRef!.Call<long>("read", buffer) : JSRef!.Call<long>("read", heapView, options);
+            return options == null ? JSRef!.Call<byte[], long>("read", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HeapView, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("read", heapView, options);
         }
         /// <summary>
         /// The truncate() method of the FileSystemSyncAccessHandle interface resizes the file associated with the handle to a specified number of bytes.
@@ -72,7 +71,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Write(ArrayBuffer buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("write", buffer) : JSRef!.Call<long>("write", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, long>("write", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("write", buffer, options);
         /// <summary>
         /// The write() method of the FileSystemSyncAccessHandle interface writes the content of a specified buffer to the file associated with the handle, optionally at a given offset.<br/>
         /// Files within the origin private file system are not visible to end-users, therefore are not subject to the same security checks as methods running on files within the user-visible file system. As a result, writes performed using FileSystemSyncAccessHandle.write() are much more performant. This makes them suitable for significant, large-scale file updates such as SQLite database modifications.
@@ -81,7 +80,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Write(TypedArray buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("write", buffer) : JSRef!.Call<long>("write", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TypedArray, long>("write", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("write", buffer, options);
         /// <summary>
         /// The write() method of the FileSystemSyncAccessHandle interface writes the content of a specified buffer to the file associated with the handle, optionally at a given offset.<br/>
         /// Files within the origin private file system are not visible to end-users, therefore are not subject to the same security checks as methods running on files within the user-visible file system. As a result, writes performed using FileSystemSyncAccessHandle.write() are much more performant. This makes them suitable for significant, large-scale file updates such as SQLite database modifications.
@@ -90,7 +89,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public long Write(DataView buffer, FileSystemSyncReadWriteOptions? options = null)
-            => options == null ? JSRef!.Call<long>("write", buffer) : JSRef!.Call<long>("write", buffer, options);
+            => options == null ? JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DataView, long>("write", buffer) : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DataView, global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("write", buffer, options);
         /// <summary>
         /// The write() method of the FileSystemSyncAccessHandle interface writes the content of a specified buffer to the file associated with the handle, optionally at a given offset.<br/>
         /// Files within the origin private file system are not visible to end-users, therefore are not subject to the same security checks as methods running on files within the user-visible file system. As a result, writes performed using FileSystemSyncAccessHandle.write() are much more performant. This makes them suitable for significant, large-scale file updates such as SQLite database modifications.
@@ -101,7 +100,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public long Write(byte[] buffer, FileSystemSyncReadWriteOptions? options = null)
         {
             using var heapView = (HeapView)buffer;
-            return options == null ? JSRef!.Call<long>("write", buffer) : JSRef!.Call<long>("write", buffer, options);
+            return options == null ? JSRef!.Call<byte[], long>("write", buffer) : JSRef!.Call<byte[], global::SpawnDev.SpawnJS.JSObjects.FileSystemSyncReadWriteOptions, long>("write", buffer, options);
         }
     }
 }

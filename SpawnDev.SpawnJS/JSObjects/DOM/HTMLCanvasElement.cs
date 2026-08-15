@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -51,8 +51,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="contextType">A string containing the context identifier defining the drawing context associated to the canvas.</param>
         /// <param name="contextAttributes"></param>
         /// <returns></returns>
-        public TContext? GetContext<TContext>(string contextType, object? contextAttributes = null) where TContext : SpawnJSObject =>
-            contextAttributes == null ? JSRef!.Call<TContext?>("getContext", contextType) : JSRef!.Call<TContext?>("getContext", contextType, contextAttributes);
+        public TContext? GetContext<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TContext>(string contextType, object? contextAttributes = null) where TContext : SpawnJSObject =>
+            contextAttributes == null ? JSRef!.Call<string, TContext?>("getContext", contextType) : JSRef!.Call<string, object, TContext?>("getContext", contextType, contextAttributes);
         /// <summary>
         /// Calls canvas.getContext("bitmaprenderer"), leading to the creation of a ImageBitmapRenderingContextSettings object.
         /// </summary>
@@ -60,8 +60,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public ImageBitmapRenderingContext GetImageBitmapRenderingContext(ImageBitmapRenderingContextSettings? contextAttributes = null)
         {
-            if (contextAttributes == null) return JSRef!.Call<ImageBitmapRenderingContext>("getContext", "bitmaprenderer");
-            return JSRef!.Call<ImageBitmapRenderingContext>("getContext", "bitmaprenderer", contextAttributes);
+            if (contextAttributes == null) return JSRef!.Call<string, ImageBitmapRenderingContext>("getContext", "bitmaprenderer");
+            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapRenderingContextSettings, ImageBitmapRenderingContext>("getContext", "bitmaprenderer", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("2d"), leading to the creation of a CanvasRenderingContext2D object representing a two-dimensional rendering context.
@@ -70,8 +70,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public CanvasRenderingContext2D Get2DContext(CanvasRenderingContext2DSettings? contextAttributes = null)
         {
-            if (contextAttributes == null) return JSRef!.Call<CanvasRenderingContext2D>("getContext", "2d");
-            return JSRef!.Call<CanvasRenderingContext2D>("getContext", "2d", contextAttributes);
+            if (contextAttributes == null) return JSRef!.Call<string, CanvasRenderingContext2D>("getContext", "2d");
+            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.CanvasRenderingContext2DSettings, CanvasRenderingContext2D>("getContext", "2d", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgl") which will create a WebGLRenderingContext object representing a three-dimensional rendering context. This context is only available on browsers that implement WebGL version 1 (OpenGL ES 2.0).
@@ -80,8 +80,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public WebGLRenderingContext GetWebGLContext(WebGLContextAttributes? contextAttributes = null)
         {
-            if (contextAttributes == null) return JSRef!.Call<WebGLRenderingContext>("getContext", "webgl");
-            return JSRef!.Call<WebGLRenderingContext>("getContext", "webgl", contextAttributes);
+            if (contextAttributes == null) return JSRef!.Call<string, WebGLRenderingContext>("getContext", "webgl");
+            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.WebGLContextAttributes, WebGLRenderingContext>("getContext", "webgl", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgl2") which will create a WebGL2RenderingContext object representing a three-dimensional rendering context. This context is only available on browsers that implement WebGL version 2 (OpenGL ES 3.0). 
@@ -90,32 +90,32 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public WebGL2RenderingContext GetWebGL2Context(WebGLContextAttributes? contextAttributes = null)
         {
-            if (contextAttributes == null) return JSRef!.Call<WebGL2RenderingContext>("getContext", "webgl2");
-            return JSRef!.Call<WebGL2RenderingContext>("getContext", "webgl2", contextAttributes);
+            if (contextAttributes == null) return JSRef!.Call<string, WebGL2RenderingContext>("getContext", "webgl2");
+            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.WebGLContextAttributes, WebGL2RenderingContext>("getContext", "webgl2", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgpu") which will create a GPUCanvasContext object representing a three-dimensional rendering context for WebGPU render pipelines. This context is only available on browsers that implement The WebGPU API.
         /// </summary>
         /// <returns></returns>
-        public GPUCanvasContext GetWebGPUContext() => JSRef!.Call<GPUCanvasContext>("getContext", "webgpu");
+        public GPUCanvasContext GetWebGPUContext() => JSRef!.Call<string, GPUCanvasContext>("getContext", "webgpu");
         /// <summary>
         /// Calls canvas.getContext("bitmaprenderer") which will create an ImageBitmapRenderingContext which only provides functionality to replace the content of the canvas with a given ImageBitmap.
         /// </summary>
         /// <returns></returns>
-        public ImageBitmapRenderingContext GetImageBitmapRenderingContext() => JSRef!.Call<ImageBitmapRenderingContext>("getContext", "bitmaprenderer");
+        public ImageBitmapRenderingContext GetImageBitmapRenderingContext() => JSRef!.Call<string, ImageBitmapRenderingContext>("getContext", "bitmaprenderer");
         /// <summary>
         /// Returns a data-URL containing a representation of the image in the format specified by the type parameter (defaults to png). The returned image is in a resolution of 96dpi.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public string ToDataURL(string type = "image/png") => JSRef!.Call<string>("toDataURL", type);
+        public string ToDataURL(string type = "image/png") => JSRef!.Call<string, string>("toDataURL", type);
         /// <summary>
         /// Returns a data-URL containing a representation of the image in the format specified by the type parameter (defaults to png). The returned image is in a resolution of 96dpi.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="encoderOptions"></param>
         /// <returns></returns>
-        public string ToDataURL(string type, float encoderOptions) => JSRef!.Call<string>("toDataURL", type, encoderOptions);
+        public string ToDataURL(string type, float encoderOptions) => JSRef!.Call<string, float, string>("toDataURL", type, encoderOptions);
         /// <summary>
         /// The HTMLCanvasElement.toBlob() method creates a Blob object representing the image contained in the canvas. This file may be cached on the disk or stored in memory at the discretion of the user agent.<br/>
         /// The desired file format and image quality may be specified. If the file format is not specified, or if the given format is not supported, then the data will be exported as image/png. Browsers are required to support image/png; many will support additional formats including image/jpeg and image/webp.<br/>
@@ -213,7 +213,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="frameRate">Frame rate for capture. If not set, a new frame is captured each time the canvas changes.</param>
         /// <returns>A MediaStream with one video track capturing the canvas contents.</returns>
         public MediaStream CaptureStream(double? frameRate = null) =>
-            frameRate.HasValue ? JSRef!.Call<MediaStream>("captureStream", frameRate.Value) : JSRef!.Call<MediaStream>("captureStream");
+            frameRate.HasValue ? JSRef!.Call<double, MediaStream>("captureStream", frameRate.Value) : JSRef!.Call<MediaStream>("captureStream");
 
         /// <summary>
         /// The HTMLCanvasElement.transferControlToOffscreen() method transfers control to an OffscreenCanvas object, either on the main thread or on a worker.

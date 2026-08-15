@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -51,7 +51,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="lockName"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public static async Task<TaskCompletionSource<TResult>> RequestHandle<TResult>(this LockManager _this, string lockName, LockRequestOptions options)
+        public static async Task<TaskCompletionSource<TResult>> RequestHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(this LockManager _this, string lockName, LockRequestOptions options)
         {
             var lockWait = new TaskCompletionSource();
             var ret = new TaskCompletionSource<TResult>();
@@ -89,7 +89,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="_this"></param>
         /// <param name="lockName"></param>
         /// <returns></returns>
-        public static async Task<TaskCompletionSource<TResult>> RequestHandle<TResult>(this LockManager _this, string lockName)
+        public static async Task<TaskCompletionSource<TResult>> RequestHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(this LockManager _this, string lockName)
         {
             var lockWait = new TaskCompletionSource();
             var ret = new TaskCompletionSource<TResult>();
@@ -130,7 +130,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="lockName"></param>
         /// <param name="millisecondsTimeout"></param>
         /// <returns></returns>
-        public static async Task<TaskCompletionSource<TResult>> RequestHandle<TResult>(this LockManager _this, string lockName, int millisecondsTimeout)
+        public static async Task<TaskCompletionSource<TResult>> RequestHandle<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(this LockManager _this, string lockName, int millisecondsTimeout)
         {
             var lockWait = new TaskCompletionSource();
             var ret = new TaskCompletionSource<TResult>();

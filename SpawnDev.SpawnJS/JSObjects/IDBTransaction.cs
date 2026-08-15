@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -53,7 +53,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="TValue"></typeparam>
         /// <param name="storeName">The name of the requested object store.</param>
         /// <returns>An IDBObjectStore object for accessing an object store.</returns>
-        public IDBObjectStore<TKey, TValue> ObjectStore<TKey, TValue>(string storeName) => JSRef!.Call<IDBObjectStore<TKey, TValue>>("objectStore", storeName);
+        public IDBObjectStore<TKey, TValue> ObjectStore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(string storeName) => JSRef!.Call<string, IDBObjectStore<TKey, TValue>>("objectStore", storeName);
         /// <summary>
         /// Rolls back all the changes to objects in the database associated with this transaction. If this transaction has been aborted or completed, this method fires an error event.
         /// </summary>

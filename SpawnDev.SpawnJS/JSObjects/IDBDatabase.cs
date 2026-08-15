@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class IDBDatabase : EventTarget
     {
         #region Static helper methods (non-spec)
-        private static Lazy<bool> _IsSupported = new Lazy<bool>(() => !JS.IsUndefined("indexedDB"));
+        private static Lazy<bool> _IsSupported = new Lazy<bool>(() => !!JS.Exists("indexedDB"));
         /// <summary>
         /// True is indexedDB global object is found
         /// </summary>
@@ -92,7 +92,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="storeName">The name of the new object store to be created. Note that it is possible to create an object store with an empty name.</param>
         /// <param name="options">An options object whose attributes are optional parameters to the method</param>
         /// <returns>A new IDBObjectStore.</returns>
-        public IDBObjectStore<TKey, TValue> CreateObjectStore<TKey, TValue>(string storeName, IDBObjectStoreCreateOptions? options = null) => JSRef!.Call<IDBObjectStore<TKey, TValue>>("createObjectStore", storeName, options);
+        public IDBObjectStore<TKey, TValue> CreateObjectStore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(string storeName, IDBObjectStoreCreateOptions? options = null) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.IDBObjectStoreCreateOptions, IDBObjectStore<TKey, TValue>>("createObjectStore", storeName, options!);
         /// <summary>
         /// Destroys the object store with the given name in the connected database, along with any indexes that reference it.
         /// </summary>
@@ -103,7 +103,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="storeNames">The names of object stores that are in the scope of the new transaction, declared as an array of strings. Specify only the object stores that you need to access. If you need to access only one object store, you can specify its name as a string. Therefore the following lines are equivalent:</param>
         /// <returns>IDBTransaction</returns>
-        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames) => JSRef!.Call<IDBTransaction>("transaction", storeNames);
+        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, global::System.Collections.Generic.IEnumerable<string>>, IDBTransaction>("transaction", storeNames);
         /// <summary>
         /// Immediately returns a transaction object (IDBTransaction) containing the IDBTransaction.objectStore method, which you can use to access your object store. Runs in a separate thread.
         /// </summary>
@@ -115,14 +115,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// If you don't provide the parameter, the default access mode is readonly. To avoid slowing things down, don't open a readwrite transaction unless you actually need to write into the database.
         /// </param>
         /// <returns>IDBTransaction</returns>
-        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, string mode) => JSRef!.Call<IDBTransaction>("transaction", storeNames, mode);
+        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, string mode) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, global::System.Collections.Generic.IEnumerable<string>>, string, IDBTransaction>("transaction", storeNames, mode);
         /// <summary>
         /// Immediately returns a transaction object (IDBTransaction) containing the IDBTransaction.objectStore method, which you can use to access your object store. Runs in a separate thread.
         /// </summary>
         /// <param name="storeNames">The names of object stores that are in the scope of the new transaction, declared as an array of strings. Specify only the object stores that you need to access. If you need to access only one object store, you can specify its name as a string. Therefore the following lines are equivalent:</param>
         /// <param name="readWrite">If true, "readwrite" mode will be used. Otherwise "readonly mode will be used."</param>
         /// <returns>IDBTransaction</returns>
-        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, bool readWrite) => JSRef!.Call<IDBTransaction>("transaction", storeNames, readWrite ? "readwrite" : "readonly");
+        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, bool readWrite) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, global::System.Collections.Generic.IEnumerable<string>>, string, IDBTransaction>("transaction", storeNames, readWrite ? "readwrite" : "readonly");
         /// <summary>
         /// Immediately returns a transaction object (IDBTransaction) containing the IDBTransaction.objectStore method, which you can use to access your object store. Runs in a separate thread.
         /// </summary>
@@ -135,7 +135,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </param>
         /// <param name="options">Additional options</param>
         /// <returns>IDBTransaction</returns>
-        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, string mode, IDBDatabaseTransactionOptions options) => JSRef!.Call<IDBTransaction>("transaction", storeNames, mode, options);
+        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, string mode, IDBDatabaseTransactionOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, global::System.Collections.Generic.IEnumerable<string>>, string, global::SpawnDev.SpawnJS.JSObjects.IDBDatabaseTransactionOptions, IDBTransaction>("transaction", storeNames, mode, options);
         /// <summary>
         /// Immediately returns a transaction object (IDBTransaction) containing the IDBTransaction.objectStore method, which you can use to access your object store. Runs in a separate thread.
         /// </summary>
@@ -143,7 +143,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="readWrite">If true, "readwrite" mode will be used. Otherwise "readonly mode will be used."</param>
         /// <param name="options">Additional options</param>
         /// <returns>IDBTransaction</returns>
-        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, bool readWrite, IDBDatabaseTransactionOptions options) => JSRef!.Call<IDBTransaction>("transaction", storeNames, readWrite ? "readwrite" : "readonly", options);
+        public IDBTransaction Transaction(Union<string, IEnumerable<string>> storeNames, bool readWrite, IDBDatabaseTransactionOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, global::System.Collections.Generic.IEnumerable<string>>, string, global::SpawnDev.SpawnJS.JSObjects.IDBDatabaseTransactionOptions, IDBTransaction>("transaction", storeNames, readWrite ? "readwrite" : "readonly", options);
         /// <summary>
         /// An event fired when the database connection is unexpectedly closed.
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -213,7 +212,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public bool CanShare(ShareOptions options) => JSRef!.Call<bool>("canShare", options);
+        public bool CanShare(ShareOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ShareOptions, bool>("canShare", options);
         /// <summary>
         /// The clearAppBadge() method of the Navigator interface clears a badge on the current app's icon by setting it to nothing. The value nothing indicates that no badge is currently set, and the status of the badge is cleared.
         /// </summary>
@@ -224,7 +223,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns a promise that resolves with a BatteryManager object that returns information about the battery charging status.
         /// </summary>
         /// <returns></returns>
-        public async Task<BatteryManager?> GetBattery() => (GetBatterySupported ??= JSRef!.IsUndefined("getBattery")) ? null : await JSRef!.CallAsync<BatteryManager?>("getBattery");
+        public async Task<BatteryManager?> GetBattery() => (GetBatterySupported ??= !JSRef!.Exists("getBattery")) ? null : await JSRef!.CallAsync<BatteryManager?>("getBattery");
         /// <summary>
         /// Returns a promise that resolves with an array of objects representing any related native or Progressive Web Applications that the user has installed.
         /// </summary>
@@ -242,7 +241,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="keySystem">A string identifying the key system. For example com.example.somesystem or org.w3.clearkey.</param>
         /// <param name="supportedConfigurations">A non-empty Array of objects conforming to the object returned by MediaKeySystemAccess.getConfiguration. The first element with a satisfiable configuration will be used.</param>
-        public Task<MediaKeySystemAccess> RequestMediaKeySystemAccess(string keySystem, Array supportedConfigurations) => JSRef!.CallAsync<MediaKeySystemAccess>("requestMediaKeySystemAccess", keySystem, supportedConfigurations);
+        public Task<MediaKeySystemAccess> RequestMediaKeySystemAccess(string keySystem, Array supportedConfigurations) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.Array, MediaKeySystemAccess>("requestMediaKeySystemAccess", keySystem, supportedConfigurations);
         /// <summary>
         /// The requestMIDIAccess() method of the Navigator interface returns a Promise representing a request for access to MIDI devices on a user's system. This method is part of the Web MIDI API, which provides a means for accessing, enumerating, and manipulating MIDI devices.
         /// </summary>
@@ -252,15 +251,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<MIDIAccess> RequestMIDIAccess(MIDIAccessOptions options) => JSRef!.CallAsync<MIDIAccess>("requestMIDIAccess", options);
+        public Task<MIDIAccess> RequestMIDIAccess(MIDIAccessOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.MIDIAccessOptions, MIDIAccess>("requestMIDIAccess", options);
         /// <summary>
         /// The navigator.sendBeacon() method asynchronously sends an HTTP POST request containing a small amount of data to a web server.
         /// </summary>
-        public bool SendBeacon(string url) => JSRef!.Call<bool>("sendBeacon", url);
+        public bool SendBeacon(string url) => JSRef!.Call<string, bool>("sendBeacon", url);
         /// <summary>
         /// The navigator.sendBeacon() method asynchronously sends an HTTP POST request containing a small amount of data to a web server.
         /// </summary>
-        public bool SendBeacon(string url, Union<ArrayBuffer, TypedArray, DataView, Blob, string, FormData, URLSearchParams, byte[]> data) => JSRef!.Call<bool>("sendBeacon", url, data);
+        public bool SendBeacon(string url, Union<ArrayBuffer, TypedArray, DataView, Blob, string, FormData, URLSearchParams, byte[]> data) => JSRef!.Call<string, global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, global::SpawnDev.SpawnJS.JSObjects.Blob, string, global::SpawnDev.SpawnJS.JSObjects.FormData, global::SpawnDev.SpawnJS.JSObjects.URLSearchParams, byte[]>, bool>("sendBeacon", url, data);
         /// <summary>
         /// The setAppBadge() method of the Navigator interface sets a badge on the icon associated with this app. If a value is passed to the method, this will be set as the value of the badge. Otherwise the badge will display as a dot, or other indicator as defined by the platform.
         /// </summary>
@@ -280,7 +279,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The Navigator.vibrate() method pulses the vibration hardware on the device, if such hardware exists. If the device doesn't support vibration, this method has no effect. If a vibration pattern is already in progress when this method is called, the previous pattern is halted and the new one begins instead.
         /// </summary>
-        public bool Vibrate(Union<float, float[]> pattern) => JSRef!.Call<bool>("vibrate", pattern);
+        public bool Vibrate(Union<float, float[]> pattern) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<float, float[]>, bool>("vibrate", pattern);
         #endregion
     }
 }

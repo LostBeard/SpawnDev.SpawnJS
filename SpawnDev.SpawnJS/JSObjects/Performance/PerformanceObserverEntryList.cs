@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,13 +24,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public PerformanceEntry[] GetEntriesByType(string type) => JSRef!.Call<PerformanceEntry[]>("getEntriesByType", type);
+        public PerformanceEntry[] GetEntriesByType(string type) => JSRef!.Call<string, PerformanceEntry[]>("getEntriesByType", type);
         /// <summary>
         /// Returns a list of PerformanceEntry objects based on the given name and entry type.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public PerformanceEntry[] GetEntriesByName(string name, string? type = null) => JSRef!.Call<PerformanceEntry[]>("getEntriesByName", name, type);
+        public PerformanceEntry[] GetEntriesByName(string name, string? type = null) => JSRef!.Call<string, string, PerformanceEntry[]>("getEntriesByName", name, type!);
     }
 }

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -19,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The toJSON() method of the ReportBody interface is a serializer; it returns a JSON representation of the ReportBody object.
         /// </summary>
         /// <returns></returns>
-        public T ToJSON<T>() => JSRef!.Call<T>("toJSON");
+        public T ToJSON<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Call<T>("toJSON");
     }
 }

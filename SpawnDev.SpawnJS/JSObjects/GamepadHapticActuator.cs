@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -22,15 +21,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if PlayEffect is supported
         /// </summary>
-        public bool PlayEffectSupported => !JSRef!.IsUndefined("playEffect");
+        public bool PlayEffectSupported => !!JSRef!.Exists("playEffect");
         /// <summary>
         /// Returns true if Pulse is supported
         /// </summary>
-        public bool PulseSupported => !JSRef!.IsUndefined("pulse");
+        public bool PulseSupported => !!JSRef!.Exists("pulse");
         /// <summary>
         /// Returns true if Reset is supported
         /// </summary>
-        public bool ResetSupported => !JSRef!.IsUndefined("reset");
+        public bool ResetSupported => !!JSRef!.Exists("reset");
         /// <summary>
         /// The pulse() method of the GamepadHapticActuator interface makes the hardware pulse at a certain intensity for a specified duration.<br/>
         /// May be Firefox and not Chrome

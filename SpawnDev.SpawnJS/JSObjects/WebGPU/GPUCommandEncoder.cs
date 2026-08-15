@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="descriptor">The descriptor that defines the configuration and attachments for the render pass. This cannot be <see
         /// langword="null"/>.</param>
         /// <returns>A <see cref="GPURenderPassEncoder"/> that can be used to record rendering commands for the render pass.</returns>
-        public GPURenderPassEncoder BeginRenderPass(GPURenderPassDescriptor descriptor) => JSRef!.Call<GPURenderPassEncoder>("beginRenderPass", descriptor);
+        public GPURenderPassEncoder BeginRenderPass(GPURenderPassDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPURenderPassDescriptor, GPURenderPassEncoder>("beginRenderPass", descriptor);
 
         /// <summary>
         /// Completes the recording of commands in the current GPU command encoder and returns a command buffer.
@@ -34,7 +33,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <returns>A <see cref="GPUCommandBuffer"/> containing the recorded commands. The command buffer can be submitted to a
         /// GPU queue for execution.</returns>
-        public GPUCommandBuffer Finish(GPUCommandBufferDescriptor descriptor) => JSRef!.Call<GPUCommandBuffer>("finish", descriptor);
+        public GPUCommandBuffer Finish(GPUCommandBufferDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUCommandBufferDescriptor, GPUCommandBuffer>("finish", descriptor);
 
         /// <summary>
         /// The copyBufferToBuffer() method of the GPUCommandEncoder interface encodes a command that copies data from one GPUBuffer to another.
@@ -123,6 +122,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Begins encoding a compute pass described by descriptor.
         /// </summary>
         /// <param name="descriptor"></param>
-        public GPUComputePassEncoder BeginComputePass(GPUComputePassDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUComputePassEncoder>("beginComputePass") : JSRef!.Call<GPUComputePassEncoder>("beginComputePass", descriptor);
+        public GPUComputePassEncoder BeginComputePass(GPUComputePassDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUComputePassEncoder>("beginComputePass") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUComputePassDescriptor, GPUComputePassEncoder>("beginComputePass", descriptor);
     }
 }

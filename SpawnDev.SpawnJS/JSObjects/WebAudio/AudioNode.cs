@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -43,7 +42,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The connect() method of the AudioNode interface lets you connect one of the node's outputs to a target, which may be either another AudioNode (thereby directing the sound data to the specified node) or an AudioParam, so that the node's output data is automatically used to change the value of that parameter over time.
         /// </summary>
         /// <returns></returns>
-        public AudioNode Connect(AudioNode audioNode) => JSRef!.Call<AudioNode>("connect", audioNode);
+        public AudioNode Connect(AudioNode audioNode) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.AudioNode, AudioNode>("connect", audioNode);
         /// <summary>
         /// The connect() method of the AudioNode interface lets you connect one of the node's outputs to a target, which may be either another AudioNode (thereby directing the sound data to the specified node) or an AudioParam, so that the node's output data is automatically used to change the value of that parameter over time.
         /// </summary>

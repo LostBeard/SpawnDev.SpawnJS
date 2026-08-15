@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,20 +29,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public RTCStats? Get(string id) => JSRef!.Call<RTCStats?>("get", id);
+        public RTCStats? Get(string id) => JSRef!.Call<string, RTCStats?>("get", id);
         /// <summary>
         /// Returns the statistics dictionary associated with the passed id, or undefined if there is none.
         /// </summary>
         /// <typeparam name="TStats"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TStats? Get<TStats>(string id) where TStats : RTCStats => JSRef!.Call<TStats?>("get", id);
+        public TStats? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TStats>(string id) where TStats : RTCStats => JSRef!.Call<string, TStats?>("get", id);
         /// <summary>
         /// Returns a boolean indicating whether the RTCStatsReport contains a statistics dictionary associated with the specified id.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool Has(string id) => JSRef!.Call<bool>("has", id);
+        public bool Has(string id) => JSRef!.Call<string, bool>("has", id);
         /// <summary>
         /// Returns a new Iterator object that contains the keys (IDs) for each element in the RTCStatsReport object, in insertion order.
         /// </summary>

@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
+using System.Diagnostics.CodeAnalysis;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -24,23 +21,23 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns the next IteratorResult&lt;TValue&gt;
         /// </summary>
         /// <returns></returns>
-        public IteratorResult<TValue> Next<TValue>() => JSRef!.Call<IteratorResult<TValue>>("next");
+        public IteratorResult<TValue> Next<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => JSRef!.Call<IteratorResult<TValue>>("next");
         /// <summary>
         /// Returns all the enumerated results as a List
         /// </summary>
         /// <returns></returns>
-        public List<TValue> ToList<TValue>() => ToEnumerable<TValue>().ToList();
+        public List<TValue> ToList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => ToEnumerable<TValue>().ToList();
         /// <summary>
         /// Returns all the enumerated results as a .Net Array
         /// </summary>
         /// <returns></returns>
-        public TValue[] ToArray<TValue>() => ToEnumerable<TValue>().ToArray();
+        public TValue[] ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => ToEnumerable<TValue>().ToArray();
         /// <summary>
         /// Returns an IEnumerable&lt;TValue&gt;
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <returns></returns>
-        public IEnumerable<TValue> ToEnumerable<TValue>()
+        public IEnumerable<TValue> ToEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>()
         {
             while (true)
             {
@@ -56,7 +53,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// Iteration protocols aren't new built-ins or syntax, but protocols. These protocols can be implemented by any object by following some conventions.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
     /// </summary>
-    public class Iterator<TValue> : SpawnJSObject
+    public class Iterator<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue> : SpawnJSObject
     {
         /// <summary>
         /// Converts this iterator to a List

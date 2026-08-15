@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Reconnects to an existing presentation connection.
         /// </summary>
-        public Task<PresentationConnection> Reconnect(string id) => JSRef!.CallAsync<PresentationConnection>("reconnect", id);
+        public Task<PresentationConnection> Reconnect(string id) => JSRef!.CallAsync<string, PresentationConnection>("reconnect", id);
 
         /// <summary>
         /// Returns a promise that resolves with a PresentationAvailability object.

@@ -1,943 +1,191 @@
-using System.Runtime.InteropServices.JavaScript;
+using System.Diagnostics.CodeAnalysis;
+using SpawnDev.SpawnJS.Marshaller;
 
 namespace SpawnDev.SpawnJS
 {
-    // Contains String keyed property methods
     public partial class SpawnJSObjectReference
     {
-        /// <summary>
-        /// Get object property as returnType
-        /// </summary>
-        /// <param name="returnType"></param>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public object? Get(Type returnType, string identifier) => JS.NetRun(returnType, "getProperty", new object[] { JSObject, identifier });
-        /// <summary>
-        /// Get object property as returnType
-        /// </summary>
-        /// <param name="returnType"></param>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public Task<object?> GetAsync(Type returnType, string identifier) => JS.NetRunAsync(returnType, "getProperty", new object[] { JSObject, identifier });
-        /// <summary>
-        /// Get object property as T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public T Get<T>(string identifier)
+        public string ConstructorName(string key) => TypeInfo(key).ConstructorName;
+        public string TypeOf(string key) => TypeInfo(key).TypeOf;
+        public (string TypeOf, string ConstructorName) TypeInfo(string key)
         {
-            if (TryGetFast<T>(identifier, out T fast)) return fast;
-            // Marshal straight out of this object at the key, the mirror of what Set does. The marshallers
-            // already read from a handle at a key, so when this target is slotted nothing needs the generic
-            // dispatcher - and going through it meant handing over a JSObject for the target, which is a
-            // proxy created purely to be read through.
-            if (!identifier.Contains('.') && JSHandle.TryGetSlot(out _))
+            string? typeOf = null;
+            string? constructorName = null;
+            try
             {
-                return (T)JS.MarshallJSToNet(typeof(T), JSHandle, identifier)!;
+                var tmp = SpawnJSRuntime._propertyTypeInfo(Id, key);
+                var parts = tmp.Split(" ");
+                typeOf = parts[0];
+                constructorName = parts.Length > 1 ? parts[1] : "";
             }
-            return JS.NetRun<T>("getProperty", new object[] { JSObject, identifier });
+            catch { }
+            if (string.IsNullOrEmpty(typeOf)) typeOf = "undefined";
+            if (string.IsNullOrEmpty(constructorName)) constructorName = "";
+            return (typeOf, constructorName);
         }
-        /// <summary>
-        /// Get object property as T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public Task<T> GetAsync<T>(string identifier) => JS.NetRunAsync<T>("getProperty", new object[] { JSObject, identifier });
-        /// <summary>
-        /// Check if an object has a property with the specified identifier.<br/>
-        /// Resolves dotted paths and null-conditionals the same way Get, Set and Call do, so
-        /// <c>Has("navigator.gpu")</c> answers the question you actually asked.
-        /// </summary>
-        /// <param name="identifier">Property name, or a dotted path such as "navigator.gpu"</param>
-        /// <param name="useIn">If true uses the `in` operator (walks the prototype chain), otherwise hasOwnProperty</param>
-        public bool Has(string identifier, bool useIn = true)
-            => JS.NetRun<bool>("hasProperty", new object[] { JSObject, identifier, useIn });
-
-        /// <summary>
-        /// Check if an object has a property with the exact specified key, treating the identifier as
-        /// a literal property name rather than a path.<br/>
-        /// This is the `in` operator (or hasOwnProperty), so <c>HasDirect("a.b")</c> asks whether a
-        /// property literally named "a.b" exists - it does not walk into <c>a</c>.
-        /// </summary>
-        /// <param name="identifier">A literal property name, never treated as a path</param>
-        /// <param name="useIn">If true uses the `in` operator (walks the prototype chain), otherwise hasOwnProperty</param>
-        public bool HasDirect(string identifier, bool useIn = true)
-            => useIn ? JS.NetRun<bool>("_in", new object[] { identifier, JSObject }) : JS.NetRun<bool>("hasOwnPropertySafe", new object[] { JSObject, identifier });
-
-        /// <summary>
-        /// Alias for !Has. Resolves dotted paths.
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <returns></returns>
-        public bool IsUndefined(string identifier) => !Has(identifier);
-
-        /// <summary>
-        /// Set an object property to the specified value
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="value"></param>
-        public void Set(string identifier, object? value)
-        {
-            if (TrySetFast(identifier, value)) return;
-            // Marshal straight into this object at the key. The marshallers already write into a handle
-            // at a key, so when this target is slotted nothing needs the generic dispatcher - and the
-            // dispatcher is the whole cost here: an EMPTY object cost 36.8us through it against 2.1us
-            // for a primitive, all of it setup rather than marshalling.
-            if (!identifier.Contains('.') && JSHandle.TryGetSlot(out _))
-            {
-                JS.MarshallNetToJS(JSHandle, identifier, value);
-                return;
-            }
-            JS.NetRunVoid("setProperty", new object[] { JSObject, identifier, value! });
-        }
-
-        /// <summary>
-        /// Delete an object property
-        /// </summary>
-        /// <param name="identifier"></param>
-        public void Delete(string identifier) => JS.NetRunVoid("deleteProperty", new object[] { JSObject, identifier });
-
-        /// <summary>
-        /// Copy a property from this object to another object
-        /// </summary>
-        public void CopyPropertyTo(string srcIdentifier, JSObject destObj, string destIdentifier) => JS.NetRunVoid("copyProperty", new object[] { JSObject, srcIdentifier, destObj, destIdentifier });
-        /// <summary>
-        /// Copy a property from this object to another object
-        /// </summary>
-        public void CopyPropertyTo(string srcIdentifier, JSObject destObj) => JS.NetRunVoid("copyProperty", new object[] { JSObject, srcIdentifier, destObj, srcIdentifier });
-        /// <summary>
-        /// Move a property from this object to another object
-        /// </summary>
-        public void MovePropertyTo(string srcIdentifier, JSObject destObj, string destIdentifier) => JS.NetRunVoid("moveProperty", new object[] { JSObject, srcIdentifier, destObj, destIdentifier });
-        /// <summary>
-        /// Move a property from this object to another object
-        /// </summary>
-        public void MovePropertyTo(string srcIdentifier, JSObject destObj) => JS.NetRunVoid("moveProperty", new object[] { JSObject, srcIdentifier, destObj, srcIdentifier });
-        /// <summary>
-        /// Copy an object property from another object to this object
-        /// </summary>
-        public void CopyPropertyFrom(string destIdentifier, JSObject srcObj, string srcIdentifier) => JS.NetRunVoid("copyProperty", new object[] { srcObj, srcIdentifier, JSObject, destIdentifier });
-        /// <summary>
-        /// Copy an object property from another object to this object
-        /// </summary>
-        public void CopyPropertyFrom(JSObject srcObj, string srcIdentifier) => JS.NetRunVoid("copyProperty", new object[] { srcObj, srcIdentifier, JSObject, srcIdentifier });
-        /// <summary>
-        /// Move an object property from another object to this object
-        /// </summary>
-        public void MovePropertyFrom(string destIdentifier, JSObject srcObj, string srcIdentifier) => JS.NetRunVoid("moveProperty", new object[] { srcObj, destIdentifier, JSObject, srcIdentifier });
-        /// <summary>
-        /// Move an object property from another object to this object
-        /// </summary>
-        public void MovePropertyFrom(JSObject srcObj, string srcIdentifier) => JS.NetRunVoid("moveProperty", new object[] { srcObj, srcIdentifier, JSObject, srcIdentifier });
-
-        #region New-SpawnJSObjectReference
-        /// <summary>
-        /// Invoke a property constructor and return as type T
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier)
-            => NewApply(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1)
-            => NewApply(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2)
-            => NewApply(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference New(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => NewApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public SpawnJSObjectReference NewApply(string identifier, object?[] args) => JS.NetRun<SpawnJSObjectReference>("invokePropertyConstructor", new object[] { JSObject, identifier, args });
+        public bool Exists(string key) => SpawnJSRuntime._propertyIn(Id, key);
+        public bool Delete(string key) => SpawnJSRuntime._propertyDelete(Id, key);
+        #region Set
+        public void Set<T>(string key, T value) => JS.InteropCall<double, string, T, VoidType>("propertySet", Id, key, value);
         #endregion
-
-        #region New-T
-        /// <summary>
-        /// Invoke a property constructor and return as type T
-        /// </summary>
-        public T New<T>(string identifier)
-            => NewApply<T>(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1)
-            => NewApply<T>(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T New<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => NewApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Call the property constructor
-        /// </summary>
-        public T NewApply<T>(string identifier, object?[] args) => JS.NetRun<T>("invokePropertyConstructor", new object[] { JSObject, identifier, args });
+        #region Get
+        public SpawnJSObjectReference? Get(string key) => JS.InteropCall<double, string, SpawnJSObjectReference>("propertyGet", Id, key);
+        public T Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key) => JS.InteropCall<double, string, T>("propertyGet", Id, key);
         #endregion
-
-        #region Call-T
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier)
-            => CallApply<T>(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1)
-            => CallApply<T>(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public T Call<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => CallApply<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Invoke a property and return as type T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public T CallApply<T>(string identifier, object?[] args)
-        {
-            if (TryInvokeBySlot<T>(identifier, args, out var slotResult)) return slotResult;
-            if (TryCallFast<T>(identifier, args, out T fast)) return fast;
-            return JS.NetRun<T>("invokeProperty", new object[] { JSObject, identifier, args });
-        }
+        #region GetAsync
+        public Task<T> GetAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key) => JS.InteropCallAsync<double, string, T>("propertyGet", Id, key);
+        public Task<SpawnJSObjectReference> GetAsync(string key) => JS.InteropCallAsync<double, string, SpawnJSObjectReference>("propertyGet", Id, key);
         #endregion
+        #region New
+        public T NewApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, object?[]? args = null) 
+            => JS.InteropCall<double, string, object?[]?, T>("propertyNewApply", Id, key, args);
+        public T New<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key)
+            => JS.InteropCall<double, string, T>("propertyNew", Id, key);
+        public T New<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1)
+            => JS.InteropCall<double, string, T1, T>("propertyNew", Id, key, arg1);
+        public T New<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCall<double, string, T1, T2, T>("propertyNew", Id, key, arg1, arg2);
+        public T New<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCall<double, string, T1, T2, T3, T>("propertyNew", Id, key, arg1, arg2, arg3);
+        public T New<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4);
+        public T New<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public T New<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public T New<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public T New<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public T New<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public T New<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
 
-        #region Call-Type
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier)
-            => CallApply(returnType, identifier, new object?[] { });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1)
-            => CallApply(returnType, identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public object? Call(Type returnType, string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => CallApply(returnType, identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Invoke a property and return as type T
-        /// </summary>
-        /// <param name="returnType"></param>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public object? CallApply(Type returnType, string identifier, object?[] args) => JS.NetRun(returnType, "invokeProperty", new object[] { JSObject, identifier, args });
+        public SpawnJSObjectReference NewApply(string key, object?[]? args = null) 
+            => JS.InteropCall<double, string, object?[]?, SpawnJSObjectReference>("propertyNewApply", Id, key, args);
+        public SpawnJSObjectReference New(string key) 
+            => JS.InteropCall<double, string, SpawnJSObjectReference>("propertyNew", Id, key);
+        public SpawnJSObjectReference New<T1>(string key, T1 arg1) 
+            => JS.InteropCall<double, string, T1, SpawnJSObjectReference>("propertyNew", Id, key, arg1);
+        public SpawnJSObjectReference New<T1, T2>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCall<double, string, T1, T2, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2);
+        public SpawnJSObjectReference New<T1, T2, T3>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCall<double, string, T1, T2, T3, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3);
+        public SpawnJSObjectReference New<T1, T2, T3, T4>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5, T6>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5, T6, T7>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5, T6, T7, T8>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5, T6, T7, T8, T9>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public SpawnJSObjectReference New<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, SpawnJSObjectReference>("propertyNew", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         #endregion
-
-        #region CallVoid
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier)
-            => CallVoidApply(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1)
-            => CallVoidApply(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public void CallVoid(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => CallVoidApply(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Invoke a property
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        public void CallVoidApply(string identifier, object?[] args)
-        {
-            if (TryInvokeVoidBySlot(identifier, args)) return;
-            if (TryCallVoidFast(identifier, args)) return;
-            JS.NetRunVoid("invokeProperty", new object[] { JSObject, identifier, args });
-        }
+        #region Call
+        public void CallApplyVoid(string key, object?[]? args = null) => JS.InteropCall<double, string, object?[]?, VoidType>("propertyCallApply", Id, key, args);
+        public T CallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, object?[]? args = null) => JS.InteropCall<double, string, object?[]?, T>("propertyCallApply", Id, key, args);
+        // CallVoid
+        public void CallVoid(string key)
+            => JS.InteropCall<double, string, VoidType>("propertyCall", Id, key);
+        public void CallVoid<T1>(string key, T1 arg1)
+            => JS.InteropCall<double, string, T1, VoidType>("propertyCall", Id, key, arg1);
+        public void CallVoid<T1, T2>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCall<double, string, T1, T2, VoidType>("propertyCall", Id, key, arg1, arg2);
+        public void CallVoid<T1, T2, T3>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCall<double, string, T1, T2, T3, VoidType>("propertyCall", Id, key, arg1, arg2, arg3);
+        public void CallVoid<T1, T2, T3, T4>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4);
+        public void CallVoid<T1, T2, T3, T4, T5>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public void CallVoid<T1, T2, T3, T4, T5, T6>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public void CallVoid<T1, T2, T3, T4, T5, T6, T7>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public void CallVoid<T1, T2, T3, T4, T5, T6, T7, T8>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public void CallVoid<T1, T2, T3, T4, T5, T6, T7, T8, T9>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public void CallVoid<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+        // Call
+        public T Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key)
+            => JS.InteropCall<double, string, T>("propertyCall", Id, key);
+        public T Call<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1)
+            => JS.InteropCall<double, string, T1, T>("propertyCall", Id, key, arg1);
+        public T Call<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCall<double, string, T1, T2, T>("propertyCall", Id, key, arg1, arg2);
+        public T Call<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCall<double, string, T1, T2, T3, T>("propertyCall", Id, key, arg1, arg2, arg3);
+        public T Call<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4);
+        public T Call<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public T Call<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public T Call<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public T Call<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public T Call<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public T Call<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCall<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         #endregion
-
-        #region CallVoidAsync
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier)
-            => CallVoidApplyAsync(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task CallVoidAsync(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => CallVoidApplyAsync(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Invoke a property
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        public Task CallVoidApplyAsync(string identifier, object?[] args) => JS.NetRunVoidAsync("invokeProperty", new object[] { JSObject, identifier, args });
-        #endregion
-
         #region CallAsync
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier)
-            => CallApplyAsync<T>(identifier, new object?[] { });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19 });
-        /// <summary>
-        /// Call the property
-        /// </summary>
-        public Task<T> CallAsync<T>(string identifier, object? arg1, object? arg2, object? arg3, object? arg4, object? arg5, object? arg6, object? arg7, object? arg8, object? arg9, object? arg10, object? arg11, object? arg12, object? arg13, object? arg14, object? arg15, object? arg16, object? arg17, object? arg18, object? arg19, object? arg20)
-            => CallApplyAsync<T>(identifier, new object?[] { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20 });
-        /// <summary>
-        /// Invoke a property
-        /// </summary>
-        /// <param name="identifier"></param>
-        /// <param name="args"></param>
-        public Task<T> CallApplyAsync<T>(string identifier, object?[] args) => JS.NetRunAsync<T>("invokeProperty", new object[] { JSObject, identifier, args });
+        public Task CallApplyVoidAsync(string key, object?[]? args = null) => JS.InteropCallAsync<double, string, object?[]?, VoidType>("propertyCallApply", Id, key, args);
+        public Task<T> CallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, object?[]? args = null) => JS.InteropCallAsync<double, string, object?[]?, T>("propertyCallApply", Id, key, args);
+        // CallVoidAsync
+        public Task CallVoidAsync(string key)
+            => JS.InteropCallAsync<double, string, VoidType>("propertyCall", Id, key);
+        public Task CallVoidAsync<T1>(string key, T1 arg1)
+            => JS.InteropCallAsync<double, string, T1, VoidType>("propertyCall", Id, key, arg1);
+        public Task CallVoidAsync<T1, T2>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCallAsync<double, string, T1, T2, VoidType>("propertyCall", Id, key, arg1, arg2);
+        public Task CallVoidAsync<T1, T2, T3>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, VoidType>("propertyCall", Id, key, arg1, arg2, arg3);
+        public Task CallVoidAsync<T1, T2, T3, T4>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5, T6>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5, T6, T7>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5, T6, T7, T8>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public Task CallVoidAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, VoidType>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+        // CallAsync
+        public Task<T> CallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key)
+            => JS.InteropCallAsync<double, string, T>("propertyCall", Id, key);
+        public Task<T> CallAsync<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1)
+            => JS.InteropCallAsync<double, string, T1, T>("propertyCall", Id, key, arg1);
+        public Task<T> CallAsync<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2)
+            => JS.InteropCallAsync<double, string, T1, T2, T>("propertyCall", Id, key, arg1, arg2);
+        public Task<T> CallAsync<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T>("propertyCall", Id, key, arg1, arg2, arg3);
+        public Task<T> CallAsync<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+        public Task<T> CallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string key, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            => JS.InteropCallAsync<double, string, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T>("propertyCall", Id, key, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
         #endregion
     }
 }

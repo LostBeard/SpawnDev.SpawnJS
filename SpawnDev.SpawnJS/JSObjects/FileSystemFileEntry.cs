@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -17,7 +16,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The FileSystemFileEntry interface's method file() returns a File object which can be used to read data from the file represented by the directory entry.
         /// </summary>
         /// <param name="successCallback"></param>
-        public void File(ActionCallback<File> successCallback) => JSRef!.Call<FileSystemDirectoryEntry>("file", successCallback);
+        public void File(ActionCallback<File> successCallback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.File>, FileSystemDirectoryEntry>("file", successCallback);
         /// <summary>
         /// The FileSystemFileEntry interface's method file() returns a File object which can be used to read data from the file represented by the directory entry.
         /// </summary>

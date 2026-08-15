@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -43,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// returns true is Notification is defined
         /// </summary>
-        public static bool IsSupported => _IsSupported ??= !JS.IsUndefined("Notification");
+        public static bool IsSupported => _IsSupported ??= !!JS.Exists("Notification");
         private static bool? _IsSupported = null;
         /// <summary>
         /// Requests permission from the user to display notifications.<br/>
@@ -73,7 +73,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T DataAs<T>() => JSRef!.Get<T>("data");
+        public T DataAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("data");
         /// <summary>
         /// The text direction of the notification as specified in the constructor's options parameter.
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -124,14 +123,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="success"></param>
         /// <returns></returns>
-        public int WatchPosition(ActionCallback<GeolocationPosition> success) => JSRef!.Call<int>("watchPosition", success);
+        public int WatchPosition(ActionCallback<GeolocationPosition> success) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.GeolocationPosition>, int>("watchPosition", success);
         /// <summary>
         /// The Geolocation method watchPosition() method is used to register a handler function that will be called automatically each time the position of the device changes. You can also, optionally, specify an error handling callback function.
         /// </summary>
         /// <param name="success"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public int WatchPosition(ActionCallback<GeolocationPosition> success, ActionCallback<GeolocationPositionError> error) => JSRef!.Call<int>("watchPosition", success, error);
+        public int WatchPosition(ActionCallback<GeolocationPosition> success, ActionCallback<GeolocationPositionError> error) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.GeolocationPosition>, global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.GeolocationPositionError>, int>("watchPosition", success, error);
         /// <summary>
         /// The Geolocation method watchPosition() method is used to register a handler function that will be called automatically each time the position of the device changes. You can also, optionally, specify an error handling callback function.
         /// </summary>
@@ -139,7 +138,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="error"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public int WatchPosition(ActionCallback<GeolocationPosition> success, ActionCallback<GeolocationPositionError> error, GeolocationOptions options) => JSRef!.Call<int>("watchPosition", success, error, options);
+        public int WatchPosition(ActionCallback<GeolocationPosition> success, ActionCallback<GeolocationPositionError> error, GeolocationOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.GeolocationPosition>, global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.GeolocationPositionError>, global::SpawnDev.SpawnJS.JSObjects.GeolocationOptions, int>("watchPosition", success, error, options);
         /// <summary>
         /// Start watching the device position
         /// </summary>

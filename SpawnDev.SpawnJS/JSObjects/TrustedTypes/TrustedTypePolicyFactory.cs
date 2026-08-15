@@ -38,7 +38,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             if (options?.CreateHTML != null) record["createHTML"] = options.CreateHTML;
             if (options?.CreateScript != null) record["createScript"] = options.CreateScript;
             if (options?.CreateScriptURL != null) record["createScriptURL"] = options.CreateScriptURL;
-            return JSRef!.Call<TrustedTypePolicy>("createPolicy", policyName, record);
+            return JSRef!.Call<string, global::System.Collections.Generic.Dictionary<string, object>, TrustedTypePolicy>("createPolicy", policyName, record!);
         }
 
         /// <summary>The default policy, or null if none has been created.</summary>
@@ -48,10 +48,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>A zero-length <see cref="TrustedScript"/>.</summary>
         public TrustedScript EmptyScript => JSRef!.Get<TrustedScript>("emptyScript");
         /// <summary>Returns true if <paramref name="value"/> is a <see cref="TrustedHTML"/> from any policy in this document.</summary>
-        public bool IsHTML(object? value) => JSRef!.Call<bool>("isHTML", value);
+        public bool IsHTML(object? value) => JSRef!.Call<object, bool>("isHTML", value!);
         /// <summary>Returns true if <paramref name="value"/> is a <see cref="TrustedScript"/>.</summary>
-        public bool IsScript(object? value) => JSRef!.Call<bool>("isScript", value);
+        public bool IsScript(object? value) => JSRef!.Call<object, bool>("isScript", value!);
         /// <summary>Returns true if <paramref name="value"/> is a <see cref="TrustedScriptURL"/>.</summary>
-        public bool IsScriptURL(object? value) => JSRef!.Call<bool>("isScriptURL", value);
+        public bool IsScriptURL(object? value) => JSRef!.Call<object, bool>("isScriptURL", value!);
     }
 }

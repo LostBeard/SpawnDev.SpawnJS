@@ -1,57 +1,70 @@
-using System.Collections;
-using System.Runtime.InteropServices.JavaScript;
+using System.Diagnostics.CodeAnalysis;
+using SpawnDev.SpawnJS.Marshaller;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
     /// <summary>
-    /// Marshalls IEnumerable
+    /// Marshals a .Net List to/from a JS array. Registered as <c>ListMarshaller&lt;object&gt;</c>, but
+    /// when selected it re-specializes to the concrete element type (see <see cref="GetMarshaller{T}"/>) so
+    /// each element goes through its own strongly-typed marshaller with no boxing.
     /// </summary>
-    public class ListMarshaller : JSMarshaller
+    public class ListMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement> : JSMarshallerFromSpawnJSObjectReference<List<TElement>?>
     {
         /// <inheritdoc/>
-        public override bool CanMarshal(Type? type)
+        public override bool CanMarshal(Type type)
         {
-            if (type == null) return false;
             var genericType = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
-            return genericType == typeof(List<>) || genericType == typeof(IList<>) || genericType == typeof(IEnumerable<>);
+            var ret = genericType == typeof(List<>);
+            return ret;
+        }
+        /// <summary>
+        /// Builds an <see cref="ArrayMarshaller{T}"/> bound to the concrete element type of
+        /// <typeparamref name="T"/> (e.g. selecting for <c>int[]</c> yields an <c>ArrayMarshaller&lt;int&gt;</c>).
+        /// </summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2076", Justification = "See IL2055.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2055",
+            Justification = "GetMarshaller specializes to the element type obtained by reflection (GetGenericArguments), which cannot carry DynamicallyAccessedMembers. Built-in wrapper element ctors are preserved by the embedded ILLink.Descriptors.xml; a consumer using a custom SpawnJSObject wrapper as a list element in a trimmed app must preserve that type's ctor itself (reflection boundary).")]
+        public override JSMarshaller<T> GetMarshaller<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
+        {
+            if (this is JSMarshaller<T> _this) return _this;
+            var type = typeof(T);
+            var elementType = type.GetGenericArguments()[0];
+            Type openType = typeof(ListMarshaller<>);
+            Type typedMarshaller = openType.MakeGenericType(elementType!);
+            return (JSMarshaller<T>)Activator.CreateInstance(typedMarshaller)!;
         }
         /// <inheritdoc/>
-        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
+        public override List<TElement>? JSToNet(SpawnJSObjectReference value1)
         {
-            using var array = jsHandle.AsJSHandle();
-            if (array == null) return null;
-            var elementType = type.GetGenericArguments()[0];
-            var length = array.GetPropertyAsInt32("length");
-            var retList = (IList)Activator.CreateInstance(type)!;
+            if (value1 == null) return null;
+            var elementType = RegisteredType.GetElementType()!;
+            // Read the JS array length, then pull each element back through the typed Get<TElement> path.
+            var length = (int)value1.PropertyGetDouble("length");
+            var retArray = new List<TElement>();
             for (var i = 0; i < length; i++)
             {
-                var value = JS.MarshallJSToNet(elementType, array, i);
-                retList.Add(value);
+                retArray.Add(value1.Get<TElement>(i));
             }
-            return retList;
+            value1.Dispose();
+            return retArray;
         }
         /// <inheritdoc/>
-        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? obj)
+        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, List<TElement>? objects)
         {
-            if (obj is IList enumerable)
-            {
-                using var outArray = JS.NewJSArray();
-                var objects = new List<object>();
-                foreach (var item in enumerable)
-                {
-                    objects.Add(item);
-                }
-                for (var i = 0; i < objects.Count; i++)
-                {
-                    var item = objects[i];
-                    JS.MarshallNetToJS(outArray, i, item);
-                }
-                jsParent.SetProperty(jsKey, outArray);
-            }
-            else
-            {
-                jsParent.SetProperty(jsKey, (string?)null);
-            }
+            // Build a fresh JS array, write each element into it, then assign it to the parent property.
+            if (objects == null) { jsParent.PropertySetNull(jsKey); return; }
+            using var outArray = JS.NewJSArray();
+            for (var i = 0; i < objects.Count; i++) outArray.Set(i, objects[i]);
+            jsParent.PropertySet(jsKey, outArray);
+        }
+        /// <inheritdoc/>
+        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, List<TElement>? objects)
+        {
+            // Build a fresh JS array, write each element into it, then assign it to the parent property.
+            if (objects == null) { jsParent.PropertySetNull(jsKey); return; }
+            using var outArray = JS.NewJSArray();
+            for (var i = 0; i < objects.Count; i++) outArray.Set(i, objects[i]);
+            jsParent.PropertySet(jsKey, outArray);
         }
     }
 }

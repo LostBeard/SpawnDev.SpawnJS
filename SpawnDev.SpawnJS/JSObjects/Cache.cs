@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Task<Cache> OpenCache(string name) => JS.CallAsync<Cache>("caches.open", name);
+        public static Task<Cache> OpenCache(string name) => JS.CallAsync<string, Cache>("caches.open", name);
         /// <summary>
         /// Non-standard method to get a list of the existing cache names using the global caches object
         /// </summary>
@@ -31,27 +30,27 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Response?> Match(Request request) => JSRef!.CallAsync<Response?>("match", request);
+        public Task<Response?> Match(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response?>("match", request);
         /// <summary>
         /// Returns a Promise that resolves to the response associated with the first matching request in the Cache object.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Response?> Match(Request request, CacheMatchOptions options) => JSRef!.CallAsync<Response?>("match", request, options);
+        public Task<Response?> Match(Request request, CacheMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Response?>("match", request, options);
         /// <summary>
         /// Returns a Promise that resolves to the response associated with the first matching request in the Cache object.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Response?> Match(string request) => JSRef!.CallAsync<Response?>("match", request);
+        public Task<Response?> Match(string request) => JSRef!.CallAsync<string, Response?>("match", request);
         /// <summary>
         /// Returns a Promise that resolves to the response associated with the first matching request in the Cache object.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Response?> Match(string request, CacheMatchOptions options) => JSRef!.CallAsync<Response?>("match", request, options);
+        public Task<Response?> Match(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Response?>("match", request, options);
         /// <summary>
         /// Returns a Promise that resolves to an array of all matching responses in the Cache object.
         /// </summary>
@@ -62,14 +61,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Response[]> MatchAll(string request) => JSRef!.CallAsync<Response[]>("matchAll", request);
+        public Task<Response[]> MatchAll(string request) => JSRef!.CallAsync<string, Response[]>("matchAll", request);
         /// <summary>
         /// Returns a Promise that resolves to an array of all matching responses in the Cache object.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Response[]> MatchAll(string request, CacheMatchOptions options) => JSRef!.CallAsync<Response[]>("matchAll", request, options);
+        public Task<Response[]> MatchAll(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Response[]>("matchAll", request, options);
 
         /// <summary>
         /// Takes a URL, retrieves it and adds the resulting response object to the given cache. This is functionally equivalent to calling fetch(), then using put() to add the results to the cache.
@@ -114,27 +113,27 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<bool> Delete(string request) => JSRef!.CallAsync<bool>("delete", request);
+        public Task<bool> Delete(string request) => JSRef!.CallAsync<string, bool>("delete", request);
         /// <summary>
         /// Finds the Cache entry whose key is the request, returning a Promise that resolves to true if a matching Cache entry is found and deleted. If no Cache entry is found, the promise resolves to false.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<bool> Delete(string request, CacheMatchOptions options) => JSRef!.CallAsync<bool>("delete", request, options);
+        public Task<bool> Delete(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, bool>("delete", request, options);
         /// <summary>
         /// Finds the Cache entry whose key is the request, returning a Promise that resolves to true if a matching Cache entry is found and deleted. If no Cache entry is found, the promise resolves to false.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<bool> Delete(Request request) => JSRef!.CallAsync<bool>("delete", request);
+        public Task<bool> Delete(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, bool>("delete", request);
         /// <summary>
         /// Finds the Cache entry whose key is the request, returning a Promise that resolves to true if a matching Cache entry is found and deleted. If no Cache entry is found, the promise resolves to false.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<bool> Delete(Request request, CacheMatchOptions options) => JSRef!.CallAsync<bool>("delete", request, options);
+        public Task<bool> Delete(Request request, CacheMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, bool>("delete", request, options);
         /// <summary>
         /// Returns a Promise that resolves to an array of Cache keys which are Request objects
         /// </summary>
@@ -145,26 +144,26 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Request[]> Keys(string request) => JSRef!.CallAsync<Request[]>("keys", request);
+        public Task<Request[]> Keys(string request) => JSRef!.CallAsync<string, Request[]>("keys", request);
         /// <summary>
         /// Returns a Promise that resolves to an array of Cache keys which are Request objects
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Request[]> Keys(string request, CacheMatchOptions options) => JSRef!.CallAsync<Request[]>("keys", request, options);
+        public Task<Request[]> Keys(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Request[]>("keys", request, options);
         /// <summary>
         /// Returns a Promise that resolves to an array of Cache keys which are Request objects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Request[]> Keys(Request request) => JSRef!.CallAsync<Request[]>("keys", request);
+        public Task<Request[]> Keys(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Request[]>("keys", request);
         /// <summary>
         /// Returns a Promise that resolves to an array of Cache keys which are Request objects
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Request[]> Keys(Request request, CacheMatchOptions options) => JSRef!.CallAsync<Request[]>("keys", request, options);
+        public Task<Request[]> Keys(Request request, CacheMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Request[]>("keys", request, options);
     }
 }

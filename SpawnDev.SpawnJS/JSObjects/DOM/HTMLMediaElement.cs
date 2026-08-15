@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -26,7 +26,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T? GetSrcObject<T>() => JSRef!.Get<T>("srcObject");
+        public T? GetSrcObject<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("srcObject");
         /// <summary>
         /// A string that reflects the src HTML attribute, which contains the URL of a media resource to use.
         /// </summary>
@@ -125,7 +125,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mimeType"></param>
         /// <returns></returns>
-        public string CanPlayType(string mimeType) => JSRef!.Call<string>("canPlayType", mimeType);
+        public string CanPlayType(string mimeType) => JSRef!.Call<string, string>("canPlayType", mimeType);
         /// <summary>
         /// Returns MediaStream, captures a stream of the media content.
         /// </summary>

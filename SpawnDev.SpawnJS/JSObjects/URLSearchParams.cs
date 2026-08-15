@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -68,26 +67,26 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string? Get(string name) => JSRef!.Call<string?>("get", name);
+        public string? Get(string name) => JSRef!.Call<string, string?>("get", name);
         /// <summary>
         /// Returns all the values associated with a given search parameter.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public List<string> GetAll(string name) => JSRef!.Call<List<string>>("getAll", name);
+        public List<string> GetAll(string name) => JSRef!.Call<string, List<string>>("getAll", name);
         /// <summary>
         /// Returns a boolean value indicating if a given parameter, or parameter and value pair, exists.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool Has(string name) => JSRef!.Call<bool>("has", name);
+        public bool Has(string name) => JSRef!.Call<string, bool>("has", name);
         /// <summary>
         /// Returns a boolean value indicating if a given parameter, or parameter and value pair, exists.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool Has(string name, string value) => JSRef!.Call<bool>("has", name, value);
+        public bool Has(string name, string value) => JSRef!.Call<string, string, bool>("has", name, value);
         /// <summary>
         /// Returns an iterator allowing iteration through all keys of the key/value pairs contained in this object
         /// </summary>
@@ -98,7 +97,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public void Set(string name, string value) => JSRef!.Call<bool>("set", name, value);
+        public void Set(string name, string value) => JSRef!.Call<string, string, bool>("set", name, value);
         /// <summary>
         /// Sorts all key/value pairs, if any, by their keys.
         /// </summary>

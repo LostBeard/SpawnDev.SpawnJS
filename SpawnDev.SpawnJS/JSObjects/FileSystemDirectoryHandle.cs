@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -21,14 +18,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="name"></param>
         /// <param name="create"></param>
         /// <returns></returns>
-        public Task<FileSystemDirectoryHandle> GetDirectoryHandle(string name, bool create = false) => JSRef!.CallAsync<FileSystemDirectoryHandle>("getDirectoryHandle", name, new GetHandleOptions { Create = create });
+        public Task<FileSystemDirectoryHandle> GetDirectoryHandle(string name, bool create = false) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.GetHandleOptions, FileSystemDirectoryHandle>("getDirectoryHandle", name, new GetHandleOptions { Create = create });
         /// <summary>
         /// Returns a Promise fulfilled with a FileSystemFileHandle for a file with the specified name, within the directory the method is called.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="create"></param>
         /// <returns></returns>
-        public Task<FileSystemFileHandle> GetFileHandle(string name, bool create = false) => JSRef!.CallAsync<FileSystemFileHandle>("getFileHandle", name, new GetHandleOptions { Create = create });
+        public Task<FileSystemFileHandle> GetFileHandle(string name, bool create = false) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.GetHandleOptions, FileSystemFileHandle>("getFileHandle", name, new GetHandleOptions { Create = create });
         /// <summary>
         /// Attempts to asynchronously remove an entry if the directory handle contains a file or directory called the name specified.
         /// </summary>
@@ -41,7 +38,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="possibleDescendant">The FileSystemHandle from which to return the relative path.</param>
         /// <returns>A Promise which resolves with an Array of strings, or null if possibleDescendant is not a descendant of this FileSystemDirectoryHandle.</returns>
-        public Task<List<string>?> Resolve(FileSystemHandle possibleDescendant) => JSRef!.CallAsync<List<string>?>("resolve", possibleDescendant);
+        public Task<List<string>?> Resolve(FileSystemHandle possibleDescendant) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle, List<string>?>("resolve", possibleDescendant);
         /// <summary>
         /// Returns a new async iterator of a given object's own enumerable property [key, value] pairs.
         /// </summary>

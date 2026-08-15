@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,13 +28,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="characteristicUUID"></param>
         /// <returns></returns>
-        public Task<BluetoothRemoteGATTCharacteristic> GetCharacteristic(string characteristicUUID) => JSRef!.CallAsync<BluetoothRemoteGATTCharacteristic>("getCharacteristic", characteristicUUID);
+        public Task<BluetoothRemoteGATTCharacteristic> GetCharacteristic(string characteristicUUID) => JSRef!.CallAsync<string, BluetoothRemoteGATTCharacteristic>("getCharacteristic", characteristicUUID);
         /// <summary>
         /// Returns a Promise to an Array of BluetoothRemoteGATTCharacteristic instances for an optional universally unique identifier (UUID).
         /// </summary>
         /// <param name="characteristicUUID"></param>
         /// <returns></returns>
-        public Task<BluetoothRemoteGATTCharacteristic[]> GetCharacteristics(string characteristicUUID) => JSRef!.CallAsync<BluetoothRemoteGATTCharacteristic[]>("getCharacteristics", characteristicUUID);
+        public Task<BluetoothRemoteGATTCharacteristic[]> GetCharacteristics(string characteristicUUID) => JSRef!.CallAsync<string, BluetoothRemoteGATTCharacteristic[]>("getCharacteristics", characteristicUUID);
         /// <summary>
         /// Fired on a new BluetoothRemoteGATTService when it has been discovered on a remote device, just after it is added to the Bluetooth tree.
         /// </summary>

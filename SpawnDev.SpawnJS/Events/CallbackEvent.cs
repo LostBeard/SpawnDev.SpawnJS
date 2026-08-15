@@ -1,4 +1,4 @@
-﻿using SpawnDev.SpawnJS.JSObjects;
+﻿using SpawnDev.SpawnJS.Events;
 namespace SpawnDev.SpawnJS
 {
     /// <summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -22,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public CSSRule? Item(int index) => JSRef!.Call<CSSRule?>("item", index);
+        public CSSRule? Item(int index) => JSRef!.Call<int, CSSRule?>("item", index);
         /// <summary>
         /// Returns an integer representing the number of CSSRule objects in the collection.
         /// </summary>

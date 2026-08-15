@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -62,6 +61,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Checks if the given config is supported.
         /// </summary>
-        public static Task<VideoDecoderSupport> IsConfigSupported(VideoDecoderConfig config) => JS.CallAsync<VideoDecoderSupport>($"{nameof(VideoDecoder)}.isConfigSupported", config);
+        public static Task<VideoDecoderSupport> IsConfigSupported(VideoDecoderConfig config) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.VideoDecoderConfig, VideoDecoderSupport>($"{nameof(VideoDecoder)}.isConfigSupported", config);
     }
 }

@@ -1,7 +1,5 @@
-
-using SpawnDev.SpawnJS;
+using System.Diagnostics.CodeAnalysis;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -10,7 +8,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// You can have an unlimited number of cursors at the same time. You always get the same IDBCursor object representing a given cursor. Operations are performed on the underlying index or object store.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/API/IDBCursor
     /// </summary>
-    public class IDBCursor<TKey, TPrimaryKey, TValue> : SpawnJSObject
+    public class IDBCursor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPrimaryKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue> : SpawnJSObject
     {
         /// <summary>
         /// Deserialization constructor
@@ -32,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns the key for the record at the cursor's position. If the cursor is outside its range, this is set to undefined. The cursor's key can be any data type.
         /// </summary>
-        public TKeyAlt KeyAs<TKeyAlt>() => JSRef!.Get<TKeyAlt>("key");
+        public TKeyAlt KeyAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKeyAlt>() => JSRef!.Get<TKeyAlt>("key");
         /// <summary>
         /// Returns the cursor's current effective primary key. If the cursor is currently being iterated or has iterated outside its range, this is set to undefined. The cursor's primary key can be any data type.
         /// </summary>
@@ -40,7 +38,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns the cursor's current effective primary key. If the cursor is currently being iterated or has iterated outside its range, this is set to undefined. The cursor's primary key can be any data type.
         /// </summary>
-        public TPrimaryKeyAlt PrimaryKeyAs<TPrimaryKeyAlt>() => JSRef!.Get<TPrimaryKeyAlt>("primaryKey");
+        public TPrimaryKeyAlt PrimaryKeyAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPrimaryKeyAlt>() => JSRef!.Get<TPrimaryKeyAlt>("primaryKey");
         /// <summary>
         /// Returns a Task the returns true if (and when) the cursor can continue (Request != null and Request has a result). (non-spec)
         /// </summary>
@@ -127,12 +125,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="value">The new value to be stored at the current position.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<TKey> Update(TValue value) => JSRef!.Call<IDBRequest<TKey>>("update", value);
+        public IDBRequest<TKey> Update(TValue value) => JSRef!.Call<TValue, IDBRequest<TKey>>("update", value);
         /// <summary>
         /// Updates the value at the current position of the cursor in the object store. This can be used to update specific records.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public Task<TKey> UpdateAsync(TValue value) => JSRef!.Call<IDBRequest<TKey>>("update", value).WaitAsync();
+        public Task<TKey> UpdateAsync(TValue value) => JSRef!.Call<TValue, IDBRequest<TKey>>("update", value).WaitAsync();
     }
 }

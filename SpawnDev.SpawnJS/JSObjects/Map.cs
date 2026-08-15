@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -10,7 +10,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
-    public class Map<TKey, TValue> : Map where TKey : notnull
+    public class Map<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue> : Map where TKey : notnull
     {
         #region Constructors
         /// <inheritdoc/>
@@ -34,11 +34,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public bool Delete(TKey key) => JSRef!.Call<bool>("delete", key);
+        public bool Delete(TKey key) => JSRef!.Call<TKey, bool>("delete", key);
         /// <summary>
         /// Sets the value for the passed key in the Map object. Returns the Map object.
         /// </summary>
-        public Map<TKey, TValue> Set(TKey key, TValue value) => JSRef!.Call<Map<TKey, TValue>>("set", key, value);
+        public Map<TKey, TValue> Set(TKey key, TValue value) => JSRef!.Call<TKey, TValue, Map<TKey, TValue>>("set", key, value);
         /// <summary>
         /// Returns a new Iterator object that contains a two-member array of [key, value] for each element in the Map object in insertion order.
         /// </summary>
@@ -51,12 +51,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns the value associated to the passed key, or undefined if there is none.
         /// </summary>
-        public TValue? Get(TKey key) => JSRef!.Call<TValue?>("get", key);
+        public TValue? Get(TKey key) => JSRef!.Call<TKey, TValue?>("get", key);
         /// <summary>
         /// Returns a boolean indicating whether a value has been associated with the passed key in the Map object or not.
         /// </summary>
         /// <returns></returns>
-        public bool Has(TKey key) => JSRef!.Call<bool>("has", key);
+        public bool Has(TKey key) => JSRef!.Call<TKey, bool>("has", key);
         /// <summary>
         /// Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
         /// </summary>
@@ -96,7 +96,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Read-only Map-like objects have the property size, and the methods: entries(), forEach(), get(), has(), keys(), values(), and Symbol.iterator().<br/>
         /// Writeable Map-like objects additionally have the methods: clear(), delete(), and set().<br/>
         /// </summary>
-        public bool ReadOnly => JSRef!.IsUndefined("clear");
+        public bool ReadOnly => !JSRef!.Exists("clear");
         #endregion
         #region Methods
         /// <summary>
@@ -108,38 +108,38 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public bool Delete<TKey>(TKey key) => JSRef!.Call<bool>("delete", key);
+        public bool Delete<TKey>(TKey key) => JSRef!.Call<TKey, bool>("delete", key);
         /// <summary>
         /// Sets the value for the passed key in the Map object. Returns the Map object.
         /// </summary>
-        public Map<TKey, TValue> Set<TKey, TValue>(TKey key, TValue value) where TKey : notnull => JSRef!.Call<Map<TKey, TValue>>("set", key, value);
+        public Map<TKey, TValue> Set<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(TKey key, TValue value) where TKey : notnull => JSRef!.Call<TKey, TValue, Map<TKey, TValue>>("set", key, value);
         /// <summary>
         /// Returns a new Iterator object that contains a two-member array of [key, value] for each element in the Map object in insertion order.
         /// </summary>
         /// <returns></returns>
-        public Iterator<(TKey, TValue)> Entries<TKey, TValue>() => JSRef!.Call<Iterator<(TKey, TValue)>>("entries");
+        public Iterator<(TKey, TValue)> Entries<TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => JSRef!.Call<Iterator<(TKey, TValue)>>("entries");
         /// <summary>
         /// Calls callbackFn once for each key-value pair present in the Map object, in insertion order. If a thisArg parameter is provided to forEach, it will be used as the this value for each callback.
         /// </summary>
-        public void ForEach<TKey, TValue>(ActionCallback<TValue, TKey, Map<TKey, TValue>> callbackFn) where TKey : notnull => JSRef!.CallVoid("forEach", callbackFn);
+        public void ForEach<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(ActionCallback<TValue, TKey, Map<TKey, TValue>> callbackFn) where TKey : notnull => JSRef!.CallVoid("forEach", callbackFn);
         /// <summary>
         /// Returns the value associated to the passed key, or undefined if there is none.
         /// </summary>
-        public TValue? Get<TKey, TValue>(TKey key) => JSRef!.Call<TValue?>("get", key);
+        public TValue? Get<TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(TKey key) => JSRef!.Call<TKey, TValue?>("get", key);
         /// <summary>
         /// Returns a boolean indicating whether a value has been associated with the passed key in the Map object or not.
         /// </summary>
         /// <returns></returns>
-        public bool Has<TKey>(TKey key) => JSRef!.Call<bool>("has", key);
+        public bool Has<TKey>(TKey key) => JSRef!.Call<TKey, bool>("has", key);
         /// <summary>
         /// Returns a new Iterator object that contains the keys for each element in the Map object in insertion order.
         /// </summary>
-        public Iterator<TKey> Keys<TKey>() => JSRef!.Call<Iterator<TKey>>("keys");
+        public Iterator<TKey> Keys<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey>() => JSRef!.Call<Iterator<TKey>>("keys");
         /// <summary>
         /// Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
         /// </summary>
         /// <returns></returns>
-        public Iterator<TValue> Values<TValue>() => JSRef!.Call<Iterator<TValue>>("values");
+        public Iterator<TValue> Values<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => JSRef!.Call<Iterator<TValue>>("values");
         #endregion
     }
 }

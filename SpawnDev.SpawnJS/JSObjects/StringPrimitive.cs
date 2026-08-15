@@ -1,13 +1,9 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
-namespace SpawnDev.SpawnJS.JSObjects
+﻿namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// https://developer.mozilla.org/en-US/docs/Glossary/Primitive
     /// </summary>
-    public class StringPrimitive : SpawnJSObject, IJSPrimitiveWrapper
+    public class StringPrimitive : SpawnJSObject
     {
         /// <summary>
         /// Explicit cast from StringPrimitive to .Net string
@@ -23,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The StringPrimitive() constructor calls the String function to create a new string primitive.
         /// </summary>
         /// <param name="thing">Anything to be converted to a string.</param>
-        public StringPrimitive(object thing) : base(JS.Call<SpawnJSObjectReference>(nameof(String), thing is string thingStr ? (StringPrimitive)thingStr : thing)) { }
+        public StringPrimitive(object thing) : base(JS.Call<object, SpawnJSObjectReference>(nameof(String), thing is string thingStr ? (StringPrimitive)thingStr : thing)) { }
         /// <inheritdoc/>
         public StringPrimitive(SpawnJSObjectReference _ref) : base(_ref) { }
         /// <summary>

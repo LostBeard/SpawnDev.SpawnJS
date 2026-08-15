@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -56,12 +55,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static bool Supports(string type) => JS.Call<bool>("ClipboardItem.supports", type);
+        public static bool Supports(string type) => JS.Call<string, bool>("ClipboardItem.supports", type);
         /// <summary>
         /// Returns a Promise that resolves with a Blob of the requested MIME type, or an error if the MIME type is not found.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public Task<Blob> GetType(string type) => JSRef!.CallAsync<Blob>("getType", type);
+        public Task<Blob> GetType(string type) => JSRef!.CallAsync<string, Blob>("getType", type);
     }
 }

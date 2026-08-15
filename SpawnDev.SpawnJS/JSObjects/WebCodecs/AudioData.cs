@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -52,7 +51,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public int AllocationSize(AudioDataAllocationSizeOptions options) => JSRef!.Call<int>("allocationSize", options);
+        public int AllocationSize(AudioDataAllocationSizeOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.AudioDataAllocationSizeOptions, int>("allocationSize", options);
         /// <summary>
         /// Copies the samples from the specified plane of the AudioData object to the destination.
         /// </summary>

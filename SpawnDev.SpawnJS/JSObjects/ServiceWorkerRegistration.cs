@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -75,7 +74,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Array<Notification>> GetNotifications(GetNotificationsOptions options) => JSRef!.CallAsync<Array<Notification>>("getNotifications", options);
+        public Task<Array<Notification>> GetNotifications(GetNotificationsOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.GetNotificationsOptions, Array<Notification>>("getNotifications", options);
         /// <summary>
         /// Displays the notification with the requested title.
         /// </summary>

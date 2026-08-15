@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -30,7 +29,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="locales">A string or array of strings to get the canonical locale names for</param>
         /// <returns>An array containing the canonical locale names</returns>
-        public string[] GetCanonicalLocales(Union<string, string[]> locales) => JSRef!.Call<string[]>("getCanonicalLocales", locales);
+        public string[] GetCanonicalLocales(Union<string, string[]> locales) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<string, string[]>, string[]>("getCanonicalLocales", locales);
 
         /// <summary>
         /// Returns an array containing the supported values for a given key.<br/>
@@ -38,7 +37,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key">A string key indicating the category of values to return. Possible values are: "calendar", "collation", "currency", "numberingSystem", "timeZone", "unit"</param>
         /// <returns>A sorted array of unique string values</returns>
-        public string[] SupportedValuesOf(string key) => JSRef!.Call<string[]>("supportedValuesOf", key);
+        public string[] SupportedValuesOf(string key) => JSRef!.Call<string, string[]>("supportedValuesOf", key);
         #endregion
     }
 }

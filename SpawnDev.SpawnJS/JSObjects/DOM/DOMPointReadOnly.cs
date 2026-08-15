@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,28 +31,28 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static DOMPointReadOnly FromPoint(object point) => JS.Call<DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
+        public static DOMPointReadOnly FromPoint(object point) => JS.Call<object, DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
 
         /// <summary>
         /// The DOMPointReadOnly.fromPoint() method creates a new DOMPointReadOnly object given a source point.
         /// </summary>
         /// <param name="point">A DOMPointInit dictionary or another DOMPointReadOnly object to initialize the new point with.</param>
         /// <returns>A new DOMPointReadOnly object.</returns>
-        public static DOMPointReadOnly FromPoint(DOMPointInit point) => JS.New<DOMPointReadOnly>(nameof(DOMPointReadOnly), point);
+        public static DOMPointReadOnly FromPoint(DOMPointInit point) => JS.New<global::SpawnDev.SpawnJS.JSObjects.DOMPointInit, DOMPointReadOnly>(nameof(DOMPointReadOnly), point);
 
         /// <summary>
         /// Create a new DOMPointReadOnly from a DOMPoint.
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static DOMPointReadOnly FromPoint(DOMPoint point) => JS.Call<DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
+        public static DOMPointReadOnly FromPoint(DOMPoint point) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.DOMPoint, DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
 
         /// <summary>
         /// Create a new DOMPointReadOnly from a DOMPointReadOnly.
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static DOMPointReadOnly FromPoint(DOMPointReadOnly point) => JS.Call<DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
+        public static DOMPointReadOnly FromPoint(DOMPointReadOnly point) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.DOMPointReadOnly, DOMPointReadOnly>($"{nameof(DOMPointReadOnly)}.fromPoint", point);
 
         /// <summary>
         /// The DOMPointReadOnly.matrixTransform() method returns a new DOMPointReadOnly object which is the result of the transformation of the point by the specified matrix.
@@ -66,21 +65,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="matrix">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to transform the point with.</param>
         /// <returns>A new DOMPointReadOnly object.</returns>
-        public DOMPointReadOnly MatrixTransform(DOMMatrixInit matrix) => JSRef!.Call<DOMPointReadOnly>("matrixTransform", matrix);
+        public DOMPointReadOnly MatrixTransform(DOMMatrixInit matrix) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMPointReadOnly>("matrixTransform", matrix);
 
         /// <summary>
         /// The DOMPointReadOnly.matrixTransform() method returns a new DOMPointReadOnly object which is the result of the transformation of the point by the specified matrix.
         /// </summary>
         /// <param name="matrix">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to transform the point with.</param>
         /// <returns>A new DOMPointReadOnly object.</returns>
-        public DOMPointReadOnly MatrixTransform(DOMMatrix matrix) => JSRef!.Call<DOMPointReadOnly>("matrixTransform", matrix);
+        public DOMPointReadOnly MatrixTransform(DOMMatrix matrix) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrix, DOMPointReadOnly>("matrixTransform", matrix);
 
         /// <summary>
         /// The DOMPointReadOnly.matrixTransform() method returns a new DOMPointReadOnly object which is the result of the transformation of the point by the specified matrix.
         /// </summary>
         /// <param name="matrix">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to transform the point with.</param>
         /// <returns>A new DOMPointReadOnly object.</returns>
-        public DOMPointReadOnly MatrixTransform(DOMMatrixReadOnly matrix) => JSRef!.Call<DOMPointReadOnly>("matrixTransform", matrix);
+        public DOMPointReadOnly MatrixTransform(DOMMatrixReadOnly matrix) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixReadOnly, DOMPointReadOnly>("matrixTransform", matrix);
 
         /// <summary>
         /// The x coordinate of the point in space.

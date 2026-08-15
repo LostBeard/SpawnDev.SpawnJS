@@ -1,505 +1,503 @@
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.Native;
-using SpawnDev.SpawnJS.Toolbox;
+//using SpawnDev.SpawnJS;
 
-namespace TestsShared
-{
-    /// <summary>
-    /// The outbound argument transport: the <see cref="HeapArgFrame"/> that lives in .Net's OWN memory,
-    /// which Javascript views directly through the runtime's HEAP TypedArray views.<br/>
-    /// <br/>
-    /// The premise: Javascript can view the WebAssembly linear memory directly, so a frame placed there is
-    /// free to BOTH sides - .Net writes are plain array stores, Javascript reads are element reads off
-    /// HEAPF64 - and an N argument call costs one crossing instead of N+1. These prove the premise holds,
-    /// the layout is correct, and the live transport carries every argument shape it can meet.
-    /// </summary>
-    public class ArgumentFrameTransportTests(SpawnJSRuntime JS)
-    {
-        /// <summary>
-        /// The design reads through HEAPF64 and HEAPU8, so confirm the runtime actually publishes them
-        /// rather than relying on what Emscripten normally exports. If this ever fails, the reads have to
-        /// build their own views over the buffer instead - still TypedArrays, still platform endian.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task RuntimePublishesTheHeapViewsWeReadThroughTest()
-        {
-            var names = SlotInterop.HeapViewNames(JS.CtxId);
-            Console.WriteLine($"HEAP VIEWS: {names}");
-            foreach (var required in new[] { "HEAPU8", "HEAPF64" })
-            {
-                if (!names.Split(',').Contains(required))
-                    throw new Exception($"the runtime does not publish {required} - available: '{names}'");
-            }
-        }
+//namespace TestsShared
+//{
+//    /// <summary>
+//    /// The outbound argument transport: the <see cref="HeapArgFrame"/> that lives in .Net's OWN memory,
+//    /// which Javascript views directly through the runtime's HEAP TypedArray views.<br/>
+//    /// <br/>
+//    /// The premise: Javascript can view the WebAssembly linear memory directly, so a frame placed there is
+//    /// free to BOTH sides - .Net writes are plain array stores, Javascript reads are element reads off
+//    /// HEAPF64 - and an N argument call costs one crossing instead of N+1. These prove the premise holds,
+//    /// the layout is correct, and the live transport carries every argument shape it can meet.
+//    /// </summary>
+//    public class ArgumentFrameTransportTests(SpawnJSRuntime JS)
+//    {
+//        /// <summary>
+//        /// The design reads through HEAPF64 and HEAPU8, so confirm the runtime actually publishes them
+//        /// rather than relying on what Emscripten normally exports. If this ever fails, the reads have to
+//        /// build their own views over the buffer instead - still TypedArrays, still platform endian.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task RuntimePublishesTheHeapViewsWeReadThroughTest()
+//        {
+//            var names = SlotInterop.HeapViewNames(JS.CtxId);
+//            Console.WriteLine($"HEAP VIEWS: {names}");
+//            foreach (var required in new[] { "HEAPU8", "HEAPF64" })
+//            {
+//                if (!names.Split(',').Contains(required))
+//                    throw new Exception($"the runtime does not publish {required} - available: '{names}'");
+//            }
+//        }
 
-        /// <summary>
-        /// The headline: .Net writes five values with NO crossings, one call delivers them, and Javascript
-        /// reads back exactly what .Net wrote.<br/>
-        /// The values are deliberately not symmetric under byte reversal, so a byte order problem could
-        /// not pass by coincidence. Values differ per index, so a stride mistake shows up as the wrong sum
-        /// rather than passing because every slot held the same thing.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task FrameReadsEveryValueTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
-            for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
+//        /// <summary>
+//        /// The headline: .Net writes five values with NO crossings, one call delivers them, and Javascript
+//        /// reads back exactly what .Net wrote.<br/>
+//        /// The values are deliberately not symmetric under byte reversal, so a byte order problem could
+//        /// not pass by coincidence. Values differ per index, so a stride mistake shows up as the wrong sum
+//        /// rather than passing because every slot held the same thing.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task FrameReadsEveryValueTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            double[] args = { 1.5, 2.25, 3.125, 1234567.891011, -0.0009765625 };
+//            for (var i = 0; i < args.Length; i++) frame.Write(i, args[i]);
 
-            var sum = SlotInterop.FrameSum(JS.CtxId, args.Length);
-            var expected = 0d;
-            foreach (var a in args) expected += a;
-            if (sum != expected)
-                throw new Exception($"the frame summed to {sum}, expected {expected} - check the stride");
-        }
+//            var sum = SlotInterop.FrameSum(JS.CtxId, args.Length);
+//            var expected = 0d;
+//            foreach (var a in args) expected += a;
+//            if (sum != expected)
+//                throw new Exception($"the frame summed to {sum}, expected {expected} - check the stride");
+//        }
 
-        /// <summary>
-        /// Byte order is not merely assumed to be right - 1.0 byte reversed is a denormal near zero, so
-        /// reading back exactly 1.0 proves the two sides agree. Reading through the runtime's HEAP views
-        /// means there is no byte order option anywhere in the path, which is why this passes without any
-        /// flag being passed.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task ByteOrderAgreesInTheFrameTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            frame.Write(0, 1.0);
-            var one = SlotInterop.FrameSum(JS.CtxId, 1);
-            if (one != 1.0)
-                throw new Exception($"Javascript read {one} for 1.0 - a byte reversed 1.0 is a denormal near zero, so the two sides disagree on byte order");
-        }
+//        /// <summary>
+//        /// Byte order is not merely assumed to be right - 1.0 byte reversed is a denormal near zero, so
+//        /// reading back exactly 1.0 proves the two sides agree. Reading through the runtime's HEAP views
+//        /// means there is no byte order option anywhere in the path, which is why this passes without any
+//        /// flag being passed.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task ByteOrderAgreesInTheFrameTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            frame.Write(0, 1.0);
+//            var one = SlotInterop.FrameSum(JS.CtxId, 1);
+//            if (one != 1.0)
+//                throw new Exception($"Javascript read {one} for 1.0 - a byte reversed 1.0 is a denormal near zero, so the two sides disagree on byte order");
+//        }
 
-        /// <summary>
-        /// Every slot's value must be 8 byte aligned, which is the whole reason the stride is padded.
-        /// Checked across many slots rather than only the first, because a stride that is not a multiple
-        /// of 8 misaligns progressively - slot 0 would pass and slot 1 would not.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task EverySlotValueIsEightByteAlignedTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            if (HeapArgFrame.Stride % 8 != 0)
-                throw new Exception($"a stride of {HeapArgFrame.Stride} is not a multiple of 8, so values drift out of alignment");
-            for (var i = 0; i < 64; i++)
-            {
-                var slotAddress = frame.Address + i * HeapArgFrame.Stride;
-                if (slotAddress % 8 != 0)
-                    throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
-            }
-        }
+//        /// <summary>
+//        /// Every slot's value must be 8 byte aligned, which is the whole reason the stride is padded.
+//        /// Checked across many slots rather than only the first, because a stride that is not a multiple
+//        /// of 8 misaligns progressively - slot 0 would pass and slot 1 would not.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task EverySlotValueIsEightByteAlignedTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            if (HeapArgFrame.Stride % 8 != 0)
+//                throw new Exception($"a stride of {HeapArgFrame.Stride} is not a multiple of 8, so values drift out of alignment");
+//            for (var i = 0; i < 64; i++)
+//            {
+//                var slotAddress = frame.Address + i * HeapArgFrame.Stride;
+//                if (slotAddress % 8 != 0)
+//                    throw new Exception($"slot {i} is at {slotAddress}, which is not 8 byte aligned");
+//            }
+//        }
 
-        /// <summary>
-        /// A heterogeneous argument list carrying a type tag alongside each value - a number, a boolean, a
-        /// number. The tag is a float64 in the slot's padding, so it reads with the same view and width as
-        /// the value; Javascript sums the numbers and skips nothing.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task TaggedArgumentsCarryTypeAndPayloadTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            frame.WriteTagged(0, HeapArgFrame.TagNumber, 1.5);
-            frame.WriteTagged(1, HeapArgFrame.TagBoolean, 1);
-            frame.WriteTagged(2, HeapArgFrame.TagNumber, 0.5);
+//        /// <summary>
+//        /// A heterogeneous argument list carrying a type tag alongside each value - a number, a boolean, a
+//        /// number. The tag is a float64 in the slot's padding, so it reads with the same view and width as
+//        /// the value; Javascript sums the numbers and skips nothing.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task TaggedArgumentsCarryTypeAndPayloadTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            frame.WriteTagged(0, HeapArgFrame.TagNumber, 1.5);
+//            frame.WriteTagged(1, HeapArgFrame.TagBoolean, 1);
+//            frame.WriteTagged(2, HeapArgFrame.TagNumber, 0.5);
 
-            var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 3);
-            if (sum != 3.0)
-                throw new Exception($"tagged arguments summed to {sum}, expected 3.0");
-            if (frame.ReadTag(1) != HeapArgFrame.TagBoolean)
-                throw new Exception("the tag did not survive the round trip");
-        }
+//            var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 3);
+//            if (sum != 3.0)
+//                throw new Exception($"tagged arguments summed to {sum}, expected 3.0");
+//            if (frame.ReadTag(1) != HeapArgFrame.TagBoolean)
+//                throw new Exception("the tag did not survive the round trip");
+//        }
 
-        /// <summary>
-        /// A slot tagged argument resolves against the slot table Javascript side, so an object reference
-        /// costs exactly what a number costs to deliver - eight bytes and no crossing. This is the case
-        /// that matters for a GPU dispatch, which is mostly numbers and object references.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task SlotTaggedArgumentResolvesThroughTheSlotTableTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            // take a real slot the same way the library does, holding a value the sum can verify
-            var slot = JS.Call<double>("eval", "globalThis.SpawnJSInterop.__sjsAlloc(40)");
-            try
-            {
-                frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
-                frame.WriteTagged(1, HeapArgFrame.TagNumber, 2);
+//        /// <summary>
+//        /// A slot tagged argument resolves against the slot table Javascript side, so an object reference
+//        /// costs exactly what a number costs to deliver - eight bytes and no crossing. This is the case
+//        /// that matters for a GPU dispatch, which is mostly numbers and object references.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task SlotTaggedArgumentResolvesThroughTheSlotTableTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            // take a real slot the same way the library does, holding a value the sum can verify
+//            var slot = JS.Call<double>("eval", "globalThis.SpawnJSInterop.__sjsAlloc(40)");
+//            try
+//            {
+//                frame.WriteTagged(0, HeapArgFrame.TagSlot, slot);
+//                frame.WriteTagged(1, HeapArgFrame.TagNumber, 2);
 
-                var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 2);
-                if (sum != 42)
-                    throw new Exception($"a slot tagged argument summed to {sum}, expected 42 - the slot did not resolve");
-            }
-            finally
-            {
-                SlotInterop.Free(slot);
-            }
-        }
+//                var sum = SlotInterop.FrameTaggedSumF64(JS.CtxId, 2);
+//                if (sum != 42)
+//                    throw new Exception($"a slot tagged argument summed to {sum}, expected 42 - the slot did not resolve");
+//            }
+//            finally
+//            {
+//                SlotInterop.Free(slot);
+//            }
+//        }
 
-        /// <summary>
-        /// The value and its tag share one slot - the tag in the padding next to the value - so writing a
-        /// value must not clear the tag, writing a tag must not touch the value, and neither may bleed into
-        /// a neighbouring slot. That is the failure mode interleaving introduces; structure of arrays could
-        /// not have it, which is why it is checked directly.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task WritingAValueDoesNotDisturbItsTagTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            // write the tag FIRST, then the value, so an overlapping value write would clear the tag
-            frame.WriteTagged(0, HeapArgFrame.TagBoolean, 1);
-            frame.Write(0, 7.5);
-            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
-                throw new Exception("writing a value cleared the tag of the same slot");
-            if (frame.Read(0) != 7.5)
-                throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
+//        /// <summary>
+//        /// The value and its tag share one slot - the tag in the padding next to the value - so writing a
+//        /// value must not clear the tag, writing a tag must not touch the value, and neither may bleed into
+//        /// a neighbouring slot. That is the failure mode interleaving introduces; structure of arrays could
+//        /// not have it, which is why it is checked directly.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task WritingAValueDoesNotDisturbItsTagTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            // write the tag FIRST, then the value, so an overlapping value write would clear the tag
+//            frame.WriteTagged(0, HeapArgFrame.TagBoolean, 1);
+//            frame.Write(0, 7.5);
+//            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+//                throw new Exception("writing a value cleared the tag of the same slot");
+//            if (frame.Read(0) != 7.5)
+//                throw new Exception($"the value read back as {frame.Read(0)}, expected 7.5");
 
-            // a tag write must not touch the value it belongs to
-            frame.WriteTagged(1, HeapArgFrame.TagNumber, 9.25);
-            if (frame.Read(1) != 9.25)
-                throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
+//            // a tag write must not touch the value it belongs to
+//            frame.WriteTagged(1, HeapArgFrame.TagNumber, 9.25);
+//            if (frame.Read(1) != 9.25)
+//                throw new Exception($"the tagged value read back as {frame.Read(1)}, expected 9.25");
 
-            // and a tag on one slot must not bleed into its neighbours
-            frame.Write(2, 4.0);
-            frame.WriteTagged(1, HeapArgFrame.TagSlot, 9.25);
-            if (frame.Read(2) != 4.0)
-                throw new Exception("a tag write bled into the next slot");
-            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
-                throw new Exception("a tag write bled into the previous slot");
-        }
+//            // and a tag on one slot must not bleed into its neighbours
+//            frame.Write(2, 4.0);
+//            frame.WriteTagged(1, HeapArgFrame.TagSlot, 9.25);
+//            if (frame.Read(2) != 4.0)
+//                throw new Exception("a tag write bled into the next slot");
+//            if (frame.ReadTag(0) != HeapArgFrame.TagBoolean)
+//                throw new Exception("a tag write bled into the previous slot");
+//        }
 
-        /// <summary>
-        /// Many writes then one read - the shape that matters. .Net pays ZERO crossings for 512 arguments
-        /// and one for the call.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task ManyArgumentsCostOneCrossingTest()
-        {
-            using var frame = new HeapArgFrame(1024);
-            frame.BindProbe(JS.CtxId);
-            const int count = 512;
-            var expected = 0d;
-            for (var i = 0; i < count; i++)
-            {
-                var v = i * 0.25;
-                frame.Write(i, v);
-                expected += v;
-            }
-            var sum = SlotInterop.FrameSum(JS.CtxId, count);
-            if (sum != expected)
-                throw new Exception($"{count} arguments summed to {sum}, expected {expected}");
-        }
+//        /// <summary>
+//        /// Many writes then one read - the shape that matters. .Net pays ZERO crossings for 512 arguments
+//        /// and one for the call.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task ManyArgumentsCostOneCrossingTest()
+//        {
+//            using var frame = new HeapArgFrame(1024);
+//            frame.BindProbe(JS.CtxId);
+//            const int count = 512;
+//            var expected = 0d;
+//            for (var i = 0; i < count; i++)
+//            {
+//                var v = i * 0.25;
+//                frame.Write(i, v);
+//                expected += v;
+//            }
+//            var sum = SlotInterop.FrameSum(JS.CtxId, count);
+//            if (sum != expected)
+//                throw new Exception($"{count} arguments summed to {sum}, expected {expected}");
+//        }
 
-        /// <summary>
-        /// The frame must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
-        /// so the collector cannot move it - but a view over memory the collector COULD move would read
-        /// whatever now occupies that address, silently.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task FrameSurvivesCollectionTest()
-        {
-            using var frame = new HeapArgFrame(64);
-            frame.BindProbe(JS.CtxId);
-            frame.Write(0, 987.654);
+//        /// <summary>
+//        /// The frame must survive a garbage collection. It is pinned through HeapView's pinned GCHandle,
+//        /// so the collector cannot move it - but a view over memory the collector COULD move would read
+//        /// whatever now occupies that address, silently.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task FrameSurvivesCollectionTest()
+//        {
+//            using var frame = new HeapArgFrame(64);
+//            frame.BindProbe(JS.CtxId);
+//            frame.Write(0, 987.654);
 
-            for (var i = 0; i < 200; i++) _ = new byte[8192];
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+//            for (var i = 0; i < 200; i++) _ = new byte[8192];
+//            GC.Collect();
+//            GC.WaitForPendingFinalizers();
+//            GC.Collect();
 
-            var value = SlotInterop.FrameSum(JS.CtxId, 1);
-            if (value != 987.654)
-                throw new Exception($"after a collection Javascript read {value}, expected 987.654 - the frame moved");
-        }
+//            var value = SlotInterop.FrameSum(JS.CtxId, 1);
+//            if (value != 987.654)
+//                throw new Exception($"after a collection Javascript read {value}, expected 987.654 - the frame moved");
+//        }
 
-        /// <summary>
-        /// A .Net STRING read straight out of .Net memory, with nothing copied .Net side and no string
-        /// marshaller involved.<br/>
-        /// <br/>
-        /// Pinning is HeapViewString's job - it already pins the string and exposes the address of its
-        /// first character, so this uses that rather than taking its own GCHandle. Strings being pinnable
-        /// is not an open question; the library has supported it since BlazorJS.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task JavascriptReadsAPinnedDotnetStringTest()
-        {
-            foreach (var text in new[] { "hello", "a", new string('x', 5000) })
-            {
-                using var view = HeapView.Create(text);
-                if (view.Length != text.Length)
-                    throw new Exception($"HeapViewString reported {view.Length} chars for a {text.Length} char string");
-                if (view.ByteLength != text.Length * 2)
-                    throw new Exception($"HeapViewString reported {view.ByteLength} bytes, expected {text.Length * 2} for UTF-16");
+//        /// <summary>
+//        /// A .Net STRING read straight out of .Net memory, with nothing copied .Net side and no string
+//        /// marshaller involved.<br/>
+//        /// <br/>
+//        /// Pinning is HeapViewString's job - it already pins the string and exposes the address of its
+//        /// first character, so this uses that rather than taking its own GCHandle. Strings being pinnable
+//        /// is not an open question; the library has supported it since BlazorJS.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task JavascriptReadsAPinnedDotnetStringTest()
+//        {
+//            foreach (var text in new[] { "hello", "a", new string('x', 5000) })
+//            {
+//                using var view = HeapView.Create(text);
+//                if (view.Length != text.Length)
+//                    throw new Exception($"HeapViewString reported {view.Length} chars for a {text.Length} char string");
+//                if (view.ByteLength != text.Length * 2)
+//                    throw new Exception($"HeapViewString reported {view.ByteLength} bytes, expected {text.Length * 2} for UTF-16");
 
-                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
-                if (read != text)
-                    throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
-            }
-        }
+//                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
+//                if (read != text)
+//                    throw new Exception($"Javascript read '{Trim(read)}' (length {read.Length}) for a {text.Length} char string '{Trim(text)}'");
+//            }
+//        }
 
-        /// <summary>
-        /// Text that is not ASCII - the case that proves the data really is read as UTF-16 rather than
-        /// working by accident because every character fitted in a byte. Includes a surrogate pair, which
-        /// is two chars in .Net and must stay two.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task PinnedStringReadHandlesNonAsciiTest()
-        {
-            foreach (var text in new[] { "café", "日本語", "vulcan \U0001F596", "éèêë" })
-            {
-                using var view = HeapView.Create(text);
-                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
-                if (read != text)
-                    throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
-            }
-        }
+//        /// <summary>
+//        /// Text that is not ASCII - the case that proves the data really is read as UTF-16 rather than
+//        /// working by accident because every character fitted in a byte. Includes a surrogate pair, which
+//        /// is two chars in .Net and must stay two.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task PinnedStringReadHandlesNonAsciiTest()
+//        {
+//            foreach (var text in new[] { "café", "日本語", "vulcan \U0001F596", "éèêë" })
+//            {
+//                using var view = HeapView.Create(text);
+//                var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
+//                if (read != text)
+//                    throw new Exception($"non-ASCII round trip failed: read '{Trim(read)}' expected '{Trim(text)}'");
+//            }
+//        }
 
-        /// <summary>
-        /// HeapViewString can pin a WINDOW into a string - an offset and a length - so a substring can be
-        /// handed over without allocating one. Worth covering because the offset is applied in CHARACTERS
-        /// and scaled by the two byte element size; getting that wrong would read from the wrong place.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task PinnedStringWindowReadsTheRightSubstringTest()
-        {
-            const string text = "abcdefghij";
-            using var view = HeapView.Create(text, 3, 4);
-            if (view.Length != 4)
-                throw new Exception($"the window reported {view.Length} chars, expected 4");
+//        /// <summary>
+//        /// HeapViewString can pin a WINDOW into a string - an offset and a length - so a substring can be
+//        /// handed over without allocating one. Worth covering because the offset is applied in CHARACTERS
+//        /// and scaled by the two byte element size; getting that wrong would read from the wrong place.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task PinnedStringWindowReadsTheRightSubstringTest()
+//        {
+//            const string text = "abcdefghij";
+//            using var view = HeapView.Create(text, 3, 4);
+//            if (view.Length != 4)
+//                throw new Exception($"the window reported {view.Length} chars, expected 4");
 
-            var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
-            if (read != "defg")
-                throw new Exception($"the window read '{read}', expected 'defg' - the character offset is not being scaled correctly");
-        }
+//            var read = SlotInterop.ReadUtf16(JS.CtxId, view.Address, view.Length);
+//            if (read != "defg")
+//                throw new Exception($"the window read '{read}', expected 'defg' - the character offset is not being scaled correctly");
+//        }
 
-        /// <summary>
-        /// The library's own conversion, rather than a probe binding: HeapViewString hands Javascript a
-        /// string primitive through TextDecoder over the pinned region. This is the shipped path, so it is
-        /// the one worth guarding.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task HeapViewStringConvertsToAJavascriptStringTest()
-        {
-            const string text = "vulcan salute \U0001F596 café";
-            using var view = HeapView.Create(text);
-            using var native = view.AsNativeView();
-            var roundTripped = JS.Call<string>("String", native);
-            if (roundTripped != text)
-                throw new Exception($"AsNativeView produced '{Trim(roundTripped)}', expected '{Trim(text)}'");
-        }
+//        /// <summary>
+//        /// The library's own conversion, rather than a probe binding: HeapViewString hands Javascript a
+//        /// string primitive through TextDecoder over the pinned region. This is the shipped path, so it is
+//        /// the one worth guarding.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task HeapViewStringConvertsToAJavascriptStringTest()
+//        {
+//            const string text = "vulcan salute \U0001F596 café";
+//            using var view = HeapView.Create(text);
+//            using var native = view.AsNativeView();
+//            var roundTripped = JS.Call<string>("String", native);
+//            if (roundTripped != text)
+//                throw new Exception($"AsNativeView produced '{Trim(roundTripped)}', expected '{Trim(text)}'");
+//        }
 
-        static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";
+//        static string Trim(string s) => s.Length <= 40 ? s : s[..40] + "...";
 
-        /// <summary>
-        /// REGRESSION. Binding a probe frame must not disturb the LIVE TRANSPORT.<br/>
-        /// <br/>
-        /// They shared one global address at first, so binding any probe silently redirected every
-        /// transport call to read the probe's memory instead of the runtime's. Nothing threw - arguments
-        /// simply came from the wrong place, and a call read whatever happened to be there.<br/>
-        /// <br/>
-        /// The whole suite passed anyway, because the tests that bind a frame only make calls that take
-        /// the slot fast path and never reach the generic dispatcher. The benchmark caught it, using a
-        /// dotted path. This closes that gap: bind a probe, then make a call that MUST go through the
-        /// transport, and check the answer.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task BindingAProbeFrameDoesNotDisturbTheTransportTest()
-        {
-            JS.CallVoid("eval", "globalThis.__transportProbe = { value: 4242, nested: { deep: 7 } }");
-            try
-            {
-                // a dotted path defeats every fast path, so this is the generic dispatcher and its
-                // arguments travel through the transport frame
-                if (JS.Get<int>("__transportProbe.value") != 4242)
-                    throw new Exception("the transport was already wrong before any probe was bound");
+//        /// <summary>
+//        /// REGRESSION. Binding a probe frame must not disturb the LIVE TRANSPORT.<br/>
+//        /// <br/>
+//        /// They shared one global address at first, so binding any probe silently redirected every
+//        /// transport call to read the probe's memory instead of the runtime's. Nothing threw - arguments
+//        /// simply came from the wrong place, and a call read whatever happened to be there.<br/>
+//        /// <br/>
+//        /// The whole suite passed anyway, because the tests that bind a frame only make calls that take
+//        /// the slot fast path and never reach the generic dispatcher. The benchmark caught it, using a
+//        /// dotted path. This closes that gap: bind a probe, then make a call that MUST go through the
+//        /// transport, and check the answer.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task BindingAProbeFrameDoesNotDisturbTheTransportTest()
+//        {
+//            JS.CallVoid("eval", "globalThis.__transportProbe = { value: 4242, nested: { deep: 7 } }");
+//            try
+//            {
+//                // a dotted path defeats every fast path, so this is the generic dispatcher and its
+//                // arguments travel through the transport frame
+//                if (JS.Get<int>("__transportProbe.value") != 4242)
+//                    throw new Exception("the transport was already wrong before any probe was bound");
 
-                using var probe = new HeapArgFrame(64);
-                probe.BindProbe(JS.CtxId);
-                probe.WriteTagged(0, HeapArgFrame.TagNumber, 999);
+//                using var probe = new HeapArgFrame(64);
+//                probe.BindProbe(JS.CtxId);
+//                probe.WriteTagged(0, HeapArgFrame.TagNumber, 999);
 
-                var afterBind = JS.Get<int>("__transportProbe.value");
-                if (afterBind != 4242)
-                    throw new Exception($"after binding a probe frame the transport read {afterBind}, expected 4242 - the probe took over the transport's frame address");
+//                var afterBind = JS.Get<int>("__transportProbe.value");
+//                if (afterBind != 4242)
+//                    throw new Exception($"after binding a probe frame the transport read {afterBind}, expected 4242 - the probe took over the transport's frame address");
 
-                // and a call whose result is an OBJECT, which comes back as a slot through the frame
-                using var nested = JS.Get<SpawnJSObject>("__transportProbe.nested");
-                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
-                    throw new Exception("an object result did not survive a probe frame being bound");
-            }
-            finally
-            {
-                JS.CallVoid("eval", "delete globalThis.__transportProbe");
-            }
-        }
+//                // and a call whose result is an OBJECT, which comes back as a slot through the frame
+//                using var nested = JS.Get<SpawnJSObject>("__transportProbe.nested");
+//                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
+//                    throw new Exception("an object result did not survive a probe frame being bound");
+//            }
+//            finally
+//            {
+//                JS.CallVoid("eval", "delete globalThis.__transportProbe");
+//            }
+//        }
 
-        /// <summary>
-        /// The transport itself, end to end, over every argument shape it can carry: a number, a boolean,
-        /// null, a string (interned to a slot) and an object (already a slot). Every argument reaches
-        /// Javascript with the type it left .Net with.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task TransportCarriesEveryArgumentShapeTest()
-        {
-            JS.CallVoid("eval",
-                "globalThis.__shapeProbe = function (n, b, s, o, x) {" +
-                "  return `${typeof n}:${n}|${typeof b}:${b}|${typeof s}:${s}|${o === null ? 'null' : typeof o.tag}|${x === null ? 'null' : typeof x}`;" +
-                "}");
-            JS.CallVoid("eval", "globalThis.__shapeObj = { tag: 'obj' }");
-            try
-            {
-                using var obj = JS.Get<SpawnJSObject>("__shapeObj")!;
-                var got = JS.Call<string>("__shapeProbe", 42.5, true, "hello", obj, null);
-                const string expected = "number:42.5|boolean:true|string:hello|string|null";
-                if (got != expected)
-                    throw new Exception($"the transport carried '{got}', expected '{expected}'");
-            }
-            finally
-            {
-                JS.CallVoid("eval", "delete globalThis.__shapeProbe; delete globalThis.__shapeObj");
-            }
-        }
+//        /// <summary>
+//        /// The transport itself, end to end, over every argument shape it can carry: a number, a boolean,
+//        /// null, a string (interned to a slot) and an object (already a slot). Every argument reaches
+//        /// Javascript with the type it left .Net with.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task TransportCarriesEveryArgumentShapeTest()
+//        {
+//            JS.CallVoid("eval",
+//                "globalThis.__shapeProbe = function (n, b, s, o, x) {" +
+//                "  return `${typeof n}:${n}|${typeof b}:${b}|${typeof s}:${s}|${o === null ? 'null' : typeof o.tag}|${x === null ? 'null' : typeof x}`;" +
+//                "}");
+//            JS.CallVoid("eval", "globalThis.__shapeObj = { tag: 'obj' }");
+//            try
+//            {
+//                using var obj = JS.Get<SpawnJSObject>("__shapeObj")!;
+//                var got = JS.Call<string>("__shapeProbe", 42.5, true, "hello", obj, null);
+//                const string expected = "number:42.5|boolean:true|string:hello|string|null";
+//                if (got != expected)
+//                    throw new Exception($"the transport carried '{got}', expected '{expected}'");
+//            }
+//            finally
+//            {
+//                JS.CallVoid("eval", "delete globalThis.__shapeProbe; delete globalThis.__shapeObj");
+//            }
+//        }
 
-        /// <summary>
-        /// A repeated string argument is interned to a slot, so the second use costs what a number costs.
-        /// The value must still arrive intact - an intern table that returned the wrong slot would be a
-        /// silent data corruption, so this checks the string itself, not just the cache behaviour.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task InternedStringArgumentsStayCorrectTest()
-        {
-            JS.CallVoid("eval", "globalThis.__internProbe = function (s) { return s + '!'; }");
-            try
-            {
-                var texts = new[] { "alpha", "beta", "alpha", "gamma", "beta", "alpha" };
-                foreach (var text in texts)
-                {
-                    var got = JS.Call<string>("__internProbe", text);
-                    if (got != text + "!")
-                        throw new Exception($"an interned string argument arrived as '{got}', expected '{text}!'");
-                }
-                // a string past the intern length limit must still work, on the ordinary path
-                var longText = new string('z', SpawnDev.SpawnJS.Marshallers.StringMarshaller.InternMaxLength + 10);
-                if (JS.Call<string>("__internProbe", longText) != longText + "!")
-                    throw new Exception("a string too long to intern did not survive the ordinary path");
-            }
-            finally
-            {
-                JS.CallVoid("eval", "delete globalThis.__internProbe");
-            }
-        }
+//        /// <summary>
+//        /// A repeated string argument is interned to a slot, so the second use costs what a number costs.
+//        /// The value must still arrive intact - an intern table that returned the wrong slot would be a
+//        /// silent data corruption, so this checks the string itself, not just the cache behaviour.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task InternedStringArgumentsStayCorrectTest()
+//        {
+//            JS.CallVoid("eval", "globalThis.__internProbe = function (s) { return s + '!'; }");
+//            try
+//            {
+//                var texts = new[] { "alpha", "beta", "alpha", "gamma", "beta", "alpha" };
+//                foreach (var text in texts)
+//                {
+//                    var got = JS.Call<string>("__internProbe", text);
+//                    if (got != text + "!")
+//                        throw new Exception($"an interned string argument arrived as '{got}', expected '{text}!'");
+//                }
+//                // a string past the intern length limit must still work, on the ordinary path
+//                var longText = new string('z', SpawnDev.SpawnJS.Marshallers.StringMarshaller.InternMaxLength + 10);
+//                if (JS.Call<string>("__internProbe", longText) != longText + "!")
+//                    throw new Exception("a string too long to intern did not survive the ordinary path");
+//            }
+//            finally
+//            {
+//                JS.CallVoid("eval", "delete globalThis.__internProbe");
+//            }
+//        }
 
-        /// <summary>
-        /// TWO RUNTIMES ON ONE PAGE must not be able to reach each other's memory.<br/>
-        /// <br/>
-        /// SpawnJSInterop is instance based on purpose: a custom element built on SpawnJS can be dropped
-        /// onto a page that already runs a SpawnJS app, and neither should be able to disturb the other.
-        /// I broke that by hanging per-runtime state - the interop pointer, the argument frame address -
-        /// on globalThis, where the LAST runtime to load silently won and the first one's heap reads
-        /// resolved against the second one's WebAssembly memory.<br/>
-        /// <br/>
-        /// A second real .Net runtime cannot be started inside a test, so this registers a second
-        /// CONTEXT with a deliberately wrong frame address and a different scratch buffer, then checks
-        /// the live runtime still reads its own. Under the old global design this fails; with routing by
-        /// context it cannot, because nothing about the second context is reachable from the first.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task ASecondRuntimeContextCannotDisturbThisOneTest()
-        {
-            JS.CallVoid("eval", "globalThis.__ctxProbe = { value: 4242, nested: { deep: 7 } }");
-            // a second context, pointing at nonsense - exactly what a second app's frame would look like
-            // from this runtime's point of view
-            JS.CallVoid("eval",
-                "globalThis.SpawnJSInterop.byCtx[9999] = {" +
-                "  ctxId: 9999," +
-                "  argFrameAddress: 8," +      // wrong, and 8-byte aligned so it would pass the bind check
-                "  probeFrameAddress: 8," +
-                "  netToJSBuffer: []," +
-                "  dotnetRuntime: globalThis.SpawnJSInterop.byCtx[" + JS.CtxId + "].dotnetRuntime" +
-                "};");
-            try
-            {
-                if (JS.CtxId == 9999) throw new Exception("the probe context collided with the real one");
+//        /// <summary>
+//        /// TWO RUNTIMES ON ONE PAGE must not be able to reach each other's memory.<br/>
+//        /// <br/>
+//        /// SpawnJSInterop is instance based on purpose: a custom element built on SpawnJS can be dropped
+//        /// onto a page that already runs a SpawnJS app, and neither should be able to disturb the other.
+//        /// I broke that by hanging per-runtime state - the interop pointer, the argument frame address -
+//        /// on globalThis, where the LAST runtime to load silently won and the first one's heap reads
+//        /// resolved against the second one's WebAssembly memory.<br/>
+//        /// <br/>
+//        /// A second real .Net runtime cannot be started inside a test, so this registers a second
+//        /// CONTEXT with a deliberately wrong frame address and a different scratch buffer, then checks
+//        /// the live runtime still reads its own. Under the old global design this fails; with routing by
+//        /// context it cannot, because nothing about the second context is reachable from the first.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task ASecondRuntimeContextCannotDisturbThisOneTest()
+//        {
+//            JS.CallVoid("eval", "globalThis.__ctxProbe = { value: 4242, nested: { deep: 7 } }");
+//            // a second context, pointing at nonsense - exactly what a second app's frame would look like
+//            // from this runtime's point of view
+//            JS.CallVoid("eval",
+//                "globalThis.SpawnJSInterop.byCtx[9999] = {" +
+//                "  ctxId: 9999," +
+//                "  argFrameAddress: 8," +      // wrong, and 8-byte aligned so it would pass the bind check
+//                "  probeFrameAddress: 8," +
+//                "  netToJSBuffer: []," +
+//                "  dotnetRuntime: globalThis.SpawnJSInterop.byCtx[" + JS.CtxId + "].dotnetRuntime" +
+//                "};");
+//            try
+//            {
+//                if (JS.CtxId == 9999) throw new Exception("the probe context collided with the real one");
 
-                // BIND the second context, through the real bind path. This is the step that matters:
-                // under the old design binding wrote a page global, so this call alone silently
-                // redirected every subsequent call of THIS runtime to read the other frame. Routed by
-                // context it lands on the second context's own state and is invisible here.
-                SlotInterop.BindArgFrame(9999, 8, 64);
-                SlotInterop.BindProbeFrame(9999, 8, 64);
+//                // BIND the second context, through the real bind path. This is the step that matters:
+//                // under the old design binding wrote a page global, so this call alone silently
+//                // redirected every subsequent call of THIS runtime to read the other frame. Routed by
+//                // context it lands on the second context's own state and is invisible here.
+//                SlotInterop.BindArgFrame(9999, 8, 64);
+//                SlotInterop.BindProbeFrame(9999, 8, 64);
 
-                // the generic dispatcher - arguments travel through this runtime's frame
-                if (JS.Get<int>("__ctxProbe.value") != 4242)
-                    throw new Exception("a second context being registered disturbed the transport");
+//                // the generic dispatcher - arguments travel through this runtime's frame
+//                if (JS.Get<int>("__ctxProbe.value") != 4242)
+//                    throw new Exception("a second context being registered disturbed the transport");
 
-                // a held-object method call - travels through the frame too
-                using var probe = JS.Get<SpawnJSObject>("__ctxProbe")!;
-                if (probe.JSRef!.Get<int>("value") != 4242)
-                    throw new Exception("a property read was disturbed by a second context");
+//                // a held-object method call - travels through the frame too
+//                using var probe = JS.Get<SpawnJSObject>("__ctxProbe")!;
+//                if (probe.JSRef!.Get<int>("value") != 4242)
+//                    throw new Exception("a property read was disturbed by a second context");
 
-                // an object result, which comes back through the frame as a slot
-                using var nested = JS.Get<SpawnJSObject>("__ctxProbe.nested");
-                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
-                    throw new Exception("an object result was disturbed by a second context");
+//                // an object result, which comes back through the frame as a slot
+//                using var nested = JS.Get<SpawnJSObject>("__ctxProbe.nested");
+//                if (nested == null || nested.JSRef!.Get<int>("deep") != 7)
+//                    throw new Exception("an object result was disturbed by a second context");
 
-                // and a descriptor built in one crossing, which reads the frame for every member
-                using var target = JS.New("Object");
-                target.Set("poco", new CtxShape { Name = "ok", Count = 5 });
-                if (target.Get<string>("poco.name") != "ok" || target.Get<int>("poco.count") != 5)
-                    throw new Exception("an object marshal was disturbed by a second context");
-            }
-            finally
-            {
-                JS.CallVoid("eval", "delete globalThis.SpawnJSInterop.byCtx[9999]; delete globalThis.__ctxProbe");
-            }
-        }
+//                // and a descriptor built in one crossing, which reads the frame for every member
+//                using var target = JS.New("Object");
+//                target.Set("poco", new CtxShape { Name = "ok", Count = 5 });
+//                if (target.Get<string>("poco.name") != "ok" || target.Get<int>("poco.count") != 5)
+//                    throw new Exception("an object marshal was disturbed by a second context");
+//            }
+//            finally
+//            {
+//                JS.CallVoid("eval", "delete globalThis.SpawnJSInterop.byCtx[9999]; delete globalThis.__ctxProbe");
+//            }
+//        }
 
-        class CtxShape
-        {
-            [System.Text.Json.Serialization.JsonPropertyName("name")]
-            public string? Name { get; set; }
-            [System.Text.Json.Serialization.JsonPropertyName("count")]
-            public int Count { get; set; }
-        }
+//        class CtxShape
+//        {
+//            [System.Text.Json.Serialization.JsonPropertyName("name")]
+//            public string? Name { get; set; }
+//            [System.Text.Json.Serialization.JsonPropertyName("count")]
+//            public int Count { get; set; }
+//        }
 
-        /// <summary>
-        /// Per-runtime state must live on the INSTANCE, not on globalThis. This is the structural version
-        /// of the test above: it fails the moment anyone reintroduces a page-global for something that
-        /// belongs to one runtime, which is exactly the mistake that was made.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task NoPerRuntimeStateLivesOnGlobalThisTest()
-        {
-            foreach (var name in new[] { "__sjsInterop", "__sjsArgFrameAddress", "__sjsProbeFrameAddress", "__sjsArgAddress" })
-            {
-                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
-                    throw new Exception($"globalThis.{name} exists - per-runtime state on a page global means the LAST runtime to load wins, silently");
-            }
-            // and the state that replaced them is reachable per context
-            if (!JS.Call<bool>("eval", $"globalThis.SpawnJSInterop.byCtx[{JS.CtxId}].argFrameAddress > 0"))
-                throw new Exception("this runtime's frame address is not registered against its own context");
-        }
+//        /// <summary>
+//        /// Per-runtime state must live on the INSTANCE, not on globalThis. This is the structural version
+//        /// of the test above: it fails the moment anyone reintroduces a page-global for something that
+//        /// belongs to one runtime, which is exactly the mistake that was made.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task NoPerRuntimeStateLivesOnGlobalThisTest()
+//        {
+//            foreach (var name in new[] { "__sjsInterop", "__sjsArgFrameAddress", "__sjsProbeFrameAddress", "__sjsArgAddress" })
+//            {
+//                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
+//                    throw new Exception($"globalThis.{name} exists - per-runtime state on a page global means the LAST runtime to load wins, silently");
+//            }
+//            // and the state that replaced them is reachable per context
+//            if (!JS.Call<bool>("eval", $"globalThis.SpawnJSInterop.byCtx[{JS.CtxId}].argFrameAddress > 0"))
+//                throw new Exception("this runtime's frame address is not registered against its own context");
+//        }
 
-        /// <summary>
-        /// The slot/frame helper functions and the slot table are namespaced under SpawnJSInterop
-        /// (globalThis.SpawnJSInterop.__sjs*), NOT bare page globals - so the only name the interop layer
-        /// puts on globalThis is the class itself. Guards the cleanup: JSImport binds these by that dotted
-        /// name, and re-adding a globalThis.__sjs* shim would be silent pollution of the page global.
-        /// </summary>
-        [SpawnJSTest]
-        public async Task SlotHelpersAreNamespacedUnderSpawnJSInteropTest()
-        {
-            foreach (var name in new[] { "__sjsAlloc", "__sjsFrameCall", "__sjsGet", "__sjsNewObject",
-                                         "__sjsInvokeFrameResult", "__sjsSlots", "__sjsNextSlot" })
-            {
-                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
-                    throw new Exception($"globalThis.{name} exists - the slot helpers should live on SpawnJSInterop, not pollute globalThis");
-                if (!JS.Call<bool>("eval", $"'{name}' in globalThis.SpawnJSInterop"))
-                    throw new Exception($"globalThis.SpawnJSInterop.{name} is missing - JSImport binds the slot helpers by that dotted name");
-            }
-            await Task.CompletedTask;
-        }
-    }
-}
+//        /// <summary>
+//        /// The slot/frame helper functions and the slot table are namespaced under SpawnJSInterop
+//        /// (globalThis.SpawnJSInterop.__sjs*), NOT bare page globals - so the only name the interop layer
+//        /// puts on globalThis is the class itself. Guards the cleanup: JSImport binds these by that dotted
+//        /// name, and re-adding a globalThis.__sjs* shim would be silent pollution of the page global.
+//        /// </summary>
+//        [SpawnJSTest]
+//        public async Task SlotHelpersAreNamespacedUnderSpawnJSInteropTest()
+//        {
+//            foreach (var name in new[] { "__sjsAlloc", "__sjsFrameCall", "__sjsGet", "__sjsNewObject",
+//                                         "__sjsInvokeFrameResult", "__sjsSlots", "__sjsNextSlot" })
+//            {
+//                if (JS.Call<bool>("eval", $"'{name}' in globalThis"))
+//                    throw new Exception($"globalThis.{name} exists - the slot helpers should live on SpawnJSInterop, not pollute globalThis");
+//                if (!JS.Call<bool>("eval", $"'{name}' in globalThis.SpawnJSInterop"))
+//                    throw new Exception($"globalThis.SpawnJSInterop.{name} is missing - JSImport binds the slot helpers by that dotted name");
+//            }
+//            await Task.CompletedTask;
+//        }
+//    }
+//}

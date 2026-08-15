@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -9,7 +9,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// 
     /// </summary>
     /// <typeparam name="TResponse"></typeparam>
-    public class PublicKeyCredential<TResponse> : Credential where TResponse : AuthenticatorResponse
+    public class PublicKeyCredential<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResponse> : Credential where TResponse : AuthenticatorResponse
     {
         /// <summary>
         /// Default deserialize constructor

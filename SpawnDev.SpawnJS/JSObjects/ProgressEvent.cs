@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// The progress event is fired periodically as the FileReader reads data.
     /// </summary>
     /// <typeparam name="TTarget"></typeparam>
-    public class ProgressEvent<TTarget> : Event<TTarget> where TTarget : EventTarget
+    public class ProgressEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTarget> : Event<TTarget> where TTarget : EventTarget
     {
         /// <summary>
         /// Deserialization constructor

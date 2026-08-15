@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -18,7 +17,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public Task<bool> IsSessionSupported(EnumString<XRSessionMode> mode) => JSRef!.CallAsync<bool>("isSessionSupported", mode);
+        public Task<bool> IsSessionSupported(EnumString<XRSessionMode> mode) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.EnumString<global::SpawnDev.SpawnJS.JSObjects.XRSessionMode>, bool>("isSessionSupported", mode);
         /// <summary>
         /// The requestSession(mode, options) method attempts to initialize an XRSession for the given mode if possible, entering immersive mode if necessary.
         /// </summary>
@@ -26,7 +25,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="options"></param>
         /// <returns></returns>
         public Task<XRSession> RequestSession(EnumString<XRSessionMode> mode, XRSessionInit? options = null)
-            => options == null ? JSRef!.CallAsync<XRSession>("requestSession", mode) : JSRef!.CallAsync<XRSession>("requestSession", mode, options);
+            => options == null ? JSRef!.CallAsync<global::SpawnDev.SpawnJS.EnumString<global::SpawnDev.SpawnJS.JSObjects.XRSessionMode>, XRSession>("requestSession", mode) : JSRef!.CallAsync<global::SpawnDev.SpawnJS.EnumString<global::SpawnDev.SpawnJS.JSObjects.XRSessionMode>, global::SpawnDev.SpawnJS.JSObjects.XRSessionInit, XRSession>("requestSession", mode, options);
         /// <summary>
         /// A devicechange event is fired on an XRSystem object whenever the availability of immersive XR devices has changed; for example, a VR headset or AR goggles have been connected or disconnected. It's a generic Event with no added properties.
         /// </summary>

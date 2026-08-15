@@ -44,4 +44,3 @@ global using GPUStencilValue = System.UInt32;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;

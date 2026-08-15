@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -31,13 +30,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public DataTransferItem Add(string data) => JSRef!.Call<DataTransferItem>("add", data);
+        public DataTransferItem Add(string data) => JSRef!.Call<string, DataTransferItem>("add", data);
         /// <summary>
         /// Adds an item (either a File object or a string) to the drag item list and returns a DataTransferItem object for the new item.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public DataTransferItem Add(File data) => JSRef!.Call<DataTransferItem>("add", data);
+        public DataTransferItem Add(File data) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.File, DataTransferItem>("add", data);
         /// <summary>
         /// An unsigned long that is the number of drag items in the list.
         /// </summary>

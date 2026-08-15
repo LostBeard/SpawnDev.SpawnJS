@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -21,20 +21,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="url">The URL that the new response is to originate from.</param>
         /// <param name="status">An optional number indicating the status code for the response: one of 301, 302, 303, 307, or 308.<br/>If omitted, 302 (Found) is used by default.</param>
         /// <returns>A Response object.</returns>
-        public static Response Redirect(string url, ushort status) => JS.Call<Response>("Response.redirect", url, status);
+        public static Response Redirect(string url, ushort status) => JS.Call<string, ushort, Response>("Response.redirect", url, status);
         /// <summary>
         /// Returns a new response with a different URL.
         /// </summary>
         /// <param name="url">The URL that the new response is to originate from.</param>
         /// <returns>A Response object.</returns>
-        public static Response Redirect(string url) => JS.Call<Response>("Response.redirect", url);
+        public static Response Redirect(string url) => JS.Call<string, Response>("Response.redirect", url);
         /// <summary>
         /// Returns a new Response object for returning the provided JSON encoded data.
         /// </summary>
         /// <param name="data">The JSON data to be used as the response body.</param>
         /// <param name="options">An options object containing settings for the response, including the status code, status text, and headers. This is the same as the options parameter of the Response() constructor.</param>
         /// <returns></returns>
-        public static Response Json(object data, ResponseOptions? options = null) => options == null ? JS.Call<Response>("Response.json", data) : JS.Call<Response>("Response.json", data, options);
+        public static Response Json(object data, ResponseOptions? options = null) => options == null ? JS.Call<object, Response>("Response.json", data) : JS.Call<object, global::SpawnDev.SpawnJS.JSObjects.ResponseOptions, Response>("Response.json", data, options);
         /// <summary>
         /// The Request() constructor creates a new Request object.
         /// </summary>
@@ -174,7 +174,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public Task<T> Json<T>() => JSRef!.CallAsync<T>("json");
+        public Task<T> Json<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.CallAsync<T>("json");
         /// <summary>
         /// Returns a promise that resolves with the result of parsing the response body text as JSON.
         /// </summary>

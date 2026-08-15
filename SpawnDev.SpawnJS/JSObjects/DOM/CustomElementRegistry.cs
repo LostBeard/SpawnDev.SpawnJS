@@ -1,4 +1,4 @@
-﻿namespace SpawnDev.SpawnJS.JSObjects
+namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// The CustomElementRegistry interface provides methods for registering custom elements and querying registered elements. To get an instance of it, use the window.customElements property. To create a scoped registry, use the CustomElementRegistry() constructor.<br/>
@@ -26,13 +26,13 @@
         /// </summary>
         /// <param name="name">The name of the custom element.</param>
         /// <returns>The constructor for the named custom element, or undefined if there is no custom element defined with the name.</returns>
-        public SpawnJSObject? Get(string name) => JSRef!.Call<SpawnJSObject>("get", name);
+        public SpawnJSObject? Get(string name) => JSRef!.Call<string, SpawnJSObject>("get", name);
         /// <summary>
         /// The getName() method of the CustomElementRegistry interface returns the name for a previously-defined custom element.
         /// </summary>
         /// <param name="constructor">Constructor for the custom element.</param>
         /// <returns>The name for the previously defined custom element, or null if there is no custom element defined with the constructor.</returns>
-        public string? Get(object constructor) => JSRef!.Call<string>("getName", constructor);
+        public string? Get(object constructor) => JSRef!.Call<object, string>("getName", constructor);
         /// <summary>
         /// The upgrade() method of the CustomElementRegistry interface upgrades all shadow-containing custom elements in a Node subtree, even before they are connected to the main document.
         /// </summary>
@@ -48,6 +48,6 @@
         /// </summary>
         /// <param name="name">The name of the custom element.</param>
         /// <returns>A Promise that fulfills with the custom element's constructor when a custom element becomes defined with the given name. If a custom element has already been defined with the name, the promise will immediately fulfill.</returns>
-        public Task<SpawnJSObject> WhenDefined(string name) => JSRef!.CallAsync<SpawnJSObject>("whenDevined", name);
+        public Task<SpawnJSObject> WhenDefined(string name) => JSRef!.CallAsync<string, SpawnJSObject>("whenDevined", name);
     }
 }

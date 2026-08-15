@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,13 +29,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<T> Create<T>(CredentialCreateOptions options) where T : Credential => JSRef!.CallAsync<T>("create", options);
+        public Task<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(CredentialCreateOptions options) where T : Credential => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CredentialCreateOptions, T>("create", options);
         /// <summary>
         /// Returns a Promise that resolves with a new Credential instance based on the provided options, or null if no Credential object can be created. In exceptional circumstances, the Promise may reject.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<PublicKeyCredential<AuthenticatorAttestationResponse>> Create(CredentialCreatePublicKeyOptions options) => JSRef!.CallAsync<PublicKeyCredential<AuthenticatorAttestationResponse>>("create", options);
+        public Task<PublicKeyCredential<AuthenticatorAttestationResponse>> Create(CredentialCreatePublicKeyOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CredentialCreatePublicKeyOptions, PublicKeyCredential<AuthenticatorAttestationResponse>>("create", options);
         /// <summary>
         /// Returns a Promise that resolves with the Credential instance that matches the provided parameters.
         /// </summary>
@@ -47,13 +47,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<T> Get<T>(CredentialGetOptions options) where T : Credential => JSRef!.CallAsync<T>("get", options);
+        public Task<T> Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(CredentialGetOptions options) where T : Credential => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CredentialGetOptions, T>("get", options);
         /// <summary>
         /// Returns a Promise that resolves with the PublicKeyCredential or null
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<PublicKeyCredential<AuthenticatorAssertionResponse>?> Get(CredentialGetPublicKeyOptions options) => JSRef!.CallAsync<PublicKeyCredential<AuthenticatorAssertionResponse>?>("get", options);
+        public Task<PublicKeyCredential<AuthenticatorAssertionResponse>?> Get(CredentialGetPublicKeyOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CredentialGetPublicKeyOptions, PublicKeyCredential<AuthenticatorAssertionResponse>?>("get", options);
         /// <summary>
         /// Sets a flag that specifies whether automatic log in is allowed for future visits to the current origin, then returns an empty Promise. For example, you might call this, after a user signs out of a website to ensure that they aren't automatically signed in on the next site visit. Earlier versions of the spec called this method requireUserMediation(). See Browser compatibility for support details.
         /// </summary>

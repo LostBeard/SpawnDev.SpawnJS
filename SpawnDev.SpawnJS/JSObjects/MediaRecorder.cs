@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -31,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mimeType"></param>
         /// <returns></returns>
-        public static bool IsTypeSupported(string mimeType) => JS.Call<bool>("MediaRecorder.isTypeSupported", mimeType);
+        public static bool IsTypeSupported(string mimeType) => JS.Call<string, bool>("MediaRecorder.isTypeSupported", mimeType);
         /// <summary>
         /// Returns the MIME type that was selected as the recording container for the MediaRecorder object when it was created.
         /// </summary>

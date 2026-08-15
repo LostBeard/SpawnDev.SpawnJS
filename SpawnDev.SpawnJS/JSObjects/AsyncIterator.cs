@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -25,7 +25,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <returns></returns>
-        public async IAsyncEnumerable<TValue> ToAsyncEnumerable<TValue>()
+        public async IAsyncEnumerable<TValue> ToAsyncEnumerable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>()
         {
             while (true)
             {
@@ -41,7 +41,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <returns></returns>
-        public async Task<List<TValue>> ToList<TValue>()
+        public async Task<List<TValue>> ToList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>()
         {
             var ret = new List<TValue>();
             while (true)
@@ -59,13 +59,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <returns></returns>
-        public async Task<TValue[]> ToArray<TValue>() => (await ToList<TValue>()).ToArray();
+        public async Task<TValue[]> ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>() => (await ToList<TValue>()).ToArray();
     }
     /// <summary>
     /// An AsyncIterator object is an object that conforms to the async iterator protocol by providing a next() method that returns a promise fulfilling to an iterator result object. The AsyncIterator.prototype object is a hidden global object that all built-in async iterators inherit from. It provides an @@asyncIterator method that returns the async iterator object itself, making the async iterator also async iterable.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncIterator
     /// </summary>
-    public class AsyncIterator<TValue> : SpawnJSObject
+    public class AsyncIterator<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue> : SpawnJSObject
     {
         /// <summary>
         /// Deserialization constructor

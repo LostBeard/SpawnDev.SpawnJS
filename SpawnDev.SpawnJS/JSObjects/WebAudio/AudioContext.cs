@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -29,7 +28,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mediaStream"></param>
         /// <returns></returns>
-        public MediaStreamAudioSourceNode CreateMediaStreamSource(MediaStream mediaStream) => JSRef!.Call<MediaStreamAudioSourceNode>("createMediaStreamSource", mediaStream);
+        public MediaStreamAudioSourceNode CreateMediaStreamSource(MediaStream mediaStream) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.MediaStream, MediaStreamAudioSourceNode>("createMediaStreamSource", mediaStream);
         /// <summary>
         /// The close() method of the AudioContext Interface closes the audio context, releasing any system audio resources that it uses.<br/>
         /// This function does not automatically release all AudioContext-created objects, unless other references have been released as well; however, it will forcibly release any system audio resources that might prevent additional AudioContexts from being created and used, suspend the progression of audio time in the audio context, and stop processing audio data. The returned Promise resolves when all AudioContext-creation-blocking resources have been released. This method throws an INVALID_STATE_ERR exception if called on an OfflineAudioContext.
@@ -41,13 +40,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mediaElement"></param>
         /// <returns></returns>
-        public MediaElementAudioSourceNode CreateMediaElementSource(HTMLMediaElement mediaElement) => JSRef!.Call<MediaElementAudioSourceNode>("createMediaElementSource", mediaElement);
+        public MediaElementAudioSourceNode CreateMediaElementSource(HTMLMediaElement mediaElement) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLMediaElement, MediaElementAudioSourceNode>("createMediaElementSource", mediaElement);
         /// <summary>
         /// The createMediaStreamTrackSource() method of the AudioContext interface creates and returns a MediaStreamTrackAudioSourceNode which represents an audio source whose data comes from the specified MediaStreamTrack.
         /// </summary>
         /// <param name="track"></param>
         /// <returns></returns>
-        public MediaStreamTrackAudioSourceNode CreateMediaStreamTrackSource(MediaStreamTrack track) => JSRef!.Call<MediaStreamTrackAudioSourceNode>("createMediaStreamTrackSource", track);
+        public MediaStreamTrackAudioSourceNode CreateMediaStreamTrackSource(MediaStreamTrack track) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.MediaStreamTrack, MediaStreamTrackAudioSourceNode>("createMediaStreamTrackSource", track);
         /// <summary>
         /// Returns a new AudioTimestamp object containing two audio timestamp values relating to the current audio context.
         /// </summary>

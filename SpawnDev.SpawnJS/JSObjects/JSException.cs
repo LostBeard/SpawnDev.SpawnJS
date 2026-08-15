@@ -1,4 +1,4 @@
-﻿namespace SpawnDev.SpawnJS.JSObjects
+namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// A .Net exception that represents a Javascript Error and makes the Error information available if needed
@@ -33,7 +33,7 @@
             Error = error;
             _Message = new Lazy<string>(() => Error.Message ?? "");
             _Name = new Lazy<string>(() => Error.Name ?? "");
-            _ToString = new Lazy<string>(() => Error.JSRef!.IsUndefined("toString") ? base.ToString() : Error.ToString() ?? base.ToString());
+            _ToString = new Lazy<string>(() => !Error.JSRef!.Exists("toString") ? base.ToString() : Error.ToString() ?? base.ToString());
         }
         /// <summary>
         /// Creates a new Exception to represent a Javascript Error

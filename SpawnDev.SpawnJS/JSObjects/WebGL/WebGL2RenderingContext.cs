@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </param>
         /// <param name="index">A GLuint specifying the index of the target that is queried.</param>
         /// <returns></returns>
-        public GLuint GetIndexedParameter(GLenum target, GLuint index) => JSRef!.Call<GLuint>("getIndexedParameter", target, index);
+        public GLuint GetIndexedParameter(GLenum target, GLuint index) => JSRef!.Call<uint, uint, GLuint>("getIndexedParameter", target, index);
         #endregion
 
         #region Buffers - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#buffers
@@ -272,7 +272,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="internalformat">A GLenum specifying the internal format about which to retrieve information (must be a color-renderable, depth-renderable or stencil-renderable format).</param>
         /// <param name="pname">A GLenum specifying the type of information to query. Possible values:<br/>
         /// gl.SAMPLES - Returns an Int32Array containing sample counts supported for internalformat in descending order.</param>
-        public Int32Array GetInternalformatParameter(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<Int32Array>("getInternalformatParameter", target, internalformat, pname);
+        public Int32Array GetInternalformatParameter(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<uint, uint, uint, Int32Array>("getInternalformatParameter", target, internalformat, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getInternalformatParameter() method of the WebGL 2 API returns information about implementation-dependent support for internal formats.
         /// </summary>
@@ -281,7 +281,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="internalformat">A GLenum specifying the internal format about which to retrieve information (must be a color-renderable, depth-renderable or stencil-renderable format).</param>
         /// <param name="pname">A GLenum specifying the type of information to query. Possible values:<br/>
         /// gl.SAMPLES - Returns an Int32Array containing sample counts supported for internalformat in descending order.</param>
-        public T GetInternalformatParameter<T>(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<T>("getInternalformatParameter", target, internalformat, pname);
+        public T GetInternalformatParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(GLenum target, GLenum internalformat, GLenum pname) => JSRef!.Call<uint, uint, uint, T>("getInternalformatParameter", target, internalformat, pname);
         /// <summary>
         /// The WebGL2RenderingContext.renderbufferStorageMultisample() method of the WebGL 2 API returns creates and initializes a renderbuffer object's data store and allows specifying a number of samples to be used.
         /// </summary>
@@ -426,7 +426,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcData">A TypedArray or DataView containing the compressed texture data. Its type must match the type parameter; see WebGLRenderingContext.texImage2D(). When type is FLOAT_32_UNSIGNED_INT_24_8_REV, srcData must be null.</param>
         /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
         public void TexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
-            => JSRef!.CallVoid("texImage3D", target, level, internalformat, width, height, depth, border, format, type, srcData, srcOffset);
+            => JSRef!.CallApplyVoid("texImage3D", new object?[] { target, level, internalformat, width, height, depth, border, format, type, srcData, srcOffset });
         /// <summary>
         /// The texImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional texture image.
         /// </summary>
@@ -480,7 +480,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcData">A TypedArray or DataView containing the compressed texture data. Its type must match the type parameter; see WebGLRenderingContext.texImage2D().</param>
         /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
         public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
-            => JSRef!.CallVoidApply("texSubImage3D", new object[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, srcData, srcOffset });
+            => JSRef!.CallApplyVoid("texSubImage3D", new object[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, srcData, srcOffset });
         /// <summary>
         /// The texSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image.
         /// </summary>
@@ -498,7 +498,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data. For the combinations of format and type available, see WebGLRenderingContext.texSubImage2D().</param>
         /// <param name="source">Read from a DOM pixel source</param>
         public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Union<ImageBitmap, ImageData, HTMLImageElement, HTMLCanvasElement, HTMLVideoElement, OffscreenCanvas, VideoFrame> source)
-            => JSRef!.CallVoid("texSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, source);
+            => JSRef!.CallApplyVoid("texSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, source });
         /// <summary>
         /// The texSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image.
         /// </summary>
@@ -516,7 +516,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="type">A GLenum specifying the size of each integer element in the raw texel data. For the combinations of format and type available, see WebGLRenderingContext.texSubImage2D().</param>
         /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
         public void TexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLint offset)
-            => JSRef!.CallVoid("texSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, offset);
+            => JSRef!.CallApplyVoid("texSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, offset });
         /// <summary>
         /// The copyTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API copies pixels from the current WebGLFramebuffer into a 3D texture sub-image.
         /// </summary>
@@ -600,7 +600,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="imageSize">A GLsizei specifying the size of the image data in bytes.</param>
         /// <param name="offset">A GLintptr specifying the starting address in the buffer bound to gl.PIXEL_UNPACK_BUFFER.</param>
         public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, GLintptr offset)
-            => JSRef!.CallVoid("compressedTexSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, offset);
+            => JSRef!.CallApplyVoid("compressedTexSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, offset });
         /// <summary>
         /// The compressedTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image in a compressed format.<br/>
         /// Compressed image formats are only available via some WebGL extension.
@@ -619,7 +619,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcData">A TypedArray or DataView containing the compressed texture data.</param>
         /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
         public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, Union<TypedArray, DataView> srcData, GLint srcOffset = 0)
-            => JSRef!.CallVoid("compressedTexSubImage3D", target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset);
+            => JSRef!.CallApplyVoid("compressedTexSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset });
         /// <summary>
         /// The compressedTexSubImage3D() method of the WebGL2RenderingContext interface of the WebGL API specifies a three-dimensional sub-rectangle for a texture image in a compressed format.<br/>
         /// Compressed image formats are only available via some WebGL extension.
@@ -639,7 +639,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="srcOffset">An integer specifying the index of srcData to start reading from. Defaults to 0.</param>
         /// <param name="srcLengthOverride">An integer specifying the number of elements in srcData to read. Defaults to srcData.length - srcOffset.</param>
         public void CompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, Union<TypedArray, DataView> srcData, GLint srcOffset, GLint srcLengthOverride)
-            => JSRef!.CallVoidApply("compressedTexSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset, srcLengthOverride });
+            => JSRef!.CallApplyVoid("compressedTexSubImage3D", new object?[] { target, level, xoffset, yoffset, zoffset, width, height, depth, format, srcData, srcOffset, srcLengthOverride });
         #endregion
 
         #region Programs and shaders - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#programs_and_shaders
@@ -649,7 +649,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram to query.</param>
         /// <param name="name">A string specifying the name of the user-defined varying out variable.</param>
         /// <returns>A GLint indicating the assigned color number binding, or -1 otherwise.</returns>
-        public GLint GetFragDataLocation(WebGLProgram program, string name) => JSRef!.Call<GLint>("getFragDataLocation", program, name);
+        public GLint GetFragDataLocation(WebGLProgram program, string name) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, GLint>("getFragDataLocation", program, name);
         #endregion
 
         #region Uniforms and attributes - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#uniforms_and_attributes
@@ -1241,7 +1241,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public bool IsQuery(WebGLQuery query) => JSRef!.Call<bool>("isQuery", query);
+        public bool IsQuery(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, bool>("isQuery", query);
         /// <summary>
         /// The WebGL2RenderingContext.getQuery() method of the WebGL 2 API returns the currently active WebGLQuery for the target, or null.
         /// </summary>
@@ -1254,7 +1254,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </param>
         /// <param name="pname">A GLenum specifying the query object target. Must be gl.CURRENT_QUERY.</param>
         /// <returns></returns>
-        public WebGLQuery GetQuery(GLenum target, GLenum pname) => JSRef!.Call<WebGLQuery>("getQuery", target, pname);
+        public WebGLQuery GetQuery(GLenum target, GLenum pname) => JSRef!.Call<uint, uint, WebGLQuery>("getQuery", target, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getQueryParameter() method of the WebGL 2 API returns parameter information of a WebGLQuery object.
         /// </summary>
@@ -1267,19 +1267,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.QUERY_RESULT_AVAILABLE - Returns a GLboolean indicating whether or not a query result is available.<br/>
         /// </param>
         /// <returns>Depends on the pname parameter, either a GLuint or a GLboolean.</returns>
-        public T GetQueryParameter<T>(WebGLQuery query, GLenum pname) => JSRef!.Call<T>("getQueryParameter", query, pname);
+        public T GetQueryParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLQuery query, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, T>("getQueryParameter", query, pname);
         /// <summary>
         /// Returns true if the query parameter is available.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public GLboolean GetQueryParameterAvailable(WebGLQuery query) => JSRef!.Call<GLboolean>("getQueryParameter", query, GL.QUERY_RESULT_AVAILABLE);
+        public GLboolean GetQueryParameterAvailable(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, GLboolean>("getQueryParameter", query, GL.QUERY_RESULT_AVAILABLE);
         /// <summary>
         /// Returns the query result.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public GLuint GetQueryParameterResult(WebGLQuery query) => JSRef!.Call<GLuint>("getQueryParameter", query, GL.QUERY_RESULT);
+        public GLuint GetQueryParameterResult(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, GLuint>("getQueryParameter", query, GL.QUERY_RESULT);
         #endregion
 
         #region Sampler objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sampler_objects
@@ -1304,7 +1304,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="sampler"></param>
         /// <returns></returns>
-        public GLboolean IsSampler(WebGLSampler sampler) => JSRef!.Call<GLboolean>("isSampler", sampler);
+        public GLboolean IsSampler(WebGLSampler sampler) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSampler, GLboolean>("isSampler", sampler);
         /// <summary>
         /// The WebGL2RenderingContext.samplerParameter[if]() methods of the WebGL 2 API set WebGLSampler parameters.
         /// </summary>
@@ -1352,7 +1352,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.TEXTURE_WRAP_S - A GLenum specifying the texture wrapping function for the texture coordinate s.<br/>
         /// gl.TEXTURE_WRAP_T - A GLenum specifying the texture wrapping function for the texture coordinate t.</param>
         /// <returns>Depends on the pname parameter, either a GLenum or a GLfloat.</returns>
-        public float GetSamplerParameter(WebGLSampler sampler, GLenum pname) => JSRef!.Call<float>("getSamplerParameter", sampler, pname);
+        public float GetSamplerParameter(WebGLSampler sampler, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSampler, uint, float>("getSamplerParameter", sampler, pname);
         #endregion
 
         #region Sync objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sync_objects
@@ -1362,13 +1362,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="condition">A GLenum specifying the condition that must be met to set the sync object's state to signaled. Must be gl.SYNC_GPU_COMMANDS_COMPLETE.</param>
         /// <param name="flags">A GLbitfield specifying a bitwise combination of flags controlling the behavior of the sync object. Must be 0 (exists for extensions only).</param>
         /// <returns>A WebGLSync object.</returns>
-        public WebGLSync FenceSync(GLenum condition, GLbitfield flags) => JSRef!.Call<WebGLSync>("fenceSync", condition, flags);
+        public WebGLSync FenceSync(GLenum condition, GLbitfield flags) => JSRef!.Call<uint, uint, WebGLSync>("fenceSync", condition, flags);
         /// <summary>
         /// The WebGL2RenderingContext.isSync() method of the WebGL 2 API returns true if the passed object is a valid WebGLSync object.
         /// </summary>
         /// <param name="sync"></param>
         /// <returns></returns>
-        public GLboolean IsSync(WebGLSync sync) => JSRef!.Call<GLboolean>("isSync", sync);
+        public GLboolean IsSync(WebGLSync sync) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, GLboolean>("isSync", sync);
         /// <summary>
         /// The WebGL2RenderingContext.deleteSync() method of the WebGL 2 API deletes a given WebGLSync object.
         /// </summary>
@@ -1385,7 +1385,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.TIMEOUT_EXPIRED: Indicates that the timeout time passed and that the sync object did not become signaled.<br/>
         /// gl.CONDITION_SATISFIED: Indicates that the sync object was signaled before the timeout expired.<br/>
         /// gl.WAIT_FAILED: Indicates that an error occurred during the execution.</returns>
-        public GLenum clientWaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.Call<GLenum>("clientWaitSync", sync, flags, timeout);
+        public GLenum clientWaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, uint, long, GLenum>("clientWaitSync", sync, flags, timeout);
         /// <summary>
         /// The WebGL2RenderingContext.waitSync() method of the WebGL 2 API returns immediately, but waits on the GL server until the given WebGLSync object is signaled.<br/>
         /// The method is a no-op in the absence of the possibility of synchronizing between multiple GL contexts.
@@ -1404,7 +1404,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         ///  gl.SYNC_CONDITION - Returns a GLenum indicating the sync objects' condition (always gl.SYNC_GPU_COMMANDS_COMPLETE).<br/>
         ///  gl.SYNC_FLAGS - Returns a GLenum indicating the flags with which the sync object was created(always 0 as no flags are supported).</param>
         /// <returns>Depends on the pname parameter, either a GLenum or a GLbitfield.</returns>
-        public uint GetSyncParameter(WebGLSync sync, GLenum pname) => JSRef!.Call<uint>("getSyncParameter", sync, pname);
+        public uint GetSyncParameter(WebGLSync sync, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, uint, uint>("getSyncParameter", sync, pname);
         #endregion
 
         #region Transform feedback - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#transform_feedback
@@ -1423,7 +1423,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="transformFeedback">A WebGLTransformFeedback object to test.</param>
         /// <returns>A GLboolean indicating whether the given object is a valid WebGLTransformFeedback object (true) or not (false).</returns>
-        public bool IsTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.Call<bool>("isTransformFeedback", transformFeedback);
+        public bool IsTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLTransformFeedback, bool>("isTransformFeedback", transformFeedback);
         /// <summary>
         /// The WebGL2RenderingContext.bindTransformFeedback() method of the WebGL 2 API binds a passed WebGLTransformFeedback object to the current GL state.
         /// </summary>
@@ -1460,7 +1460,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="index">A GLuint specifying the index of the varying variable whose information to retrieve.</param>
         /// <returns>A WebGLActiveInfo object.</returns>
         public WebGLActiveInfo GetTransformFeedbackVarying(WebGLProgram program, GLuint index)
-            => JSRef!.Call<WebGLActiveInfo>("getTransformFeedbackVarying", program, index);
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, WebGLActiveInfo>("getTransformFeedbackVarying", program, index);
         /// <summary>
         /// The WebGL2RenderingContext.pauseTransformFeedback() method of the WebGL 2 API pauses a transform feedback operation.
         /// </summary>
@@ -1499,7 +1499,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram containing uniforms whose indices to query.</param>
         /// <param name="uniformNames">An Array of string specifying the names of the uniforms to query.</param>
         public GLuint[] GetUniformIndices(WebGLProgram program, string[] uniformNames)
-            => JSRef!.Call<GLuint[]>("getUniformIndices", program, uniformNames);
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string[], GLuint[]>("getUniformIndices", program, uniformNames);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniforms() method of the WebGL 2 API retrieves information about active uniforms within a WebGLProgram.
         /// </summary>
@@ -1517,7 +1517,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.UNIFORM_IS_ROW_MAJOR - Returns an Array of GLboolean indicating whether each of the uniforms is a row-major matrix or not.</param>
         /// <returns>Depends on which information is requested using the pname parameter.</returns>
         public T[] GetActiveUniforms<T>(WebGLProgram program, GLuint[] uniformIndices, GLenum pname) where T : struct
-            => JSRef!.Call<T[]>("getActiveUniforms", program, uniformIndices, pname);
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint[], uint, T[]>("getActiveUniforms", program, uniformIndices, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getUniformBlockIndex() method of the WebGL 2 API retrieves the index of a uniform block within a WebGLProgram.
         /// </summary>
@@ -1525,7 +1525,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="uniformBlockName">A string specifying the name of the uniform block to whose index to retrieve.</param>
         /// <returns>A GLuint indicating the uniform block index.</returns>
         public GLuint GetUniformBlockIndex(WebGLProgram program, string uniformBlockName)
-            => JSRef!.Call<GLuint>("getUniformBlockIndex", program, uniformBlockName);
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, GLuint>("getUniformBlockIndex", program, uniformBlockName);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniformBlockParameter() method of the WebGL 2 API retrieves information about an active uniform block within a WebGLProgram.
         /// </summary>
@@ -1542,8 +1542,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER - Returns a GLboolean indicating whether the uniform block is referenced by the fragment shader.
         /// </param>
         /// <returns>Depends on which information is requested using the pname parameter. If an error occurs, null is returned.</returns>
-        public T? GetActiveUniformBlockParameter<T>(WebGLProgram program, GLuint uniformBlockIndex, GLenum pname) where T : struct
-            => JSRef!.Call<T>("getActiveUniformBlockParameter", program, uniformBlockIndex, pname);
+        public T? GetActiveUniformBlockParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, GLuint uniformBlockIndex, GLenum pname) where T : struct
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, uint, T>("getActiveUniformBlockParameter", program, uniformBlockIndex, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniformBlockName() method of the WebGL 2 API retrieves the name of the active uniform block at a given index within a WebGLProgram.
         /// </summary>
@@ -1551,7 +1551,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="uniformBlockIndex">A GLuint specifying the index of the uniform block to whose name to retrieve.</param>
         /// <returns>A string indicating the active uniform block name.</returns>
         public string GetActiveUniformBlockName(WebGLProgram program, GLuint uniformBlockIndex)
-            => JSRef!.Call<string>("getActiveUniformBlockName", program, uniformBlockIndex);
+            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, string>("getActiveUniformBlockName", program, uniformBlockIndex);
         /// <summary>
         /// The WebGL2RenderingContext.uniformBlockBinding() method of the WebGL 2 API assigns binding points for active uniform blocks.
         /// </summary>
@@ -1578,7 +1578,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="vertexArray">A WebGLVertexArrayObject (VAO) object to test.</param>
         /// <returns>A GLboolean indicating whether the given object is a valid WebGLVertexArrayObject object (true) or not (false).</returns>
-        public bool IsVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.Call<bool>("isVertexArray", vertexArray);
+        public bool IsVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLVertexArrayObject, bool>("isVertexArray", vertexArray);
         /// <summary>
         /// The WebGL2RenderingContext.bindVertexArray() method of the WebGL 2 API binds a passed WebGLVertexArrayObject object to the buffer.
         /// </summary>

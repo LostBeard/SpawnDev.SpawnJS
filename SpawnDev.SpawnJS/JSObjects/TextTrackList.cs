@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -31,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public TextTrack? GetTrackById(string id) => JSRef!.Call<TextTrack>("getTrackById", id);
+        public TextTrack? GetTrackById(string id) => JSRef!.Call<string, TextTrack>("getTrackById", id);
         /// <summary>
         /// The individual tracks can be accessed using the bracket notation [].
         /// </summary>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -189,21 +190,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Callback callback, double delay) => JSRef!.Call<long>("setTimeout", callback, delay);
+        public long SetTimeout(Callback callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.Callback, double, long>("setTimeout", callback, delay);
         /// <summary>
         /// Schedules a function to execute in a given amount of time.
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Action callback, double delay) => JSRef!.Call<long>("setTimeout", ActionCallback.CreateOne(callback), delay);
+        public long SetTimeout(Action callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback, double, long>("setTimeout", ActionCallback.CreateOne(callback), delay);
         /// <summary>
         /// Schedules a function to execute in a given amount of time.
         /// </summary>
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetTimeout(Func<Task> callback, double delay) => JSRef!.Call<long>("setTimeout", Callback.CreateOne(callback), delay);
+        public long SetTimeout(Func<Task> callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.FuncCallback<global::System.Threading.Tasks.Task>, double, long>("setTimeout", Callback.CreateOne(callback), delay);
         /// <summary>
         /// The setInterval() method of the Window interface repeatedly calls a function or executes a code snippet, with a fixed time delay between each call.<br/>
         /// This method returns an interval ID which uniquely identifies the interval, so you can remove it later by calling clearInterval().
@@ -211,7 +212,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="callback"></param>
         /// <param name="delay"></param>
         /// <returns></returns>
-        public long SetInterval(Callback callback, double delay) => JSRef!.Call<long>("setInterval", callback, delay);
+        public long SetInterval(Callback callback, double delay) => JSRef!.Call<global::SpawnDev.SpawnJS.Callback, double, long>("setInterval", callback, delay);
         /// <summary>
         /// Cancels the delayed execution set using setInterval().
         /// </summary>
@@ -232,20 +233,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, ImageBitmap>("createImageBitmap", image);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
@@ -255,43 +256,43 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sw">The width of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(ActionCallback<double> callback) => JSRef!.Call<long>("requestAnimationFrame", callback);
+        public long RequestAnimationFrame(ActionCallback<double> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<double>, long>("requestAnimationFrame", callback);
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(ActionCallback callback) => JSRef!.Call<long>("requestAnimationFrame", callback);
+        public long RequestAnimationFrame(ActionCallback callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback, long>("requestAnimationFrame", callback);
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(Action<double> callback) => JSRef!.Call<long>("requestAnimationFrame", Callback.CreateOne(callback));
+        public long RequestAnimationFrame(Action<double> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<double>, long>("requestAnimationFrame", Callback.CreateOne(callback));
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(Action callback) => JSRef!.Call<long>("requestAnimationFrame", Callback.CreateOne(callback));
+        public long RequestAnimationFrame(Action callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback, long>("requestAnimationFrame", Callback.CreateOne(callback));
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(Func<double, Task> callback) => JSRef!.Call<long>("requestAnimationFrame", Callback.CreateOne(callback));
+        public long RequestAnimationFrame(Func<double, Task> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.FuncCallback<double, global::System.Threading.Tasks.Task>, long>("requestAnimationFrame", Callback.CreateOne(callback));
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestAnimationFrame(Func<Task> callback) => JSRef!.Call<long>("requestAnimationFrame", Callback.CreateOne(callback));
+        public long RequestAnimationFrame(Func<Task> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.FuncCallback<global::System.Threading.Tasks.Task>, long>("requestAnimationFrame", Callback.CreateOne(callback));
         /// <summary>
         /// Enables you to cancel a callback previously scheduled with Window.requestAnimationFrame.
         /// </summary>
@@ -302,7 +303,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestIdleCallback(ActionCallback<IdleDeadline> callback) => JSRef!.Call<long>("requestIdleCallback", callback);
+        public long RequestIdleCallback(ActionCallback<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.IdleDeadline>, long>("requestIdleCallback", callback);
         /// <summary>
         /// The Window.resizeBy() method resizes the current window by a specified amount.
         /// </summary>
@@ -355,7 +356,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T StructuredClone<T>(object value, StructuredCloneOptions options) => JSRef!.Call<T>("structuredClone", value, options);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, global::SpawnDev.SpawnJS.JSObjects.StructuredCloneOptions, T>("structuredClone", value, options);
         /// <summary>
         /// The structuredClone() method of the Window interface creates a deep clone of a given value using the structured clone algorithm.<br/>
         /// The method also allows transferable objects in the original value to be transferred rather than cloned to the new object. Transferred objects are detached from the original object and attached to the new object; they are no longer accessible in the original object.
@@ -363,7 +364,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <returns></returns>
-        public T StructuredClone<T>(object value) => JSRef!.Call<T>("structuredClone", value);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value) => JSRef!.Call<object, T>("structuredClone", value);
         /// <summary>
         /// Window.scrollTo() scrolls to a particular set of coordinates in the document.
         /// </summary>
@@ -375,7 +376,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestIdleCallback(Action<IdleDeadline> callback) => JSRef!.Call<long>("requestIdleCallback", Callback.CreateOne(callback));
+        public long RequestIdleCallback(Action<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.IdleDeadline>, long>("requestIdleCallback", Callback.CreateOne(callback));
         /// <summary>
         /// Enables you to cancel a callback previously scheduled with Window.requestIdleCallback.
         /// </summary>
@@ -395,19 +396,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="message">A string you want to display in the confirmation dialog.</param>
         /// <returns>A boolean indicating whether OK (true) or Cancel (false) was selected. If a browser is ignoring in-page dialogs, then the returned value is always false.</returns>
-        public bool Confirm(string message) => JSRef!.Call<bool>("confirm", message);
+        public bool Confirm(string message) => JSRef!.Call<string, bool>("confirm", message);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(Request resource) => JS.CallAsync<Response>("fetch", resource);
+        public Task<Response> Fetch(Request resource) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(string resource) => JS.CallAsync<Response>("fetch", resource);
+        public Task<Response> Fetch(string resource) => JS.CallAsync<string, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<Response>("fetch", resource, options);
+        public Task<Response> Fetch(string resource, FetchOptions options) => JS.CallAsync<string, global::SpawnDev.SpawnJS.FetchOptions, Response>("fetch", resource, options);
         /// <summary>
         /// Makes a request to bring the window to the front. It may fail due to user settings and the window isn't guaranteed to be frontmost before this method returns.
         /// </summary>
@@ -418,7 +419,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="element">The Element for which to get the computed style.</param>
         /// <param name="pseudoElement">A string specifying the pseudo-element to match. Omitted (or null) for real elements.</param>
         /// <returns>A live CSSStyleDeclaration object, which updates automatically when the element's styles are changed.</returns>
-        public CSSStyleDeclaration GetComputedStyle(Element element, string? pseudoElement = null) => JSRef!.Call<CSSStyleDeclaration>("getComputedStyle", element, pseudoElement);
+        public CSSStyleDeclaration GetComputedStyle(Element element, string? pseudoElement = null) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Element, string, CSSStyleDeclaration>("getComputedStyle", element, pseudoElement!);
         /// <summary>
         /// The getSelection() method of the Window interface returns the Selection object associated with the window's document, representing the range of text selected by the user or the current position of the caret.
         /// </summary>
@@ -434,7 +435,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="mode"></param>
         /// <returns></returns>
-        public MediaQueryList MatchMedia(string mode) => JSRef!.Call<MediaQueryList>("matchMedia", mode);
+        public MediaQueryList MatchMedia(string mode) => JSRef!.Call<string, MediaQueryList>("matchMedia", mode);
         /// <summary>
         /// The moveBy() method of the Window interface moves the current window by a specified amount.<br/>
         /// Note: This function moves the window relative to its current location. In contrast, window.moveTo() moves the window to an absolute location.
@@ -458,20 +459,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// A string containing a comma-separated list of window features in the form name=value. Boolean values can be set to true using one of: name, name=yes, name=true, or name=n where n is any non-zero integer. These features include options such as the window's default size and position, whether or not to open a minimal popup window, and so forth.
         /// </param>
         /// <returns>If the browser successfully opens the new browsing context, a WindowProxy object is returned. The returned reference can be used to access properties and methods of the new context as long as it complies with the same-origin policy security requirements.</returns>
-        public Window? Open(string url, string target, string windowFeatures) => JSRef!.Call<Window?>("open", url, target, windowFeatures);
+        public Window? Open(string url, string target, string windowFeatures) => JSRef!.Call<string, string, string, Window?>("open", url, target, windowFeatures);
         /// <summary>
         /// The open() method of the Window interface loads a specified resource into a new or existing browsing context (that is, a tab, a window, or an iframe) under a specified name.
         /// </summary>
         /// <param name="url">A string indicating the URL or path of the resource to be loaded. If an empty string ("") is specified or this parameter is omitted, a blank page is opened into the targeted browsing context.</param>
         /// <param name="target">A string, without whitespace, specifying the name of the browsing context the resource is being loaded into. If the name doesn't identify an existing context, a new context is created and given the specified name. The special target keywords, _self, _blank (default), _parent, _top, and _unfencedTop can also be used. _unfencedTop is only relevant to fenced frames.</param>
         /// <returns>If the browser successfully opens the new browsing context, a WindowProxy object is returned. The returned reference can be used to access properties and methods of the new context as long as it complies with the same-origin policy security requirements.</returns>
-        public Window? Open(string url, string target) => JSRef!.Call<Window?>("open", url, target);
+        public Window? Open(string url, string target) => JSRef!.Call<string, string, Window?>("open", url, target);
         /// <summary>
         /// The open() method of the Window interface loads a specified resource into a new or existing browsing context (that is, a tab, a window, or an iframe) under a specified name.
         /// </summary>
         /// <param name="url">A string indicating the URL or path of the resource to be loaded. If an empty string ("") is specified or this parameter is omitted, a blank page is opened into the targeted browsing context.</param>
         /// <returns>If the browser successfully opens the new browsing context, a WindowProxy object is returned. The returned reference can be used to access properties and methods of the new context as long as it complies with the same-origin policy security requirements.</returns>
-        public Window? Open(string url) => JSRef!.Call<Window?>("open", url);
+        public Window? Open(string url) => JSRef!.Call<string, Window?>("open", url);
         /// <summary>
         /// The open() method of the Window interface loads a specified resource into a new or existing browsing context (that is, a tab, a window, or an iframe) under a specified name.
         /// </summary>
@@ -509,14 +510,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="message">A string of text to display to the user. Can be omitted if there is nothing to show in the prompt window.</param>
         /// <returns>A string containing the text entered by the user, or null.</returns>
-        public string? Prompt(string message) => JSRef!.Call<string>("prompt", message);
+        public string? Prompt(string message) => JSRef!.Call<string, string>("prompt", message);
         /// <summary>
         /// window.prompt() instructs the browser to display a dialog with an optional message prompting the user to input some text, and to wait until the user either submits the text or cancels the dialog.
         /// </summary>
         /// <param name="message">A string of text to display to the user. Can be omitted if there is nothing to show in the prompt window.</param>
         /// <param name="defaultValue">A string containing the default value displayed in the text input field.</param>
         /// <returns>A string containing the text entered by the user, or null.</returns>
-        public string? Prompt(string message, string defaultValue) => JSRef!.Call<string>("prompt", message, defaultValue);
+        public string? Prompt(string message, string defaultValue) => JSRef!.Call<string, string, string>("prompt", message, defaultValue);
         /// <summary>
         /// The queueMicrotask() method of the Window interface queues a microtask to be executed at a safe time prior to control returning to the browser's event loop.
         /// </summary>
@@ -735,7 +736,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns true if showDirectoryPicker is found
         /// </summary>
         /// <returns></returns>
-        public bool ShowDirectoryPickerSupported() => !JS.IsUndefined("showDirectoryPicker");
+        public bool ShowDirectoryPickerSupported() => !!JS.Exists("showDirectoryPicker");
         /// <summary>
         /// The showDirectoryPicker() method of the Window interface displays a directory picker which allows the user to select a directory.
         /// </summary>
@@ -743,7 +744,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<FileSystemDirectoryHandle> ShowDirectoryPicker(ShowDirectoryPickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<FileSystemDirectoryHandle>("showDirectoryPicker") :
-            JSRef!.CallAsync<FileSystemDirectoryHandle>("showDirectoryPicker", options);
+            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowDirectoryPickerOptions, FileSystemDirectoryHandle>("showDirectoryPicker", options);
         /// <summary>
         /// The showOpenFilePicker() method of the Window interface shows a file picker that allows a user to select a file or multiple files and returns a handle for the file(s).
         /// </summary>
@@ -751,7 +752,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<Array<FileSystemFileHandle>> ShowOpenFilePicker(ShowOpenFilePickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<Array<FileSystemFileHandle>>("showOpenFilePicker") :
-            JSRef!.CallAsync<Array<FileSystemFileHandle>>("showOpenFilePicker", options);
+            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowOpenFilePickerOptions, Array<FileSystemFileHandle>>("showOpenFilePicker", options);
         /// <summary>
         /// The showSaveFilePicker() method of the Window interface shows a file picker that allows a user to save a file. Either by selecting an existing file, or entering a name for a new file.
         /// </summary>
@@ -759,6 +760,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<FileSystemFileHandle> ShowSaveFilePicker(ShowSaveFilePickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<FileSystemFileHandle>("showSaveFilePicker") :
-            JSRef!.CallAsync<FileSystemFileHandle>("showSaveFilePicker", options);
+            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowSaveFilePickerOptions, FileSystemFileHandle>("showSaveFilePicker", options);
     }
 }

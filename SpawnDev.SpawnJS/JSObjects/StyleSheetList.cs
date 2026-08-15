@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public CSSStyleSheet Item(int index) => JSRef!.Call<CSSStyleSheet>("item", index);
+        public CSSStyleSheet Item(int index) => JSRef!.Call<int, CSSStyleSheet>("item", index);
         /// <summary>
         /// The number of nodes in the StyleSheetList.
         /// </summary>

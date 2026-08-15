@@ -1,14 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// The IDBCursorWithValue interface of the IndexedDB API represents a cursor for traversing or iterating over multiple records in a database. It is the same as the IDBCursor, except that it includes the value property.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/API/IDBCursorWithValue
     /// </summary>
-    public class IDBCursorWithValue<TKey, TPrimaryKey, TValue> : IDBCursor<TKey, TPrimaryKey, TValue>
+    public class IDBCursorWithValue<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TPrimaryKey, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue> : IDBCursor<TKey, TPrimaryKey, TValue>
     {
         /// <summary>
         /// Deserialization constructor
@@ -22,6 +22,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns the value of the current cursor.
         /// </summary>
-        public TValueAlt ValueAs<TValueAlt>() => JSRef!.Get<TValueAlt>("value");
+        public TValueAlt ValueAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>() => JSRef!.Get<TValueAlt>("value");
     }
 }

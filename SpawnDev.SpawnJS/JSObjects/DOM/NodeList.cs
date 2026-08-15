@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -9,7 +9,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// https://developer.mozilla.org/en-US/docs/Web/API/NodeList
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class NodeList<T> : SpawnJSObject where T : Node
+    public class NodeList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T> : SpawnJSObject where T : Node
     {
         /// <summary>
         /// Deserialization constructor
@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public T Item(int index) => JSRef!.Call<T>("item", index);
+        public T Item(int index) => JSRef!.Call<int, T>("item", index);
         /// <summary>
         /// The number of nodes in the NodeList.
         /// </summary>
@@ -86,13 +86,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="index"></param>
         /// <returns></returns>
-        public T Item<T>(int index) where T : Node => JSRef!.Get<T>(index);
+        public T Item<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(int index) where T : Node => JSRef!.Get<T>(index);
         /// <summary>
         /// Returns an item in the list by its index, or null if the index is out-of-bounds.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public Node Item(int index) => JSRef!.Call<Node>("item", index);
+        public Node Item(int index) => JSRef!.Call<int, Node>("item", index);
         /// <summary>
         /// The number of nodes in the NodeList.
         /// </summary>
@@ -116,7 +116,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public Iterator<T> Values<T>() where T : Node => JSRef!.Call<Iterator<T>>("values");
+        public Iterator<T> Values<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : Node => JSRef!.Call<Iterator<T>>("values");
         /// <summary>
         /// Returns the array item at the given index
         /// </summary>
@@ -149,7 +149,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns the list as a list
         /// </summary>
         /// <returns></returns>
-        public List<T> ToList<T>() where T : Node
+        public List<T> ToList<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : Node
         {
             var ret = new List<T>();
             for (int i = 0; i < Length; i++)
@@ -162,6 +162,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns the list as a list
         /// </summary>
         /// <returns></returns>
-        public T[] ToArray<T>() where T : Node => ToList<T>().ToArray();
+        public T[] ToArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : Node => ToList<T>().ToArray();
     }
 }

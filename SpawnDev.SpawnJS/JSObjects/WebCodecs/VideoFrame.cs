@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -83,7 +82,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public int AllocationSize(AllocationSizeOptions options) => JSRef!.Call<int>("allocationSize", options);
+        public int AllocationSize(AllocationSizeOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.AllocationSizeOptions, int>("allocationSize", options);
         /// <summary>
         /// Copies the contents of the VideoFrame to an ArrayBuffer.
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -251,25 +250,25 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool IsNaN(object value) => JS.Call<bool>($"Number.isNaN", value);
+        public static bool IsNaN(object value) => JS.Call<object, bool>($"Number.isNaN", value);
         /// <summary>
         /// The Number.isInteger() static method determines whether the passed value is an integer.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool IsInteger(object value) => JS.Call<bool>($"Number.isInteger", value);
+        public static bool IsInteger(object value) => JS.Call<object, bool>($"Number.isInteger", value);
         /// <summary>
         /// The Number.isSafeInteger() static method determines whether the provided value is a number that is a safe integer.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool IsSafeInteger(object value) => JS.Call<bool>($"Number.isSafeInteger", value);
+        public static bool IsSafeInteger(object value) => JS.Call<object, bool>($"Number.isSafeInteger", value);
         /// <summary>
         /// The Number.isFinite() static method determines whether the passed value is a finite number — that is, it checks that a given value is a number, and the number is neither positive Infinity, negative Infinity, nor NaN.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool IsFinite(object value) => JS.Call<bool>($"Number.isFinite", value);
+        public static bool IsFinite(object value) => JS.Call<object, bool>($"Number.isFinite", value);
         /// <summary>
         /// The Number.POSITIVE_INFINITY static data property represents the positive Infinity value.
         /// </summary>

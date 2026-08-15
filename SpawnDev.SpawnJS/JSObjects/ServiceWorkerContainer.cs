@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -47,14 +46,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="clientUrl"></param>
         /// <returns></returns>
-        public Task<ServiceWorkerRegistration?> GetRegistration(string clientUrl) => JSRef!.CallAsync<ServiceWorkerRegistration?>("getRegistration", clientUrl);
+        public Task<ServiceWorkerRegistration?> GetRegistration(string clientUrl) => JSRef!.CallAsync<string, ServiceWorkerRegistration?>("getRegistration", clientUrl);
         /// <summary>
         /// Creates or updates a ServiceWorkerRegistration for the given scriptURL.
         /// </summary>
         /// <param name="scriptURL"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<ServiceWorkerRegistration> Register(string scriptURL, ServiceWorkerRegistrationOptions? options = null) => options == null ? JSRef!.CallAsync<ServiceWorkerRegistration>("register", scriptURL) : JSRef!.CallAsync<ServiceWorkerRegistration>("register", scriptURL, options);
+        public Task<ServiceWorkerRegistration> Register(string scriptURL, ServiceWorkerRegistrationOptions? options = null) => options == null ? JSRef!.CallAsync<string, ServiceWorkerRegistration>("register", scriptURL) : JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.ServiceWorkerRegistrationOptions, ServiceWorkerRegistration>("register", scriptURL, options);
         #endregion
         #region Events
         /// <summary>

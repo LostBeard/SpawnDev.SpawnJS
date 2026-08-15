@@ -1,66 +1,37 @@
-﻿namespace SpawnDev.SpawnJS.Marshallers
+﻿
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.Marshaller;
+using System.Diagnostics.CodeAnalysis;
+
+// DAM(PublicConstructors) on TSpawnJSObject makes the trimmer preserve the wrapper's
+// .ctor(SpawnJSObjectReference). The requirement flows in from the generic interop entry points
+// (As<T>/Get<T>/Call<T>...), so a consumer's own wrapper is preserved automatically when named
+// concretely, and a consumer flowing an abstract generic T gets an actionable warning to annotate it.
+public class SpawnJSObjectMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSpawnJSObject> : JSMarshallerFromSpawnJSObjectReference<TSpawnJSObject?> where TSpawnJSObject : SpawnJSObject
 {
-    /// <summary>
-    /// Marshalls SpawnJSObject and types that derive from SpawnJSObject
-    /// </summary>
-    public class SpawnJSObjectMarshaller : JSMarshaller
+    /// <inheritdoc/>
+    public override bool CanMarshal(Type type) => typeof(SpawnJSObject).IsAssignableFrom(type);
+
+    /// <inheritdoc/>
+    public override JSMarshaller<T> GetMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
     {
-        /// <inheritdoc/>
-        public override bool CanMarshal(Type? type) => type != null && typeof(SpawnJSObject).IsAssignableFrom(type);
-        /// <inheritdoc/>
-        /// <remarks>
-        /// The wrapper takes its own reference through the slot table, so reading one creates no JSObject
-        /// proxy. This was the last routine proxy materialisation in the library: every
-        /// <c>JS.Get&lt;Window&gt;</c> and every wrapper returned from a call paid for one, at a measured
-        /// 21us against 1.3us for the slot path - and the proxy also tags the Javascript object with an
-        /// enumerable Symbol, which is what a record-typed web API chokes on.
-        /// <br/>
-        /// The proxy path remains as a fallback for a value the slot table cannot address, so this is
-        /// never worse than what it replaced.
-        /// </remarks>
-        public override object? JSToNet(Type type, SpawnJSHandle jsHandle)
-        {
-            // A wrapper that represents a PRIMITIVE opts in to being backed by one. A slot holds any
-            // Javascript value, so this works; it is only a JSObject proxy that cannot represent a
-            // primitive, and that restriction is what made StringPrimitive - and with it the string
-            // HeapView path - unusable in this library until the reads became slot native.
-            var allowNonReference = typeof(IJSPrimitiveWrapper).IsAssignableFrom(type);
-            if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet {type.Name} allowNonRef={allowNonReference}");
-            if (jsHandle.TryTakeOwnedValue(out var owned, allowNonReference))
-            {
-                if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet took owned (null? {owned == null})");
-                return owned == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(owned));
-            }
-            if (allowNonReference) Console.WriteLine($"[SJSDBG] JSToNet FELL THROUGH to AsJSObject");
-            var value = jsHandle.AsJSObject();
-            return value == null ? null : Activator.CreateInstance(type, new SpawnJSObjectReference(value));
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(Type? type, SpawnJSHandle jsParent, object jsKey, object? value)
-        {
-            if (value is SpawnJSObject jsRef && jsRef.JSRef != null)
-            {
-                // handle to handle: neither the parent nor the wrapper's value becomes a .Net proxy, so
-                // neither picks up the runtime's enumerable Symbol tag
-                jsParent.SetProperty(jsKey, jsRef.JSRef.JSHandle);
-            }
-            else
-            {
-                jsParent.SetProperty(jsKey, (string?)null);
-            }
-        }
-        /// <inheritdoc/>
-        /// <remarks>
-        /// A wrapper already holds a slot, so passing one costs a number. This is the case that matters
-        /// most for a GPU dispatch, where nearly every argument is a wrapper.
-        /// </remarks>
-        public override bool TryWriteArg(Type? typeToConvert, object value, out byte tag, out double payload)
-        {
-            tag = ArgTag.Slot;
-            payload = 0;
-            return value is SpawnJSObject jsRef
-                && jsRef.JSRef != null
-                && jsRef.JSRef.JSHandle.TryGetSlot(out payload);
-        }
+        if (this is JSMarshaller<T> _this) return _this;
+        var marshallerTyped = typeof(SpawnJSObjectMarshaller<>).MakeGenericType(typeof(T));
+        return (JSMarshaller<T>)Activator.CreateInstance(marshallerTyped)!;
+    }
+    /// <inheritdoc/>
+    public override TSpawnJSObject? JSToNet(SpawnJSObjectReference? value)
+    {
+        return value == null ? null : (TSpawnJSObject)Activator.CreateInstance(typeof(TSpawnJSObject), value)!;
+    }
+    /// <inheritdoc/>
+    public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TSpawnJSObject? value)
+    {
+        jsParent.Set(jsKey, value?.JSRef);
+    }
+    /// <inheritdoc/>
+    public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TSpawnJSObject? value)
+    {
+        jsParent.Set(jsKey, value?.JSRef);
     }
 }

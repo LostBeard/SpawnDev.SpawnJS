@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -26,6 +25,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="chunk"></param>
         /// <returns></returns>
-        public override int Size(object chunk) => JSRef!.Call<int>("size", chunk);
+        public override int Size(object chunk) => JSRef!.Call<object, int>("size", chunk);
     }
 }

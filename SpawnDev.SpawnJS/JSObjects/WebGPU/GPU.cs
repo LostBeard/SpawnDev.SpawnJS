@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -40,7 +39,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns>A Promise that fulfills with a GPUAdapter object instance if the request is successful. requestAdapter() will resolve to null if an appropriate adapter is not available.</returns>
-        public Task<GPUAdapter?> RequestAdapter(GPURequestAdapterOptions options) => JSRef!.CallAsync<GPUAdapter?>("requestAdapter", options);
+        public Task<GPUAdapter?> RequestAdapter(GPURequestAdapterOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.GPURequestAdapterOptions, GPUAdapter?>("requestAdapter", options);
         #endregion
 
         #region Events

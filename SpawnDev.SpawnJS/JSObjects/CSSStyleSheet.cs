@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -50,7 +49,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>The index within the stylesheet's rule list of the newly inserted rule.</returns>
         public int InsertRule(string rule, int index = 0)
         {
-            return JSRef!.Call<int>("insertRule", rule, index);
+            return JSRef!.Call<string, int, int>("insertRule", rule, index);
         }
 
         /// <summary>
@@ -67,7 +66,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="text">A string containing the style rules to replace the content of the stylesheet. If the string does not contain a parsable list of rules, then the value will be set to an empty string.</param>
         /// <returns>A Promise that resolves with the CSSStyleSheet.</returns>
-        public Task<CSSStyleSheet> Replace(string text) => JSRef!.CallAsync<CSSStyleSheet>("replace", text);
+        public Task<CSSStyleSheet> Replace(string text) => JSRef!.CallAsync<string, CSSStyleSheet>("replace", text);
 
         /// <summary>
         /// Synchronously replaces the content of the stylesheet.

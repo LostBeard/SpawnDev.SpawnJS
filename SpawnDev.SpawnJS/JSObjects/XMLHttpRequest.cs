@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -34,7 +34,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Get the request response as type TResponse
         /// </summary>
         /// <typeparam name="TResponse">Response type</typeparam>
-        public TResponse? GetResponseAs<TResponse>() => JSRef!.Get<TResponse>("response");
+        public TResponse? GetResponseAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResponse>() => JSRef!.Get<TResponse>("response");
         /// <summary>
         /// Get the request response as type Blob
         /// </summary>
@@ -101,7 +101,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="headerName"></param>
         /// <returns></returns>
-        public string? GetResponseHeader(string headerName) => JSRef!.Call<string?>("getResponseHeader", headerName);
+        public string? GetResponseHeader(string headerName) => JSRef!.Call<string, string?>("getResponseHeader", headerName);
         /// <summary>
         /// The XMLHttpRequest method open() initializes a newly-created request, or re-initializes an existing one.
         /// </summary>
@@ -198,7 +198,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// XMLHttpRequest (XHR) objects are used to interact with servers. You can retrieve data from a URL without having to do a full page refresh. This enables a Web page to update just part of a page without disrupting what the user is doing.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
     /// </summary>
-    public class XMLHttpRequest<TResponse> : XMLHttpRequest
+    public class XMLHttpRequest<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResponse> : XMLHttpRequest
     {
         /// <summary>
         /// Get the request response as type TResponse

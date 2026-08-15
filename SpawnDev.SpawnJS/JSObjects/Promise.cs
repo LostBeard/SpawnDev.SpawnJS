@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -19,7 +20,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The Promise() constructor creates Promise objects.
         /// </summary>
-        public Promise(Func<Task> task) : base(JS.New("Promise", Callback.CreateOne((Function resolveFunc, Function rejectFunc) =>
+        public Promise(Func<Task> task) : base(JS.New<object?>("Promise", Callback.CreateOne((Function resolveFunc, Function rejectFunc) =>
         {
             task().ContinueWith(t =>
             {
@@ -54,7 +55,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The Promise() constructor creates Promise objects.
         /// </summary>
-        public Promise(Task task) : base(JS.New("Promise", Callback.CreateOne((Function resolveFunc, Function rejectFunc) =>
+        public Promise(Task task) : base(JS.New<object?>("Promise", Callback.CreateOne((Function resolveFunc, Function rejectFunc) =>
         {
             task.ContinueWith(t =>
             {
@@ -103,7 +104,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Set the methods for the Promise onFulfilled and onRejected events
         /// </summary>
-        public void ThenCatch<TCatch>(ActionCallback thenCallback, ActionCallback<TCatch> catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
+        public void ThenCatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TCatch>(ActionCallback thenCallback, ActionCallback<TCatch> catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
         /// <summary>
         /// Set the methods for the Promise onFulfilled and onRejected events
         /// </summary>
@@ -111,11 +112,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Set the methods for the Promise onFulfilled and onRejected events
         /// </summary>
-        public void Then<TResult>(ActionCallback<TResult> thenCallback, ActionCallback catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
+        public void Then<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(ActionCallback<TResult> thenCallback, ActionCallback catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
         /// <summary>
         /// Set the methods for the Promise onFulfilled and onRejected events
         /// </summary>
-        public void ThenCatch<TResult, TCatch>(ActionCallback<TResult> thenCallback, ActionCallback<TCatch> catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
+        public void ThenCatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TCatch>(ActionCallback<TResult> thenCallback, ActionCallback<TCatch> catchCallback) => JSRef!.CallVoid("then", thenCallback, catchCallback);
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
@@ -154,7 +155,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
-        public Task ThenCatchAsync<TCatch>(int timeoutMS = 0)
+        public Task ThenCatchAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TCatch>(int timeoutMS = 0)
         {
             var t = new TaskCompletionSource();
             var callbacks = new CallbackGroup();
@@ -188,16 +189,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
-        public Task<TResult> ThenAsync<TResult>(int timeoutMS = 0)
+        public Task<TResult> ThenAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(int timeoutMS = 0)
         {
             var t = new TaskCompletionSource<TResult>();
             var callbacks = new CallbackGroup();
             var cancellationTokenSource = timeoutMS > 0 ? new CancellationTokenSource() : null;
-            var _dbg = typeof(IJSPrimitiveWrapper).IsAssignableFrom(typeof(TResult));
-            if (_dbg) Console.WriteLine($"[SJSDBG] ThenAsync<{typeof(TResult).Name}> registered");
             ThenCatch(callbacks.Add(Callback.Create<TResult>((result) =>
             {
-                if (_dbg) Console.WriteLine($"[SJSDBG] ThenAsync<{typeof(TResult).Name}> RESOLVED, result null? {result == null}");
                 if (t.TrySetResult(result))
                 {
                     cancellationTokenSource?.Dispose();
@@ -259,7 +257,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Asynchronously wait for a Promise to complete
         /// </summary>
-        public Task<TResult> ThenAsync<TResult>(CancellationToken cancellationToken)
+        public Task<TResult> ThenAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(CancellationToken cancellationToken)
         {
             var t = new TaskCompletionSource<TResult>();
             var callbacks = new CallbackGroup();
@@ -289,45 +287,6 @@ namespace SpawnDev.SpawnJS.JSObjects
             }
             return t.Task;
         }
-        /// <summary>
-        /// Asynchronously wait for a Promise to resolve, marshalling the result as the given type.<br/>
-        /// The generic <see cref="ThenAsync{TResult}(int)"/> is the one to use when the type is known at
-        /// compile time; this exists for the dispatcher, which only has a runtime Type. The resolved value
-        /// arrives as a handle and is marshalled through the registry, so it costs no more than the typed
-        /// form and needs no generic instantiation per return type.
-        /// </summary>
-        public Task<object?> ThenAsync(Type resultType, int timeoutMS = 0)
-        {
-            // Delegates to the generic overload rather than reading the resolved value through a
-            // Callback<SpawnJSHandle>. A SpawnJSHandle is a proxy over a Javascript OBJECT, so a promise
-            // resolving with a primitive threw "JSObject proxy of number is not supported" inside the
-            // callback - which never reached the TaskCompletionSource, so the returned Task simply never
-            // completed. Promise.resolve(5) hung this method; only object-resolving promises worked.
-            var typedTask = ThenAsyncFor(resultType).Invoke(this, new object[] { timeoutMS })!;
-            return AsObjectTaskFor(resultType).Invoke(null, new object[] { typedTask }) as Task<object?>
-                ?? throw new Exception($"{nameof(ThenAsync)}: could not adapt Task<{resultType.Name}>");
-        }
-
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Reflection.MethodInfo> _thenAsyncByResultType = new();
-        static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Reflection.MethodInfo> _asObjectTaskByResultType = new();
-
-        static System.Reflection.MethodInfo ThenAsyncFor(Type resultType) => _thenAsyncByResultType.GetOrAdd(resultType, t =>
-            typeof(Promise).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-                .Single(m => m.Name == nameof(ThenAsync)
-                          && m.IsGenericMethodDefinition
-                          && m.GetParameters() is { Length: 1 } p
-                          && p[0].ParameterType == typeof(int))
-                .MakeGenericMethod(t));
-
-        static System.Reflection.MethodInfo AsObjectTaskFor(Type resultType) => _asObjectTaskByResultType.GetOrAdd(resultType, t =>
-            typeof(Promise).GetMethod(nameof(AsObjectTask), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
-                .MakeGenericMethod(t));
-
-        /// <summary>
-        /// Task&lt;T&gt; as Task&lt;object?&gt;. Awaiting rather than casting keeps the failure behaviour
-        /// intact - a faulted source faults the result with the same exception.
-        /// </summary>
-        static async Task<object?> AsObjectTask<T>(Task<T> source) => await source;
         /// <summary>
         /// Handles converting a value from a Promise catch event into an exception.<br/>
         /// These are usually of the type `Error`, but can be anything<br/>

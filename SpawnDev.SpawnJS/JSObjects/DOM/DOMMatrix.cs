@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -185,14 +184,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrix object to multiply the matrix by.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix MultiplySelf(DOMMatrixInit other) => JSRef!.Call<DOMMatrix>("multiplySelf", other);
+        public DOMMatrix MultiplySelf(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrix>("multiplySelf", other);
 
         /// <summary>
         /// The DOMMatrix.preMultiplySelf() method pre-multiplies the current matrix by another matrix and returns the result.
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrix object to pre-multiply the matrix by.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix PreMultiplySelf(DOMMatrixInit other) => JSRef!.Call<DOMMatrix>("preMultiplySelf", other);
+        public DOMMatrix PreMultiplySelf(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrix>("preMultiplySelf", other);
 
         /// <summary>
         /// The DOMMatrix.translateSelf() method translates the current matrix by the specified x, y, and z values and returns the result.
@@ -201,7 +200,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="ty">The y-axis translation value.</param>
         /// <param name="tz">The z-axis translation value.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix TranslateSelf(double tx, double ty, double tz = 0) => JSRef!.Call<DOMMatrix>("translateSelf", tx, ty, tz);
+        public DOMMatrix TranslateSelf(double tx, double ty, double tz = 0) => JSRef!.Call<double, double, double, DOMMatrix>("translateSelf", tx, ty, tz);
 
         /// <summary>
         /// The DOMMatrix.scaleSelf() method scales the current matrix by the specified x, y, and z values and returns the result.
@@ -213,7 +212,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="originY">The y-axis coordinate of the origin point for the scaling operation.</param>
         /// <param name="originZ">The z-axis coordinate of the origin point for the scaling operation.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix ScaleSelf(double scaleX, double scaleY = 1, double scaleZ = 1, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<DOMMatrix>("scaleSelf", scaleX, scaleY, scaleZ, originX, originY, originZ);
+        public DOMMatrix ScaleSelf(double scaleX, double scaleY = 1, double scaleZ = 1, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<double, double, double, double, double, double, DOMMatrix>("scaleSelf", scaleX, scaleY, scaleZ, originX, originY, originZ);
 
         /// <summary>
         /// The DOMMatrix.scale3dSelf() method scales the current matrix by the specified scale factor and returns the result.
@@ -223,7 +222,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="originY">The y-axis coordinate of the origin point for the scaling operation.</param>
         /// <param name="originZ">The z-axis coordinate of the origin point for the scaling operation.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix Scale3dSelf(double scale, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<DOMMatrix>("scale3dSelf", scale, originX, originY, originZ);
+        public DOMMatrix Scale3dSelf(double scale, double originX = 0, double originY = 0, double originZ = 0) => JSRef!.Call<double, double, double, double, DOMMatrix>("scale3dSelf", scale, originX, originY, originZ);
 
         /// <summary>
         /// The DOMMatrix.rotateSelf() method rotates the current matrix by the specified angle and returns the result.
@@ -232,7 +231,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="rotY">The y-axis rotation value.</param>
         /// <param name="rotZ">The z-axis rotation value.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix RotateSelf(double rotX, double rotY = 0, double rotZ = 0) => JSRef!.Call<DOMMatrix>("rotateSelf", rotX, rotY, rotZ);
+        public DOMMatrix RotateSelf(double rotX, double rotY = 0, double rotZ = 0) => JSRef!.Call<double, double, double, DOMMatrix>("rotateSelf", rotX, rotY, rotZ);
 
         /// <summary>
         /// The DOMMatrix.rotateFromVectorSelf() method rotates the current matrix by the specified vector and returns the result.
@@ -240,7 +239,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="x">The x component of the vector.</param>
         /// <param name="y">The y component of the vector.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix RotateFromVectorSelf(double x, double y) => JSRef!.Call<DOMMatrix>("rotateFromVectorSelf", x, y);
+        public DOMMatrix RotateFromVectorSelf(double x, double y) => JSRef!.Call<double, double, DOMMatrix>("rotateFromVectorSelf", x, y);
 
         /// <summary>
         /// The DOMMatrix.rotateAxisAngleSelf() method rotates the current matrix by the specified angle around the specified axis and returns the result.
@@ -250,21 +249,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="z">The z-axis coordinate of the axis of rotation.</param>
         /// <param name="angle">The angle of rotation, in degrees.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix RotateAxisAngleSelf(double x, double y, double z, double angle) => JSRef!.Call<DOMMatrix>("rotateAxisAngleSelf", x, y, z, angle);
+        public DOMMatrix RotateAxisAngleSelf(double x, double y, double z, double angle) => JSRef!.Call<double, double, double, double, DOMMatrix>("rotateAxisAngleSelf", x, y, z, angle);
 
         /// <summary>
         /// The DOMMatrix.skewXSelf() method skews the current matrix along the x-axis by the specified angle and returns the result.
         /// </summary>
         /// <param name="sx">The angle of skewing along the x-axis, in degrees.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix SkewXSelf(double sx) => JSRef!.Call<DOMMatrix>("skewXSelf", sx);
+        public DOMMatrix SkewXSelf(double sx) => JSRef!.Call<double, DOMMatrix>("skewXSelf", sx);
 
         /// <summary>
         /// The DOMMatrix.skewYSelf() method skews the current matrix along the y-axis by the specified angle and returns the result.
         /// </summary>
         /// <param name="sy">The angle of skewing along the y-axis, in degrees.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix SkewYSelf(double sy) => JSRef!.Call<DOMMatrix>("skewYSelf", sy);
+        public DOMMatrix SkewYSelf(double sy) => JSRef!.Call<double, DOMMatrix>("skewYSelf", sy);
 
         /// <summary>
         /// The DOMMatrix.invertSelf() method inverts the current matrix and returns the result.
@@ -277,6 +276,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="transformList">A string representing a transform list.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix SetMatrixValue(string transformList) => JSRef!.Call<DOMMatrix>("setMatrixValue", transformList);
+        public DOMMatrix SetMatrixValue(string transformList) => JSRef!.Call<string, DOMMatrix>("setMatrixValue", transformList);
     }
 }

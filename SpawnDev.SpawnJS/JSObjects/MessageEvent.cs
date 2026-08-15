@@ -1,14 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// The MessageEvent interface represents a message received by a target object.<br/>
     /// https://developer.mozilla.org/en-US/docs/Web/API/MessageEvent
     /// </summary>
-    public class MessageEvent<TData> : MessageEvent
+    public class MessageEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TData> : MessageEvent
     {
         /// <summary>
         /// Deserialization constructor
@@ -48,13 +48,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T">Type to get property as</typeparam>
         /// <returns></returns>
-        public T GetData<T>() => JSRef!.Get<T>("data");
+        public T GetData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("data");
 
         /// <summary>
         /// non-standard method returns the typeof this.data
         /// returns "String", "Blob", or "ArrayBuffer" (could also return "Object", "Boolean", "Number", other?)
         /// </summary>
-        public string? TypeOfData => JSRef!.ConstructorName("data");
+        public string? TypeOfData => JSRef!.Get("data")?.ConstructorName();
         /// <summary>
         /// non-standard method
         /// </summary>
@@ -125,7 +125,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T">Type to get property as</typeparam>
         /// <returns></returns>
-        public T GetSource<T>() => JSRef!.Get<T>("source");
+        public T GetSource<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("source");
         /// <summary>
         /// An array of MessagePort objects representing the ports associated with the channel the message is being sent through (where appropriate, e.g. in channel messaging or when sending a message to a shared worker).
         /// </summary>

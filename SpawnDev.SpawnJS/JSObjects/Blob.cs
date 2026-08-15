@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Text;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -100,20 +99,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="endPos">An index into the Blob indicating the first byte that will *not* be included in the new Blob (i.e. the byte exactly at this index is not included). If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is size.</param>
         /// <param name="contentType">The content type to assign to the new Blob; this will be the value of its type property. The default value is an empty string.</param>
         /// <returns></returns>
-        public Blob Slice(long startPos, long endPos, string contentType) => JSRef!.Call<Blob>("slice", startPos, endPos, contentType);
+        public Blob Slice(long startPos, long endPos, string contentType) => JSRef!.Call<long, long, string, Blob>("slice", startPos, endPos, contentType);
         /// <summary>
         /// The Blob interface's slice() method creates and returns a new Blob object which contains data from a subset of the blob on which it's called.
         /// </summary>
         /// <param name="startPos">An index into the Blob indicating the first byte to include in the new Blob. If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is 0. If you specify a value for start that is larger than the size of the source Blob, the returned Blob has size 0 and contains no data.</param>
         /// <param name="endPos">An index into the Blob indicating the first byte that will *not* be included in the new Blob (i.e. the byte exactly at this index is not included). If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is size.</param>
         /// <returns></returns>
-        public Blob Slice(long startPos, long endPos) => JSRef!.Call<Blob>("slice", startPos, endPos);
+        public Blob Slice(long startPos, long endPos) => JSRef!.Call<long, long, Blob>("slice", startPos, endPos);
         /// <summary>
         /// The Blob interface's slice() method creates and returns a new Blob object which contains data from a subset of the blob on which it's called.
         /// </summary>
         /// <param name="startPos">An index into the Blob indicating the first byte to include in the new Blob. If you specify a negative value, it's treated as an offset from the end of the Blob toward the beginning. For example, -10 would be the 10th from last byte in the Blob. The default value is 0. If you specify a value for start that is larger than the size of the source Blob, the returned Blob has size 0 and contains no data.</param>
         /// <returns></returns>
-        public Blob Slice(long startPos = 0) => JSRef!.Call<Blob>("slice", startPos);
+        public Blob Slice(long startPos = 0) => JSRef!.Call<long, Blob>("slice", startPos);
         /// <summary>
         /// Returns a ReadableStream that can be used to read the contents of the Blob.
         /// </summary>

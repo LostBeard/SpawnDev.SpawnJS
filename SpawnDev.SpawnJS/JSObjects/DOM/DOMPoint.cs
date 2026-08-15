@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -61,14 +60,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="point">A DOMPointInit dictionary or another DOMPoint object to initialize the new point with.</param>
         /// <returns>A new DOMPoint object.</returns>
-        public static new DOMPoint FromPoint(DOMPointInit point) => JS.New<DOMPoint>("DOMPoint", point);
+        public static new DOMPoint FromPoint(DOMPointInit point) => JS.New<global::SpawnDev.SpawnJS.JSObjects.DOMPointInit, DOMPoint>("DOMPoint", point);
 
         /// <summary>
         /// The DOMPoint.matrixTransform() method returns a new DOMPoint object which is the result of the transformation of the point by the specified matrix.
         /// </summary>
         /// <param name="matrix">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to transform the point with.</param>
         /// <returns>A new DOMPoint object.</returns>
-        public new DOMPoint MatrixTransform(DOMMatrixInit matrix) => JSRef!.Call<DOMPoint>("matrixTransform", matrix);
+        public new DOMPoint MatrixTransform(DOMMatrixInit matrix) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMPoint>("matrixTransform", matrix);
     }
 
 

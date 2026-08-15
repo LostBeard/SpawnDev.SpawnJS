@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -22,12 +21,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="i">The range number to return the starting time for.</param>
         /// <returns>A number.</returns>
-        public double Start(int i) => JSRef!.Call<double>("start", i);
+        public double Start(int i) => JSRef!.Call<int, double>("start", i);
         /// <summary>
         /// Returns the time for the end of the specified range.
         /// </summary>
         /// <param name="i">The range number to return the ending time for.</param>
         /// <returns>A number.</returns>
-        public double End(int i) => JSRef!.Call<double>("end", i);
+        public double End(int i) => JSRef!.Call<int, double>("end", i);
     }
 }

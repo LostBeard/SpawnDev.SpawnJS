@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -30,12 +29,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Task Write(IEnumerable<ClipboardItem> data) => JSRef!.CallAsync<string>("write", data);
+        public Task Write(IEnumerable<ClipboardItem> data) => JSRef!.CallAsync<global::System.Collections.Generic.IEnumerable<global::SpawnDev.SpawnJS.JSObjects.ClipboardItem>, string>("write", data);
         /// <summary>
         /// Writes text to the system clipboard, returning a Promise which is resolved once the text is fully copied into the clipboard.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Task WriteText(string data) => JSRef!.CallAsync<string>("writeText", data);
+        public Task WriteText(string data) => JSRef!.CallAsync<string, string>("writeText", data);
     }
 }

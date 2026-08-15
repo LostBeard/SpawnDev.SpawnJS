@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -81,21 +80,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUBuffer CreateBuffer(GPUBufferDescriptor descriptor) => JSRef!.Call<GPUBuffer>("createBuffer", descriptor);
+        public GPUBuffer CreateBuffer(GPUBufferDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUBufferDescriptor, GPUBuffer>("createBuffer", descriptor);
 
         /// <summary>
         /// Creates a GPUSampler.
         /// </summary>
         /// <param name="descriptor">Description of the GPUSampler to create.</param>
         /// <returns></returns>
-        public GPUSampler CreateSampler(GPUSamplerDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUSampler>("createSampler") : JSRef!.Call<GPUSampler>("createSampler", descriptor);
+        public GPUSampler CreateSampler(GPUSamplerDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUSampler>("createSampler") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUSamplerDescriptor, GPUSampler>("createSampler", descriptor);
 
         /// <summary>
         /// Creates a GPUExternalTexture wrapping the provided image source.
         /// </summary>
         /// <param name="descriptor">Provides the external image source object (and any creation options).</param>
         /// <returns></returns>
-        public GPUExternalTexture ImportExternalTexture(GPUExternalTextureDescriptor descriptor) => JSRef!.Call<GPUExternalTexture>("importExternalTexture", descriptor);
+        public GPUExternalTexture ImportExternalTexture(GPUExternalTextureDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUExternalTextureDescriptor, GPUExternalTexture>("importExternalTexture", descriptor);
 
         /// <summary>
         /// The createRenderPipeline() method of the GPUDevice interface creates a GPURenderPipeline object, 
@@ -103,7 +102,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPURenderPipeline CreateRenderPipeline(GPURenderPipelineDescriptor descriptor) => JSRef!.Call<GPURenderPipeline>("createRenderPipeline", descriptor);
+        public GPURenderPipeline CreateRenderPipeline(GPURenderPipelineDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPURenderPipelineDescriptor, GPURenderPipeline>("createRenderPipeline", descriptor);
 
         /// <summary>
         /// Creates a GPURenderPipeline using async pipeline creation. The returned Promise resolves when the created pipeline is ready to be used without additional delay.<br/>
@@ -112,7 +111,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor">Description of the GPURenderPipeline to create.</param>
         /// <returns></returns>
-        public Task<GPURenderPipeline> CreateRenderPipelineAsync(GPURenderPipelineDescriptor descriptor) => JSRef!.CallAsync<GPURenderPipeline>("createRenderPipelineAsync", descriptor);
+        public Task<GPURenderPipeline> CreateRenderPipelineAsync(GPURenderPipelineDescriptor descriptor) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.GPURenderPipelineDescriptor, GPURenderPipeline>("createRenderPipelineAsync", descriptor);
 
         /// <summary>
         /// The createComputePipeline() method of the GPUDevice interface creates a GPUPipelineLayout that defines the GPUBindGroupLayouts used by a pipeline.
@@ -120,7 +119,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUPipelineLayout CreatePipelineLayout(GPUPipelineLayoutDescriptor descriptor) => JSRef!.Call<GPUPipelineLayout>("createPipelineLayout", descriptor);
+        public GPUPipelineLayout CreatePipelineLayout(GPUPipelineLayoutDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUPipelineLayoutDescriptor, GPUPipelineLayout>("createPipelineLayout", descriptor);
 
         /// <summary>
         /// Creates a GPUBindGroupLayout that defines the structure and purpose of related GPU resources such as buffers that will be used in a pipeline, 
@@ -129,7 +128,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUBindGroupLayout CreateBindGroupLayout(GPUBindGroupLayoutDescriptor descriptor) => JSRef!.Call<GPUBindGroupLayout>("createBindGroupLayout", descriptor);
+        public GPUBindGroupLayout CreateBindGroupLayout(GPUBindGroupLayoutDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUBindGroupLayoutDescriptor, GPUBindGroupLayout>("createBindGroupLayout", descriptor);
 
         /// <summary>
         /// Creates a GPUShaderModule from a string of WGSL source code.
@@ -137,7 +136,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUShaderModule CreateShaderModule(GPUShaderModuleDescriptor descriptor) => JSRef!.Call<GPUShaderModule>("createShaderModule", descriptor);
+        public GPUShaderModule CreateShaderModule(GPUShaderModuleDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUShaderModuleDescriptor, GPUShaderModule>("createShaderModule", descriptor);
 
         /// <summary>
         /// Creates a GPUCommandEncoder, which is used to encode commands to be issued to the GPU.
@@ -145,14 +144,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUCommandEncoder CreateCommandEncoder(GPUCommandEncoderDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUCommandEncoder>("createCommandEncoder") : JSRef!.Call<GPUCommandEncoder>("createCommandEncoder", descriptor);
+        public GPUCommandEncoder CreateCommandEncoder(GPUCommandEncoderDescriptor? descriptor = null) => descriptor == null ? JSRef!.Call<GPUCommandEncoder>("createCommandEncoder") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUCommandEncoderDescriptor, GPUCommandEncoder>("createCommandEncoder", descriptor);
 
         /// <summary>
         /// The createTexture() method of the GPUDevice interface creates a GPUTexture in which to store 1D, 2D, or 3D arrays of data, such as images, to use in GPU rendering operations.
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUTexture CreateTexture(GPUTextureDescriptor descriptor) => JSRef!.Call<GPUTexture>("createTexture", descriptor);
+        public GPUTexture CreateTexture(GPUTextureDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUTextureDescriptor, GPUTexture>("createTexture", descriptor);
 
         /// <summary>
         /// The createBindGroup() method of the GPUDevice interface creates a GPUBindGroup based on a GPUBindGroupLayout that defines a set of resources to be bound together in 
@@ -160,21 +159,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUBindGroup CreateBindGroup(GPUBindGroupDescriptor descriptor) => JSRef!.Call<GPUBindGroup>("createBindGroup", descriptor);
+        public GPUBindGroup CreateBindGroup(GPUBindGroupDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUBindGroupDescriptor, GPUBindGroup>("createBindGroup", descriptor);
 
         /// <summary>
         /// The createQuerySet() method of the GPUDevice interface creates a GPUQuerySet that can be used to record the results of queries on passes, such as occlusion or timestamp queries.
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUQuerySet CreateQuerySet(GPUQuerySetDescriptor descriptor) => JSRef!.Call<GPUQuerySet>("createQuerySet", descriptor);
+        public GPUQuerySet CreateQuerySet(GPUQuerySetDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUQuerySetDescriptor, GPUQuerySet>("createQuerySet", descriptor);
 
         /// <summary>
         /// Creates a GPUComputePipeline using immediate pipeline creation.
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public GPUComputePipeline CreateComputePipeline(GPUComputePipelineDescriptor descriptor) => JSRef!.Call<GPUComputePipeline>("createComputePipeline", descriptor);
+        public GPUComputePipeline CreateComputePipeline(GPUComputePipelineDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUComputePipelineDescriptor, GPUComputePipeline>("createComputePipeline", descriptor);
 
         /// <summary>
         /// Creates a GPUComputePipeline using async pipeline creation. The returned Promise resolves when the created pipeline is ready to be used without additional delay.<br/>
@@ -183,14 +182,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public Task<GPUComputePipeline> CreateComputePipelineAsync(GPUComputePipelineDescriptor descriptor) => JSRef!.CallAsync<GPUComputePipeline>("createComputePipelineAsync", descriptor);
+        public Task<GPUComputePipeline> CreateComputePipelineAsync(GPUComputePipelineDescriptor descriptor) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.GPUComputePipelineDescriptor, GPUComputePipeline>("createComputePipelineAsync", descriptor);
 
         /// <summary>
         /// Creates a GPURenderBundleEncoder.
         /// </summary>
         /// <param name="descriptor">Description of the GPURenderBundleEncoder to create.</param>
         /// <returns></returns>
-        public GPURenderBundleEncoder CreateRenderBundleEncoder(GPURenderBundleEncoderDescriptor descriptor) => JSRef!.Call<GPURenderBundleEncoder>("createRenderBundleEncoder", descriptor);
+        public GPURenderBundleEncoder CreateRenderBundleEncoder(GPURenderBundleEncoderDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPURenderBundleEncoderDescriptor, GPURenderBundleEncoder>("createRenderBundleEncoder", descriptor);
 
         /// <summary>
         /// The uncapturederror event of the GPUDevice interface is fired when an error is thrown that has not been observed by a GPU error scope, to provide a way to report unexpected errors.

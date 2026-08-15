@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -19,6 +18,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public GPUBindGroupLayout GetBindGroupLayout(ulong index) => JSRef!.Call<GPUBindGroupLayout>("getBindGroupLayout", index);
+        public GPUBindGroupLayout GetBindGroupLayout(ulong index) => JSRef!.Call<ulong, GPUBindGroupLayout>("getBindGroupLayout", index);
     }
 }

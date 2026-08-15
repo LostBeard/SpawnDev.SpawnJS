@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -62,7 +61,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="format"></param>
         /// <returns></returns>
-        public string GetData(string format) => JSRef!.Call<string>("getData", format);
+        public string GetData(string format) => JSRef!.Call<string, string>("getData", format);
         /// <summary>
         /// The DataTransfer.addElement() method sets the drag source to the given element. This element will be the element to which drag and dragend events are fired, and not the default target (the node that was dragged).
         /// </summary>

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -27,7 +26,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Shows the payment UI to the user.
         /// </summary>
-        public Task<PaymentResponse> Show(Task<PaymentDetailsInit> detailsPromise) => JSRef!.CallAsync<PaymentResponse>("show", detailsPromise);
+        public Task<PaymentResponse> Show(Task<PaymentDetailsInit> detailsPromise) => JSRef!.CallAsync<global::System.Threading.Tasks.Task<global::SpawnDev.SpawnJS.JSObjects.PaymentDetailsInit>, PaymentResponse>("show", detailsPromise);
 
         /// <summary>
         /// Aborts the payment request.

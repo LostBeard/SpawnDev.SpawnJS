@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 using System.Collections;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -32,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public File Item(int index) => JSRef!.Call<File>("item", index);
+        public File Item(int index) => JSRef!.Call<int, File>("item", index);
         #region Enumerable like
         /// <summary>
         /// Indexer property

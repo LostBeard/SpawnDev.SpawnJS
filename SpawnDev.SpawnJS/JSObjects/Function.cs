@@ -1,4 +1,5 @@
-﻿namespace SpawnDev.SpawnJS.JSObjects
+using System.Diagnostics.CodeAnalysis;
+namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
     /// Represents a Javascript Function
@@ -89,7 +90,7 @@
         /// <param name="thisObj">The value of this provided for the call to the function. Note that this may not be the actual value seen by the method: if the method is a function in non-strict mode code, null and undefined will be replaced with the global object, and primitive values will be boxed. This argument is required.</param>
         /// <param name="args">An array-like object, specifying the arguments with which func should be called, or null or undefined if no arguments should be provided to the function.</param>
         /// <returns>The result of calling the function with the specified this value and arguments.</returns>
-        public T Apply<T>(object? thisObj = null, object?[]? args = null) => JSRef!.Call<T>("apply", thisObj, args);
+        public T Apply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object? thisObj = null, object?[]? args = null) => JSRef!.Call<object, object[], T>("apply", thisObj!, args!);
         /// <summary>
         /// Calls the function with a given this value and arguments provided as an array (or an array-like object).
         /// </summary>
@@ -97,7 +98,7 @@
         /// <param name="thisObj">The value of this provided for the call to the function.</param>
         /// <param name="args">An array-like object, specifying the arguments with which func should be called.</param>
         /// <returns>A Task that resolves to the result of calling the function.</returns>
-        public Task<T> ApplyAsync<T>(object? thisObj = null, object?[]? args = null) => JSRef!.CallAsync<T>("apply", thisObj, args);
+        public Task<T> ApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object? thisObj = null, object?[]? args = null) => JSRef!.CallAsync<object, object[], T>("apply", thisObj!, args!);
         /// <summary>
         /// Calls the function with a given this value and arguments provided as an array (or an array-like object).
         /// </summary>
@@ -112,7 +113,7 @@
         /// <param name="thisObj">The value of this provided for the call to the function.</param>
         /// <param name="args">Arguments for the function.</param>
         /// <returns>The result of calling the function.</returns>
-        public T Call<T>(object? thisObj = null, params object?[] args) => JSRef!.Call<T>("apply", thisObj, args);
+        public T Call<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object? thisObj = null, params object?[] args) => JSRef!.Call<object, object[], T>("apply", thisObj!, args!);
         /// <summary>
         /// Calls the function with a given this value and arguments provided individually.
         /// </summary>
@@ -120,7 +121,7 @@
         /// <param name="thisObj">The value of this provided for the call to the function.</param>
         /// <param name="args">Arguments for the function.</param>
         /// <returns>A Task that resolves to the result of calling the function.</returns>
-        public Task<T> CallAsync<T>(object? thisObj = null, params object?[] args) => JSRef!.CallAsync<T>("apply", thisObj, args);
+        public Task<T> CallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object? thisObj = null, params object?[] args) => JSRef!.CallAsync<object, object[], T>("apply", thisObj!, args!);
         /// <summary>
         /// Calls the function with a given this value and arguments provided individually.
         /// </summary>
@@ -241,7 +242,7 @@
         /// </summary>
         /// <typeparam name="TResult">The return type of the function.</typeparam>
         /// <returns>A Func&lt;TResult&gt; that calls the function.</returns>
-        public Func<TResult> ToFunc<TResult>()
+        public Func<TResult> ToFunc<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<TResult>(() => Apply<TResult>());
             ret.FunctionSet(this);
@@ -253,7 +254,7 @@
         /// <typeparam name="T0"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, TResult> ToFunc<T0, TResult>()
+        public Func<T0, TResult> ToFunc<T0, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, TResult>((arg0) => Apply<TResult>(null, new object?[] { arg0 }));
             ret.FunctionSet(this);
@@ -266,7 +267,7 @@
         /// <typeparam name="T1"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, TResult> ToFunc<T0, T1, TResult>()
+        public Func<T0, T1, TResult> ToFunc<T0, T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, TResult>((arg0, arg1) => Apply<TResult>(null, new object?[] { arg0, arg1 }));
             ret.FunctionSet(this);
@@ -280,7 +281,7 @@
         /// <typeparam name="T2"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, T2, TResult> ToFunc<T0, T1, T2, TResult>()
+        public Func<T0, T1, T2, TResult> ToFunc<T0, T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, T2, TResult>((arg0, arg1, arg2) => Apply<TResult>(null, new object?[] { arg0, arg1, arg2 }));
             ret.FunctionSet(this);
@@ -295,7 +296,7 @@
         /// <typeparam name="T3"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, T2, T3, TResult> ToFunc<T0, T1, T2, T3, TResult>()
+        public Func<T0, T1, T2, T3, TResult> ToFunc<T0, T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, T2, T3, TResult>((arg0, arg1, arg2, arg3) => Apply<TResult>(null, new object?[] { arg0, arg1, arg2, arg3 }));
             ret.FunctionSet(this);
@@ -311,7 +312,7 @@
         /// <typeparam name="T4"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, T2, T3, T4, TResult> ToFunc<T0, T1, T2, T3, T4, TResult>()
+        public Func<T0, T1, T2, T3, T4, TResult> ToFunc<T0, T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, T2, T3, T4, TResult>((arg0, arg1, arg2, arg3, arg4) => Apply<TResult>(null, new object?[] { arg0, arg1, arg2, arg3, arg4 }));
             ret.FunctionSet(this);
@@ -328,7 +329,7 @@
         /// <typeparam name="T5"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, T2, T3, T4, T5, TResult> ToFunc<T0, T1, T2, T3, T4, T5, TResult>()
+        public Func<T0, T1, T2, T3, T4, T5, TResult> ToFunc<T0, T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, T2, T3, T4, T5, TResult>((arg0, arg1, arg2, arg3, arg4, arg5) => Apply<TResult>(null, new object?[] { arg0, arg1, arg2, arg3, arg4, arg5 }));
             ret.FunctionSet(this);
@@ -346,7 +347,7 @@
         /// <typeparam name="T6"></typeparam>
         /// <typeparam name="TResult"></typeparam>
         /// <returns></returns>
-        public Func<T0, T1, T2, T3, T4, T5, T6, TResult> ToFunc<T0, T1, T2, T3, T4, T5, T6, TResult>()
+        public Func<T0, T1, T2, T3, T4, T5, T6, TResult> ToFunc<T0, T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>()
         {
             var ret = new Func<T0, T1, T2, T3, T4, T5, T6, TResult>((arg0, arg1, arg2, arg3, arg4, arg5, arg6) => Apply<TResult>(null, new object?[] { arg0, arg1, arg2, arg3, arg4, arg5, arg6 }));
             ret.FunctionSet(this);

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -20,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string? Item(int index) => JSRef!.Call<string?>("item", index);
+        public string? Item(int index) => JSRef!.Call<int, string?>("item", index);
         /// <summary>
         /// Adds a media query to the MediaList.
         /// </summary>

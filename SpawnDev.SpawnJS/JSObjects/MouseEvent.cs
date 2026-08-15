@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -112,7 +111,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public bool GetModifierState(string key) => JSRef!.Call<bool>("getModifierState", key);
+        public bool GetModifierState(string key) => JSRef!.Call<string, bool>("getModifierState", key);
         #endregion
     }
 }

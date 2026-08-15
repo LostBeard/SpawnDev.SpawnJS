@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -34,12 +34,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T DetailAs<T>() => JSRef!.Get<T>("detail");
+        public T DetailAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("detail");
     }
     /// <summary>
     /// The CustomEvent interface represents events initialized by an application for any purpose.
     /// </summary>
-    public class CustomEvent<TDetail> : Event
+    public class CustomEvent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDetail> : Event
     {
         /// <summary>
         /// Deserialization constructor

@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -34,7 +33,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns a Promise to a BluetoothDevice object with the specified options.
         /// </summary>
         /// <returns></returns>
-        public Task<BluetoothDevice> RequestDevice(BluetoothDeviceOptions options) => JSRef!.CallAsync<BluetoothDevice>("requestDevice", options);
+        public Task<BluetoothDevice> RequestDevice(BluetoothDeviceOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.BluetoothDeviceOptions, BluetoothDevice>("requestDevice", options);
         /// <summary>
         /// Returns a Promise that resolves to an array of BluetoothDevices this origin is allowed to access. Permission is obtained via previous calls to Bluetooth.requestDevice().
         /// </summary>

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -74,7 +74,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode? FirstChildAs<TNode>() where TNode : Node => JSRef!.Get<TNode?>("firstChild");
+        public TNode? FirstChildAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Get<TNode?>("firstChild");
         /// <summary>
         /// A boolean indicating whether or not the Node is connected (directly or indirectly) to the context object, e.g. the Document object in the case of the normal DOM, or the ShadowRoot in the case of a shadow DOM.
         /// </summary>
@@ -88,7 +88,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode? LastChildAs<TNode>() where TNode : Node => JSRef!.Get<TNode?>("lastChild");
+        public TNode? LastChildAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Get<TNode?>("lastChild");
         /// <summary>
         /// Returns a Node representing the next node in the tree, or null if there isn't such node.
         /// </summary>
@@ -98,7 +98,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode? NextSiblingAs<TNode>() where TNode : Node => JSRef!.Get<TNode?>("nextSibling");
+        public TNode? NextSiblingAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Get<TNode?>("nextSibling");
         /// <summary>
         /// Returns a string containing the name of the Node. The structure of the name will differ with the node type. E.g. An HTMLElement will contain the name of the corresponding tag, like 'audio' for an HTMLAudioElement, a Text node will have the '#text' string, or a Document node will have the '#document' string.
         /// </summary>
@@ -120,7 +120,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode? ParentNodeAs<TNode>() where TNode : Node => JSRef!.Get<TNode?>("parentNode");
+        public TNode? ParentNodeAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Get<TNode?>("parentNode");
         /// <summary>
         /// Returns an Element that is the parent of this node. If the node has no parent, or if that parent is not an Element, this property returns null.
         /// </summary>
@@ -130,7 +130,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TElement"></typeparam>
         /// <returns></returns>
-        public TElement? ParentElementAs<TElement>() where TElement : Element => JSRef!.Get<TElement?>("parentElement");
+        public TElement? ParentElementAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>() where TElement : Element => JSRef!.Get<TElement?>("parentElement");
         /// <summary>
         /// Returns a Node representing the previous node in the tree, or null if there isn't such node.
         /// </summary>
@@ -140,7 +140,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode? PreviousSiblingAs<TNode>() where TNode : Node => JSRef!.Get<TNode?>("previousSibling");
+        public TNode? PreviousSiblingAs<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Get<TNode?>("previousSibling");
         /// <summary>
         /// Returns / Sets the textual content of an element and all its descendants.
         /// </summary>
@@ -157,7 +157,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="TNode"></typeparam>
         /// <param name="node"></param>
         /// <returns>appendChild() returns the newly appended node, or if the child is a DocumentFragment, the emptied fragment.</returns>
-        public TNode AppendChild<TNode>(TNode node) where TNode : Node => JSRef!.Call<TNode>("appendChild", node);
+        public TNode AppendChild<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(TNode node) where TNode : Node => JSRef!.Call<TNode, TNode>("appendChild", node);
         /// <summary>
         /// The cloneNode() method of the Node interface returns a duplicate of the node on which this method was called. Its parameter controls if the subtree contained in a node is also cloned or not.<br/>
         /// </summary>
@@ -168,26 +168,26 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="deep"></param>
         /// <returns></returns>
-        public Node CloneNode(bool deep) => JSRef!.Call<Node>("cloneNode", deep);
+        public Node CloneNode(bool deep) => JSRef!.Call<bool, Node>("cloneNode", deep);
         /// <summary>
         /// The cloneNode() method of the Node interface returns a duplicate of the node on which this method was called.
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode CloneNode<TNode>() where TNode : Node => JSRef!.Call<TNode>("cloneNode");
+        public TNode CloneNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Call<TNode>("cloneNode");
         /// <summary>
         /// The cloneNode() method of the Node interface returns a duplicate of the node on which this method was called. Its parameter controls if the subtree contained in a node is also cloned or not.<br/>
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <param name="deep"></param>
         /// <returns></returns>
-        public TNode CloneNode<TNode>(bool deep) where TNode : Node => JSRef!.Call<TNode>("cloneNode", deep);
+        public TNode CloneNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(bool deep) where TNode : Node => JSRef!.Call<bool, TNode>("cloneNode", deep);
         /// <summary>
         /// Returns true or false value indicating whether or not a node is a descendant of the calling node.
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public bool Contains(Node node) => JSRef!.Call<bool>("contains", node);
+        public bool Contains(Node node) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool>("contains", node);
         /// <summary>
         /// The getRootNode() method of the Node interface returns the context object's root, which optionally includes the shadow root if it is available.
         /// </summary>
@@ -198,20 +198,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <returns></returns>
-        public TNode GetRootNode<TNode>() where TNode : Node => JSRef!.Call<TNode>("getRootNode");
+        public TNode GetRootNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>() where TNode : Node => JSRef!.Call<TNode>("getRootNode");
         /// <summary>
         /// The getRootNode() method of the Node interface returns the context object's root, which optionally includes the shadow root if it is available.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Node GetRootNode(GetRootNodeOptions options) => JSRef!.Call<Node>("getRootNode", options);
+        public Node GetRootNode(GetRootNodeOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GetRootNodeOptions, Node>("getRootNode", options);
         /// <summary>
         /// The getRootNode() method of the Node interface returns the context object's root, which optionally includes the shadow root if it is available.
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
-        public TNode GetRootNode<TNode>(GetRootNodeOptions options) where TNode : Node => JSRef!.Call<TNode>("getRootNode", options);
+        public TNode GetRootNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(GetRootNodeOptions options) where TNode : Node => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GetRootNodeOptions, TNode>("getRootNode", options);
         /// <summary>
         /// Returns a boolean value indicating whether or not the element has any child nodes.
         /// </summary>
@@ -224,13 +224,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="newNode"></param>
         /// <param name="referenceNode"></param>
         /// <returns></returns>
-        public TNode InsertBefore<TNode>(TNode newNode, Node? referenceNode) where TNode : Node => JSRef!.Call<TNode>("insertBefore", newNode, referenceNode);
+        public TNode InsertBefore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(TNode newNode, Node? referenceNode) where TNode : Node => JSRef!.Call<TNode, global::SpawnDev.SpawnJS.JSObjects.Node, TNode>("insertBefore", newNode, referenceNode!);
         /// <summary>
         /// The isSameNode() method of the Node interface is a legacy alias the for the === strict equality operator. That is, it tests whether two nodes are the same (in other words, whether they reference the same object).
         /// </summary>
         /// <param name="otherNode"></param>
         /// <returns></returns>
-        public bool IsSameNode(Node otherNode) => JSRef!.Call<bool>("isSameNode", otherNode);
+        public bool IsSameNode(Node otherNode) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool>("isSameNode", otherNode);
         /// <summary>
         /// The normalize() method of the Node interface puts the specified node and all of its sub-tree into a normalized form. In a normalized sub-tree, no text nodes in the sub-tree are empty and there are no adjacent text nodes.
         /// </summary>
@@ -241,7 +241,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="TNode"></typeparam>
         /// <param name="child"></param>
         /// <returns></returns>
-        public TNode RemoveChild<TNode>(TNode child) where TNode : Node => JSRef!.Call<TNode>("removeChild", child);
+        public TNode RemoveChild<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(TNode child) where TNode : Node => JSRef!.Call<TNode, TNode>("removeChild", child);
         /// <summary>
         /// The replaceChild() method of the Node interface replaces a child node within the given (parent) node.<br/>
         /// </summary>
@@ -249,7 +249,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="newChild">The new node to replace oldChild.</param>
         /// <param name="oldChild">The child to be replaced.</param>
         /// <returns>The replaced Node. This is the same node as oldChild.</returns>
-        public TNode ReplaceChild<TNode>(Node newChild, TNode oldChild) where TNode : Node => JSRef!.Call<TNode>("replaceChild", newChild, oldChild);
+        public TNode ReplaceChild<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(Node newChild, TNode oldChild) where TNode : Node => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, TNode, TNode>("replaceChild", newChild, oldChild);
         #endregion
 
         /// <summary>

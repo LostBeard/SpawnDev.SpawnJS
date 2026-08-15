@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -21,6 +20,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="x">X coordinate (origin at the left, grows to the right).</param>
         /// <param name="y">Y coordinate (origin at the top, grows downward).</param>
         /// <returns>Depth in meters</returns>
-        public float GetDepthInMeters(float x, float y) => JSRef!.Call<float>("getDepthInMeters", x, y);
+        public float GetDepthInMeters(float x, float y) => JSRef!.Call<float, float, float>("getDepthInMeters", x, y);
     }
 }

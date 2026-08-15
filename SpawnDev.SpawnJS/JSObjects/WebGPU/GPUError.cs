@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -19,6 +18,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns the error type name
         /// </summary>
-        public string ErrorType => JSRef!.ConstructorName()!;
+        public string ErrorType => JSRef!.ConstructorName();
     }
 }

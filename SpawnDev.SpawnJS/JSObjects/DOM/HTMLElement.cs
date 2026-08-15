@@ -1,7 +1,6 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -146,7 +145,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="force"></param>
         /// <returns>true if the popup is open after the call, and false otherwise.</returns>
-        public bool TogglePopover(bool force) => JSRef!.Call<bool>("togglePopover", force);
+        public bool TogglePopover(bool force) => JSRef!.Call<bool, bool>("togglePopover", force);
         #endregion
 
         #region Events

@@ -1,7 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -27,7 +27,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a JSON-serializable object that provides a payment method specific message used by the merchant to process the transaction and determine successful fund transfer.
         /// </summary>
-        public T Details<T>() => JSRef!.Get<T>("details");
+        public T Details<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => JSRef!.Get<T>("details");
 
         /// <summary>
         /// Returns a JSON-serializable object that provides a payment method specific message used by the merchant to process the transaction and determine successful fund transfer.

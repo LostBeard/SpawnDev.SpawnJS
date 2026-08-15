@@ -1,7 +1,4 @@
-
-using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
-using SpawnDev.SpawnJS.Toolbox;
 //using System.Dynamic;
 
 namespace SpawnDev.SpawnJS.JSObjects
@@ -32,11 +29,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the MediaDevices interface is supported.
         /// </summary>
-        public static bool Supported => !JS.IsUndefined("navigator.mediaDevices") && !JS.IsUndefined("navigator.mediaDevices.enumerateDevices");
+        public static bool Supported => !!JS.Exists("navigator.mediaDevices") && !!JS.Exists("navigator.mediaDevices.enumerateDevices");
         /// <summary>
         /// Returns true if getDisplayMedia is supported.
         /// </summary>
-        public static bool GetDisplayMediaSupported => !JS.IsUndefined("navigator.mediaDevices") && !JS.IsUndefined("navigator.mediaDevices.getDisplayMedia");
+        public static bool GetDisplayMediaSupported => !!JS.Exists("navigator.mediaDevices") && !!JS.Exists("navigator.mediaDevices.getDisplayMedia");
         /// <summary>
         /// Fired when a media input or output device is attached to or removed from the user's computer.
         /// </summary>
@@ -47,13 +44,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<MediaStream?> GetDisplayMedia(object options) => JSRef!.CallAsync<MediaStream?>("getDisplayMedia", options);
+        public Task<MediaStream?> GetDisplayMedia(object options) => JSRef!.CallAsync<object, MediaStream?>("getDisplayMedia", options);
         /// <summary>
         /// The getDisplayMedia() method of the MediaDevices interface prompts the user to select and grant permission to capture the contents of a display or portion thereof (such as a window) as a MediaStream.
         /// </summary>
         /// <param name="options">An optional object specifying requirements for the returned MediaStream. The options for getDisplayMedia() work in the same as the constraints for the MediaDevices.getUserMedia() method, although in that case only audio and video can be specified.</param>
         /// <returns>A Promise that resolves to a MediaStream containing a video track whose contents come from a user-selected screen area, as well as an optional audio track.</returns>
-        public Task<MediaStream?> GetDisplayMedia(DisplayMediaStreamOptions options) => JSRef!.CallAsync<MediaStream?>("getDisplayMedia", options);
+        public Task<MediaStream?> GetDisplayMedia(DisplayMediaStreamOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.DisplayMediaStreamOptions, MediaStream?>("getDisplayMedia", options);
         /// <summary>
         /// Prompts the user to select a display or portion of a display (such as a window) to capture as a MediaStream for sharing or recording purposes. Returns a promise that resolves to a MediaStream.
         /// </summary>
@@ -92,7 +89,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The constraints parameter is an object with two members: video and audio, describing the media types requested. Either or both must be specified. If the browser cannot find all media tracks with the specified types that meet the constraints given, then the returned promise is rejected with NotFoundError DOMException.<br/>
         /// </param>
         /// <returns></returns>
-        public Task<MediaStream?> GetUserMedia(object constraints) => JSRef!.CallAsync<MediaStream?>("getUserMedia", constraints);
+        public Task<MediaStream?> GetUserMedia(object constraints) => JSRef!.CallAsync<object, MediaStream?>("getUserMedia", constraints);
         /// <summary>
         /// With the user's permission through a prompt, turns on a camera and/or a microphone on the system and provides a MediaStream containing a video track and/or an audio track with the input.
         /// </summary>
@@ -101,7 +98,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The constraints parameter is an object with two members: video and audio, describing the media types requested. Either or both must be specified. If the browser cannot find all media tracks with the specified types that meet the constraints given, then the returned promise is rejected with NotFoundError DOMException.<br/>
         /// </param>
         /// <returns></returns>
-        public Task<MediaStream?> GetUserMedia(MediaStreamConstraints constraints) => JSRef!.CallAsync<MediaStream?>("getUserMedia", constraints);
+        public Task<MediaStream?> GetUserMedia(MediaStreamConstraints constraints) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.MediaStreamConstraints, MediaStream?>("getUserMedia", constraints);
         /// <summary>
         /// With the user's permission through a prompt, turns on a camera and/or a microphone on the system and provides a MediaStream containing a video track and/or an audio track with the input.
         /// </summary>
