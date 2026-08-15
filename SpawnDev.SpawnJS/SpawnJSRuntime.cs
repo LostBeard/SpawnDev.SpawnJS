@@ -158,6 +158,8 @@ namespace SpawnDev.SpawnJS
             // .Net POCO <-> plain JS object (property-walk clone, honours Json attributes). Most generic, so
             // registered FIRST = lowest priority; any more specific marshaller below wins the reverse scan.
             Marshallers.Add(new PocoMarshaller<object>());
+            // .Net IEnumerable<> -> JS: Array
+            Marshallers.Add(new IEnumerableMarshaller<string>());           
             // VoidType - nothing is marshalled
             Marshallers.Add(new VoidTypeMarshaller());
             // .Net: object <-> JS: Object

@@ -6,25 +6,33 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Blob = SpawnDev.SpawnJS.JSObjects.Blob;
 using Document = SpawnDev.SpawnJS.JSObjects.Document;
 
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = true;
+{
+    var t = new ArrayBuffer(500);
+    using var blob = new Blob(new ArrayBuffer[] { t });
+
+    var keyUsages = new string[] { "sign", "verify" };
+    JS.Set("_art", keyUsages);
+    var r = JS.Get<string[]>("_art");
+    var nmt22 = true;
+}
+return;
 
 var typeInfo = JS.TypeInfo();
 if (typeInfo.TypeOf != "object" || typeInfo.ConstructorName != "Window") throw new Exception("Incorrect type info");
 var constructorNames = JS.ConstructorNames();
 if (!constructorNames.SequenceEqual(["Window", "EventTarget", "Object"])) throw new Exception("Incorrect constructor names.");
 if (JS.Keys().Count == 0) throw new Exception("Expected more than 0 keys");
-
-var t = JSArrayBufferView.DataView;
-
-JS.Set("_art", t);
-var r = JS.Get<JSArrayBufferView>("_art");
-
-var nmt22 = true;
-
-
+{
+    var t = JSArrayBufferView.DataView;
+    JS.Set("_art", t);
+    var r = JS.Get<JSArrayBufferView>("_art");
+    var nmt22 = true;
+}
 
 // ===== Marshaller round-trip tests (Tuple / ValueTuple / ValueTuple? / Union / Action / Func) =====
 {

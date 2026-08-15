@@ -41,8 +41,8 @@ namespace SpawnDev.SpawnJS
                 _typeMarshallerCache.TryAdd(type, typeMarshaller);
                 break;
             }
-            if (marshaller == null) throw new Exception($"GetMarshaller failed: {type?.Name}");
-            if (Verbose) Console.WriteLine($"<< GetMarshaller: {type?.Name} {marshaller.GetType().Name}");
+            if (marshaller == null) throw new Exception($"GetMarshaller failed: {type?.GetCSharpName()}");
+            if (Verbose) Console.WriteLine($"<< GetMarshaller: {type?.Name} {marshaller.GetType().GetCSharpName()}");
             return marshaller;
         }
         /// <summary>

@@ -9,6 +9,43 @@ namespace SpawnDev.SpawnJS.Marshaller
     /// </summary>
     public static class TypeExtensions
     {
+        public static string GetCSharpName(this Type type)
+        {
+            // Handle primitive types to show 'int' instead of 'Int32'
+            if (type == typeof(int)) return "int";
+            if (type == typeof(string)) return "string";
+            if (type == typeof(bool)) return "bool";
+            if (type == typeof(double)) return "double";
+            // Add other primitive aliases if needed (long, float, etc.)
+
+            // If it's not a generic type, return its standard name
+            if (!type.IsGenericType)
+            {
+                return type.Name;
+            }
+
+            // Get the clean name before the backtick (`)
+            string baseName = type.Name;
+            int backtickIndex = baseName.IndexOf('`');
+            if (backtickIndex > 0)
+            {
+                baseName = baseName.Substring(0, backtickIndex);
+            }
+
+            // Get the generic type arguments
+            var genericArguments = type.GetGenericArguments();
+
+            // If it's an open generic like typeof(IEnumerable<>), type arguments have no names
+            if (genericArguments.Any(t => t.IsGenericParameter))
+            {
+                return $"{baseName}<{new string(',', genericArguments.Length - 1)}>";
+            }
+
+            // Recursively resolve the names of the generic arguments
+            string argumentNames = string.Join(", ", genericArguments.Select(t => t.GetCSharpName()));
+
+            return $"{baseName}<{argumentNames}>";
+        }
         /// <summary>
         /// Returns true if the Type is numeric
         /// </summary>
