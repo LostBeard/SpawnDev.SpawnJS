@@ -33,7 +33,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             Error = error;
             _Message = new Lazy<string>(() => Error.Message ?? "");
             _Name = new Lazy<string>(() => Error.Name ?? "");
-            _ToString = new Lazy<string>(() => !Error.JSRef!.Exists("toString") ? base.ToString() : Error.ToString() ?? base.ToString());
+            _ToString = new Lazy<string>(() => !Error.JSRef!.Has("toString") ? base.ToString() : Error.ToString() ?? base.ToString());
         }
         /// <summary>
         /// Creates a new Exception to represent a Javascript Error

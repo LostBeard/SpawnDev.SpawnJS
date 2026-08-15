@@ -29,7 +29,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if RequestVideoFrameCallback is defined
         /// </summary>
-        public bool SupportsRequestVideoFrameCallback => !!JSRef!.Exists("requestVideoFrameCallback");
+        public bool SupportsRequestVideoFrameCallback => !!JSRef!.Has("requestVideoFrameCallback");
         /// <summary>
         /// The HTMLVideoElement.requestVideoFrameCallback() method allows web authors to register a callback that runs in the rendering steps when a new video frame is sent to the compositor. This allows developers to perform efficient per-video-frame operations on video, such as video processing and painting to a canvas, video analysis, or synchronization with external audio sources.
         /// </summary>

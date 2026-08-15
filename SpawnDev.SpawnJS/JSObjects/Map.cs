@@ -96,7 +96,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Read-only Map-like objects have the property size, and the methods: entries(), forEach(), get(), has(), keys(), values(), and Symbol.iterator().<br/>
         /// Writeable Map-like objects additionally have the methods: clear(), delete(), and set().<br/>
         /// </summary>
-        public bool ReadOnly => !JSRef!.Exists("clear");
+        public bool ReadOnly => !JSRef!.Has("clear");
         #endregion
         #region Methods
         /// <summary>

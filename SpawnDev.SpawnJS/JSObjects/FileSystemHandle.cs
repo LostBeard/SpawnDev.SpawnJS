@@ -122,7 +122,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>A string representing the permission state (e.g., "granted", "denied", "prompt").</returns>
         public async Task<string> QueryPermission(bool writePermission = false)
         {
-            if (!JSRef!.Exists("queryPermission"))
+            if (!JSRef!.Has("queryPermission"))
             {
                 return PERMISSION_GRANTED;
             }
@@ -136,7 +136,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns>A string representing the new permission state (e.g., "granted", "denied", "prompt").</returns>
         public async Task<string> RequestPermission(bool writePermission = false)
         {
-            if (!JSRef!.Exists("requestPermission"))
+            if (!JSRef!.Has("requestPermission"))
             {
                 return PERMISSION_GRANTED;
             }

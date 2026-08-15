@@ -12,7 +12,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if OffscreenCanvas appears to be supported
         /// </summary>
-        public static bool Supported => !SpawnJSRuntime.Instance?.Exists("navigator.storage") == false;
+        public static bool Supported => !SpawnJSRuntime.Instance?.Has("navigator.storage") == false;
         /// <summary>
         /// Deserialization constructor
         /// </summary>

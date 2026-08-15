@@ -23,7 +23,13 @@ namespace SpawnDev.SpawnJS
             if (string.IsNullOrEmpty(constructorName)) constructorName = "";
             return (typeOf, constructorName);
         }
-        public bool Exists(double key) => SpawnJSRuntime._propertyIn(Id, key);
+        /// <summary>
+        /// Check if a property exists at key
+        /// </summary>
+        public bool Has(double key) => SpawnJSRuntime._propertyIn(Id, key);
+        /// <summary>
+        /// Delete the property at key
+        /// </summary>
         public bool Delete(double key) => SpawnJSRuntime._propertyDelete(Id, key);
         #region Set
         public void Set<T>(double key, T value) => JS.InteropCall<double, double, T, VoidType>("propertySet", Id, key, value);

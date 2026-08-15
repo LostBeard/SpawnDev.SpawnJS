@@ -54,9 +54,9 @@ namespace SpawnDev.SpawnJS
             if (_typeOf == null) GetTypeInfo();
             return _constructorName!;
         }
-        ///// <summary>
-        ///// Constructor.name
-        ///// </summary>
+        /// <summary>
+        /// Constructor.name
+        /// </summary>
         public string TypeOf()
         {
             if (_typeOf == null) GetTypeInfo();
@@ -77,6 +77,10 @@ namespace SpawnDev.SpawnJS
         }
         string? _constructorName = null;
         string? _typeOf = null;
+        /// <summary>
+        /// Get the (typeof this, this?.consturctor?.name)
+        /// </summary>
+        /// <returns></returns>
         public (string TypeOf, string ConstructorName) TypeInfo() => (TypeOf(), ConstructorName());
 
         /// <summary>The object's own enumerable property names (Object.keys).</summary>
@@ -216,6 +220,10 @@ namespace SpawnDev.SpawnJS
                 SpawnJSRuntime.SpawnJSObjectRelease(id);
             }
         }
+        /// <summary>
+        /// Move the SpawnJSObjectReference Id out of this SpawnJSObjectReference and take responsibility for disposing it.
+        /// </summary>
+        /// <returns></returns>
         public double MoveId()
         {
             var id = Id;
@@ -229,6 +237,9 @@ namespace SpawnDev.SpawnJS
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+        /// <summary>
+        /// Dispose resources if not already disposed to prevent memory leaks
+        /// </summary>
         ~SpawnJSObjectReference()
         {
             Dispose(false);

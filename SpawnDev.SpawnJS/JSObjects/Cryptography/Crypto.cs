@@ -11,7 +11,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true is the the global variable 'crypto' is defined
         /// </summary>
-        public static bool IsSupported => !!JS.Exists("crypto");
+        public static bool IsSupported => !!JS.Has("crypto");
         #region Constructors
         /// <summary>
         /// Deserialization constructor

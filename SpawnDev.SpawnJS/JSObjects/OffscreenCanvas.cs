@@ -14,7 +14,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if OffscreenCanvas appears to be supported
         /// </summary>
-        public static bool Supported => !SpawnJSRuntime.Instance?.Exists("OffscreenCanvas") == false;
+        public static bool Supported => !SpawnJSRuntime.Instance?.Has("OffscreenCanvas") == false;
         #region Constructors
         /// <summary>
         /// The OffscreenCanvas() constructor returns a newly instantiated OffscreenCanvas object.

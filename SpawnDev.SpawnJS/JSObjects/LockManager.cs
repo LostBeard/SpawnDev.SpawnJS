@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if navigator.locks is defined
         /// </summary>
-        public static bool IsSupported => !!JS.Exists("navigator") && !!JS.Exists("navigator.locks");
+        public static bool IsSupported => !!JS.Has("navigator") && !!JS.Has("navigator.locks");
         /// <summary>
         /// Deserialization constructor
         /// </summary>

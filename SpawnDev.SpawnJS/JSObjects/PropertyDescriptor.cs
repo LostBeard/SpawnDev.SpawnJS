@@ -24,15 +24,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the property has a getter.
         /// </summary>
-        public bool HasGetter => !!JSRef!.Exists("get");
+        public bool HasGetter => !!JSRef!.Has("get");
         /// <summary>
         /// Returns true if the property has a setter.
         /// </summary>
-        public bool HasSetter => !!JSRef!.Exists("set");
+        public bool HasSetter => !!JSRef!.Has("set");
         /// <summary>
         /// Returns true if the property has a value property.
         /// </summary>
-        public bool HasValueProperty => !!JSRef!.Exists("value");
+        public bool HasValueProperty => !!JSRef!.Has("value");
         /// <summary>
         /// Returns true if the property can be read.
         /// </summary>

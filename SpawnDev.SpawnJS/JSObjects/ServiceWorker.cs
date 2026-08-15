@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if navigator.serviceWorker is defined
         /// </summary>
-        public static bool IsSupported => !!JS.Exists("navigator.serviceWorker");
+        public static bool IsSupported => !!JS.Has("navigator.serviceWorker");
         /// <summary>
         /// Sends a message — consisting of any structured-cloneable JavaScript object — to the service worker. The message is transmitted to the service worker using a message event on its global scope.
         /// </summary>

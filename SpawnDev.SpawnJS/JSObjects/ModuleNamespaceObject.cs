@@ -84,7 +84,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public ModuleNamespaceObject ExportTo(string nameSpace, params string[] exportNames)
         {
             if (string.IsNullOrWhiteSpace(nameSpace)) throw new ArgumentNullException(nameof(nameSpace));
-            if (!JS.Exists(nameSpace)) JS.Set(nameSpace, new { });
+            if (!JS.Has(nameSpace)) JS.Set(nameSpace, new { });
             using var ns = JS.Get<SpawnJSObject>(nameSpace);
             if (exportNames.Length == 0) exportNames = ExportNames;
             foreach (var exportName in exportNames)
@@ -128,7 +128,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             if (string.IsNullOrEmpty(asName)) throw new ArgumentNullException(nameof(asName));
             if (!ExportExists(exportName)) throw new ArgumentException($"Export '{exportName}' does not exist in module.");
             if (string.IsNullOrWhiteSpace(nameSpace)) throw new ArgumentNullException(nameof(nameSpace));
-            if (!JS.Exists(nameSpace)) JS.Set(nameSpace, new { });
+            if (!JS.Has(nameSpace)) JS.Set(nameSpace, new { });
             using var ns = JS.Get<SpawnJSObject>(nameSpace);
             using var exportObj = GetExport(exportName);
             ns.JSRef!.Set(asName, exportObj);
@@ -170,7 +170,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public ModuleNamespaceObject ExportToAs(string nameSpace, params (string exportName, string asName)[] exportAs)
         {
             if (string.IsNullOrWhiteSpace(nameSpace)) throw new ArgumentNullException(nameof(nameSpace));
-            if (!JS.Exists(nameSpace)) JS.Set(nameSpace, new { });
+            if (!JS.Has(nameSpace)) JS.Set(nameSpace, new { });
             using var ns = JS.Get<SpawnJSObject>(nameSpace);
             foreach (var (exportName, asName) in exportAs)
             {

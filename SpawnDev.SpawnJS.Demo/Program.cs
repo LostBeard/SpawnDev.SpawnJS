@@ -180,11 +180,11 @@ var nmt22 = true;
     };
     JS.Set("__pocoTest", person);                       // NetToJS: property-walk into a new JS object
     using var raw = JS.Get("__pocoTest")!;              // the raw JS object, to inspect member names
-    bool hasGiven = raw.Exists("given_name");           // JsonPropertyName rename
-    bool hasFirstName = raw.Exists("firstName");        // original name should be gone
-    bool hasSecret = raw.Exists("secret");              // JsonIgnore -> absent
-    bool hasNickname = raw.Exists("nickname");          // WhenWritingNull + null -> absent
-    bool hasCity = raw.Exists("city");                  // null but written -> present
+    bool hasGiven = raw.Has("given_name");           // JsonPropertyName rename
+    bool hasFirstName = raw.Has("firstName");        // original name should be gone
+    bool hasSecret = raw.Has("secret");              // JsonIgnore -> absent
+    bool hasNickname = raw.Has("nickname");          // WhenWritingNull + null -> absent
+    bool hasCity = raw.Has("city");                  // null but written -> present
     int rawAge = raw.Get<int>("age");                   // camelCase default naming
 
     var back = JS.Get<TestPerson>("__pocoTest")!;       // JSToNet: property-walk back into a new POCO

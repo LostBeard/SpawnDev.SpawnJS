@@ -13,7 +13,7 @@ namespace SpawnDev.SpawnJS.JSObjects
     public class IDBDatabase : EventTarget
     {
         #region Static helper methods (non-spec)
-        private static Lazy<bool> _IsSupported = new Lazy<bool>(() => !!JS.Exists("indexedDB"));
+        private static Lazy<bool> _IsSupported = new Lazy<bool>(() => !!JS.Has("indexedDB"));
         /// <summary>
         /// True is indexedDB global object is found
         /// </summary>

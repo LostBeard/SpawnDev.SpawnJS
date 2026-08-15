@@ -29,11 +29,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the MediaDevices interface is supported.
         /// </summary>
-        public static bool Supported => !!JS.Exists("navigator.mediaDevices") && !!JS.Exists("navigator.mediaDevices.enumerateDevices");
+        public static bool Supported => !!JS.Has("navigator.mediaDevices") && !!JS.Has("navigator.mediaDevices.enumerateDevices");
         /// <summary>
         /// Returns true if getDisplayMedia is supported.
         /// </summary>
-        public static bool GetDisplayMediaSupported => !!JS.Exists("navigator.mediaDevices") && !!JS.Exists("navigator.mediaDevices.getDisplayMedia");
+        public static bool GetDisplayMediaSupported => !!JS.Has("navigator.mediaDevices") && !!JS.Has("navigator.mediaDevices.getDisplayMedia");
         /// <summary>
         /// Fired when a media input or output device is attached to or removed from the user's computer.
         /// </summary>

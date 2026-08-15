@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Read-only Set-like objects have the property size, and the methods: entries(), forEach(), has(), keys(), values(), and Symbol.iterator().<br/>
         /// Writeable Set-like objects additionally have the methods: clear(), delete(), and add().<br/>
         /// </summary>
-        public bool ReadOnly => !JSRef!.Exists("clear");
+        public bool ReadOnly => !JSRef!.Has("clear");
         #endregion
         #region Methods
         /// <summary>

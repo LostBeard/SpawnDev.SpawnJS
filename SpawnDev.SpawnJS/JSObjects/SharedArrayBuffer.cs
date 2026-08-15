@@ -28,7 +28,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if SharedArrayBuffer appears to be supported
         /// </summary>
-        public static bool Supported => SpawnJSRuntime.Instance?.Exists("SharedArrayBuffer") == true;
+        public static bool Supported => SpawnJSRuntime.Instance?.Has("SharedArrayBuffer") == true;
         /// <summary>
         /// The size, in bytes, of the array. This is established when the array is constructed and can only be changed using the SharedArrayBuffer.prototype.grow() method if the SharedArrayBuffer is growable.
         /// </summary>

@@ -223,7 +223,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns a promise that resolves with a BatteryManager object that returns information about the battery charging status.
         /// </summary>
         /// <returns></returns>
-        public async Task<BatteryManager?> GetBattery() => (GetBatterySupported ??= !JSRef!.Exists("getBattery")) ? null : await JSRef!.CallAsync<BatteryManager?>("getBattery");
+        public async Task<BatteryManager?> GetBattery() => (GetBatterySupported ??= !JSRef!.Has("getBattery")) ? null : await JSRef!.CallAsync<BatteryManager?>("getBattery");
         /// <summary>
         /// Returns a promise that resolves with an array of objects representing any related native or Progressive Web Applications that the user has installed.
         /// </summary>

@@ -42,15 +42,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasGetAsEntry => !!JSRef!.Exists("getAsEntry");
+        public bool HasGetAsEntry => !!JSRef!.Has("getAsEntry");
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasWebkitGetAsEntry => !!JSRef!.Exists("webkitGetAsEntry");
+        public bool HasWebkitGetAsEntry => !!JSRef!.Has("webkitGetAsEntry");
         /// <summary>
         /// Returns true if the method exists, otherwise false.
         /// </summary>
-        public bool HasGetAsFileSystemHandle => !!JSRef!.Exists("getAsFileSystemHandle");
+        public bool HasGetAsFileSystemHandle => !!JSRef!.Has("getAsFileSystemHandle");
         /// <summary>
         /// Returns a FileSystemEntry object if the drag data item is a file or directory, or null otherwise.<br/>
         /// webkitGetAsEntry is used if it is found, getAsEntry is used if it is found, otherwise null is returned.

@@ -63,6 +63,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the DeviceOrientationEvent.requestPermission method is supported in the current environment.
         /// </summary>
-        public static bool RequestPermissionSupported => !JS.Exists("DeviceOrientationEvent?.requestPermission") == false;
+        public static bool RequestPermissionSupported => !JS.Has("DeviceOrientationEvent?.requestPermission") == false;
     }
 }
