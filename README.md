@@ -11,8 +11,9 @@ JSON-free JavaScript interop for .NET WebAssembly.
 
 > *Blazor pushes the marshalling decision to the side that can't make it. SpawnJS moves it to the side that can.*
 
-SpawnJS is a direct .NET &harr; JavaScript interop layer built on `JSImport`/`JSExport`
-only. `JSObject` and `JSHost` are intentionally avoided due to `Symbol tagging` and shared handles causing `Dispose chaos`.
+SpawnJS is a direct .NET &harr; JavaScript interop layer built on entirely on `JSImport`/`JSExport`.
+`JSObject` and `JSHost` are intentionally avoided due to `Symbol tagging`, which makes objects incompatible with 
+some browser API calls, and shared JSObject handles which causes `Dispose chaos`.
 It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, Web Workers,
 and, notably, a **headless .NET WASM console app under Node** with no browser and no DOM at all.
 
@@ -21,9 +22,6 @@ and, notably, a **headless .NET WASM console app under Node** with no browser an
 It provides a familiar interop surface - `Get`/`Set`/`Call`/`New` with strongly-typed generic returns -
 but where Blazor marshals values by serializing them to a JSON string and parsing them on the other side,
 SpawnJS marshals them directly as live JS values, so the JSON serializer is gone from the boundary.
-**SpawnDev.BlazorJS 4.0 is built on SpawnJS**, rebasing its Blazor-compatible `IJSInProcessRuntime` /
-`IJSInProcessObjectReference` API onto this JSON-free foundation - so existing SpawnDev.BlazorJS-style code
-carries over with little or no change, while SpawnJS itself keeps no Blazor dependency.
 
 ## Why it exists
 
