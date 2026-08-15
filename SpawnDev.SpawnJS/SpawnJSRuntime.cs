@@ -262,7 +262,6 @@ namespace SpawnDev.SpawnJS
                 GlobalThis = Get<SpawnJSObject>("globalThis");
             }
             AppBaseUri = SpawnJSInterop.Call<SpawnJSObjectReference, string>("appBaseUri", DotnetInstance) ?? "";
-            Console.WriteLine($"SpawnJSRuntime: {GlobalScopeName} {AppBaseUri}");
         }
         /// <summary>
         /// The last reported size of the .Net heap
@@ -271,7 +270,6 @@ namespace SpawnDev.SpawnJS
         void OnDetachedHeap(long oldSize, long newSize)
         {
             HeapSize = newSize;
-            Console.WriteLine($"OnDetachedHeap: {oldSize} > {HeapSize}");
             OnHeapGrow?.Invoke(oldSize, newSize);
         }
         /// <summary>
