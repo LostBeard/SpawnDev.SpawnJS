@@ -115,6 +115,57 @@ var nmt22 = true;
 
 
 
+// ===== Enum / Enum? round-trip tests (numeric enum <-> JS number, nullable maps null <-> JS null) =====
+{
+    int pass = 0, fail = 0;
+    void Test(string name, Func<bool> body)
+    {
+        try
+        {
+            if (body()) { pass++; Console.WriteLine($"  PASS  {name}"); }
+            else { fail++; Console.WriteLine($"  FAIL  {name}"); }
+        }
+        catch (Exception ex)
+        {
+            fail++;
+            Console.WriteLine($"  FAIL  {name} -> {ex.GetType().Name}: {ex.Message}");
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    Test("Enum crosses as number", () =>
+    {
+        const DemoFlags v = DemoFlags.CopySrc | DemoFlags.Storage;
+        JS.Set("_enum", v);
+        // JS must hold the NUMBER, not an opaque box - this is what a web API sees.
+        var asNumber = JS.Get<double>("_enum");
+        var back = JS.Get<DemoFlags>("_enum");
+        return asNumber == (double)(uint)v && back == v;
+    });
+    Test("Enum? non-null crosses as number", () =>
+    {
+        DemoFlags? v = DemoFlags.CopyDst | DemoFlags.Storage;
+        JS.Set("_enumN", v);
+        var asNumber = JS.Get<double>("_enumN");
+        var back = JS.Get<DemoFlags?>("_enumN");
+        return asNumber == (double)(uint)v.Value && back.HasValue && back.Value == v.Value;
+    });
+    Test("Enum? null crosses as JS null", () =>
+    {
+        DemoFlags? v = null;
+        JS.Set("_enumNull", v);
+        // A null nullable-enum must land as JS null, NOT the number default(Enum)==0. Reading the raw
+        // slot as double? tells them apart: JS null -> null, a mistakenly-written 0 -> 0.0.
+        var raw = JS.Get<double?>("_enumNull");
+        var back = JS.Get<DemoFlags?>("_enumNull");
+        return raw == null && !back.HasValue;
+    });
+
+    Console.WriteLine($"ENUM TESTS: {pass} passed, {fail} failed");
+}
+
+
+
 
 // ===== PocoMarshaller round-trip test (property-walk clone, honours Json attributes; no JSON serialization) =====
 {
@@ -327,4 +378,14 @@ public class TestPerson
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Nickname { get; set; }
     public string? City { get; set; }
+}
+
+// Numeric flags enum used to exercise EnumMarshaller / EnumNullableMarshaller.
+[Flags]
+public enum DemoFlags : uint
+{
+    None = 0,
+    CopySrc = 0x0004,
+    CopyDst = 0x0008,
+    Storage = 0x0080,
 }

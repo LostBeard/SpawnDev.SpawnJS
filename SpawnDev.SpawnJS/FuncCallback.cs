@@ -9,6 +9,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<TResult>?(Func<TResult>? callback) => callback == null ? null : new FuncCallback<TResult>(callback);
         Func<TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -18,6 +23,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback();
@@ -32,6 +38,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, TResult>?(Func<T1, TResult>? callback) => callback == null ? null : new FuncCallback<T1, TResult>(callback);
         Func<T1, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -41,6 +52,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0));
@@ -55,6 +67,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, TResult>?(Func<T1, T2, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, TResult>(callback);
         Func<T1, T2, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -64,6 +81,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -79,6 +97,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, TResult>?(Func<T1, T2, T3, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, TResult>(callback);
         Func<T1, T2, T3, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -88,6 +111,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -104,6 +128,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, TResult>?(Func<T1, T2, T3, T4, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, TResult>(callback);
         Func<T1, T2, T3, T4, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -113,6 +142,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -130,6 +160,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, TResult>?(Func<T1, T2, T3, T4, T5, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, TResult>(callback);
         Func<T1, T2, T3, T4, T5, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -139,6 +174,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -157,6 +193,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, TResult>?(Func<T1, T2, T3, T4, T5, T6, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -166,6 +207,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -185,6 +227,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, T7, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -194,6 +241,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -214,6 +262,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -223,6 +276,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -244,6 +298,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -253,6 +312,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
@@ -275,6 +335,11 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> _callback;
+        /// <summary>
+        /// New Callback instance
+        /// </summary>
+        /// <param name="func">The method to call</param>
+        /// <param name="once">If true, the Callback will automatically be disposed after the first call.</param>
         public FuncCallback(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> func, bool once = false) : base(once)
         {
             _callback = func;
@@ -284,6 +349,7 @@ namespace SpawnDev.SpawnJS
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
+        /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
