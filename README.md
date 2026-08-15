@@ -11,9 +11,12 @@ JSON-free JavaScript interop for .NET WebAssembly.
 
 > *Blazor pushes the marshalling decision to the side that can't make it. SpawnJS moves it to the side that can.*
 
-SpawnJS is a direct .NET &harr; JavaScript interop layer built on `JSImport`/`JSExport`/`JSHost`/`JSObject`
-only. It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, Web Workers,
+SpawnJS is a direct .NET &harr; JavaScript interop layer built on `JSImport`/`JSExport`
+only. `JSObject` and `JSHost` are intentionally avoided due to `Symbol tagging` and shared handles causing `Dispose chaos`.
+It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, Web Workers,
 and, notably, a **headless .NET WASM console app under Node** with no browser and no DOM at all.
+
+*You can even run 2 or more apps using SpawnJS on the same web page without any conflicts.*
 
 It provides a familiar interop surface - `Get`/`Set`/`Call`/`New` with strongly-typed generic returns -
 but where Blazor marshals values by serializing them to a JSON string and parsing them on the other side,
@@ -138,7 +141,7 @@ marshalled. Many objects (and they need not be complex - a one-property object c
 lose their real shape because they do not survive `JSON.stringify`. A `Uint8Array` serializes to nothing
 useful.
 
-**SpawnJS never calls `JSON.stringify` at all.** The return value stays a live `JSObject` handle, and the
+**SpawnJS never calls `JSON.stringify` at all.** The return value stays a live `SpawnJSObjectReference` handle, and the
 **.NET side** does every bit of the marshalling through its marshaller graph, reading back exactly the type
 the caller asked for. A `Uint8Array`, a one-property object, a nested object - all cross intact, because
 nothing is serialized on the way.
@@ -203,9 +206,7 @@ marshaller at runtime. SpawnJS turns that constraint into its architecture:
    There is no separate async dispatcher: an async command is a **synchronous call that returns a
    Promise**, converted to a `Task` with `then`, so one path and one buffer serve both.
 3. **Carry references as slots, not proxies.** JavaScript holds values in a slot table and .NET holds the
-   integer that addresses them. A `JSObject` is a runtime proxy - creating one allocates a GC handle, a
-   proxy-table entry and an enumerable `Symbol` tag - so proxies are materialised only when something
-   genuinely needs one.
+   integer that addresses them. A `SpawnJSObjectReference` is a runtime proxy.
 4. **Share one flat buffer.** Arguments are appended and the top unwinds when the call completes, so it
    behaves as a stack: nothing is allocated per call.
 5. **Compose the richness in managed code** via the marshaller graph.
@@ -230,12 +231,12 @@ Two design laws govern every marshaller:
   **not** a `BigInt64Array`. TypedArrays and `BigInt` are opt-in via explicit .NET wrapper types - never
   auto-selected because an element "happens to be" a `long` or a `float`. The caller chooses the fast lane
   by choosing the type.
-- **Any type, users bring their own.** Because the transport is a live `JSObject`, a custom marshaller can
-  drop to its own optimal `JSImport`/`JSExport`/`MemoryView`/`HeapView` route with no JSON middleman
+- **Any type, users bring their own.** Because the transport is a live `SpawnJSObjectReference`, a custom marshaller can
+  drop to its own optimal `JSImport`/`JSExport` route with no JSON middleman
   foreclosing an optimization.
 
 Built-in marshallers include `Default`, `Object`, `IEnumerable`, `ByteArray`, `String`, `Boolean`,
-`Number`, `Struct`, `JSObject`, `SpawnJSObject`, `SpawnJSObjectReference`, and `JSToNetInvoker`.
+`Number`, `Struct`, `SpawnJSObject`, `SpawnJSObjectReference`, and `JSToNetInvoker`.
 
 ## Argument passing
 
