@@ -206,7 +206,8 @@ marshaller at runtime. SpawnJS turns that constraint into its architecture:
    There is no separate async dispatcher: an async command is a **synchronous call that returns a
    Promise**, converted to a `Task` with `then`, so one path and one buffer serve both.
 3. **Carry references as slots, not proxies.** JavaScript holds values in a slot table and .NET holds the
-   integer that addresses them. A `SpawnJSObjectReference` is a runtime proxy.
+   integer that addresses them. A `SpawnJSObjectReference` is a runtime proxy that uses `JSImport` calls
+   and the object id to manage a reference.
 4. **Share one flat buffer.** Arguments are appended and the top unwinds when the call completes, so it
    behaves as a stack: nothing is allocated per call.
 5. **Compose the richness in managed code** via the marshaller graph.
