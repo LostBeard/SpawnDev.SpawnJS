@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.0.3</Version>
-		<PackageReleaseNotes>v2.0.3 - Renamed SpawnJSObjectReference.Exists to Has to match SpawnJS 1</PackageReleaseNotes>
+		<Version>2.0.4</Version>
+		<PackageReleaseNotes>v2.0.4 - Added DictionaryMarshaller</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

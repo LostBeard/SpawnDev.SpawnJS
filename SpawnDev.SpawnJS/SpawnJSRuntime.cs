@@ -186,6 +186,8 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new ArrayMarshaller<object>());
             // .Net: List<> <-> JS: Array<>
             Marshallers.Add(new ListMarshaller<object>());
+            // .Net: Dictionary<string,>/IDictionary<string,>/IReadOnlyDictionary<string,> <-> JS: plain object (record)
+            Marshallers.Add(new DictionaryMarshaller<Dictionary<string, object>>());
             // .Net: HeapViewDescriptor -> JS: ArrayBufferView (TypedArray, DataView; copy or persistent)
             Marshallers.Add(new HeapViewDescriptorMarshaller());
             // .Net: Action, Action<>, Func<> -> JS: Function

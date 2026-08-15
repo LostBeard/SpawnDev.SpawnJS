@@ -166,6 +166,44 @@ var nmt22 = true;
 
 
 
+// ===== TrustedTypes CreatePolicy repro (Callback-in-options marshalling) =====
+{
+    int pass = 0, fail = 0;
+    void Test(string name, Action body)
+    {
+        try { body(); pass++; Console.WriteLine($"  PASS  {name}"); }
+        catch (Exception ex) { fail++; Console.WriteLine($"  FAIL  {name} -> {ex.GetType().Name}: {ex.Message}"); }
+    }
+
+    // A string-keyed dictionary must cross as a JS record (plain object), NOT be property-walked as a POCO -
+    // otherwise its Comparer/Keys/Values members marshal instead of its contents and it throws Arg_DlgtTargMeth.
+    Test("Dictionary<string,int> round-trips as a record", () =>
+    {
+        var d = new System.Collections.Generic.Dictionary<string, int> { ["a"] = 1, ["b"] = 22, ["c"] = 333 };
+        JS.Set("_recInt", d);
+        if (JS.Get<int>("_recInt.b") != 22) throw new Exception("value not stored under its key on the JS object");
+        var back = JS.Get<System.Collections.Generic.Dictionary<string, int>>("_recInt");
+        if (back == null || back.Count != 3 || back["a"] != 1 || back["b"] != 22 || back["c"] != 333)
+            throw new Exception($"round-trip mismatch: {(back == null ? "null" : string.Join(",", back.Select(kv => $"{kv.Key}={kv.Value}")))}");
+    });
+
+    // A record whose values are Callbacks is what trustedTypes.createPolicy takes - each value marshalled per-value.
+    using var factory = JS.Get<SpawnDev.SpawnJS.JSObjects.TrustedTypePolicyFactory?>("trustedTypes");
+    if (factory != null)
+    {
+        Test("trustedTypes.createPolicy with a Callback record", () =>
+        {
+            using var policy = factory.CreatePolicy("spawndev-demo-tt-" + Guid.NewGuid().ToString("N"),
+                new SpawnDev.SpawnJS.JSObjects.TrustedTypePolicyOptions { CreateHTML = Callback.Create<string, string>(s => s) });
+            using var html = policy.CreateHTML("<b>hi</b>");
+        });
+    }
+
+    Console.WriteLine($"DICTIONARY/TT TESTS: {pass} passed, {fail} failed");
+}
+
+
+
 
 // ===== PocoMarshaller round-trip test (property-walk clone, honours Json attributes; no JSON serialization) =====
 {

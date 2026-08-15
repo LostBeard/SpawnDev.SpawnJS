@@ -33,7 +33,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         public TrustedTypePolicy CreatePolicy(string policyName, TrustedTypePolicyOptions? options = null)
         {
             // Build the policyOptions record explicitly so the JS keys are exactly createHTML/createScript/
-            // createScriptURL and each Callback marshals out as its JS function (via IMarshalOutByJSHandle).
+            // createScriptURL. A string-keyed Dictionary crosses as a plain JS object via DictionaryMarshaller,
+            // and each Callback value marshals out as its JS function through its own marshaller.
             var record = new Dictionary<string, object?>();
             if (options?.CreateHTML != null) record["createHTML"] = options.CreateHTML;
             if (options?.CreateScript != null) record["createScript"] = options.CreateScript;
