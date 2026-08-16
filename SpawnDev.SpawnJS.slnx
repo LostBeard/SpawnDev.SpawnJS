@@ -2,6 +2,8 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
   </Folder>
+  <Project Path="SpawnDev.SpawnJS.Blazor.Demo/SpawnDev.SpawnJS.Blazor.Demo.csproj" Id="98868bf8-f8ce-4003-a615-4a781ed5bd0e" />
+  <Project Path="SpawnDev.SpawnJS.Blazor/SpawnDev.SpawnJS.Blazor.csproj" Id="992340ff-881c-4628-b148-c39bbe8b31d3" />
   <Project Path="SpawnDev.SpawnJS.Demo/SpawnDev.SpawnJS.Demo.csproj" />
   <Project Path="SpawnDev.SpawnJS/SpawnDev.SpawnJS.csproj" Id="d5aca0bf-0dc1-499b-8248-a6219f1d85f8" />
   <Project Path="SpawnJS.TestRunner/SpawnJS.TestRunner.csproj" />

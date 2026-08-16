@@ -1,0 +1,23 @@
+﻿@page "/"
+@using SpawnDev.SpawnJS.JSObjects
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<div @ref="_div">My Div</div>
+
+@code{
+    ElementReference _div;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            using var div = _div.As<HTMLDivElement>();
+            div.TextContent = "Hello world!";
+            StateHasChanged();
+        }
+    }
+}

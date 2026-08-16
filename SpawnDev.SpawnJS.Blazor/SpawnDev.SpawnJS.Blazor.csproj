@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<Version>2.0.0</Version>
+		<PackageReleaseNotes>v2.0.0 - New</PackageReleaseNotes>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EmbedAllSources>true</EmbedAllSources>
+		<DebugType>Embedded</DebugType>
+		<Title>SpawnDev.SpawnJS.Blazor</Title>
+		<Authors>LostBeard</Authors>
+		<Description>Use SpawnJS in Blazor with tools ford working with IJSRuntime and ElementReference types</Description>
+		<PackageProjectUrl>https://github.com/LostBeard/SpawnDev.SpawnJS</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageIcon>icon-128.png</PackageIcon>
+		<RepositoryUrl>https://github.com/LostBeard/SpawnDev.SpawnJS.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>DotNetWebAssembly;Blazor;BlazorWebAssembly;Javascript</PackageTags>
+		<CompressionEnabled>false</CompressionEnabled>
+		<IsTrimmable>true</IsTrimmable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\icon-128.png" Pack="true" PackagePath="\" />
+		<None Include="..\LICENSE.txt" Pack="true" PackagePath="\" />
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SpawnDev.SpawnJS\SpawnDev.SpawnJS.csproj" />
+	</ItemGroup>
+
+</Project>
