@@ -11,6 +11,39 @@ using Document = SpawnDev.SpawnJS.JSObjects.Document;
 
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = true;
+
+
+{   // EnumString<>
+    EnumString<VideoFacingModeEnum> enumString = VideoFacingModeEnum.Left;
+    JS.Set("_art", enumString);
+    var r3 = JS.Get<EnumString<VideoFacingModeEnum>>("_art");
+    var r2 = JS.Get<EnumString<VideoFacingModeEnum>>("_art12123");
+    var nmt22 = true;
+}
+{   // EpochDateTime
+    EpochDateTime enumString = DateTime.Now;
+    JS.Set("_art", enumString);
+    var r3 = JS.Get<EpochDateTime>("_art");
+    var r2 = JS.Get<EpochDateTime>("_art12312");
+    var nmt22 = true;
+}
+{ // DateTime?
+    DateTime? enumString = DateTime.Now;
+    JS.Set("_art", enumString);
+    var r3 = JS.Get<DateTime?>("_art");
+    var r2 = JS.Get<DateTime?>("_art22qweqw");
+    var nmt22 = true;
+}
+{ // DateTime
+    DateTime enumString = DateTime.Now;
+    JS.Set("_art", enumString);
+    var r3 = JS.Get<DateTime>("_art");
+    var r2 = JS.Get<DateTime>("_art2qwew2");
+    var nmt22 = true;
+}
+
+return;
+
 {
     var t = new ArrayBuffer(500);
     using var blob = new Blob(new ArrayBuffer[] { t });
@@ -20,7 +53,6 @@ JS.Verbose = true;
     var r = JS.Get<string[]>("_art");
     var nmt22 = true;
 }
-return;
 
 var typeInfo = JS.TypeInfo();
 if (typeInfo.TypeOf != "object" || typeInfo.ConstructorName != "Window") throw new Exception("Incorrect type info");

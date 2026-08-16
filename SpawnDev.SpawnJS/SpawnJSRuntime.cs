@@ -158,6 +158,10 @@ namespace SpawnDev.SpawnJS
             // .Net POCO <-> plain JS object (property-walk clone, honours Json attributes). Most generic, so
             // registered FIRST = lowest priority; any more specific marshaller below wins the reverse scan.
             Marshallers.Add(new PocoMarshaller<object>());
+
+            // TODO
+            //Marshallers.Add(new StructMarshallerFactory());
+
             // .Net IEnumerable<> -> JS: Array
             Marshallers.Add(new IEnumerableMarshaller<string>());           
             // VoidType - nothing is marshalled
@@ -210,6 +214,14 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new SpawnJSObjectMarshaller<SpawnJSObject>());
             // .Net: Enum <-> JS: Number
             Marshallers.Add(new EnumMarshallerFactory());
+            // .Net: EnumString<> <-> JS: String?
+            Marshallers.Add(new EnumStringMarshallerFactory());
+            // .Net: EpochDateTime <-> JS: Number?
+            Marshallers.Add(new EpochDateTimeMarshaller());
+            // .Net: DateTime <-> JS: String
+            Marshallers.Add(new DateTimeMarshaller());
+            // .Net: DateTime? <> <-> JS: String?
+            Marshallers.Add(new DateTimeNullableMarshaller());
             // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
             // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
             DotnetInstance = new SpawnJSObjectReference(
