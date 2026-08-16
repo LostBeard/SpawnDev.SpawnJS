@@ -736,7 +736,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns true if showDirectoryPicker is found
         /// </summary>
         /// <returns></returns>
-        public bool ShowDirectoryPickerSupported() => !!JS.Has("showDirectoryPicker");
+        public bool ShowDirectoryPickerSupported() => JS.Has("showDirectoryPicker");
         /// <summary>
         /// The showDirectoryPicker() method of the Window interface displays a directory picker which allows the user to select a directory.
         /// </summary>

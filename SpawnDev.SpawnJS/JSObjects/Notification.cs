@@ -43,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// returns true is Notification is defined
         /// </summary>
-        public static bool IsSupported => _IsSupported ??= !!JS.Has("Notification");
+        public static bool IsSupported => _IsSupported ??= JS.Has("Notification");
         private static bool? _IsSupported = null;
         /// <summary>
         /// Requests permission from the user to display notifications.<br/>

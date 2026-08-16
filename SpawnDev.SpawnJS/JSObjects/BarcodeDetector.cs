@@ -32,7 +32,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Checks if BarcodeDetector is defined in the global scope
         /// </summary>
         /// <returns></returns>
-        public static bool IsDefined() => !!JS.Has("BarcodeDetector");
+        public static bool IsDefined() => JS.Has("BarcodeDetector");
         /// <summary>
         /// The detect() method of the BarcodeDetector interface returns a Promise which fulfills with an Array of detected barcodes within an image.
         /// </summary>

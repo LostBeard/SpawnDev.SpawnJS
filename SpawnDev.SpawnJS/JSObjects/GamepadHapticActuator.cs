@@ -21,15 +21,15 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if PlayEffect is supported
         /// </summary>
-        public bool PlayEffectSupported => !!JSRef!.Has("playEffect");
+        public bool PlayEffectSupported => JSRef!.Has("playEffect");
         /// <summary>
         /// Returns true if Pulse is supported
         /// </summary>
-        public bool PulseSupported => !!JSRef!.Has("pulse");
+        public bool PulseSupported => JSRef!.Has("pulse");
         /// <summary>
         /// Returns true if Reset is supported
         /// </summary>
-        public bool ResetSupported => !!JSRef!.Has("reset");
+        public bool ResetSupported => JSRef!.Has("reset");
         /// <summary>
         /// The pulse() method of the GamepadHapticActuator interface makes the hardware pulse at a certain intensity for a specified duration.<br/>
         /// May be Firefox and not Chrome
