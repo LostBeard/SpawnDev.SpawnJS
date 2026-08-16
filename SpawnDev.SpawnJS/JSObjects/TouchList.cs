@@ -1,6 +1,3 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>

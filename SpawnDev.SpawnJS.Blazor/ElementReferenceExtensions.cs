@@ -2,7 +2,7 @@
 using Microsoft.JSInterop;
 using System.Reflection;
 
-namespace SpawnDev.SpawnJS.Blazor
+namespace SpawnDev.SpawnJS.JSObjects
 {
     public static class ElementReferenceExtensions
     {

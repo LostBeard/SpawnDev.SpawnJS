@@ -6,15 +6,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.0.1</Version>
-		<PackageReleaseNotes>v2.0.1 - Reduced call count in ElementReference conversion</PackageReleaseNotes>
+		<Version>2.0.3</Version>
+		<PackageReleaseNotes>v2.0.3 - ElementReference extension namespace change</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
 		<DebugType>Embedded</DebugType>
 		<Title>SpawnDev.SpawnJS.Blazor</Title>
 		<Authors>LostBeard</Authors>
-		<Description>Use SpawnJS in Blazor with tools ford working with IJSRuntime and ElementReference types</Description>
+		<Description>Use SpawnJS in Blazor with tools for working with IJSRuntime and ElementReference types</Description>
 		<PackageProjectUrl>https://github.com/LostBeard/SpawnDev.SpawnJS</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
