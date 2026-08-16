@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.0.10</Version>
-		<PackageReleaseNotes>v2.0.10 - Updated DictionaryMarshaller key handling. Added SpawnJSRuntime Import and LoadScript(s) methods.</PackageReleaseNotes>
+		<Version>2.0.11</Version>
+		<PackageReleaseNotes>v2.0.11 - Made SpawnJSObjectReference.FromID public</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

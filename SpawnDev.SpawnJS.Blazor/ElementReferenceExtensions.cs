@@ -16,16 +16,8 @@ namespace SpawnDev.SpawnJS.Blazor
             /// <returns>The ElementReference as a SpawnJSObject of type T</returns>
             public T As<T>() where T : SpawnJSObject
             {
-                T ret = default!;
-                var ipJS = elementReference.GetRuntime();
-                if (ipJS != null)
-                {
-                    var tmpId = Guid.NewGuid().ToString();
-                    ipJS.SetValue($"globalThis.{tmpId}", elementReference);
-                    ret = SpawnJSRuntime.Instance.Get<T>(tmpId);
-                    SpawnJSRuntime.Instance.Delete(tmpId);
-                }
-                return ret;
+                var ipJS = elementReference.AsSpawnJSObjectReference();
+                return ipJS == null ? null! : (T)Activator.CreateInstance(typeof(T), ipJS)!;
             }
             /// <summary>
             /// Return the ElementReference as a SpawnJSObjectReference
@@ -37,10 +29,8 @@ namespace SpawnDev.SpawnJS.Blazor
                 var ipJS = elementReference.GetRuntime();
                 if (ipJS != null)
                 {
-                    var tmpId = Guid.NewGuid().ToString();
-                    ipJS.SetValue($"globalThis.{tmpId}", elementReference);
-                    ret = SpawnJSRuntime.Instance.Get<SpawnJSObjectReference>(tmpId);
-                    SpawnJSRuntime.Instance.Delete(tmpId);
+                    var sjsId = ipJS.Invoke<double>($"SpawnJSInterop.spawnJSObjectHold", elementReference);
+                    ret = SpawnJSObjectReference.FromID(sjsId);
                 }
                 return ret;
             }

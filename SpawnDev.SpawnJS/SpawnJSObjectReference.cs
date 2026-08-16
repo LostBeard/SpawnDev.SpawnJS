@@ -15,7 +15,14 @@ namespace SpawnDev.SpawnJS
     /// </summary>
     public partial class SpawnJSObjectReference : IDisposable
     {
-        internal static SpawnJSObjectReference? FromID(double fromJS, bool nonNullable = false, bool preventDispose = false)
+        /// <summary>
+        /// Creates a SpawnJSObjectReference from its Id.
+        /// </summary>
+        /// <param name="fromJS"></param>
+        /// <param name="nonNullable"></param>
+        /// <param name="preventDispose"></param>
+        /// <returns></returns>
+        public static SpawnJSObjectReference? FromID(double fromJS, bool nonNullable = false, bool preventDispose = false)
         {
             var isValid = fromJS != NullId && fromJS != UndefinedId && fromJS != double.NaN && fromJS != 0;
             return !nonNullable && !isValid ? null : new SpawnJSObjectReference(fromJS) { PreventDispose = preventDispose };
