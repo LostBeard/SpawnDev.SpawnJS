@@ -44,7 +44,6 @@ namespace SpawnDev.SpawnJS
         /// BackgroundServiceManager - handles auto-starting IBackground services when SpawnJSApp.RunAsync() is called<br/>
         /// SpawnJSRuntime - Required Javascript runtime<br/>
         /// </summary>
-        /// <param name="args"></param>
         /// <param name="js">The SpawnJSRuntime singleton</param>
         /// <returns></returns>
         public static SpawnJSAppBuilder CreateDefault(out SpawnJSRuntime js)

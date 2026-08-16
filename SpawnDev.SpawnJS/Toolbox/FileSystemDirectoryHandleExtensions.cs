@@ -455,6 +455,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="data"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static async Task WriteJSON(this FileSystemDirectoryHandle _this, string path, object data, JsonSerializerOptions? jsonSerializerOptions = null)
         {
             using var fileHandle = await _this.GetPathFileHandle(path, true);
@@ -580,6 +581,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="path"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static async Task<T> ReadJSON<T>(this FileSystemDirectoryHandle _this, string path, JsonSerializerOptions? jsonSerializerOptions = null)
         {
             using var fileHandle = await _this.GetPathFileHandle(path, false);
@@ -668,6 +670,8 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="path"></param>
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
+            Justification = "T is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their .ctor(ArrayBuffer) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
         public static async Task<T> ReadTypedArray<T>(this FileSystemDirectoryHandle _this, string path) where T : TypedArray
         {
             using var fileHandle = await _this.GetPathFileHandle(path, false);

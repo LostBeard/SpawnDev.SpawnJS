@@ -83,7 +83,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Recieved the notifications call from Javascript when a Callabck has been called
         /// </summary>
+        /// <param name="callbackId">The callback being called</param>
         /// <param name="argsId">The incoming AND outgoing buffer</param>
+        /// <param name="argsCount">The in argument count</param>
         internal static void HandleCallback(double callbackId, double argsId, double argsCount)
         {
             if (_callbacks.TryGetValue(callbackId, out var callback))

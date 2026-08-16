@@ -7,8 +7,6 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// This is the ONLY JSImport/JSExport that is allowed to use JSObject and it is ONLY used to get a reference to this .Net Wasm app's DotNet Instance
         /// </summary>
-        /// <param name="dotnetInstance">ONLY allowed JSObject in entire library and will ONLY be called once</param>
-        /// <returns></returns>
         [JSImport("globalThis.SpawnJSInterop._registerInstance")]
         internal static partial double _registerInstance(
             JSObject dotnetInstance,

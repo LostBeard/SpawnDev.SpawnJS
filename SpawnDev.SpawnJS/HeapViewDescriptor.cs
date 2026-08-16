@@ -14,7 +14,7 @@
         /// </summary>
         public long Length { get; }
         /// <summary>
-        /// Revive as this global type</br>
+        /// Revive as this global type<br/>
         /// Revives as a Uint8Array by default
         /// </summary>
         public JSArrayBufferView Type { get; } = JSArrayBufferView.Uint8Array;

@@ -265,6 +265,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="value"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static Task WriteJSON(this Cache _this, string url, object value, string contentType = "application/json")
         {
             return _this.WriteText(url, JsonSerializer.Serialize(value), contentType);
@@ -331,6 +332,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="options"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static async Task<T?> ReadJSON<T>(this Cache _this, string url, CacheMatchOptions? options = null, JsonSerializerOptions? jsonSerializerOptions = null)
         {
             var tmp = await _this.ReadText(url, options);

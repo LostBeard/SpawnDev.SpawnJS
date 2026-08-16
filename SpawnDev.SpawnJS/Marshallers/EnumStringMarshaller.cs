@@ -1,6 +1,7 @@
 ﻿using SpawnDev.SpawnJS.Marshaller;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpawnDev.SpawnJS.Marshallers
 {
@@ -21,7 +22,13 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// Builds an <see cref="ArrayMarshaller{T}"/> bound to the concrete element type of
         /// <typeparamref name="T"/> (e.g. selecting for <c>int[]</c> yields an <c>ArrayMarshaller&lt;int&gt;</c>).
         /// </summary>
-        public override JSMarshaller<T> GetMarshaller<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
+        [UnconditionalSuppressMessage("Trimming", "IL2055",
+    Justification = "MakeGenericType over SpawnJS's own EnumStringMarshaller<>, closed with the requested enum type (constrained struct, Enum).")]
+        [UnconditionalSuppressMessage("Trimming", "IL2071",
+    Justification = "The closed type argument is the EnumString's enum type (a value type); the marshaller's own generic constraints (struct, Enum) carry no PublicConstructors requirement, so trimming preserves nothing extra.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2072",
+    Justification = "Activator over SpawnJS's own EnumStringMarshaller<> (parameterless ctor), referenced via typeof here. Verified to survive a trimmed WASM publish.")]
+        public override JSMarshaller<T> GetMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
         {
             if (this is JSMarshaller<T> _this) return _this;
             var T1 = typeof(T).GetGenericArguments()[0];

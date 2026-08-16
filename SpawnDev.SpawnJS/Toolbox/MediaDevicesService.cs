@@ -223,7 +223,7 @@ namespace SpawnDev.SpawnJS.Toolbox
                         stream.Dispose();
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
                     // getUserMedia failed - device may not be available
                 }

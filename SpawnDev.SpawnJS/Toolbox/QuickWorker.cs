@@ -1,5 +1,6 @@
 using SpawnDev.SpawnJS.JSObjects;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpawnDev.SpawnJS.Toolbox
 {
@@ -55,7 +56,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="data">data to send to the worker via postMessage</param>
         /// <param name="js">The Javascript source</param>
         /// <returns>The data received from the worker via a message event as type TResult.</returns>
-        public static Task<TResult> ProcessData<TResult>(byte[] data, string js)
+        public static Task<TResult> ProcessData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(byte[] data, string js)
         {
             using var uint8 = new Uint8Array(data);
             using var buffer = uint8.Buffer;
@@ -71,7 +72,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="data">data to send to the worker</param>
         /// <param name="transferables">What data, if any, should be transferred instead of cloned.</param>
         /// <returns></returns>
-        public static Task<TResult> ProcessData<TResult>(string js, object data, object[]? transferables = null)
+        public static Task<TResult> ProcessData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string js, object data, object[]? transferables = null)
         {
             var sw = Stopwatch.StartNew();
             var t = new TaskCompletionSource<TResult>();

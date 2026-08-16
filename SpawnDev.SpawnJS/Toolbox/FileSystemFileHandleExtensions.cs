@@ -157,6 +157,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="data"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static async Task WriteJSON(this FileSystemFileHandle _this, object data, JsonSerializerOptions? jsonSerializerOptions = null)
         {
             var json = JsonSerializer.Serialize(data, jsonSerializerOptions);
@@ -282,6 +283,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="_this"></param>
         /// <param name="jsonSerializerOptions"></param>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         public static async Task<T> ReadJSON<T>(this FileSystemFileHandle _this, JsonSerializerOptions? jsonSerializerOptions = null)
         {
             using var file = await _this!.GetFile();
