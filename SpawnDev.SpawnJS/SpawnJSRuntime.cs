@@ -50,7 +50,7 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// GlobalThis
         /// </summary>
-        public SpawnJSObject GlobalThis { get; private set; }
+        public SpawnJSObject? GlobalThis { get; private set; }
         /// <summary>
         /// If the globalThis is a Window, WindowThis will refer to globalThis, otherwise null.
         /// </summary>
@@ -151,7 +151,16 @@ namespace SpawnDev.SpawnJS
             var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
             var chunkSize = 4;
             InstanceId = string.Join("-", Enumerable.Range(0, id.Length / chunkSize).Select(i => id.Substring(i * chunkSize, chunkSize)));
-            //AppJsonContext.Init();
+
+            // SpawnJSRuntime requires IsBrowser so if not, exit here
+            if (!IsBrowser)
+            {
+                DotnetInstance = default!;
+                InteropMethods = new string[0];
+                GlobalScope = GlobalScope.NonBrowser;
+                return;
+            }
+
             // Registration order matters: GetMarshaller scans this list in REVERSE, so a marshaller added
             // later takes precedence when more than one reports it can marshal a type. The more specific /
             // higher-priority handlers (arrays, object references) are therefore added last.
@@ -159,7 +168,7 @@ namespace SpawnDev.SpawnJS
             // registered FIRST = lowest priority; any more specific marshaller below wins the reverse scan.
             Marshallers.Add(new PocoMarshaller<object>());
 
-            // TODO
+            // TODO - possibly can be handled or already handled by the PocoMarshaller
             //Marshallers.Add(new StructMarshallerFactory());
 
             // .Net IEnumerable<> -> JS: Array
@@ -240,42 +249,33 @@ namespace SpawnDev.SpawnJS
             // load method names to enable indexed based interop calling (vs string)
             InteropMethods = _refreshMethodMap();
             HeapSize = GetHeapSize();
-
-            if (IsBrowser)
+            switch (GlobalScopeName)
             {
-                switch (GlobalScopeName)
-                {
-                    case nameof(Window):
-                        // in firefox browser extension running in content mode, a window and globalThis are not the same so they are loaded separately here to normalize usage
-                        WindowThis = Get<Window>("window");
-                        GlobalThis = Get<Window>("globalThis");
-                        GlobalScope = GlobalScope.Window;
-                        break;
-                    case nameof(DedicatedWorkerGlobalScope):
-                        DedicateWorkerThis = Get<DedicatedWorkerGlobalScope>("globalThis");
-                        GlobalThis = DedicateWorkerThis;
-                        GlobalScope = GlobalScope.DedicatedWorker;
-                        break;
-                    case nameof(SharedWorkerGlobalScope):
-                        SharedWorkerThis = Get<SharedWorkerGlobalScope>("globalThis");
-                        GlobalThis = SharedWorkerThis;
-                        GlobalScope = GlobalScope.SharedWorker;
-                        break;
-                    case nameof(ServiceWorkerGlobalScope):
-                        ServiceWorkerThis = Get<ServiceWorkerGlobalScope>("globalThis");
-                        GlobalThis = ServiceWorkerThis;
-                        GlobalScope = GlobalScope.ServiceWorker;
-                        break;
-                    default:
-                        GlobalThis = Get<SpawnJSObject>("globalThis");
-                        GlobalScope = GlobalScope.BrowserOther;
-                        break;
-                }
-            }
-            else
-            {
-                GlobalScope = GlobalScope.NonBrowser;
-                GlobalThis = Get<SpawnJSObject>("globalThis");
+                case nameof(Window):
+                    // in firefox browser extension running in content mode, a window and globalThis are not the same so they are loaded separately here to normalize usage
+                    WindowThis = Get<Window>("window");
+                    GlobalThis = Get<Window>("globalThis");
+                    GlobalScope = GlobalScope.Window;
+                    break;
+                case nameof(DedicatedWorkerGlobalScope):
+                    DedicateWorkerThis = Get<DedicatedWorkerGlobalScope>("globalThis");
+                    GlobalThis = DedicateWorkerThis;
+                    GlobalScope = GlobalScope.DedicatedWorker;
+                    break;
+                case nameof(SharedWorkerGlobalScope):
+                    SharedWorkerThis = Get<SharedWorkerGlobalScope>("globalThis");
+                    GlobalThis = SharedWorkerThis;
+                    GlobalScope = GlobalScope.SharedWorker;
+                    break;
+                case nameof(ServiceWorkerGlobalScope):
+                    ServiceWorkerThis = Get<ServiceWorkerGlobalScope>("globalThis");
+                    GlobalThis = ServiceWorkerThis;
+                    GlobalScope = GlobalScope.ServiceWorker;
+                    break;
+                default:
+                    GlobalThis = Get<SpawnJSObject>("globalThis");
+                    GlobalScope = GlobalScope.BrowserOther;
+                    break;
             }
             AppBaseUri = SpawnJSInterop.Call<SpawnJSObjectReference, string>("appBaseUri", DotnetInstance) ?? "";
         }
