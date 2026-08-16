@@ -41,6 +41,82 @@ JS.Verbose = true;
     var r2 = JS.Get<DateTime>("_art2qwew2");
     var nmt22 = true;
 }
+// ===== DictionaryMarshaller non-string-key tests =====
+// JS object keys are always strings, so a non-string-keyed dictionary must stringify its keys on write
+// and parse them back on read. This is the exact shape SpawnDev.ILGPU's WebGL dispatch sends: a
+// Dictionary<int,int[]> stride map. Before the fix, an int-keyed dictionary failed CanMarshal, fell
+// through to IEnumerableMarshaller<string>, and threw InvalidCastException - which killed ~427 WebGL tests.
+{
+    int pass = 0, fail = 0;
+    void Test(string name, Action body)
+    {
+        try { body(); pass++; Console.WriteLine($"  PASS  {name}"); }
+        catch (Exception ex) { fail++; Console.WriteLine($"  FAIL  {name} -> {ex.GetType().Name}: {ex.Message}"); Console.WriteLine(ex.ToString()); }
+    }
+
+    Test("Dictionary<int,int[]> crosses as a JS object (WebGL stride-map shape)", () =>
+    {
+        var strides = new System.Collections.Generic.Dictionary<int, int[]>
+        {
+            [0] = new[] { 1, 2, 3 },
+            [7] = new[] { 40, 50 },
+        };
+        JS.Set("_dictInt", strides);
+        // int keys coerced to strings on the JS side, exactly like obj[0]=x
+        if (JS.Get<int>("_dictInt.0.1") != 2) throw new Exception("_dictInt['0'][1] != 2");
+        if (JS.Get<int>("_dictInt.7.0") != 40) throw new Exception("_dictInt['7'][0] != 40");
+    });
+
+    Test("Dictionary<int,int[]> round-trips (keys parse back to int)", () =>
+    {
+        var strides = new System.Collections.Generic.Dictionary<int, int[]>
+        {
+            [0] = new[] { 1, 2 },
+            [7] = new[] { 40 },
+        };
+        JS.Set("_dictIntRT", strides);
+        var back = JS.Get<System.Collections.Generic.Dictionary<int, int[]>>("_dictIntRT");
+        if (back == null || back.Count != 2) throw new Exception("count mismatch");
+        if (!back.ContainsKey(0) || !back.ContainsKey(7)) throw new Exception($"keys=[{string.Join(",", back.Keys)}]");
+        if (back[0].Length != 2 || back[0][1] != 2 || back[7][0] != 40) throw new Exception("values did not round-trip");
+    });
+
+    Test("Dictionary<enum,double> round-trips (keys parse back by name)", () =>
+    {
+        var d = new System.Collections.Generic.Dictionary<DemoAxis, double>
+        {
+            [DemoAxis.X] = 1.0,
+            [DemoAxis.Z] = 3.0,
+        };
+        JS.Set("_dictEnum", d);
+        if (JS.Get<double>("_dictEnum.Z") != 3.0) throw new Exception("_dictEnum['Z'] != 3.0");
+        var back = JS.Get<System.Collections.Generic.Dictionary<DemoAxis, double>>("_dictEnum");
+        if (back == null || back.Count != 2 || back[DemoAxis.X] != 1.0 || back[DemoAxis.Z] != 3.0)
+            throw new Exception("enum-keyed dictionary did not round-trip");
+    });
+
+    Console.WriteLine($"DICTIONARY KEY TESTS: {pass} passed, {fail} failed");
+}
+
+// ===== Dynamic import() test =====
+// SpawnJSRuntime.Import(url) -> SpawnJSInterop.import(url) -> import(url), returning a ModuleNamespaceObject.
+// This is what SpawnDev.ILGPU's WebGPU capture/replay dispatch plan needs to load its
+// _content/SpawnDev.ILGPU/webgpuDispatchPlan.js ES module helper at runtime. A self-contained data: module
+// exercises the whole path with no external file.
+{
+    int pass = 0, fail = 0;
+    try
+    {
+        using var mod = await JS.Import("data:text/javascript,export const answer = 42; export function greet(n){ return 'hi ' + n; }");
+        var answer = mod.GetExport<int>("answer");
+        if (answer != 42) throw new Exception($"answer export read back as {answer}");
+        if (!mod.ExportExists("greet")) throw new Exception("greet export missing");
+        pass++;
+        Console.WriteLine($"  PASS  JS.Import(data: module) -> answer={answer}, exports=[{string.Join(",", mod.ExportNames)}]");
+    }
+    catch (Exception ex) { fail++; Console.WriteLine($"  FAIL  JS.Import -> {ex.GetType().Name}: {ex.Message}"); Console.WriteLine(ex.ToString()); }
+    Console.WriteLine($"IMPORT TEST: {pass} passed, {fail} failed");
+}
 
 return;
 
@@ -466,4 +542,12 @@ public enum DemoFlags : uint
     CopySrc = 0x0004,
     CopyDst = 0x0008,
     Storage = 0x0080,
+}
+
+// Non-flags enum used as a dictionary KEY to exercise DictionaryMarshaller's non-string key path.
+public enum DemoAxis
+{
+    X,
+    Y,
+    Z,
 }

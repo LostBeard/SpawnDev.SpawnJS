@@ -4,11 +4,13 @@ using System.Text.Json.Serialization;
 namespace TestsShared
 {
     /// <summary>
-    /// String-keyed dictionaries crossing as plain Javascript objects.<br/>
+    /// Dictionaries crossing as plain Javascript objects.<br/>
     /// The web platform calls this a record - <c>GPUProgrammableStage.constants</c> is one. Before
     /// DictionaryMarshaller existed a Dictionary matched ObjectMarshaller, which reflected over the
     /// dictionary's own members instead of its contents, and SpawnDev.ILGPU could not create a WebGPU
-    /// compute pipeline at all.
+    /// compute pipeline at all. String keys cross verbatim; non-string keys (int, enum, ...) stringify to
+    /// their invariant form on write and parse back on read, since Javascript object keys are always
+    /// strings - which is what SpawnDev.ILGPU's WebGL <c>Dictionary&lt;int, int[]&gt;</c> stride map needs.
     /// </summary>
     public class DictionaryMarshallerTests(SpawnJSRuntime JS)
     {
@@ -128,6 +130,76 @@ namespace TestsShared
 
             var wgSize = JS.Get<double>("__dictStage2.constants.wgSize");
             if (wgSize != 256) throw new Exception($"nested constant read back as {wgSize}");
+        }
+
+        /// <summary>
+        /// The exact SpawnDev.ILGPU WebGL shape: an int-keyed <c>Dictionary&lt;int, int[]&gt;</c> stride map
+        /// on a dispatch message. Javascript object keys are always strings, so the int keys must cross as
+        /// their invariant string form (<c>{"0":[...],"7":[...]}</c>) - the same coercion <c>obj[0]=x</c>
+        /// performs. Before this was supported the int-keyed dictionary failed CanMarshal, fell through to
+        /// IEnumerableMarshaller&lt;string&gt;, and threw InvalidCastException - which killed nearly the
+        /// entire WebGL test lane.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task IntKeyedDictionaryCrossesAsJavascriptObjectTest()
+        {
+            JS.Set("__dictInt", new Dictionary<int, int[]>
+            {
+                [0] = new[] { 1, 2, 3 },
+                [7] = new[] { 40, 50 },
+            });
+
+            // Keys coerced to strings on the Javascript side, exactly like a JS object.
+            var firstStride = JS.Get<int>("__dictInt.0.1");
+            if (firstStride != 2) throw new Exception($"__dictInt['0'][1] read back as {firstStride}");
+            var secondStride = JS.Get<int>("__dictInt.7.0");
+            if (secondStride != 40) throw new Exception($"__dictInt['7'][0] read back as {secondStride}");
+        }
+
+        /// <summary>
+        /// Round trip of the int-keyed dictionary, so the read direction parses the Javascript string keys
+        /// back into <c>int</c> - not just the write direction.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task IntKeyedDictionaryRoundTripsTest()
+        {
+            JS.Set("__dictIntRoundTrip", new Dictionary<int, int[]>
+            {
+                [0] = new[] { 1, 2 },
+                [7] = new[] { 40 },
+            });
+
+            var back = JS.Get<Dictionary<int, int[]>>("__dictIntRoundTrip");
+            if (back == null) throw new Exception("round trip returned null");
+            if (back.Count != 2) throw new Exception($"expected 2 entries, got {back.Count}");
+            if (!back.ContainsKey(0) || !back.ContainsKey(7))
+                throw new Exception($"keys came back as [{string.Join(",", back.Keys)}] - expected 0 and 7");
+            if (back[0].Length != 2 || back[0][1] != 2 || back[7][0] != 40)
+                throw new Exception("int-keyed values did not round trip");
+        }
+
+        enum StrideAxis { X, Y, Z }
+
+        /// <summary>
+        /// An enum-keyed dictionary round trips too - enum keys stringify by name on write and parse back
+        /// by name on read, so any non-string key type crosses, not only <c>int</c>.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task EnumKeyedDictionaryRoundTripsTest()
+        {
+            JS.Set("__dictEnum", new Dictionary<StrideAxis, double>
+            {
+                [StrideAxis.X] = 1.0,
+                [StrideAxis.Z] = 3.0,
+            });
+
+            var z = JS.Get<double>("__dictEnum.Z");
+            if (z != 3.0) throw new Exception($"__dictEnum['Z'] read back as {z}");
+
+            var back = JS.Get<Dictionary<StrideAxis, double>>("__dictEnum");
+            if (back == null) throw new Exception("enum round trip returned null");
+            if (back.Count != 2 || back[StrideAxis.X] != 1.0 || back[StrideAxis.Z] != 3.0)
+                throw new Exception("enum-keyed dictionary did not round trip");
         }
     }
 }

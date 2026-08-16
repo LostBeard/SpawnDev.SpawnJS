@@ -367,6 +367,109 @@ namespace SpawnDev.SpawnJS
             CallApplyVoid("console.error", args);
         }
         /// <summary>
+        /// Load the given script by adding a document head script element if the specified global var is not defined.
+        /// </summary>
+        public async Task LoadScript(string src, string? ifThisGlobalVarIsUndefined = null)
+        {
+            if (!string.IsNullOrEmpty(ifThisGlobalVarIsUndefined) && Has(ifThisGlobalVarIsUndefined)) return;
+            await LoadScript(src);
+        }
+        /// <summary>
+        /// Load the given script by adding a document head script element, if in a window scope.<br/>
+        /// If in a WorkerGlobalScope, load the given script using importScripts.
+        /// </summary>
+        public async Task LoadScript(string src)
+        {
+            if (GlobalThis is WorkerGlobalScope workerGlobalScope)
+            {
+                workerGlobalScope.ImportScripts(src);
+            }
+            else if (WindowThis != null)
+            {
+                using var document = GetDocument();
+                using var head = document!.Head;
+                using var script = new HTMLScriptElement();
+                script.Src = src;
+                head!.Append(script);
+                await script.OnLoadAsync();
+            }
+            else
+            {
+                throw new NotImplementedException("Unsupported global scope");
+            }
+        }
+        /// <summary>
+        /// Loads the specified scripts
+        /// </summary>
+        public async Task LoadScripts(string[] sources)
+        {
+            var tasks = new List<Task>();
+            foreach (var src in sources) tasks.Add(LoadScript(src));
+            await Task.WhenAll(tasks);
+        }
+        /// <summary>
+        /// The import() syntax, commonly called dynamic import, is a function-like expression that allows loading an ECMAScript module asynchronously and dynamically into a potentially non-module environment.
+        /// </summary>
+        /// <param name="moduleName">The module to import from. The evaluation of the specifier is host-specified, but always follows the same algorithm as static import declarations.</param>
+        /// <returns>Returns a promise which fulfills to a module namespace object: an object containing all exports from moduleName.</returns>
+        public Task<ModuleNamespaceObject> Import(string moduleName) => SpawnJSInterop.CallAsync<string, ModuleNamespaceObject>("import", moduleName);
+        /// <summary>
+        /// Import a module and assign it to the specified global variable name<br/>
+        /// Ex.:<br/>
+        /// await JS.Import("name", "moduleName")<br/>
+        /// Is roughly equivalent to:<br/>
+        /// import * as name from "moduleName"<br/>
+        /// </summary>
+        /// <param name="name">Global variable name to assign the import to. Must be a valid JavaScript identifier.</param>
+        /// <param name="moduleName">The module to import from. The evaluation of the specifier is host-specified, but always follows the same algorithm as static import declarations.</param>
+        /// <returns></returns>
+        public async Task<ModuleNamespaceObject> Import(string name, string moduleName)
+        {
+            ModuleNamespaceObject ret;
+            if (!Has(name))
+            {
+                ret = (await Import(moduleName))!;
+                Set(name, ret);
+            }
+            else
+            {
+                ret = Get<ModuleNamespaceObject>(name);
+            }
+            return ret;
+        }
+        /// <summary>
+        /// The import() syntax, commonly called dynamic import, is a function-like expression that allows loading an ECMAScript module asynchronously and dynamically into a potentially non-module environment.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="moduleName">The module to import from. The evaluation of the specifier is host-specified, but always follows the same algorithm as static import declarations.</param>
+        /// <returns></returns>
+        public Task<T> Import<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string moduleName) => SpawnJSInterop.CallAsync<string, T>("import", moduleName);
+        /// <summary>
+        /// Import a module and assign it to the specified global variable name<br/>
+        /// Ex.:<br/>
+        /// await JS.Import("acorn", "https://www.acornlib.com/acorn.js")<br/>
+        /// Is roughly equivalent to:<br/>
+        /// import * as acorn from "https://www.acornlib.com/acorn.js"<br/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">Global variable name to assign the import to. Must be a valid JavaScript identifier.</param>
+        /// <param name="moduleName">The module to import from. The evaluation of the specifier is host-specified, but always follows the same algorithm as static import declarations.</param>
+        /// <returns></returns>
+        public async Task<T> Import<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string name, string moduleName)
+        {
+            T ret;
+            if (!Has(name))
+            {
+                ret = await Import<T>(moduleName);
+                Set(name, ret);
+            }
+            else
+            {
+                ret = Get<T>(name);
+            }
+            return ret;
+        }
+        /// <summary>
         /// Calls fetch
         /// </summary>
         public Task<Response> Fetch(Request resource) => CallAsync<Request, Response>("fetch", resource);
