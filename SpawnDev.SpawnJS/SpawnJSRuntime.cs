@@ -356,7 +356,8 @@ namespace SpawnDev.SpawnJS
         /// <param name="args"></param>
         public void Log(params object?[] args)
         {
-            CallApplyVoid("console.log", args);
+            if (IsBrowser) CallApplyVoid("console.log", args);
+            else Console.WriteLine(string.Join(Environment.NewLine, args));
         }
         /// <summary>
         /// Log an error to the Javascript console (console.error)
@@ -364,7 +365,8 @@ namespace SpawnDev.SpawnJS
         /// <param name="args"></param>
         public void LogError(params object?[] args)
         {
-            CallApplyVoid("console.error", args);
+            if (IsBrowser) CallApplyVoid("console.error", args);
+            else Console.Error.WriteLine(string.Join(Environment.NewLine, args));
         }
         /// <summary>
         /// Load the given script by adding a document head script element if the specified global var is not defined.
