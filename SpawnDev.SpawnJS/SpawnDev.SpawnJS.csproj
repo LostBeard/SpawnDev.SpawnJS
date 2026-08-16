@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Version>2.0.10</Version>
-		<PackageReleaseNotes>v2.0.10 - Updated DictionaryMarshllaer key handling. Added SpawnJSRuntime Import and LoadScrpt(s) methods.</PackageReleaseNotes>
+		<PackageReleaseNotes>v2.0.10 - Updated DictionaryMarshaller key handling. Added SpawnJSRuntime Import and LoadScrpt(s) methods.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
