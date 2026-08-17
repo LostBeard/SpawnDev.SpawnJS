@@ -28,10 +28,22 @@ namespace SpawnDev.SpawnJS
             var isValid = fromJS != NullId && fromJS != UndefinedId && fromJS != double.NaN && fromJS != 0;
             return !nonNullable && !isValid ? null : new SpawnJSObjectReference(fromJS) { PreventDispose = preventDispose };
         }
+        bool _PreventDispose = false;
         /// <summary>
         /// If true, this item will not dispose when dispsoe is called
         /// </summary>
-        public bool PreventDispose { get; set; }
+        public bool PreventDispose
+        {
+            get => _PreventDispose;
+            set
+            {
+                if (IsDisposed) return;
+                if (value == _PreventDispose) return;
+                _PreventDispose = value;
+                if (_PreventDispose) GC.SuppressFinalize(this);
+                else GC.ReRegisterForFinalize(this);
+            }
+        }
         /// <summary>Sentinel id for JS <c>globalThis</c>.</summary>
         public const double GlobalThisId = -1;
         /// <summary>Sentinel id for JS <c>undefined</c> (also the id a handle is set to once released).</summary>
@@ -241,7 +253,7 @@ namespace SpawnDev.SpawnJS
         /// <inheritdoc/>
         public void Dispose()
         {
-            if (IsDisposed) return;
+            if (IsDisposed || PreventDispose) return;
             Dispose(true);
             GC.SuppressFinalize(this);
         }
