@@ -2,7 +2,29 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## [Unreleased]
+## [2.1.5] - 2026-08-17
+
+### Fixed
+
+- **`HeapView.Dispose()` freed NOTHING** (`JSObjects/HeapView.cs`). The public `Dispose()` set
+  `IsDisposed = true` *before* calling `Dispose(true)`, whose first statement is `if (IsDisposed) return;` -
+  so the guard short-circuited the real work every time. Neither `ReleaseHandle()` nor `View.Dispose()`
+  ever ran on the dispose path. Consequences: (1) the backing `TypedArray` view kept its JS slot held,
+  released only if/when its own finalizer eventually ran, and (2) on the zero-copy path (`copy: false`)
+  the pinned `MemoryHandle` / `GCHandle` stayed **pinned for the life of the app** - a managed-heap leak,
+  not just a JS-slot one. `Dispose(bool)` now owns the flag. Every `using var heapView = ...` in the
+  library (`TypedArray.Read`/`Write`/`Set`/`ReadBytes`, all 12+ call sites) was silently leaking.
+- **`PocoMarshaller` / `DictionaryMarshaller` leaked one JS slot per marshalled argument.**
+  `WriteToNewObject()` allocates a JS object via `JS.New<SpawnJSObjectReference>("Object")` - a strong
+  slot-table entry with manual lifetime - and both `NetToJS` overloads did
+  `jsParent.Set(jsKey, WriteToNewObject(value))`, dropping the returned handle on the floor. `Set` performs
+  a real JS reference assignment (`parent[prop] = value`), so the temporary's slot is safe to release
+  immediately; nothing did. Every sibling marshaller (`Array`, `IList`, `List`, `IEnumerable`, `ITuple`)
+  already had this right via `using var outArray = JS.NewJSArray()`; these two were the outliers.
+  Impact scaled with call rate: a WebGPU dispatch loop marshals a `GPUBindGroupDescriptor` **per dispatch**,
+  so the slot table climbed into the tens of thousands and outran the WASM GC, ending in OOM. Measured on
+  the SpawnDev.ILGPU demo suite: 544 undisposed references from a single dispatch call site over ~90s,
+  reduced to zero.
 
 ## [1.1.9] - 2026-08-07
 

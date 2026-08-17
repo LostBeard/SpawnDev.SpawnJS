@@ -55,14 +55,19 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TDictionary? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            jsParent.Set(jsKey, WriteToNewObject(value));
+            // The new object is a TEMPORARY: Set copies the reference into jsParent, which keeps the
+            // JS value alive on its own. The slot the temp holds must be released here or it leaks -
+            // the slot table is a strong reference with manual lifetime, nothing collects it.
+            using var outObj = WriteToNewObject(value);
+            jsParent.Set(jsKey, outObj);
         }
 
         /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TDictionary? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            jsParent.Set(jsKey, WriteToNewObject(value));
+            using var outObj = WriteToNewObject(value);
+            jsParent.Set(jsKey, outObj);
         }
 
         SpawnJSObjectReference WriteToNewObject(TDictionary value)

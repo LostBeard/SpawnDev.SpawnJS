@@ -541,7 +541,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         public override void Dispose()
         {
             if (IsDisposed) return;
-            IsDisposed = true;
+            // Do NOT set IsDisposed here: Dispose(bool) guards on it and would short-circuit,
+            // so setting it first made this method free NOTHING - the View (a TypedArray slot)
+            // stayed held and ReleaseHandle() never ran, leaving the pinned MemoryHandle/GCHandle
+            // pinned for the life of the app. Dispose(bool) owns the flag.
             Dispose(true);
             GC.SuppressFinalize(this);
         }
