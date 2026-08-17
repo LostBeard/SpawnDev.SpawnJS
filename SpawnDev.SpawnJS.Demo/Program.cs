@@ -1,4 +1,5 @@
 using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.Demo.UnitTests;
 using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Toolbox;
 using System;
@@ -11,6 +12,10 @@ using Document = SpawnDev.SpawnJS.JSObjects.Document;
 
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = true;
+
+
+// run marshalelr tests
+await MarshallerTests.Run();
 
 
 {   // EnumString<>
@@ -383,16 +388,14 @@ Callback? cb = null;
 // image data
 var data = new byte[(int)(width * height * 4)];
 // direct heap view of image data
-using var heapView = HeapView.Create(data);
-// heap view as Uint8ClampedArray
-using var uint8ArrayClamped = heapView.As<Uint8ClampedArray>();
+using var heapView = HeapView.Create<byte, Uint8ClampedArray>(data);
 ImageData? imgData = null;
 JS.OnHeapGrow += (_, _) =>
 {
     Console.WriteLine($"Rebuilding imgData");
-    imgData = new ImageData(uint8ArrayClamped, width, height);
+    imgData = new ImageData(heapView, width, height);
 };
-imgData = new ImageData(uint8ArrayClamped, width, height);
+imgData = new ImageData(heapView, width, height);
 
 using var stopButton = document.CreateElement<HTMLButtonElement>("button");
 stopButton.TextContent = "Stop";

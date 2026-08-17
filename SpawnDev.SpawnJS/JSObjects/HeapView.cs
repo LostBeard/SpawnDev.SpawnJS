@@ -69,7 +69,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public static explicit operator HeapView(double[] data) => Create(data, true);
 
         internal abstract SpawnJSObject _View { get; }
-        public IntPtr Address { get; protected set; }
+        public IntPtr Pointer { get; protected set; }
         public long ByteLength { get; protected set; }
         public long ElementCount { get; protected set; }
         public JSArrayBufferView ViewType { get; protected set; }
@@ -232,21 +232,21 @@ namespace SpawnDev.SpawnJS.JSObjects
                 _memoryHandle = _memorySource.Value.Pin();
                 unsafe
                 {
-                    Address = new nint(_memoryHandle.Value.Pointer);
+                    Pointer = new nint(_memoryHandle.Value.Pointer);
                 }
             }
             View.Dispose();
-            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Address, ByteLength, ViewType, Copy));
+            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ByteLength, ViewType, Copy));
             ReleaseHandle();
         }
         public HeapView(IntPtr source, long elementCount, bool copy = false)
         {
             Copy = copy;
-            Address = source;
+            Pointer = source;
             ElementCount = elementCount;
             ByteLength = elementCount * Unsafe.SizeOf<TElement>();
             ViewType = JSArrayBufferViewTypes.TryGetValue(typeof(TView), out var viewFn) ? viewFn : throw new NotImplementedException($"Unsupported view type: {typeof(TView).Name}");
-            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Address, ByteLength, ViewType, Copy));
+            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ByteLength, ViewType, Copy));
         }
         public HeapView(string source)
         {
@@ -255,7 +255,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             ElementCount = source.Length;
             ByteLength = ElementCount * Unsafe.SizeOf<TElement>();
             ViewType = JSArrayBufferViewTypes.TryGetValue(typeof(TView), out var viewFn) ? viewFn : throw new NotImplementedException($"Unsupported view type: {typeof(TView).Name}");
-            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Address, ByteLength, ViewType, Copy));
+            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ByteLength, ViewType, Copy));
             if (Copy)
             {
                 ReleaseHandle();
@@ -273,12 +273,12 @@ namespace SpawnDev.SpawnJS.JSObjects
             _memoryHandle = _memorySource.Value.Pin();
             unsafe
             {
-                Address = new nint(_memoryHandle.Value.Pointer);
+                Pointer = new nint(_memoryHandle.Value.Pointer);
             }
             ElementCount = _memorySource.Value.Length;
             ByteLength = ElementCount * Unsafe.SizeOf<TElement>();
             ViewType = JSArrayBufferViewTypes.TryGetValue(typeof(TView), out var viewFn) ? viewFn : throw new NotImplementedException($"Unsupported view type: {typeof(TView).Name}");
-            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Address, ByteLength, ViewType, Copy));
+            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ByteLength, ViewType, Copy));
             if (Copy)
             {
                 // if this is a copy view we can release the pinned data
@@ -289,7 +289,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         {
             if (IsDisposed) return;
             IsDisposed = true;
-            Address = IntPtr.Zero;
+            Pointer = IntPtr.Zero;
             ReleaseHandle();
             if (_disposeView) View.Dispose();
         }
