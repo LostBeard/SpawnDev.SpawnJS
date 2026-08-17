@@ -14,7 +14,10 @@ namespace SpawnDev.SpawnJS.Marshallers
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, HeapViewDescriptor value)
         {
-            jsParent.PropertySetHeapView(jsKey, value.Offset, value.Length, value.Copy);
+            // value.Type must be passed: the overload without it defaults to Uint8Array, so a descriptor
+            // written to a named member (a POCO member, a record value) silently lost its view type and
+            // produced a byte view of the same memory.
+            jsParent.PropertySetHeapView(jsKey, value.Offset, value.Length, value.Type, value.Copy);
         }
     }
 }

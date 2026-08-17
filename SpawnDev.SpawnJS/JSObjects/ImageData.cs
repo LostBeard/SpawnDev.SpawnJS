@@ -1,6 +1,3 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -114,13 +111,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="rgbaBytes"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
+        /// <param name="settings"></param>
         /// <returns></returns>
-        public static ImageData FromBytes(byte[] rgbaBytes, double width, double height)
+        public static ImageData FromBytes(byte[] rgbaBytes, double width, double height, ImageDataSettings? settings = null)
         {
-            using var rgbaBytesUint8Array = new Uint8Array(rgbaBytes);
-            using var arrayBuffer = rgbaBytesUint8Array.Buffer;
-            using var rgbaBytesUint8ClampedArray = new Uint8ClampedArray(arrayBuffer);
-            return new ImageData(rgbaBytesUint8ClampedArray, width, height);
+            using var rgbaBytesUint8ClampedArray = HeapView.CreateCopy<byte, Uint8ClampedArray>(rgbaBytes);
+            return settings == null ? new ImageData(rgbaBytesUint8ClampedArray, width, height) : new ImageData(rgbaBytesUint8ClampedArray, width, height, settings);
         }
     }
 }

@@ -12,11 +12,11 @@ namespace SpawnDev.SpawnJS.Marshallers
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, BigInteger value)
         {
-            jsParent.PropertySetWithReviver("BigInt", jsKey, value.ToString());
+            jsParent.PropertySetWithReviver("stringToBigInt", jsKey, value.ToString());
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, BigInteger value)
         {
-            jsParent.PropertySetWithReviver("BigInt", jsKey, value.ToString());
+            jsParent.PropertySetWithReviver("stringToBigInt", jsKey, value.ToString());
         }
     }
     public class BigIntegerNullableMarshaller : JSMarshallerFromString<BigInteger?>
@@ -33,7 +33,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 jsParent.PropertySetNull(jsKey);
                 return;
             }
-            jsParent.PropertySetWithReviver("BigInt", jsKey, value.Value.ToString());
+            jsParent.PropertySetWithReviver("stringToBigInt", jsKey, value.Value.ToString());
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, BigInteger? value)
         {
@@ -42,7 +42,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 jsParent.PropertySetNull(jsKey);
                 return;
             }
-            jsParent.PropertySetWithReviver("BigInt", jsKey, value.Value.ToString());
+            jsParent.PropertySetWithReviver("stringToBigInt", jsKey, value.Value.ToString());
         }
     }
 }

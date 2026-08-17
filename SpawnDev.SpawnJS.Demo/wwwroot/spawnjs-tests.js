@@ -1,129 +1,71 @@
 'strict';
 
-// SpawnJSTests - the Javascript half of the SpawnJS marshaller test suite.
+// SpawnJSTests - the Javascript half of the SpawnJS marshaller tests.
 //
-// WHY THIS FILE EXISTS
-// A marshaller round trip that is verified by reading the value back through the SAME marshaller can
-// pass while both directions are wrong in the same way. Every assertion that matters therefore needs a
-// SECOND instrument on the Javascript side that reports what Javascript actually received, using only
-// primitives (string / number / boolean) that do not depend on the marshaller under test.
+// The .Net side does the work: create data, marshal it, verify it. This file only supplies the two
+// things .Net cannot do on its own:
 //
-// Two jobs:
-//   1. INSPECTION - given a value .Net wrote, report its real Javascript shape (typeof, constructor
-//      chain, element values, view geometry) as a plain string or number.
-//   2. FIXTURES - construct Javascript values .Net cannot construct on its own (BigInt, Date, a rejected
-//      Promise, a TypedArray built JS-side, an object with an explicitly-undefined member) so the
-//      JS -> .Net direction is fed a genuine Javascript value rather than one .Net just wrote.
+//   1. Values that only Javascript can create, for the JS -> .Net direction (undefined, BigInt, Date,
+//      a TypedArray built JS-side, a rejected Promise, a JS function).
+//   2. A read of what Javascript actually got, reported as a primitive - so a marshaller is never
+//      verified only by reading it back through itself.
 //
-// Everything here returns a string, a number or a boolean unless the test is specifically about reading
-// an object back. Strings and numbers cross on the simplest possible paths, so a failure in this file's
-// output is a failure in the thing being measured, not in the ruler.
+// Everything returns a string, number or boolean. No JSON: SpawnJS does not marshal through JSON and
+// neither does the thing measuring it.
 (function () {
     if (globalThis.SpawnJSTests) return;
 
-    // JSON.stringify throws on BigInt, and several fixtures are BigInt on purpose.
-    function jsonReplacer(key, value) {
-        if (typeof value === 'bigint') return `${value}n`;
-        if (typeof value === 'function') return `[function ${value.name || 'anonymous'}]`;
-        if (typeof value === 'undefined') return '[undefined]';
-        return value;
-    }
-
     class SpawnJSTests {
-        // values captured from the most recent capture() call - see capture()
-        static captured = [];
-        // set by the callback fixtures so .Net can confirm a Callback actually ran JS-side
-        static callbackLog = [];
+        // ---- reads: what did Javascript actually receive? ----
 
-        // ******************************************************************************************
-        // INSPECTION - what did Javascript actually receive?
-        // ******************************************************************************************
-
-        // "typeof:MostDerivedConstructorName". The constructor NAME alone cannot identify a derived
-        // type (Object.prototype.toString.call(new TypeError()) is "[object Error]"), so the prototype
-        // chain's first entry is used - that is the real constructor.
+        // "typeof:ConstructorName" from the prototype chain, so a derived type reports itself
+        // (Object.prototype.toString.call(new TypeError()) says "Error", which cannot tell them apart)
         static describe(v) {
-            var t = typeof v;
             if (v === null) return 'object:null';
             if (v === undefined) return 'undefined:undefined';
             var ctor = '';
             try { ctor = Object.getPrototypeOf(v)?.constructor?.name ?? ''; } catch { ctor = '?'; }
-            if (!ctor) {
-                // a null-prototype object, e.g. Object.create(null)
-                ctor = t === 'object' ? 'null-prototype' : t;
-            }
-            return `${t}:${ctor}`;
-        }
-        // the full prototype chain, most derived first, comma joined - "Uint8Array,TypedArray,Object"
-        static chain(v) {
-            var names = [];
-            if (v === null || v === undefined) return '';
-            var o = v;
-            while (1) {
-                o = Object.getPrototypeOf(o);
-                var name = o?.constructor?.name;
-                if (!name) break;
-                if (names.indexOf(name) === -1) names.push(name);
-            }
-            return names.join(',');
+            return `${typeof v}:${ctor || 'null-prototype'}`;
         }
         static typeOf(v) { return typeof v; }
         static isUndefined(v) { return v === undefined; }
         static isNull(v) { return v === null; }
-        // === , so a test can prove two reads returned the SAME Javascript object rather than a clone
         static same(a, b) { return a === b; }
-        static json(v) { return JSON.stringify(v, jsonReplacer) ?? '[undefined]'; }
-        // String(v) works for BigInt and Symbol where JSON.stringify does not
+        // String() rather than a number read, so BigInt, NaN, -0 and Infinity all report themselves
         static str(v) { return v === undefined ? '[undefined]' : v === null ? '[null]' : String(v); }
         static num(v) { return Number(v); }
         static lengthOf(v) { return v === null || v === undefined ? -1 : Number(v.length); }
-        // own enumerable keys only - inherited keys belong to the prototype, not to the value
         static ownKeys(v) { return v === null || v === undefined ? '' : Object.keys(v).join(','); }
-        static hasOwn(v, key) { return v !== null && v !== undefined && Object.hasOwn(Object(v), key); }
-        // "in" is true for an explicitly-undefined member and false for an absent one - the ONLY way to
-        // tell "wrote undefined" apart from "wrote nothing"
+        // "in" is true for a member explicitly set to undefined and false for one never written - the
+        // only way to tell "wrote undefined" from "wrote nothing"
         static hasIn(v, key) { return v !== null && v !== undefined && (key in Object(v)); }
-        // every element stringified and comma joined. Works for BigInt64Array (String(1n) === "1")
-        // where a number-based read would throw, and shows -0/NaN/Infinity as themselves.
+        // every element stringified, comma joined
         static elements(v) {
             if (v === null || v === undefined) return '';
             var out = [];
             for (var i = 0; i < v.length; i++) out.push(String(v[i]));
             return out.join(',');
         }
-        // the raw bytes a view spans, as lowercase hex. This is the byte-for-byte oracle: it reads the
-        // view's own buffer/byteOffset/byteLength rather than trusting the view's element type, so a
-        // view built over the wrong memory or with the wrong element size shows up as wrong bytes.
+        // the bytes the view actually spans, as hex. Reads through the view's own buffer/byteOffset/
+        // byteLength, so a view built over the wrong memory or sized by the wrong element size shows up
+        // as wrong bytes rather than as a well formed TypedArray.
         static bytesHex(v) {
             if (v === null || v === undefined) return '';
-            var bytes = v instanceof ArrayBuffer || (globalThis.SharedArrayBuffer && v instanceof SharedArrayBuffer)
-                ? new Uint8Array(v)
-                : new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+            var isBuffer = v instanceof ArrayBuffer || (globalThis.SharedArrayBuffer && v instanceof SharedArrayBuffer);
+            var bytes = isBuffer ? new Uint8Array(v) : new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
             var out = '';
             for (var i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, '0');
             return out;
         }
-        // view geometry as JSON so one crossing carries every number that matters. Sizing bugs live
-        // here: length is ELEMENTS and byteLength is BYTES, and a view sized by the wrong element size
-        // still looks like a well formed TypedArray until its tail is touched.
-        static viewInfo(v) {
-            if (v === null || v === undefined) return JSON.stringify({ ctor: null });
-            var isBuffer = v instanceof ArrayBuffer || (globalThis.SharedArrayBuffer && v instanceof SharedArrayBuffer);
-            return JSON.stringify({
-                ctor: Object.getPrototypeOf(v)?.constructor?.name ?? '',
-                length: isBuffer ? undefined : v.length,
-                byteLength: v.byteLength,
-                byteOffset: isBuffer ? 0 : v.byteOffset,
-                bytesPerElement: isBuffer ? 1 : (v.constructor.BYTES_PER_ELEMENT ?? 1),
-                bufferByteLength: isBuffer ? v.byteLength : v.buffer.byteLength,
-                onWasmHeap: SpawnJSTests.isOnWasmHeap(v),
-                detached: isBuffer ? !!v.detached : !!v.buffer.detached,
-                // a live heap view carries the descriptor the reviver reattaches from; a copy does not
-                hasHeapViewInfo: !isBuffer && Object.hasOwn(v, '_heapViewInfo'),
-            });
-        }
-        // true when the value's backing buffer IS this app's WebAssembly memory - the difference
-        // between a live view of .Net memory and a copy that merely holds the same bytes
+
+        // ---- view geometry, one scalar per call ----
+        static viewCtor(v) { return Object.getPrototypeOf(v)?.constructor?.name ?? ''; }
+        static viewLength(v) { return Number(v.length); }
+        static viewByteLength(v) { return Number(v.byteLength); }
+        static viewByteOffset(v) { return Number(v.byteOffset ?? 0); }
+        static viewBufferByteLength(v) { return Number((v.buffer ?? v).byteLength); }
+        // true when the backing buffer IS this app's WebAssembly memory - the difference between a live
+        // view of .Net memory and a copy that merely holds the same bytes
         static isOnWasmHeap(v) {
             if (v === null || v === undefined) return false;
             var buffer = v instanceof ArrayBuffer ? v : v.buffer;
@@ -135,55 +77,30 @@
             }
             return false;
         }
-        // writes into a view from Javascript. A live view of .Net memory must make the .Net array
-        // change; a copy must not.
+        // a live heap view carries the descriptor the reviver reattaches from; a copy does not
+        static hasHeapViewInfo(v) { return v !== null && v !== undefined && Object.hasOwn(v, '_heapViewInfo'); }
+
+        // ---- writes from Javascript, to prove a view is live rather than a copy ----
         static writeElement(v, index, value) { v[index] = value; }
-        // BigInt64Array/BigUint64Array reject a plain number, so they need their own writer
         static writeElementBig(v, index, value) { v[index] = BigInt(value); }
-        static readElement(v, index) { return Number(v[index]); }
 
-        // ******************************************************************************************
-        // ARGUMENT CAPTURE - the int-key (call argument) marshalling path
-        // ******************************************************************************************
-        //
-        // .Net writes a property by STRING key and a call argument by INT key, and those are separate
-        // marshaller overloads that can and do drift apart. capture() holds whatever arrived as call
-        // arguments so the int-key path can be inspected with the same instruments as the string path.
-        static capture(...args) {
-            SpawnJSTests.captured = args;
-            return args.length;
-        }
+        // ---- argument capture: the int-key (call argument) path ----
+        // .Net writes a property by STRING key and a call argument by INT key. Those are separate
+        // marshaller overloads that can drift apart, so the argument path needs its own instrument.
+        static captured = [];
+        static capture(...args) { SpawnJSTests.captured = args; return args.length; }
         static capturedAt(index) { return SpawnJSTests.captured[index]; }
-        static capturedDescribe(index) { return SpawnJSTests.describe(SpawnJSTests.captured[index]); }
-        static capturedJson(index) { return SpawnJSTests.json(SpawnJSTests.captured[index]); }
-        static capturedStr(index) { return SpawnJSTests.str(SpawnJSTests.captured[index]); }
-        static capturedElements(index) { return SpawnJSTests.elements(SpawnJSTests.captured[index]); }
-        static capturedViewInfo(index) { return SpawnJSTests.viewInfo(SpawnJSTests.captured[index]); }
-        static capturedBytesHex(index) { return SpawnJSTests.bytesHex(SpawnJSTests.captured[index]); }
-        static clearCaptured() { SpawnJSTests.captured = []; return true; }
 
-        // ******************************************************************************************
-        // FIXTURES - genuine Javascript values for the JS -> .Net direction
-        // ******************************************************************************************
-
+        // ---- fixtures: values only Javascript can create ----
         static undefinedValue() { return undefined; }
         static nullValue() { return null; }
-        static number(n) { return n; }
-        static string(s) { return s; }
-        static bool(b) { return b; }
-        // Number(str) so the test can ask for values a .Net double literal cannot express exactly,
-        // and for NaN / Infinity / -0
         static numberFrom(str) { return Number(str); }
         static bigIntFrom(str) { return BigInt(str); }
         static dateFrom(ms) { return new Date(ms); }
-        static dateStringFrom(ms) { return new Date(ms).toISOString(); }
-        // csv -> a real JS array of numbers
         static numberArray(csv) { return csv === '' ? [] : csv.split(',').map(Number); }
         static stringArray(csv) { return csv === '' ? [] : csv.split(','); }
-        static boolArray(csv) { return csv === '' ? [] : csv.split(',').map(s => s === 'true'); }
-        // an array holding null and undefined, to prove element-level absence survives the crossing
-        static sparseArray() { return [1, null, undefined, 4]; }
-        // kind is a TypedArray constructor name; BigInt views take BigInt elements
+        // an array holding null and undefined, so element-level absence is exercised
+        static arrayWithHoles() { return [1, null, undefined, 4]; }
         static typedArray(kind, csv) {
             var ctor = globalThis[kind];
             if (!ctor) throw new Error(`${kind} is not available in this host`);
@@ -192,84 +109,34 @@
             return ctor.from(parts, s => isBig ? BigInt(s) : Number(s));
         }
         static arrayBufferOf(byteCount) { return new ArrayBuffer(byteCount); }
-        static dataViewOf(byteCount) { return new DataView(new ArrayBuffer(byteCount)); }
-        static objectFromJson(json) { return JSON.parse(json); }
-        // an object whose member is PRESENT but undefined, vs one that is simply absent. .Net reads of
-        // both should agree, and a nullable target must report null for each.
+        static newObject() { return {}; }
+        // a member that is PRESENT but undefined, next to one that is simply absent
         static objectWithUndefinedMember() { return { present: 1, absent: undefined }; }
         static objectWithNullMember() { return { present: 1, absent: null }; }
-        static nullPrototypeObject() { var o = Object.create(null); o.a = 1; return o; }
-        static mapOf(json) { return new Map(Object.entries(JSON.parse(json))); }
-        static setOf(csv) { return new Set(csv === '' ? [] : csv.split(',')); }
-        static errorOf(kind, message) {
-            var ctor = globalThis[kind] ?? Error;
-            return new ctor(message);
-        }
-        static symbolOf(description) { return Symbol(description); }
-        // a Number/String/Boolean OBJECT rather than a primitive - the boxed forms a web API can hand
-        // back, which typeof reports as "object"
-        static boxedNumber(n) { return new Number(n); }
-        static boxedString(s) { return new String(s); }
-
-        // functions, so a .Net delegate read and a JS function write can be told apart
+        static errorOf(kind, message) { return new (globalThis[kind] ?? Error)(message); }
         static identityFunction() { return (v) => v; }
-        static adderFunction() { return (a, b) => a + b; }
-        // invokes a function .Net handed to Javascript, with Javascript-native arguments, and reports
-        // the result. This is the only way to prove a Callback/Delegate marshalled INTO Javascript is
-        // actually callable there.
-        static invoke(fn, ...args) { return fn(...args); }
-        static invokeDescribe(fn, ...args) { return SpawnJSTests.describe(fn(...args)); }
+        // invokes a function .Net handed to Javascript, with Javascript-native arguments - the only way
+        // to prove a Callback/Delegate marshalled INTO Javascript is callable there
+        static invoke(fn, arg1) { return fn(arg1); }
+        static invokeVoid(fn) { fn(); return true; }
 
-        // ******************************************************************************************
-        // PROMISES - including the rejection shapes
-        // ******************************************************************************************
-        //
-        // A rejected promise can carry an Error, a string, a plain object, or nothing at all, and the
-        // .Net side has to turn each into an exception message without losing the reason or hanging.
+        // ---- promises, including every rejection shape ----
         static resolvedPromise(value) { return Promise.resolve(value); }
-        static resolvedPromiseVoid() { return Promise.resolve(); }
         static rejectedPromiseError(message) { return Promise.reject(new Error(message)); }
         static rejectedPromiseTypeError(message) { return Promise.reject(new TypeError(message)); }
         static rejectedPromiseString(message) { return Promise.reject(message); }
-        static rejectedPromiseObject() { return Promise.reject({ code: 42, message: 'object rejection' }); }
         static rejectedPromiseNull() { return Promise.reject(null); }
         static rejectedPromiseUndefined() { return Promise.reject(undefined); }
-        // async so the rejection happens on a later turn of the event loop, not synchronously
+        // rejects on a later turn of the event loop rather than synchronously
         static async asyncThrow(message) { await Promise.resolve(); throw new Error(message); }
         static async asyncReturn(value) { await Promise.resolve(); return value; }
-        static async asyncReturnLate(value, ms) {
-            await new Promise(r => setTimeout(r, ms));
-            return value;
-        }
-        // throws synchronously rather than returning a rejected promise
         static throwSync(message) { throw new Error(message); }
-        // resolves a promise .Net created, after a delay, so the .Net -> JS Promise direction can be
-        // observed settling rather than only being constructed
-        static settleLater(promise, ms) {
-            return promise.then(
-                v => `resolved:${SpawnJSTests.str(v)}`,
-                e => `rejected:${SpawnJSTests.str(e && e.message !== undefined ? e.message : e)}`
-            );
-        }
         // reports how a promise .Net wrote settled, as a plain string
         static promiseOutcome(promise) {
             return Promise.resolve(promise).then(
                 v => `resolved:${SpawnJSTests.str(v)}`,
                 e => `rejected:${SpawnJSTests.str(e && e.message !== undefined ? e.message : e)}`
             );
-        }
-
-        // ******************************************************************************************
-        // SCRATCH TARGETS
-        // ******************************************************************************************
-
-        // a fresh plain object for .Net to write members into, kept off globalThis so a stale test
-        // value can never be mistaken for a fresh write
-        static newTarget() { return {}; }
-        static reset() {
-            SpawnJSTests.captured = [];
-            SpawnJSTests.callbackLog = [];
-            return true;
         }
     }
     globalThis.SpawnJSTests = SpawnJSTests;

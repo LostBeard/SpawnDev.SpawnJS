@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preload" id="webassembly" />
-    <script src="spawnjs-tests.js"></script>
+    <!-- the StaticWebAssetFingerprintPattern in the csproj fingerprints every *.js on publish, so this
+         needs the placeholder like main.js does - without it the published page requests the
+         unfingerprinted name, 404s, and the whole test suite runs with no Javascript half -->
+    <script src="spawnjs-tests#[.{fingerprint}].js"></script>
     <script type="importmap"></script>
     <script type='module' src="main#[.{fingerprint}].js"></script>
     <script>

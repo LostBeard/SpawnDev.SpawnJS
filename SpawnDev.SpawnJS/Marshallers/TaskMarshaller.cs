@@ -77,7 +77,10 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 if (value.IsCompletedSuccessfully)
                 {
-                    JS.InteropCall<double, string, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey);
+                    // the RESULT has to go with it - resolving with nothing hands Javascript a promise
+                    // for undefined, which looks like a working promise and loses the value silently
+                    var returnValue = value.Result;
+                    JS.InteropCall<double, string, T, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey, returnValue);
                 }
                 else
                 {

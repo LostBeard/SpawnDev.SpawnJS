@@ -164,12 +164,12 @@ namespace SpawnDev.SpawnJS
             // Registration order matters: GetMarshaller scans this list in REVERSE, so a marshaller added
             // later takes precedence when more than one reports it can marshal a type. The more specific /
             // higher-priority handlers (arrays, object references) are therefore added last.
-            // .Net POCO <-> plain JS object (property-walk clone, honours Json attributes). Most generic, so
-            // registered FIRST = lowest priority; any more specific marshaller below wins the reverse scan.
+            // .Net POCO <-> plain JS object (property-walk clone, honours Json attributes). Handles class
+            // AND struct POCOs (and Nullable<TStruct>) - a struct differs only in needing a boxed target on
+            // the read, so it does not warrant a second marshaller that would duplicate the whole walk.
+            // Most generic, so registered FIRST = lowest priority; any more specific marshaller below wins
+            // the reverse scan - which is also what keeps this from ever seeing a number, enum or tuple.
             Marshallers.Add(new PocoMarshaller<object>());
-
-            // TODO - possibly can be handled or already handled by the PocoMarshaller
-            //Marshallers.Add(new StructMarshallerFactory());
 
             // .Net IEnumerable<> -> JS: Array
             Marshallers.Add(new IEnumerableMarshaller<string>());           
@@ -235,7 +235,7 @@ namespace SpawnDev.SpawnJS
             // .Net: DateTime? <> <-> JS: String?
             Marshallers.Add(new DateTimeNullableMarshaller());
             // .Net: HeapView? <> -> JS: ArrayBufferView (TypedArray, DataView; copy or persistent)
-            Marshallers.Add(new HeapViewMarshaller());
+            Marshallers.Add(new HeapViewMarshaller<HeapView>());
             // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
             // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
             DotnetInstance = new SpawnJSObjectReference(

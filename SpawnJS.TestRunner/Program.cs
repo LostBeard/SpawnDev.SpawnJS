@@ -33,11 +33,14 @@ for (var i = 0; i < args.Length; i++)
     }
 }
 
+// The app under test is SpawnDev.SpawnJS.Demo: it runs the suite on startup and writes the
+// TEST:/RESULTS: lines this harness parses. (It used to be WasmBrowserDemo, which still targets the
+// SpawnJS 1.0 API through TestsShared and no longer compiles.)
 var repoRoot = FindRepoRoot();
-var demoProject = Path.Combine(repoRoot, "WasmBrowserDemo", "WasmBrowserDemo.csproj");
+var demoProject = Path.Combine(repoRoot, "SpawnDev.SpawnJS.Demo", "SpawnDev.SpawnJS.Demo.csproj");
 if (!File.Exists(demoProject))
 {
-    Console.Error.WriteLine($"Could not find WasmBrowserDemo.csproj (looked in {demoProject})");
+    Console.Error.WriteLine($"Could not find SpawnDev.SpawnJS.Demo.csproj (looked in {demoProject})");
     return 1;
 }
 
@@ -79,7 +82,7 @@ static string FindRepoRoot()
 
 static async Task<(Process?, string)> StartServerAsync(string demoProject)
 {
-    Console.WriteLine("building and starting WasmBrowserDemo...");
+    Console.WriteLine($"building and starting {Path.GetFileNameWithoutExtension(demoProject)}...");
     var psi = new ProcessStartInfo("dotnet", $"run -c Release --project \"{demoProject}\"")
     {
         RedirectStandardOutput = true,
@@ -90,12 +93,14 @@ static async Task<(Process?, string)> StartServerAsync(string demoProject)
     if (process == null) return (null, "");
 
     var urlFound = new TaskCompletionSource<string>();
-    var appUrl = new Regex(@"App url:\s*(http://\S+)", RegexOptions.IgnoreCase);
+    // "App url:" is what a SpawnJS console-style host prints; "Now listening on:" is what the
+    // WebAssembly SDK dev server prints. Accept either so the harness works with both hosts.
+    var appUrl = new Regex(@"(?:App url|Now listening on):\s*(http://\S+)", RegexOptions.IgnoreCase);
     process.OutputDataReceived += (_, e) =>
     {
         if (e.Data == null) return;
         var match = appUrl.Match(e.Data);
-        if (match.Success) urlFound.TrySetResult(match.Groups[1].Value);
+        if (match.Success) urlFound.TrySetResult(match.Groups[1].Value.TrimEnd('/'));
     };
     process.BeginOutputReadLine();
     process.BeginErrorReadLine();
