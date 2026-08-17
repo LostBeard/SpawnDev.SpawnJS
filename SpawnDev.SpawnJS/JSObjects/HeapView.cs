@@ -310,24 +310,24 @@ namespace SpawnDev.SpawnJS.JSObjects
         //        return As(typedArrayType);
         //    }
         //}
-        ///// <summary>
-        ///// Returns a TypedArray copy based on the ElementType
-        ///// </summary>
-        ///// <returns></returns>
-        //public SpawnJSObject ToNativeView()
-        //{
-        //    if (DataType == typeof(string))
-        //    {
-        //        using var textDecoder = new TextDecoder("utf-16");
-        //        var jsString = textDecoder.JSRef!.Call<Uint8Array, StringPrimitive>("decode", (Uint8Array)this);
-        //        return jsString;
-        //    }
-        //    else
-        //    {
-        //        var typedArrayType = TypedArray.GetTypeDefaultTypedArrayType(ElementType) ?? typeof(Uint8Array);
-        //        return To(typedArrayType);
-        //    }
-        //}
+        /// <summary>
+        /// Returns a TypedArray copy based on the ElementType
+        /// </summary>
+        /// <returns></returns>
+        public SpawnJSObject ToNativeView()
+        {
+            if (DataType == typeof(string))
+            {
+                using var textDecoder = new TextDecoder("utf-16");
+                var jsString = textDecoder.JSRef!.Call<Uint8Array, StringPrimitive>("decode", (Uint8Array)this);
+                return jsString;
+            }
+            else
+            {
+                var typedArrayType = TypedArray.GetTypeDefaultTypedArrayType(ElementType) ?? typeof(Uint8Array);
+                return To(typedArrayType);
+            }
+        }
         /// <summary>
         /// The number of elements in Data
         /// </summary>
