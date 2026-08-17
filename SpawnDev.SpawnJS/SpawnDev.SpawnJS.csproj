@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.0.13</Version>
-		<PackageReleaseNotes>v2.0.13 - Fix: added INumberNullableMarshaller so JSRef.Get&lt;long?&gt; (and other nullable numeric reads) correctly read JS numbers instead of null. Regressed WebGPU device limits (maxStorageBufferBindingSize/maxBufferSize are long?) to the 128 MiB default. v2.0.12 - Added HTMLTemplateElement wrapper (Content) and Element.SetInnerHTML(TrustedHTML).</PackageReleaseNotes>
+		<Version>2.0.15</Version>
+		<PackageReleaseNotes>v2.0.15 - Fixed rejected promise call issue.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {
@@ -14,15 +16,18 @@ namespace SpawnDev.SpawnJS.JSObjects
             /// </summary>
             /// <typeparam name="T">SpawnJSObject type</typeparam>
             /// <returns>The ElementReference as a SpawnJSObject of type T</returns>
-            public T As<T>() where T : SpawnJSObject
+            [SupportedOSPlatform("browser")]
+            public T As<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() where T : SpawnJSObject
             {
                 var ipJS = elementReference.AsSpawnJSObjectReference();
                 return ipJS == null ? null! : (T)Activator.CreateInstance(typeof(T), ipJS)!;
             }
+
             /// <summary>
             /// Return the ElementReference as a SpawnJSObjectReference
             /// </summary>
             /// <returns>The ElementReference as a SpawnJSObjectReference</returns>
+            [SupportedOSPlatform("browser")]
             public SpawnJSObjectReference? AsSpawnJSObjectReference()
             {
                 SpawnJSObjectReference? ret = default!;

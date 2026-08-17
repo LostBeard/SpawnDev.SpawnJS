@@ -185,6 +185,7 @@
             } catch (ex) {
                 // call the exceptionCallbackId
                 error = SpawnJSInterop.errorToString(ex);
+                ret = null;
             }
             switch (returnType) {
                 case 0: // void
