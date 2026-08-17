@@ -144,10 +144,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static Uint8Array Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset = 0) where T : struct
+        public static Uint8Array Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset = 0) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset);
-            return heapView.To<Uint8Array>();
+            return HeapView.CreateCopy<T, Uint8Array>(new Memory<T>(data, offset, data.Length));
         }
         /// <summary>
         /// Returns a copy of the struct array as a new Uint8Array
@@ -157,33 +156,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static Uint8Array Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset, long length) where T : struct
+        public static Uint8Array Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset, int length) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset, length);
-            return heapView.To<Uint8Array>();
-        }
-        /// <summary>
-        /// Returns a copy of the string as a new Uint8Array
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static Uint8Array Create(string data, long offset, long length)
-        {
-            using var heapView = HeapView.Create(data, offset, length);
-            return heapView.To<Uint8Array>();
-        }
-        /// <summary>
-        /// Returns a copy of string as a new Uint8Array
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static Uint8Array Create(string data, long offset = 0)
-        {
-            using var heapView = HeapView.Create(data, offset);
-            return heapView.To<Uint8Array>();
+            return HeapView.CreateCopy<T, Uint8Array>(new Memory<T>(data, offset, length));
         }
     }
 }

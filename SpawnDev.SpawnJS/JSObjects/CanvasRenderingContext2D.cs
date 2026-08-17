@@ -1,6 +1,7 @@
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
+using System.Data.SqlTypes;
 namespace SpawnDev.SpawnJS.JSObjects
 {
     /// <summary>
@@ -278,21 +279,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         public void PutImageBytes(byte[] srcBytes, double srcWidth, double srcHeight, double dx = 0, double dy = 0)
         {
             // using a HeapView prevents a copy of the data from being made before the draw.
-            using var srcHeapView = (HeapView)srcBytes;
-            using var uint8ClampedArray = srcHeapView.As<Uint8ClampedArray>();
-            using var imageData = new ImageData(uint8ClampedArray, (uint)srcWidth, (uint)srcHeight);
+            using var srcHeapView = HeapView.Create<byte, Uint8ClampedArray>(srcBytes);
+            using var imageData = new ImageData(srcHeapView.View, (uint)srcWidth, (uint)srcHeight);
             PutImageData(imageData, dx, dy);
         }
 
         /// <summary>
         /// PutImageData using byte[]
         /// </summary>
-        public void PutImageBytes(byte[] imageBytes, double srcWidth, double srcHeight, double dx, double dy, double dirtyX, double dirtyY, double dirtyWidth, double dirtyHeight)
+        public void PutImageBytes(byte[] srcBytes, double srcWidth, double srcHeight, double dx, double dy, double dirtyX, double dirtyY, double dirtyWidth, double dirtyHeight)
         {
             // using a HeapView prevents a copy of the data from being made before the draw.
-            using var srcHeapView = (HeapView)imageBytes;
-            using var uint8ClampedArray = srcHeapView.As<Uint8ClampedArray>();
-            using var imageData = new ImageData(uint8ClampedArray, (uint)srcWidth, (uint)srcHeight);
+            using var srcHeapView = HeapView.Create<byte, Uint8ClampedArray>(srcBytes);
+            using var imageData = new ImageData(srcHeapView.View, (uint)srcWidth, (uint)srcHeight);
             PutImageData(imageData, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
         }
 

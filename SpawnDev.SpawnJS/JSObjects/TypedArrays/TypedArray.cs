@@ -347,9 +347,8 @@ namespace SpawnDev.SpawnJS.JSObjects
             if (bytesMax < bytesToCopy) throw new NotImplementedException($"Write out of bounds: {typeof(T).Name}");
             // create a TypedArray that starts at destByteOffset and with an element of type T
             using var thisTyped = ReCast<Uint8Array>(destByteOffset, bytesToCopy);
-            using var heapView = HeapView.Create(srcData, srcOffset, length);
-            using var typedArray = heapView.As<Uint8Array>();
-            thisTyped.Set(typedArray);
+            using var heapView = HeapView.Create<T, Uint8Array>(new Memory<T>(srcData, (int)srcOffset, (int)length));
+            thisTyped.Set(heapView.View);
         }
         /// <summary>
         /// Copies an array of type T from this TypedArray
@@ -357,8 +356,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="T"></typeparam>
         /// <param name="srcByteOffset"></param>
         /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
+        /// <param name="offset">destination element offset</param>
+        /// <param name="count">number of elements to copy</param>
         /// <returns></returns>
         public long Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcByteOffset, T[] buffer, long offset, long count) where T : struct
         {
@@ -372,10 +371,9 @@ namespace SpawnDev.SpawnJS.JSObjects
             {
                 var byteLength = count * tSize;
                 using var thisTyped = ReCast<Uint8Array>(srcByteOffset, byteLength);
-                using var heapView = HeapView.Create(buffer);
-                using var typedArray = heapView.As<Uint8Array>();
+                using var heapView = HeapView.Create<T, Uint8Array>(buffer);
                 var destByteOffset = offset * tSize;
-                typedArray.Set(thisTyped, destByteOffset);
+                heapView.View.Set(thisTyped, destByteOffset);
             }
             return count;
         }
@@ -389,21 +387,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <exception cref="NotImplementedException"></exception>
         public T[] Read<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(long srcByteOffset, long count) where T : struct
         {
-            if (srcByteOffset < 0) new IndexOutOfRangeException(nameof(srcByteOffset));
-            if (count == 0) return new T[0];
-            var tSize = Marshal.SizeOf<T>();
-            var byteLength = count * tSize;
-            var bytesMax = ByteLength - srcByteOffset;
-            if (bytesMax < byteLength) throw new IndexOutOfRangeException(nameof(srcByteOffset));
-            var buffer = new T[count];
-            if (count > 0)
-            {
-                using var sourceUint8Array = ReCast<Uint8Array>(srcByteOffset, byteLength);
-                using var heapView = HeapView.Create(buffer);
-                using var typedArray = heapView.As<Uint8Array>();
-                typedArray.Set(sourceUint8Array);
-            }
-            return buffer;
+            var ret = new T[count];
+            var readCount = Read<T>(srcByteOffset, ret, 0, count);
+            return ret;
         }
         /// <summary>
         /// Read type T from this TypedArray

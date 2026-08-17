@@ -164,9 +164,8 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             Writer ??= FSStream.GetWriter();
             // use HeapView to create fast copy of the buffer source region to a new Uint8Array
-            using var bufferView = new HeapView<byte>(buffer, offset, count);
-            using var tmpUint8Array = bufferView.To<Uint8Array>();
-            await Writer.Write(tmpUint8Array);
+            using var bufferView = HeapView.CreateCopy<byte, Uint8Array>(new Memory<byte>(buffer, offset, count));
+            await Writer.Write(bufferView);
             _Position += count;
             _PositionReal = _Position;
             if (Position > Length)

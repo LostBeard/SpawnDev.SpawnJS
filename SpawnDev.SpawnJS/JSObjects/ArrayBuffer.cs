@@ -19,77 +19,71 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public bool IsArrayBuffer => JSRef!.Get<string>("constructor.name") == nameof(ArrayBuffer);
         /// <summary>
-        /// Explicit conversion to ArrayBuffer.<br/>
+        /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(string data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(byte[] data) => HeapView.CreateCopy<byte, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(byte[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(ushort[] data) => HeapView.CreateCopy<ushort, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(ushort[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(uint[] data) => HeapView.CreateCopy<uint, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(uint[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(ulong[] data) => HeapView.CreateCopy<ulong, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(ulong[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(sbyte[] data) => HeapView.CreateCopy<sbyte, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(sbyte[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(short[] data) => HeapView.CreateCopy<short, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(short[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(int[] data) => HeapView.CreateCopy<int, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(int[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(long[] data) => HeapView.CreateCopy<long, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(long[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(Half[] data) => HeapView.CreateCopy<Half, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(Half[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(float[] data) => HeapView.CreateCopy<float, ArrayBuffer>(data);
         /// <summary>
         /// Explicit conversion to ArrayBuffer<br/>
         /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
         /// </summary>
         /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(float[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
-        /// <summary>
-        /// Explicit conversion to ArrayBuffer<br/>
-        /// This cast uses the HeapView class for a fast copy into a new ArrayBuffer.
-        /// </summary>
-        /// <param name="data">Data to copy to a new ArrayBuffer</param>
-        public static explicit operator ArrayBuffer(double[] data) => HeapView.Create(data).Using(o => o.ToArrayBuffer());
+        public static explicit operator ArrayBuffer(double[] data) => HeapView.CreateCopy<double, ArrayBuffer>(data);
         /// <summary>
         /// Returns a copy of the struct array as a new ArrayBuffer
         /// </summary>
@@ -97,10 +91,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset = 0) where T : struct
+        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset = 0) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset);
-            return heapView.ToArrayBuffer();
+            using var heapView = HeapView.CreateCopy<T, ArrayBuffer>(new Memory<T>(data, offset, data.Length));
+            return heapView;
         }
         /// <summary>
         /// Returns a copy of the struct array as a new ArrayBuffer
@@ -110,33 +104,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset, long length) where T : struct
+        public static ArrayBuffer Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset, int length) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset, length);
-            return heapView.ToArrayBuffer();
-        }
-        /// <summary>
-        /// Returns a copy of the string as a new ArrayBuffer
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static ArrayBuffer Create(string data, long offset, long length)
-        {
-            using var heapView = HeapView.Create(data, offset, length);
-            return heapView.ToArrayBuffer();
-        }
-        /// <summary>
-        /// Returns a copy of the string as a new ArrayBuffer
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="offset"></param>
-        /// <returns></returns>
-        public static ArrayBuffer Create(string data, long offset = 0)
-        {
-            using var heapView = HeapView.Create(data, offset);
-            return heapView.ToArrayBuffer();
+            using var heapView = HeapView.CreateCopy<T, ArrayBuffer>(new Memory<T>(data, offset, length));
+            return heapView;
         }
         /// <summary>
         /// Returns a copy of the Javascript ArrayBuffer as a .Net byte[]

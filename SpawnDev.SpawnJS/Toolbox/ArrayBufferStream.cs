@@ -212,10 +212,9 @@ namespace SpawnDev.SpawnJS.Toolbox
             // get a source subarray view to copy from
             using var sourceSub = Source.SubArray(_Position, end);
             // get a heap view of the destination in buffer using the offset and count
-            using var heapView = HeapView.Create(buffer);
-            using var typedArray = heapView.As<Uint8Array>();
+            using var heapView = HeapView.Create(new Memory<byte>(buffer, offset, count));
             // write the source subarray view to the destination
-            typedArray.Set(sourceSub, offset);
+            heapView.View.Set(sourceSub, offset);
             _Position = end;
             return byteCount;
         }
@@ -287,9 +286,8 @@ namespace SpawnDev.SpawnJS.Toolbox
         {
             if (Source == null) throw new ObjectDisposedException(nameof(Source));
             if (ReadOnly) throw new NotSupportedException("Stream is in read-only mode");
-            using var heapView = HeapView.Create(buffer, offset, count);
-            using var typedArray = heapView.As<Uint8Array>();
-            Source.Set(typedArray, _Position);
+            using var heapView = HeapView.Create(new Memory<byte>(buffer, offset, count));
+            Source.Set(heapView.View, _Position);
             _Position += heapView.ByteLength;
         }
         /// <summary>

@@ -360,10 +360,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="data"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static DataView Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset = 0) where T : struct
+        public static DataView Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset = 0) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset);
-            return heapView.ToDataView();
+            return HeapView.CreateCopy<T, DataView>(new Memory<T>(data, offset, data.Length));
         }
         /// <summary>
         /// Returns a copy of the struct array as a new DataView
@@ -373,10 +372,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public static DataView Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, long offset, long length) where T : struct
+        public static DataView Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T[] data, int offset, int length) where T : struct
         {
-            using var heapView = HeapView.Create(data, offset, length);
-            return heapView.ToDataView();
+            return HeapView.CreateCopy<T, DataView>(new Memory<T>(data, offset, length));
         }
     }
 }

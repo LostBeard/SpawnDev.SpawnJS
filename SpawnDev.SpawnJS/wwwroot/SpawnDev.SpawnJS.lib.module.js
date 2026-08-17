@@ -310,8 +310,10 @@
             return `${jsType} ${jsClass}`;
         }
 
+        // **************************************************************************************
         // SpawnJSObjectReference imports
         // Note: only `string key` imports shown. Also exists: `double key`, `int key`
+        // **************************************************************************************
 
         // property info
         // returns string or null if the property was not found

@@ -57,7 +57,7 @@
         {
             using var textDecoder = new TextDecoder("utf-16");
             using var heapView = HeapView.Create(source);
-            return textDecoder.DecodeToPrimitive((Uint8Array)heapView);
+            return textDecoder.DecodeToPrimitive(heapView.View);
         }
         /// <summary>
         /// Returns the primitive string as a .Net string
