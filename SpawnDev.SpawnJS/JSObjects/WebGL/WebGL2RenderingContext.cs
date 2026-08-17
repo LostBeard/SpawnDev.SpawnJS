@@ -174,8 +174,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         public void GetBufferSubData(GLenum target, GLintptr srcByteOffset, byte[] dstData, GLuint dstOffset = 0, GLuint length = 0)
         {
             // pin the array using HeapView so it doesn't get moved by the GC while we're working with it 
-            using var heapView = new HeapView<byte, Uint8Array>(dstData);
-            JSRef!.CallVoid("getBufferSubData", target, srcByteOffset, heapView.View, dstOffset, length);
+            using var heapView = HeapView.Create(dstData);
+            GetBufferSubData(target, srcByteOffset, heapView.View, dstOffset, length);
         }
         #endregion
 

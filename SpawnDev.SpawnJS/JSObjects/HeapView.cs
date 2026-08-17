@@ -83,8 +83,186 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Create a HeapView
         /// </summary>
+        public static HeapView<byte, Uint8Array> Create(nint source, int length, bool copy = false)
+            => new HeapView<byte, Uint8Array>(source, length, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
         public static HeapView<char, Uint8Array> Create(string source)
             => new HeapView<char, Uint8Array>(source);
+
+        #region Create-ReadOnlyMemory-Copy
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint8Array CreateCopy(ReadOnlyMemory<byte> source)
+            => Create<byte, Uint8Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint16Array CreateCopy(ReadOnlyMemory<ushort> source)
+            => Create<ushort, Uint16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint32Array CreateCopy(ReadOnlyMemory<uint> source)
+            => Create<uint, Uint32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static BigUint64Array CreateCopy(ReadOnlyMemory<ulong> source)
+            => Create<ulong, BigUint64Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int8Array CreateCopy(ReadOnlyMemory<sbyte> source)
+            => Create<sbyte, Int8Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int16Array CreateCopy(ReadOnlyMemory<short> source)
+            => Create<short, Int16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int32Array CreateCopy(ReadOnlyMemory<int> source)
+            => Create<int, Int32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static BigInt64Array CreateCopy(ReadOnlyMemory<long> source)
+            => Create<long, BigInt64Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float16Array CreateCopy(ReadOnlyMemory<Half> source)
+            => Create<Half, Float16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float32Array CreateCopy(ReadOnlyMemory<float> source)
+            => Create<float, Float32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float64Array CreateCopy(ReadOnlyMemory<double> source)
+            => Create<double, Float64Array>(source, true);
+        #endregion
+        #region Create-Memory-Copy
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint8Array CreateCopy(Memory<byte> source)
+            => Create<byte, Uint8Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint16Array CreateCopy(Memory<ushort> source)
+            => Create<ushort, Uint16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Uint32Array CreateCopy(Memory<uint> source)
+            => Create<uint, Uint32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static BigUint64Array CreateCopy(Memory<ulong> source)
+            => Create<ulong, BigUint64Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int8Array CreateCopy(Memory<sbyte> source)
+            => Create<sbyte, Int8Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int16Array CreateCopy(Memory<short> source)
+            => Create<short, Int16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Int32Array CreateCopy(Memory<int> source)
+            => Create<int, Int32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static BigInt64Array CreateCopy(Memory<long> source)
+            => Create<long, BigInt64Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float16Array CreateCopy(Memory<Half> source)
+            => Create<Half, Float16Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float32Array CreateCopy(Memory<float> source)
+            => Create<float, Float32Array>(source, true);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static Float64Array CreateCopy(Memory<double> source)
+            => Create<double, Float64Array>(source, true);
+        #endregion
+        #region Create-ReadOnlyMemory
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<byte, Uint8Array> Create(ReadOnlyMemory<byte> source, bool copy = false)
+            => Create<byte, Uint8Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<ushort, Uint16Array> Create(ReadOnlyMemory<ushort> source, bool copy = false)
+            => Create<ushort, Uint16Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<uint, Uint32Array> Create(ReadOnlyMemory<uint> source, bool copy = false)
+            => Create<uint, Uint32Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<ulong, BigUint64Array> Create(ReadOnlyMemory<ulong> source, bool copy = false)
+            => Create<ulong, BigUint64Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<sbyte, Int8Array> Create(ReadOnlyMemory<sbyte> source, bool copy = false)
+            => Create<sbyte, Int8Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<short, Int16Array> Create(ReadOnlyMemory<short> source, bool copy = false)
+            => Create<short, Int16Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<int, Int32Array> Create(ReadOnlyMemory<int> source, bool copy = false)
+            => Create<int, Int32Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<long, BigInt64Array> Create(ReadOnlyMemory<long> source, bool copy = false)
+            => Create<long, BigInt64Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<Half, Float16Array> Create(ReadOnlyMemory<Half> source, bool copy = false)
+            => Create<Half, Float16Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<float, Float32Array> Create(ReadOnlyMemory<float> source, bool copy = false)
+            => Create<float, Float32Array>(source, copy);
+        /// <summary>
+        /// Create a HeapView
+        /// </summary>
+        public static HeapView<double, Float64Array> Create(ReadOnlyMemory<double> source, bool copy = false)
+            => Create<double, Float64Array>(source, copy);
+        #endregion
+        #region Create-Memory
         /// <summary>
         /// Create a HeapView
         /// </summary>
@@ -140,8 +318,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public static HeapView<double, Float64Array> Create(Memory<double> source, bool copy = false)
             => Create<double, Float64Array>(source, copy);
+        #endregion
 
-
+        /// <summary>
+        /// Create a copy or live view of Memory as a TypedArray, DataView, ArrayBuffer, or SharedArrayBuffer adn return the HeapView
+        /// </summary>
+        public static HeapView<TElement, TTypedArray> Create<TElement, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTypedArray>(ReadOnlyMemory<TElement> source, bool copy = false)
+            where TTypedArray : SpawnJSObject where TElement : struct
+            => new HeapView<TElement, TTypedArray>(source, copy);
         /// <summary>
         /// Create a copy or live view of Memory as a TypedArray, DataView, ArrayBuffer, or SharedArrayBuffer adn return the HeapView
         /// </summary>
@@ -152,6 +336,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Create a copy of Memory as a TypedArray, DataView, ArrayBuffer, or SharedArrayBuffer and reutrn the JS view
         /// </summary>
         public static TTypedArray CreateCopy<TElement, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTypedArray>(Memory<TElement> source)
+            where TTypedArray : SpawnJSObject
+            where TElement : struct
+        {
+            var view = new HeapView<TElement, TTypedArray>(source, true);
+            return view.TakeViewAndDispose();
+        }
+        /// <summary>
+        /// Create a copy of Memory as a TypedArray, DataView, ArrayBuffer, or SharedArrayBuffer and reutrn the JS view
+        /// </summary>
+        public static TTypedArray CreateCopy<TElement, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTypedArray>(ReadOnlyMemory<TElement> source)
             where TTypedArray : SpawnJSObject
             where TElement : struct
         {
@@ -231,7 +425,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The source Memory object
         /// </summary>
         private Memory<TElement>? _memorySource { get; set; }
+        private ReadOnlyMemory<TElement>? _memoryReadOnlySource { get; set; }
         private MemoryHandle? _memoryHandle;
+
         GCHandle? _stringHandle;
         /// <summary>
         /// Creates a fresh view copy (no-op if Copy == false)
@@ -244,9 +440,18 @@ namespace SpawnDev.SpawnJS.JSObjects
                 // no point in refreshing string copies as the data does not change (they are immutable)
                 return;
             }
+            // pin, get pointer, copy to JS, unpin
             if (_memorySource != null)
             {
                 _memoryHandle = _memorySource.Value.Pin();
+                unsafe
+                {
+                    Pointer = new nint(_memoryHandle.Value.Pointer);
+                }
+            }
+            else if (_memoryReadOnlySource != null)
+            {
+                _memoryHandle = _memoryReadOnlySource.Value.Pin();
                 unsafe
                 {
                     Pointer = new nint(_memoryHandle.Value.Pointer);
@@ -285,6 +490,25 @@ namespace SpawnDev.SpawnJS.JSObjects
         {
             _memoryHandle?.Dispose();
             _stringHandle?.Free();
+        }
+        public HeapView(ReadOnlyMemory<TElement> source, bool copy = false)
+        {
+            Copy = copy;
+            _memoryReadOnlySource = source;
+            _memoryHandle = _memoryReadOnlySource.Value.Pin();
+            unsafe
+            {
+                Pointer = new nint(_memoryHandle.Value.Pointer);
+            }
+            ElementCount = _memorySource.Value.Length;
+            ByteLength = ElementCount * Unsafe.SizeOf<TElement>();
+            ViewType = JSArrayBufferViewTypes.TryGetValue(typeof(TView), out var viewFn) ? viewFn : throw new NotImplementedException($"Unsupported view type: {typeof(TView).Name}");
+            View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ViewLength, ViewType, Copy));
+            if (Copy)
+            {
+                // if this is a copy view we can release the pinned data
+                ReleaseHandle();
+            }
         }
         public HeapView(Memory<TElement> source, bool copy = false)
         {
