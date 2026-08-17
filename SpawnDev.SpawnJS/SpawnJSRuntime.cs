@@ -493,7 +493,7 @@ namespace SpawnDev.SpawnJS
         public static void IDisposableFinalizerAlert<T>(T obj, string creationStackTrace) where T : IDisposable
         {
             // Log clearly to the browser console/standard error
-            Console.Error.WriteLine(
+            Console.WriteLine(
                 $"WARNING: {obj.GetType().FullName} was garbage collected but was never Disposed.\n" +
                 $"Allocation stack trace:\n{creationStackTrace}\n"
             );
