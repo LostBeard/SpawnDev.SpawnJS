@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -547,6 +548,8 @@ namespace SpawnDev.SpawnJS.JSObjects
         ~HeapView()
         {
             Dispose(false);
+            if (SpawnJSRuntime.EnableIDisposableWatcher && _creationStackTrace != null) SpawnJSRuntime.IDisposableFinalizerAlert(this, _creationStackTrace);
         }
+        private readonly string? _creationStackTrace = SpawnJSRuntime.EnableIDisposableWatcher ? new StackTrace(true).ToString() : null;
     }
 }

@@ -1,4 +1,5 @@
 using SpawnDev.SpawnJS.Marshaller;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -250,6 +251,8 @@ namespace SpawnDev.SpawnJS
         ~SpawnJSObjectReference()
         {
             Dispose(false);
+            if (SpawnJSRuntime.EnableIDisposableWatcher && _creationStackTrace != null) SpawnJSRuntime.IDisposableFinalizerAlert(this, _creationStackTrace);
         }
+        private readonly string? _creationStackTrace = SpawnJSRuntime.EnableIDisposableWatcher ? new StackTrace(true).ToString() : null;
     }
 }

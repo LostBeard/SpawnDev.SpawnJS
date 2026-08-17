@@ -488,5 +488,15 @@ namespace SpawnDev.SpawnJS
         /// Calls fetch
         /// </summary>
         public Task<Response> Fetch(string resource, FetchOptions options) => CallAsync<string, FetchOptions, Response>("fetch", resource, options);
+
+        public static bool EnableIDisposableWatcher { get; set; }
+        public static void IDisposableFinalizerAlert<T>(T obj, string creationStackTrace) where T : IDisposable
+        {
+            // Log clearly to the browser console/standard error
+            Console.Error.WriteLine(
+                $"WARNING: {obj.GetType().FullName} was garbage collected but was never Disposed.\n" +
+                $"Allocation stack trace:\n{creationStackTrace}\n"
+            );
+        }
     }
 }

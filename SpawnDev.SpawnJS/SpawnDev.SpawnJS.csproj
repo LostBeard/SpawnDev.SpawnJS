@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.2</Version>
-		<PackageReleaseNotes>v2.1.2 - Added support for ReadOnlyMemory in HeapView</PackageReleaseNotes>
+		<Version>2.1.4</Version>
+		<PackageReleaseNotes>v2.1.4 - Added IDisposable finalizer watcher</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
