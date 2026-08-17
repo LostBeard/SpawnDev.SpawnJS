@@ -181,6 +181,9 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new StringMarshaller());
             // .Net: INumber<> <-> JS: Number
             Marshallers.Add(new INumberMarshaller<float>());
+            // .Net: Nullable<INumber<>> <-> JS: Number? (catch-all for long?/ulong?/short?/... - added before the
+            // specific int?/double?/BigInteger? nullable marshallers so, with the reverse scan, those still win)
+            Marshallers.Add(new INumberNullableMarshaller<float>());
             // .Net: double <-> JS: Number
             Marshallers.Add(new DoubleMarshaller());
             // .Net: double? <-> JS: Number?

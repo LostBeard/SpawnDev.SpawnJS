@@ -261,6 +261,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public string InnerHTML { get => JSRef!.Get<string>("innerHTML"); set => JSRef!.Set("innerHTML", value); }
         /// <summary>
+        /// Sets innerHTML from a policy-approved <see cref="TrustedHTML"/>. innerHTML is a Trusted Types
+        /// injection sink: on a page whose CSP enforces <c>require-trusted-types-for 'script'</c> (e.g. YouTube,
+        /// Gmail) the plain-string setter throws <c>TypeError: This document requires 'TrustedHTML'</c>, so code
+        /// that may run on such a page must pass a TrustedHTML produced by a Trusted Type policy instead.
+        /// </summary>
+        /// <param name="html">A TrustedHTML instance produced by a Trusted Type policy.</param>
+        public void SetInnerHTML(TrustedHTML html) => JSRef!.Set("innerHTML", html);
+        /// <summary>
         /// Returns the last child element of this element.
         /// </summary>
         public Element? LastElementChild => JSRef!.Get<Element?>("lastElementChild");

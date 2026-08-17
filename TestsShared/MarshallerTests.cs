@@ -105,6 +105,66 @@ namespace TestsShared
             if (value != null) throw new Exception($"null produced EnumString '{value.String}'");
         }
 
+        // ---------------------------------------------------------------- Nullable numerics (long?/ushort?/...)
+
+        /// <summary>
+        /// Reading a genuine Javascript number back as <c>long?</c>. This is the exact shape that regressed in
+        /// the BlazorJS-&gt;SpawnJS move: WebGPU adapter/device limits (maxStorageBufferBindingSize, maxBufferSize)
+        /// are exposed as <c>long?</c>, and before <c>INumberNullableMarshaller</c> a <c>long?</c> read found no
+        /// numeric marshaller and came back <c>null</c> - so the WebGPU device fell back to the 128 MiB default
+        /// storage-buffer limit. <c>int?</c>/<c>double?</c> had their own marshallers and worked; <c>long?</c>
+        /// did not.
+        /// </summary>
+        [SpawnJSTest]
+        public async Task NullableLongReadsJavascriptNumberTest()
+        {
+            JS.Set(Key, 2147483644d);   // a real JS number, as a WebGPU limit is exposed
+            try
+            {
+                var v = JS.Get<long?>(Key);
+                if (v is null) throw new Exception("long? read a JS number as null - INumberNullableMarshaller missing?");
+                if (v.Value != 2147483644L) throw new Exception($"long? read {v.Value}, expected 2147483644");
+            }
+            finally { JS.Delete(Key); }
+        }
+
+        /// <summary>A <c>long?</c> must round trip through Javascript in both directions.</summary>
+        [SpawnJSTest]
+        public async Task NullableLongRoundTripsTest()
+        {
+            var v = RoundTrip<long?>(2147483644L);
+            if (v != 2147483644L) throw new Exception($"long? round tripped to {v?.ToString() ?? "null"}, expected 2147483644");
+        }
+
+        /// <summary>A null <c>long?</c> stays null across the round trip (not 0).</summary>
+        [SpawnJSTest]
+        public async Task NullableLongNullRoundTripsAsNullTest()
+        {
+            var v = RoundTrip<long?>(null);
+            if (v != null) throw new Exception($"null produced long? {v}");
+        }
+
+        /// <summary>
+        /// The marshaller is generic over <see cref="System.Numerics.INumber{TSelf}"/>, so every other nullable
+        /// numeric (ushort?/uint?/ulong?/short?/...) reads a JS number too - not just <c>long?</c>. Proves the
+        /// fix is the general one, and that it does not collide with the specific <c>int?</c>/<c>double?</c>
+        /// marshallers (which still win for those types).
+        /// </summary>
+        [SpawnJSTest]
+        public async Task OtherNullableNumericsReadJavascriptNumberTest()
+        {
+            JS.Set(Key, 40000d);
+            try
+            {
+                if (JS.Get<ushort?>(Key) != (ushort)40000) throw new Exception($"ushort? read {JS.Get<ushort?>(Key)?.ToString() ?? "null"}");
+                if (JS.Get<uint?>(Key) != 40000u) throw new Exception($"uint? read {JS.Get<uint?>(Key)?.ToString() ?? "null"}");
+                if (JS.Get<ulong?>(Key) != 40000UL) throw new Exception($"ulong? read {JS.Get<ulong?>(Key)?.ToString() ?? "null"}");
+                if (JS.Get<int?>(Key) != 40000) throw new Exception($"int? (specific marshaller) read {JS.Get<int?>(Key)?.ToString() ?? "null"}");
+                if (JS.Get<double?>(Key) != 40000d) throw new Exception($"double? (specific marshaller) read {JS.Get<double?>(Key)?.ToString() ?? "null"}");
+            }
+            finally { JS.Delete(Key); }
+        }
+
         // ---------------------------------------------------------------- EpochDateTime
 
         /// <summary>
