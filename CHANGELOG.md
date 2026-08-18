@@ -1,6 +1,38 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to SpawnDev.SpawnJS.
+
+## [2.1.7] - 2026-08-18
+
+### Fixed
+
+- **`HeapView`'s `ReadOnlyMemory<T>` constructor was dead** (`JSObjects/HeapView.cs`). It sized the
+  view from `_memorySource` - the field only the `Memory<T>` constructor sets - so every call threw
+  `InvalidOperationException: InvalidOperation_NoValue` before the view was ever created. That killed
+  `HeapView.Create(ReadOnlyMemory<T>)`, `HeapView.CreateCopy(ReadOnlyMemory<T>)` and everything built
+  on them; in SpawnDev.WebTorrent it took out every browser OPFS piece write
+  (`OpfsChunkStore.PutAsync`). A `T[]` argument binds to the `Memory<T>` overload, so the whole
+  library and its test suite went through the working lane and nothing noticed.
+
+- **Disposing a `HeapView` whose constructor threw no longer takes down the runtime.** `Dispose(bool)`
+  dereferenced `View`, which is null on an instance whose constructor threw before assigning it. The
+  instance is still finalized, and an exception escaping a finalizer is fatal on the .NET WASM
+  runtime: it exits with 255 and every later interop call fails with `Assert failed: .NET runtime
+  already exited with 255`. So one broken constructor turned into an unrecoverable page. `View` is now
+  null-checked, and the finalizer swallows anything that still escapes.
+
+  The dispose flag was also inverted (`_disposeView = true` -> `_viewTaken`) so the safe behaviour is
+  the field's DEFAULT value. Field initializers do not run when a constructor throws, so a flag that
+  needed its initializer to be correct was wrong on exactly the instances that matter.
+
+### Added
+
+- **8 `HeapView` tests** in the Demo suite (`UnitTests/MarshallerTests.cs`): six covering the
+  `ReadOnlyMemory<T>` lane end to end (live view geometry, later .NET writes seen through a live view,
+  multi-byte element sizing, copy independence, `CreateCopy`, empty source) and two covering disposal
+  of a view whose constructor threw. All six `ReadOnlyMemory` tests fail against the previous code
+  with the production exception, and the dispose test fails with the production
+  `NullReferenceException`.
 
 ## [2.1.6] - 2026-08-18
 

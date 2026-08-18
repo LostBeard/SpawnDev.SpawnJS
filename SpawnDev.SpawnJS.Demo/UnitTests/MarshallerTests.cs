@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.JSObjects;
+﻿using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Marshaller;
 using System;
 using System.Collections.Generic;
@@ -2014,6 +2014,107 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(JS.Call<Uint8Array, string>("SpawnJSTests.elements", heapView.View), "1,2,3",
                     "a live view did not reattach after the heap grew and detached its buffer");
                 Assert(JS.Call<Uint8Array, bool>("SpawnJSTests.isOnWasmHeap", heapView.View), "after reattach the view must be on the CURRENT heap buffer");
+            });
+
+            // A TElement[] binds to the Memory<TElement> overload, so every test above exercises the
+            // Memory lane and NONE of them touched ReadOnlyMemory. The ReadOnlyMemory ctor read the
+            // wrong backing field (_memorySource, which it never sets) and threw on EVERY call - the
+            // whole lane was dead, and nothing here noticed. These cast explicitly to pin the lane.
+
+            Test("HeapView.ReadOnlyMemoryLiveView", () =>
+            {
+                var data = new byte[] { 7, 8, 9 };
+                using var heapView = HeapView.Create<byte, Uint8Array>((ReadOnlyMemory<byte>)data);
+                AssertEqual(JS.Call<Uint8Array, double>("SpawnJSTests.viewLength", heapView.View), data.Length,
+                    "a ReadOnlyMemory view must be the ELEMENT count long");
+                AssertEqual(JS.Call<Uint8Array, double>("SpawnJSTests.viewByteLength", heapView.View), data.Length,
+                    "byteLength");
+                AssertEqual(JS.Call<Uint8Array, string>("SpawnJSTests.elements", heapView.View), "7,8,9",
+                    "a ReadOnlyMemory view must show the source elements");
+                Assert(JS.Call<Uint8Array, bool>("SpawnJSTests.isOnWasmHeap", heapView.View),
+                    "a live ReadOnlyMemory view must be backed by the WebAssembly heap itself");
+            });
+
+            Test("HeapView.ReadOnlyMemoryLiveViewSeesLaterDotnetWrites", () =>
+            {
+                var data = new byte[] { 0, 0, 0 };
+                using var heapView = HeapView.Create<byte, Uint8Array>((ReadOnlyMemory<byte>)data);
+                data[1] = 77;
+                AssertEqual(JS.Call<Uint8Array, string>("SpawnJSTests.elements", heapView.View), "0,77,0",
+                    "a live ReadOnlyMemory view must show a .Net write made after the view was created");
+            });
+
+            Test("HeapView.ReadOnlyMemoryMultiByteElementGeometry", () =>
+            {
+                // sizing off the wrong field is invisible when sizeof(TElement) == 1
+                var data = new double[] { 1.5, -2.5 };
+                using var heapView = HeapView.Create<double, Float64Array>((ReadOnlyMemory<double>)data);
+                AssertEqual(JS.Call<Float64Array, double>("SpawnJSTests.viewLength", heapView.View), data.Length, "length in ELEMENTS");
+                AssertEqual(JS.Call<Float64Array, double>("SpawnJSTests.viewByteLength", heapView.View), data.Length * 8, "byteLength in BYTES");
+                AssertEqual(JS.Call<Float64Array, string>("SpawnJSTests.elements", heapView.View), "1.5,-2.5", "elements");
+            });
+
+            Test("HeapView.ReadOnlyMemoryCopyIsIndependentOfTheDotnetArray", () =>
+            {
+                var data = new byte[] { 1, 2, 3 };
+                using var heapView = HeapView.Create<byte, Uint8Array>((ReadOnlyMemory<byte>)data, copy: true);
+                Assert(!JS.Call<Uint8Array, bool>("SpawnJSTests.isOnWasmHeap", heapView.View), "a copy must NOT be backed by the WebAssembly heap");
+                data[0] = 200;
+                AssertEqual(JS.Call<Uint8Array, string>("SpawnJSTests.elements", heapView.View), "1,2,3", "a copy must not see later .Net writes");
+            });
+
+            Test("HeapView.ReadOnlyMemoryCreateCopyReturnsTheView", () =>
+            {
+                // CreateCopy is the path Blob(byte[][]) and friends take - it was dead too
+                var data = new byte[] { 4, 5, 6 };
+                using var view = HeapView.CreateCopy<byte, Uint8Array>((ReadOnlyMemory<byte>)data);
+                AssertEqual(Js("viewCtor", view), "Uint8Array", "CreateCopy must return the view itself");
+                AssertEqual(JS.Call<Uint8Array, string>("SpawnJSTests.elements", view), "4,5,6", "the copy must hold the source elements");
+            });
+
+            Test("HeapView.ReadOnlyMemoryEmptySource", () =>
+            {
+                using var heapView = HeapView.Create<byte, Uint8Array>((ReadOnlyMemory<byte>)System.Array.Empty<byte>());
+                AssertEqual(JS.Call<Uint8Array, double>("SpawnJSTests.viewLength", heapView.View), 0, "an empty ReadOnlyMemory source must produce an empty view");
+            });
+
+            Test("HeapView.DisposingAViewWhoseCtorThrewDoesNotThrow", () =>
+            {
+                // A ctor that throws before assigning View still leaves an instance for the finalizer,
+                // and an exception escaping a finalizer is FATAL on the WASM runtime: it exits with 255
+                // and EVERY later interop call fails with "Assert failed: .NET runtime already exited
+                // with 255". One broken ctor took down a whole browser test run that way.
+                // GetUninitializedObject reproduces that state exactly - all fields at their zero value,
+                // View null - which is why the dispose flag has to be safe at its DEFAULT and not rely
+                // on a field initializer the throwing ctor never got to run.
+                var halfBuilt = (HeapView<byte, Uint8Array>)System.Runtime.CompilerServices.RuntimeHelpers
+                    .GetUninitializedObject(typeof(HeapView<byte, Uint8Array>));
+                halfBuilt.Dispose();
+                // and the runtime is still here to say so
+                JS.Set(K, 1234);
+                AssertEqual(JS.Get<int>(K), 1234, "the runtime must still be alive after disposing a view whose ctor threw");
+            });
+
+            Test("HeapView.UnsupportedViewTypeThrowsAndLeavesNothingBehind", () =>
+            {
+                // Blob is a SpawnJSObject but not an ArrayBufferView, so the ctor throws at the view
+                // type lookup - after the field initializers, before View is assigned: the exact state
+                // the test above disposes. This one pins that the ctor still reports the real error.
+                var threw = false;
+                try
+                {
+                    HeapView.Create<byte, Blob>(new byte[] { 1, 2, 3 });
+                }
+                catch (NotImplementedException)
+                {
+                    threw = true;
+                }
+                Assert(threw, "an unsupported view type must throw NotImplementedException");
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                JS.Set(K, 4321);
+                AssertEqual(JS.Get<int>(K), 4321, "the runtime must still be alive after the failed construction is collected");
             });
         }
 

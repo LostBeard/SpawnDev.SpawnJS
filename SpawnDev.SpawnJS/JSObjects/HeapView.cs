@@ -410,7 +410,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns true if the view has been taken
         /// </summary>
-        private bool _disposeView = true;
+        /// <summary>
+        /// Set once <see cref="TakeViewAndDispose"/> hands ownership of the view to the caller.<br/>
+        /// Stated as "taken" rather than "should dispose" so that the SAFE default (dispose the view)
+        /// is the field's zero value: a field initializer does not run when a constructor throws, and
+        /// this flag must still be correct on a half-built instance that only the finalizer will see.
+        /// </summary>
+        private bool _viewTaken;
         /// <summary>
         /// Returns the view and unpin the data
         /// </summary>
@@ -418,7 +424,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public TView TakeViewAndDispose()
         {
             if (!Copy) throw new NotImplementedException("TakeViewAndDispose only works only heap view copies");
-            _disposeView = false;
+            _viewTaken = true;
             Dispose();
             return View;
         }
@@ -501,7 +507,10 @@ namespace SpawnDev.SpawnJS.JSObjects
             {
                 Pointer = new nint(_memoryHandle.Value.Pointer);
             }
-            ElementCount = _memorySource.Value.Length;
+            // _memoryReadOnlySource, NOT _memorySource - this ctor never sets _memorySource, so
+            // reading it here threw InvalidOperationException (Nullable with no value) and killed
+            // every ReadOnlyMemory-sourced HeapView, e.g. new Blob(byte[][]).
+            ElementCount = _memoryReadOnlySource.Value.Length;
             ByteLength = ElementCount * Unsafe.SizeOf<TElement>();
             ViewType = JSArrayBufferViewTypes.TryGetValue(typeof(TView), out var viewFn) ? viewFn : throw new NotImplementedException($"Unsupported view type: {typeof(TView).Name}");
             View = JS.ReturnAs<HeapViewDescriptor, TView>(new HeapViewDescriptor(Pointer, ViewLength, ViewType, Copy));
@@ -536,7 +545,10 @@ namespace SpawnDev.SpawnJS.JSObjects
             IsDisposed = true;
             Pointer = IntPtr.Zero;
             ReleaseHandle();
-            if (_disposeView) View.Dispose();
+            // View is null when a constructor threw before assigning it. The half-built instance is
+            // still finalized, and an unhandled throw on the finalizer thread takes the whole WASM
+            // runtime down ("exit 255"), after which EVERY later interop call asserts.
+            if (!_viewTaken) View?.Dispose();
         }
         public override void Dispose()
         {
@@ -550,8 +562,22 @@ namespace SpawnDev.SpawnJS.JSObjects
         }
         ~HeapView()
         {
-            Dispose(false);
-            if (SpawnJSRuntime.EnableIDisposableWatcher && _creationStackTrace != null) SpawnJSRuntime.IDisposableFinalizerAlert(this, _creationStackTrace);
+            // A finalizer must never let an exception escape: on the .NET WASM runtime that is not a
+            // caught error, it terminates the runtime with exit code 255 and every subsequent JS
+            // interop call fails with "Assert failed: .NET runtime already exited with 255".
+            try
+            {
+                Dispose(false);
+            }
+            catch { }
+            if (SpawnJSRuntime.EnableIDisposableWatcher && _creationStackTrace != null)
+            {
+                try
+                {
+                    SpawnJSRuntime.IDisposableFinalizerAlert(this, _creationStackTrace);
+                }
+                catch { }
+            }
         }
         private readonly string? _creationStackTrace = SpawnJSRuntime.EnableIDisposableWatcher ? new StackTrace(true).ToString() : null;
     }
