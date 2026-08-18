@@ -25,9 +25,24 @@ All notable changes to SpawnDev.SpawnJS.
   the field's DEFAULT value. Field initializers do not run when a constructor throws, so a flag that
   needed its initializer to be correct was wrong on exactly the instances that matter.
 
+- **The non-generic `HeapView.CreateCopy(...)` overloads gave away a view they still owned.** All 22
+  of them (11 `ReadOnlyMemory<T>`, 11 `Memory<T>`) were written as `=> Create<T, TView>(source, true)`
+  and relied on the implicit `HeapView<T,TView>` -> `TView` conversion to produce the return value.
+  That hands the caller the view while leaving the `HeapView` itself un-taken, undisposed and NOT
+  finalization-suppressed - so when the temporary was collected its finalizer ran
+  `View.Dispose()` and released the slot the caller was still using. They now route through
+  `CreateCopy<T, TView>(source)`, which calls `TakeViewAndDispose()` - the same path the generic
+  overload already used.
+
+  Symptom in SpawnDev.WebTorrent: `AsyncFSChunkStore.PutAsync` builds the view, `await`s, then writes
+  it, and the write failed with `Failed to execute 'write' on 'FileSystemWritableFileStream': The
+  provided value is not of type 'WriteParams'` - JS receiving a released slot. Note this could not be
+  reproduced from a synchronous test: in single-threaded WASM finalizers run when control yields to
+  the JS event loop, not inside a synchronous `GC.Collect()` / `GC.WaitForPendingFinalizers()`.
+
 ### Added
 
-- **8 `HeapView` tests** in the Demo suite (`UnitTests/MarshallerTests.cs`): six covering the
+- **9 `HeapView` tests** in the Demo suite (`UnitTests/MarshallerTests.cs`): six covering the
   `ReadOnlyMemory<T>` lane end to end (live view geometry, later .NET writes seen through a live view,
   multi-byte element sizing, copy independence, `CreateCopy`, empty source) and two covering disposal
   of a view whose constructor threw. All six `ReadOnlyMemory` tests fail against the previous code

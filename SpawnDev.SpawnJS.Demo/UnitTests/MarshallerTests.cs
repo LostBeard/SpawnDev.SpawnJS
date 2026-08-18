@@ -2095,6 +2095,20 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(JS.Get<int>(K), 1234, "the runtime must still be alive after disposing a view whose ctor threw");
             });
 
+            // The abstract TypedArray base as a STATIC argument type - the shape every
+            // FileSystemWritableFileStream.Write / AsyncFileSystem write goes through. Marshaller
+            // selection is by the DECLARED type, so a view that crosses correctly as Uint8Array can
+            // still cross wrong when the parameter is typed as its base class.
+            Test("HeapView.ViewCrossesCorrectlyWhenTypedAsTheTypedArrayBase", () =>
+            {
+                using var view = HeapView.CreateCopy(new ReadOnlyMemory<byte>(new byte[] { 1, 2, 3 }));
+                TypedArray asBase = view;
+                AssertEqual(JS.Call<TypedArray, string>("SpawnJSTests.viewCtor", asBase), "Uint8Array",
+                    "a TypedArray-typed argument must still cross as its concrete view");
+                AssertEqual(JS.Call<TypedArray, string>("SpawnJSTests.elements", asBase), "1,2,3",
+                    "a TypedArray-typed argument must carry its elements");
+            });
+
             Test("HeapView.UnsupportedViewTypeThrowsAndLeavesNothingBehind", () =>
             {
                 // Blob is a SpawnJSObject but not an ArrayBufferView, so the ctor throws at the view

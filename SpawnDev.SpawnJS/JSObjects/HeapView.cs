@@ -97,114 +97,114 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Create a HeapView
         /// </summary>
         public static Uint8Array CreateCopy(ReadOnlyMemory<byte> source)
-            => Create<byte, Uint8Array>(source, true);
+            => CreateCopy<byte, Uint8Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Uint16Array CreateCopy(ReadOnlyMemory<ushort> source)
-            => Create<ushort, Uint16Array>(source, true);
+            => CreateCopy<ushort, Uint16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Uint32Array CreateCopy(ReadOnlyMemory<uint> source)
-            => Create<uint, Uint32Array>(source, true);
+            => CreateCopy<uint, Uint32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static BigUint64Array CreateCopy(ReadOnlyMemory<ulong> source)
-            => Create<ulong, BigUint64Array>(source, true);
+            => CreateCopy<ulong, BigUint64Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int8Array CreateCopy(ReadOnlyMemory<sbyte> source)
-            => Create<sbyte, Int8Array>(source, true);
+            => CreateCopy<sbyte, Int8Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int16Array CreateCopy(ReadOnlyMemory<short> source)
-            => Create<short, Int16Array>(source, true);
+            => CreateCopy<short, Int16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int32Array CreateCopy(ReadOnlyMemory<int> source)
-            => Create<int, Int32Array>(source, true);
+            => CreateCopy<int, Int32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static BigInt64Array CreateCopy(ReadOnlyMemory<long> source)
-            => Create<long, BigInt64Array>(source, true);
+            => CreateCopy<long, BigInt64Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float16Array CreateCopy(ReadOnlyMemory<Half> source)
-            => Create<Half, Float16Array>(source, true);
+            => CreateCopy<Half, Float16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float32Array CreateCopy(ReadOnlyMemory<float> source)
-            => Create<float, Float32Array>(source, true);
+            => CreateCopy<float, Float32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float64Array CreateCopy(ReadOnlyMemory<double> source)
-            => Create<double, Float64Array>(source, true);
+            => CreateCopy<double, Float64Array>(source);
         #endregion
         #region Create-Memory-Copy
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Uint8Array CreateCopy(Memory<byte> source)
-            => Create<byte, Uint8Array>(source, true);
+            => CreateCopy<byte, Uint8Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Uint16Array CreateCopy(Memory<ushort> source)
-            => Create<ushort, Uint16Array>(source, true);
+            => CreateCopy<ushort, Uint16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Uint32Array CreateCopy(Memory<uint> source)
-            => Create<uint, Uint32Array>(source, true);
+            => CreateCopy<uint, Uint32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static BigUint64Array CreateCopy(Memory<ulong> source)
-            => Create<ulong, BigUint64Array>(source, true);
+            => CreateCopy<ulong, BigUint64Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int8Array CreateCopy(Memory<sbyte> source)
-            => Create<sbyte, Int8Array>(source, true);
+            => CreateCopy<sbyte, Int8Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int16Array CreateCopy(Memory<short> source)
-            => Create<short, Int16Array>(source, true);
+            => CreateCopy<short, Int16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Int32Array CreateCopy(Memory<int> source)
-            => Create<int, Int32Array>(source, true);
+            => CreateCopy<int, Int32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static BigInt64Array CreateCopy(Memory<long> source)
-            => Create<long, BigInt64Array>(source, true);
+            => CreateCopy<long, BigInt64Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float16Array CreateCopy(Memory<Half> source)
-            => Create<Half, Float16Array>(source, true);
+            => CreateCopy<Half, Float16Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float32Array CreateCopy(Memory<float> source)
-            => Create<float, Float32Array>(source, true);
+            => CreateCopy<float, Float32Array>(source);
         /// <summary>
         /// Create a HeapView
         /// </summary>
         public static Float64Array CreateCopy(Memory<double> source)
-            => Create<double, Float64Array>(source, true);
+            => CreateCopy<double, Float64Array>(source);
         #endregion
         #region Create-ReadOnlyMemory
         /// <summary>
