@@ -408,9 +408,9 @@ ImageData? imgData = null;
 JS.OnHeapGrow += (_, _) =>
 {
     Console.WriteLine($"Rebuilding imgData");
-    imgData = new ImageData(heapView, width, height);
+    imgData = new ImageData(heapView.View, width, height);
 };
-imgData = new ImageData(heapView, width, height);
+imgData = new ImageData(heapView.View, width, height);
 
 using var stopButton = document.CreateElement<HTMLButtonElement>("button");
 stopButton.TextContent = "Stop";
