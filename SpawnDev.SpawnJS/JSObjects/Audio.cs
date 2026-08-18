@@ -1,6 +1,3 @@
-
-using SpawnDev.SpawnJS;
-using SpawnDev.SpawnJS.JSObjects;
 namespace SpawnDev.SpawnJS.JSObjects
 {
 
@@ -21,5 +18,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="url"></param>
         public Audio(string url) : base(JS.New(nameof(Audio), url)) { }
+        /// <summary>
+        /// The Audio() constructor creates and returns a new HTMLAudioElement which can be either attached to a document for the user to interact with and/or listen to, or can be used offscreen to manage and play audio.
+        /// </summary>
+        public Audio() : base(JS.New(nameof(Audio))) { }
     }
 }
