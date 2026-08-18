@@ -2,6 +2,50 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## [2.1.6] - 2026-08-18
+
+### Added
+
+- **`JsonElement` marshalling** (`Marshallers/JsonElementMarshaller.cs`, registered in
+  `SpawnJSRuntime`). A `JsonElement` now crosses as a REAL Javascript value - an object becomes a JS
+  object with live members, an array a JS Array, a primitive a JS primitive - rather than as a string
+  containing JSON. Both directions move raw JSON text and let the other side parse it, using
+  `JsonElement.GetRawText()` and `JsonDocument.Parse`, so nothing is serialized twice and the
+  marshaller carries no reflection-based `System.Text.Json` dependency (no `IL2026`, and it works in
+  an app built with `JsonSerializer.IsReflectionEnabledByDefault=false` - which the Blazor WASM SDK
+  sets by default, and where the reflection-based serializer throws at runtime).
+
+  A JS `undefined` reads back as `JsonValueKind.Undefined` and a JS `null` as `JsonValueKind.Null`;
+  the two stay distinguishable, which is why there is no nullable companion marshaller -
+  `JsonElement` models absence itself. `default(JsonElement)` writes JS `undefined`, so that round
+  trips too.
+
+- **`SpawnJSObjectReference.PropertySetRawJson(key, json)`** - writes pre-serialized JSON text
+  straight through to the JS side's `JSON.parse`. `PropertySetJson` takes an `object` and runs the
+  serializer on it, so handing it text that was already JSON encoded it a second time and landed a
+  STRING on the JS side instead of an object. The raw form is what a caller holding JSON text wants,
+  and it drops the reflection dependency with it.
+
+- **16 `JsonElementMarshaller` tests** in the Demo suite (`UnitTests/MarshallerTests.cs`), covering
+  both directions, both the int-key (call argument) and string-key (named member) write paths, the
+  null/undefined distinction, nesting, and non-ASCII with JSON escapes. Suite is **176/176**.
+
+### Fixed
+
+- **`RTCStatsReport.Entries` / `Keys()` / `Values()` always came back EMPTY**
+  (`JSObjects/WebRTC/RTCStatsReport.cs`). All three JS methods return a **Map Iterator**, not an
+  Array, but the wrappers asked for `T[]` and so went through `ArrayMarshaller`, whose `JSToNet`
+  sizes the result from `value.length`. An iterator has no `length`, so the read produced 0 and
+  every caller got a zero-length array back - silently, with no error to explain it. `RTCStatsReport`
+  was the only Map-like wrapper in the library still doing this; `Map`, `Set`, `Headers`,
+  `URLSearchParams`, `DOMTokenList` and `TypedArray` all already declare these members as
+  `Iterator<T>`. The three members now do the same and materialize via `Iterator<T>.ToArray()`
+  inside `Using(...)` so the iterator's JS slot is released.
+
+  Downstream: this is what made `SpawnDev.RTC`'s `IRTCStatsReport.Entries()` return nothing on the
+  browser backend, so `getStats()` reported no candidate-pair and no peer-connection entry no matter
+  how healthy the connection was.
+
 ## [2.1.5] - 2026-08-17
 
 ### Fixed

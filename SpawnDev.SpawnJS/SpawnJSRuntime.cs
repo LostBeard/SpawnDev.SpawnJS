@@ -236,6 +236,8 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new DateTimeNullableMarshaller());
             // .Net: HeapView? <> -> JS: ArrayBufferView (TypedArray, DataView; copy or persistent)
             Marshallers.Add(new HeapViewMarshaller<HeapView>());
+            // .Net: JsonElement <> <-> JS: any
+            Marshallers.Add(new JsonElementMarshaller());
             // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
             // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
             DotnetInstance = new SpawnJSObjectReference(

@@ -14,6 +14,20 @@ var JS = SpawnJSRuntime.Instance;
 JS.Verbose = true;
 
 
+
+{
+    var document1 = JS.GetDocument();
+    var button = document1!.CreateElement<HTMLButtonElement>("button");
+    button.TextContent = "Click";
+    button.OnClick += () =>
+    {
+        var winA = JS.Call<string, string, string, Window>("window.open", "https://www.google.com/", "_blank", "width=320,height=240");
+        Console.WriteLine($"window {(winA == null ? "==" : "!=")} null");
+    };
+    document1.Body!.Append(button);
+    return;
+}
+
 // run marshalelr tests
 await MarshallerTests.Run();
 

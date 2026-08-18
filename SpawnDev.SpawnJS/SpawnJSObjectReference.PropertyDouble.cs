@@ -27,6 +27,14 @@ namespace SpawnDev.SpawnJS
         [RequiresUnreferencedCode("Uses reflection-based System.Text.Json; the (de)serialized types and their members must be preserved under trimming. Use a JsonTypeInfo/JsonSerializerContext source generator, or preserve the types yourself.")]
         internal void PropertySetJson(double key, object? value, JsonSerializerOptions? serializerOptions = null)
             => SpawnJSRuntime._propertySetJson(Id, key, JsonSerializer.Serialize(value, serializerOptions));
+        /// <summary>
+        /// Writes PRE-SERIALIZED JSON text straight to the property - the JS side JSON.parse's it.
+        /// Unlike <see cref="PropertySetJson(Double, Object, JsonSerializerOptions)"/> this does NOT run the serializer, so a caller
+        /// that already holds JSON text (e.g. JsonElement.GetRawText) does not encode it a second time
+        /// and the call carries no reflection-based System.Text.Json dependency.
+        /// </summary>
+        internal void PropertySetRawJson(double key, string json)
+            => SpawnJSRuntime._propertySetJson(Id, key, json);
         internal void PropertySetWithReviver(string reviver, double key, string value)
         {
             var methodIndex = JS.InteropMethods.IndexOf(reviver);

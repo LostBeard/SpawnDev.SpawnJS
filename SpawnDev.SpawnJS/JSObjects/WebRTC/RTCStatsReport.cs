@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a new Iterator object that contains a two-member array of [id, statistic-dictionary] for each element in the RTCStatsReport object, in insertion order.
         /// </summary>
-        public (string, RTCStats)[] Entries => JSRef!.Call<(string, RTCStats)[]>("entries");
+        public (string, RTCStats)[] Entries => JSRef!.Call<Iterator<(string, RTCStats)>>("entries").Using(o => o.ToArray());
         /// <summary>
         /// Returns the statistics dictionary associated with the passed id, or undefined if there is none.
         /// </summary>
@@ -46,11 +46,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a new Iterator object that contains the keys (IDs) for each element in the RTCStatsReport object, in insertion order.
         /// </summary>
-        public string[] Keys() => JSRef!.Call<string[]>("keys");
+        public string[] Keys() => JSRef!.Call<Iterator<string>>("keys").Using(o => o.ToArray());
         /// <summary>
         /// Returns a new Iterator object that contains the values (statistics object) for each element in the RTCStatsReport object, in insertion order.
         /// </summary>
         /// <returns></returns>
-        public RTCStats[] Values() => JSRef!.Call<RTCStats[]>("values");
+        public RTCStats[] Values() => JSRef!.Call<Iterator<RTCStats>>("values").Using(o => o.ToArray());
     }
 }

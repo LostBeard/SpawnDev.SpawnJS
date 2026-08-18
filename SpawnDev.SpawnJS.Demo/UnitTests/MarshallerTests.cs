@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -176,6 +177,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             EpochDateTimeMarshallerTests();
             DateTimeMarshallerTests();
             HeapViewMarshallerTests();
+            JsonElementMarshallerTests();
             HeapViewTests();
             TypedArrayHeapViewTests();
 
@@ -1664,6 +1666,210 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
 
         // One live view per element type / view type pair. Every sizing mistake hides in the byte==element
         // case, so each pair asserts BOTH geometries: length in ELEMENTS and byteLength in BYTES.
+        // ==========================================================================================
+        // JsonElementMarshaller - .Net JsonElement <-> JS any            (ReturnType.Json)
+        // ==========================================================================================
+        // This is the one marshaller whose MECHANISM is JSON: the JS side JSON.stringify's the value and
+        // .Net parses the string (and on the way out the raw JSON text goes over and JS JSON.parse's it).
+        // So the suite's rule matters more here, not less - JSON must never be used to VERIFY it, or a
+        // marshaller wrong in both directions round trips perfectly. OUT is checked by asking Javascript
+        // for typeof / constructor / own keys / String(v) and by reading members back through OTHER
+        // marshallers; IN is checked against values Javascript created.
+        //
+        // The point of the marshaller is that a JsonElement lands as a REAL Javascript value - an object
+        // is a JS object with live members, not a string that happens to contain JSON. Asserting typeof
+        // and reading members individually is what tells those two apart.
+
+        // Parse rather than JsonSerializer.Deserialize: this app runs with
+        // System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault=false (it is in the built
+        // runtimeconfig.json), so the reflection-based serializer THROWS at runtime here. That is the
+        // same constraint the marshaller is under, so the instrument must not need anything the thing
+        // under test is not allowed to use.
+        static JsonElement Json(string json)
+        {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.Clone();
+        }
+
+        static void JsonElementMarshallerTests()
+        {
+            Test("JsonElementMarshaller.OutObject", () =>
+            {
+                JS.Set(K, Json("""{"a":1,"b":"two","c":true}"""));
+                AssertEqual(CtorOfKey(), "Object", "a JsonElement object must cross as a plain JS object");
+                AssertEqual(OwnKeysOf(), "a,b,c", "own keys");
+                // read the members back through OTHER marshallers - this is what proves they are live JS
+                // values rather than one JSON string parked at the key
+                AssertEqual(JS.TypeOf($"{K}.a"), "number", "member a is a real JS number");
+                AssertEqual(JS.TypeOf($"{K}.b"), "string", "member b is a real JS string");
+                AssertEqual(JS.TypeOf($"{K}.c"), "boolean", "member c is a real JS boolean");
+                AssertEqual(JS.Get<int>($"{K}.a"), 1, "member a value");
+                AssertEqual(JS.Get<string>($"{K}.b"), "two", "member b value");
+            });
+
+            Test("JsonElementMarshaller.OutArray", () =>
+            {
+                JS.Set(K, Json("[1,2,3]"));
+                AssertEqual(CtorOfKey(), "Array", "a JsonElement array must cross as a JS Array");
+                AssertEqual(ElementsKey(), "1,2,3", "elements");
+                AssertEqual(JS.Get<int[]>(K)!.Length, 3, "length read through the array marshaller");
+            });
+
+            Test("JsonElementMarshaller.OutNested", () =>
+            {
+                JS.Set(K, Json("""{"outer":{"inner":[10,{"deep":"yes"}]}}"""));
+                AssertEqual(JS.TypeOf($"{K}.outer"), "object", "a nested object stays an object");
+                AssertEqual(JS.Get<int>($"{K}.outer.inner.0"), 10, "value inside a nested array");
+                AssertEqual(JS.Get<string>($"{K}.outer.inner.1.deep"), "yes", "value inside a nested object");
+            });
+
+            Test("JsonElementMarshaller.OutString", () =>
+            {
+                JS.Set(K, Json("\"hi\""));
+                AssertEqual(TypeOfKey(), "string", "a JSON string must cross as a JS string primitive");
+                AssertEqual(StrKey(), "hi", "value");
+            });
+
+            Test("JsonElementMarshaller.OutNumber", () =>
+            {
+                JS.Set(K, Json("42.5"));
+                AssertEqual(TypeOfKey(), "number", "a JSON number must cross as a JS number");
+                AssertEqual(StrKey(), "42.5", "value");
+            });
+
+            Test("JsonElementMarshaller.OutBoolean", () =>
+            {
+                JS.Set(K, Json("true"));
+                AssertEqual(TypeOfKey(), "boolean", "a JSON true must cross as a JS boolean");
+                AssertEqual(StrKey(), "true", "value");
+            });
+
+            Test("JsonElementMarshaller.OutNull", () =>
+            {
+                JS.Set(K, Json("null"));
+                AssertEqual(DescribeKey(), "object:null", "a JSON null must cross as JS null");
+            });
+
+            // default(JsonElement) is ValueKind.Undefined and has no raw text at all - GetRawText throws
+            // on it. It must write JS undefined: that is the symmetric partner of the read (see
+            // InUndefinedIsUndefinedKind) and stays distinct from the JSON null above.
+            Test("JsonElementMarshaller.OutUndefined", () =>
+            {
+                JS.Set(K, default(JsonElement));
+                // typeof read BY KEY, not DescribeKey: describe() takes the value as an argument, and a
+                // JS undefined arrives there as a null reference - so DescribeKey cannot tell undefined
+                // from null. typeof is evaluated JS-side on the property itself and can.
+                AssertEqual(TypeOfKey(), "undefined", "default(JsonElement) must cross as JS undefined");
+                AssertEqual(JS.Get<JsonElement>(K).ValueKind, JsonValueKind.Undefined, "and read back as Undefined");
+                // and it must NOT be the same thing a JSON null produces
+                JS.Set(K, Json("null"));
+                AssertEqual(TypeOfKey(), "object", "a JSON null is JS null, which typeof reports as object");
+            });
+
+            // JS.Set marshals its value through the INT-key (call argument) overload. A NAMED MEMBER
+            // write is the only thing that reaches NetToJS(parent, string key, ...) - separate code that
+            // has drifted from its int-key twin before.
+            Test("JsonElementMarshaller.OutStringKeyPath", () =>
+            {
+                var src = new Dictionary<string, JsonElement>
+                {
+                    ["obj"] = Json("""{"n":7}"""),
+                    ["arr"] = Json("[1,2]"),
+                    ["nul"] = Json("null"),
+                };
+                JS.Set(K, src);
+                AssertEqual(OwnKeysOf(), "obj,arr,nul", "own keys");
+                AssertEqual(JS.TypeOf($"{K}.obj"), "object", "object written by string key");
+                AssertEqual(JS.Get<int>($"{K}.obj.n"), 7, "member of an object written by string key");
+                AssertEqual(JS.Get<int>($"{K}.arr.1"), 2, "element of an array written by string key");
+                AssertEqual(JS.TypeOf($"{K}.nul"), "object", "a JSON null written by string key is JS null");
+            });
+
+            Test("JsonElementMarshaller.InObject", () =>
+            {
+                // Javascript builds the object, so the read is fed a genuine JS value
+                var el = JS.Call<JsonElement>("SpawnJSTests.objectWithNullMember");
+                AssertEqual(el.ValueKind, JsonValueKind.Object, "kind");
+                AssertEqual(el.GetProperty("present").GetInt32(), 1, "present member");
+                AssertEqual(el.GetProperty("absent").ValueKind, JsonValueKind.Null, "a JS null member reads as JSON null");
+            });
+
+            Test("JsonElementMarshaller.InArray", () =>
+            {
+                var el = Js2<string, JsonElement>("numberArray", "1,2,3");
+                AssertEqual(el.ValueKind, JsonValueKind.Array, "kind");
+                AssertEqual(el.GetArrayLength(), 3, "length");
+                AssertEqual(el[2].GetInt32(), 3, "last element");
+            });
+
+            Test("JsonElementMarshaller.InPrimitives", () =>
+            {
+                AssertEqual(Js2<string, JsonElement>("str", "from js").GetString(), "from js", "a JS string");
+                AssertEqual(Js2<string, JsonElement>("numberFrom", "42.5").GetDouble(), 42.5, "a JS number");
+                AssertEqual(JS.Call<JsonElement>("SpawnJSTests.nullValue").ValueKind, JsonValueKind.Null, "a JS null");
+            });
+
+            // JSON.stringify(undefined) yields undefined rather than text, which arrives as a null string
+            // and reads back as default(JsonElement). So Undefined is how "there was nothing here" reports,
+            // and it stays DISTINCT from a JS null (which stringifies to "null" -> JsonValueKind.Null).
+            // That distinction is why JsonElement needs no nullable companion to model absence.
+            Test("JsonElementMarshaller.InUndefinedIsUndefinedKind", () =>
+            {
+                AssertEqual(JS.Call<JsonElement>("SpawnJSTests.undefinedValue").ValueKind, JsonValueKind.Undefined,
+                    "JS undefined must read as JsonValueKind.Undefined");
+                AssertEqual(JS.Get<JsonElement>("__mt_missing").ValueKind, JsonValueKind.Undefined,
+                    "an absent property must read as JsonValueKind.Undefined");
+                Assert(JS.Call<JsonElement>("SpawnJSTests.nullValue").ValueKind
+                       != JS.Call<JsonElement>("SpawnJSTests.undefinedValue").ValueKind,
+                    "JS null and JS undefined must NOT collapse to the same ValueKind");
+            });
+
+            // JSON.stringify drops a member whose value is undefined. Pinned because it means a
+            // JsonElement read cannot tell "member set to undefined" from "member never written", even
+            // though Javascript can - a real limit of this marshaller's mechanism, not a bug in it.
+            Test("JsonElementMarshaller.InUndefinedMemberIsDropped", () =>
+            {
+                var el = JS.Call<JsonElement>("SpawnJSTests.objectWithUndefinedMember");
+                AssertEqual(el.ValueKind, JsonValueKind.Object, "kind");
+                AssertEqual(el.GetProperty("present").GetInt32(), 1, "the present member survives");
+                Assert(!el.TryGetProperty("absent", out _), "a member set to undefined is dropped by JSON.stringify");
+                // the member IS there on the JS side - the loss is JSON's, not the crossing's
+                using var jsObj = JS.Call<SpawnJSObjectReference>("SpawnJSTests.objectWithUndefinedMember");
+                AssertEqual(JS.Call<SpawnJSObjectReference?, string, bool>("SpawnJSTests.hasIn", jsObj, "absent"), true,
+                    "Javascript still reports the member as present");
+            });
+
+            Test("JsonElementMarshaller.RoundTrip", () =>
+            {
+                JS.Set(K, Json("""{"n":1,"s":"two","b":false,"arr":[1,2],"obj":{"k":"v"},"nul":null}"""));
+                var back = JS.Get<JsonElement>(K);
+                AssertEqual(back.ValueKind, JsonValueKind.Object, "kind survives");
+                AssertEqual(back.GetProperty("n").GetInt32(), 1, "number");
+                AssertEqual(back.GetProperty("s").GetString(), "two", "string");
+                AssertEqual(back.GetProperty("b").GetBoolean(), false, "boolean");
+                AssertEqual(back.GetProperty("arr").GetArrayLength(), 2, "array length");
+                AssertEqual(back.GetProperty("obj").GetProperty("k").GetString(), "v", "nested object");
+                AssertEqual(back.GetProperty("nul").ValueKind, JsonValueKind.Null, "null member");
+            });
+
+            Test("JsonElementMarshaller.RoundTripNonAscii", () =>
+            {
+                // an astral-plane pair plus the characters JSON has to escape, written as raw JSON text
+                // so both the wire form and the expected .Net string are stated explicitly
+                var jsonText = "\"héllo 世界 🚀 \\\" \\\\ \\n\"";
+                var value = "héllo 世界 🚀 \" \\ \n";
+                JS.Set(K, Json(jsonText));
+                AssertEqual(TypeOfKey(), "string", "still a JS string");
+                AssertEqual(StrKey(), value, "Javascript sees the unescaped string");
+                AssertEqual(JS.Get<JsonElement>(K).GetString(), value, "round trip");
+            });
+        }
+
+        // Call a SpawnJSTests helper with one argument and read the result as TResult. The existing Js()
+        // helper returns string only; JsonElement reads need the typed form.
+        static TResult Js2<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string fn, T1 arg1)
+            => JS.Call<T1, TResult>($"SpawnJSTests.{fn}", arg1);
+
         static void LiveViewGeometry<TElement, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TView>(
             TElement[] data, int elementSize, string expectedElements)
             where TElement : struct where TView : SpawnJSObject
