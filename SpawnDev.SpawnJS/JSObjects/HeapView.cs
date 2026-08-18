@@ -359,7 +359,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         where TView : SpawnJSObject
         where TElement : struct
     {
-        public static implicit operator TView(HeapView<TElement, TView> value) => value.View;
+        //public static implicit operator TView(HeapView<TElement, TView> value) => value.View;
         static SpawnJSRuntime JS => SpawnJSRuntime.Instance;
         private static readonly Dictionary<Type, JSArrayBufferView> JSArrayBufferViewTypes = new()
         {

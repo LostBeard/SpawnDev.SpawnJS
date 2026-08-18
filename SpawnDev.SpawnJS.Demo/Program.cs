@@ -15,6 +15,7 @@ JS.Verbose = true;
 
 
 
+if (false)
 {
     var document1 = JS.GetDocument();
     var button = document1!.CreateElement<HTMLButtonElement>("button");
