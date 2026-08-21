@@ -14,14 +14,14 @@
 		<DebugType>Embedded</DebugType>
 		<Title>SpawnDev.SpawnJS</Title>
 		<Authors>LostBeard</Authors>
-		<Description>SpawnJS provides Javascript interop for .Net WebAssembly.</Description>
+		<Description>Full .Net WebAssembly and Javascript interop. Supports all Javascript data types and web browser APIs. Call constructors, call methods, access properties, and add/remove event handlers of Javascript objects the .Net way without writing Javascript.</Description>
 		<PackageProjectUrl>https://github.com/LostBeard/SpawnDev.SpawnJS</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageIcon>icon-128.png</PackageIcon>
 		<RepositoryUrl>https://github.com/LostBeard/SpawnDev.SpawnJS.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>DotNetWebAssembly;Blazor;BlazorWebAssembly;Javascript</PackageTags>
+		<PackageTags>blazor blazor-wasm webassembly javascript interop js-interop webapi js-wrapper strongly-typed browser-api web-workers</PackageTags>
 		<CompressionEnabled>false</CompressionEnabled>
 		<IsTrimmable>true</IsTrimmable>
 	</PropertyGroup>
