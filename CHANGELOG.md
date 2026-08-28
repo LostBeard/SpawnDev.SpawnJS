@@ -2,6 +2,35 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## [2.1.9] - 2026-08-28
+
+### Fixed
+
+- **The app-root resolver matched the framework folder BY NAME, so a renamed framework folder resolved
+  `AppBaseUri` one level too deep** (`wwwroot/SpawnDev.SpawnJS.lib.module.js`).
+  `SpawnJSInterop.#appRootFromLoadUrl` normalizes whatever URL a runtime artifact was loaded from back to
+  the app root, and it did that by stripping a literal trailing `_framework/`. A published app can rename
+  that folder - `SpawnDev.SpawnJS.WebWorkers`' `SpawnJSWebWorkersFrameworkFolderName` does exactly that,
+  because a browser extension may not have a root folder whose name starts with `_`. The name match then
+  failed silently and `AppBaseUri` came back as the framework folder ITSELF. Every URL built on it
+  resolved one level too deep; worker entrypoints 404'd at `<root>/framework/main.classic.js`, which
+  presents as a crashed renderer rather than a clean error.
+
+  The folder is now identified by WHAT was loaded, never by what it is NAMED: the runtime entry
+  (`dotnet.js` / `dotnet.<fingerprint>.js` / `dotnet.native.worker.<fingerprint>.mjs`) and every
+  boot-manifest resource (`.wasm`/`.dll` assemblies, ICU `.dat`/`.blat`, `.pdb` symbols) live in the
+  framework folder, so the app root is that folder's parent; anything else - a bundled entrypoint such as
+  `main.classic.js` / `main.module.js` - already sits AT the app root and is not walked up. Behaviour for
+  a normal `_framework` publish is unchanged.
+
+### Added
+
+- **`SpawnJSInterop.appRootFromLoadUrl(url)`** - the app-root normalizer, exposed so it is diagnosable and
+  directly testable. 14 new `AppRoot.*` tests in the Demo suite drive that production function over every
+  shape the resolver is handed (fingerprinted and unfingerprinted runtime entry, boot resources, a
+  sub-path app, a RENAMED framework folder, a bundled entrypoint at the app root, query/fragment, and the
+  rejected blob/empty/null inputs), plus a live `AppBaseUri` check in the running app.
+
 ## [2.1.7] - 2026-08-18
 
 ### Fixed

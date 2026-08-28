@@ -180,6 +180,9 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             JsonElementMarshallerTests();
             HeapViewTests();
             TypedArrayHeapViewTests();
+            // Not a marshaller, but it shares this harness's counting/reporting and must run before
+            // the RESULTS line the test runner stops on.
+            AppRootTests.Run(Test);
 
             Console.WriteLine($"RESULTS: Failed: {_fail} Passed: {_pass} Skipped: {_skip} Ran: {_pass + _fail + _skip}");
             if (_fail > 0)
