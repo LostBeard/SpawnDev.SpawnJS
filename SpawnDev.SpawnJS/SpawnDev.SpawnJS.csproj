@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<Version>2.1.9</Version>
-		<PackageReleaseNotes>v2.1.8 - Added parameterless Audio constructor</PackageReleaseNotes>
+		<PackageReleaseNotes>v2.1.9 - The app-root resolver no longer identifies the framework folder by NAME. A published app can rename _framework (SpawnJSWebWorkersFrameworkFolderName), which made AppBaseUri resolve to the framework folder itself and every URL built on it one level too deep - worker entrypoints 404'd, presenting as a crashed renderer rather than a clean error. The folder is now identified by WHAT was loaded from it. Adds public SpawnJSInterop.appRootFromLoadUrl(url). No change for a normal _framework publish.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
