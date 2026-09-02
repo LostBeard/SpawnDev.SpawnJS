@@ -2,6 +2,38 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## [2.1.10] - 2026-09-02
+
+### Fixed
+
+- **The callback shim released the args slot on the straight line, not in a `finally` - so a throwing
+  handler stranded the slot AND left a `once` callback able to fire again.** The JS shim held the args
+  array, called into .NET, then released it:
+
+  ```js
+  var argsId = SpawnJSInterop.spawnJSObjectHold(args);
+  handleCallback(callbackId, argsId, argsCnt);
+  SpawnJSInterop.spawnJSObjectRelease(argsId);
+  if (once) delete SpawnJSInterop._callbacks[callbackIdPair];
+  ```
+
+  .NET deliberately does not release that slot itself - doing so would cost an extra crossing per
+  callback, and `Callback.HandleCallback` documents it (`FromID` with `preventDispose: true`). So the
+  release above is the ONLY one.
+
+  An exception from the user's handler propagates out of `HandleCallback` and back into JS here. ⚠️ This
+  is NOT the runtime-killing case - the JS caller is usually a browser event dispatcher, which logs an
+  uncaught error and carries on. The page survives and **both** cleanup lines are silently skipped, so the
+  args array is stranded in `spawnJSObjects` for the life of the page, and a `once` callback stays
+  registered JS-side and **can fire again**. The second of those is a correctness bug, not merely a leak.
+
+  Both now run in a `finally`.
+
+  MEASURED: a mid-run dump of `SpawnJSInterop.spawnJSObjects` from a consuming app showed ~30 stranded
+  empty arrays - the exact shape of a zero-argument callback's args. After the fix the table holds 2
+  arrays at rest and returns to 2 after a forced GC following repeated runs; they no longer accumulate.
+  ⚠️ That is an after-the-fact comparison against the reported symptom, not a controlled A/B.
+
 ## [2.1.9] - 2026-08-28
 
 ### Fixed
