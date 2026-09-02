@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.10-local.2</Version>
-		<PackageReleaseNotes>v2.1.9 - The app-root resolver no longer identifies the framework folder by NAME. A published app can rename _framework (SpawnJSWebWorkersFrameworkFolderName), which made AppBaseUri resolve to the framework folder itself and every URL built on it one level too deep - worker entrypoints 404'd, presenting as a crashed renderer rather than a clean error. The folder is now identified by WHAT was loaded from it. Adds public SpawnJSInterop.appRootFromLoadUrl(url). No change for a normal _framework publish.</PackageReleaseNotes>
+		<Version>2.1.10</Version>
+		<PackageReleaseNotes>v2.1.10 - Added additiona lloggign when verbose. Fixed unreleased callback args if an exception occurs using a try finally.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
