@@ -31,6 +31,11 @@ if (false)
 
 // run marshalelr tests
 await MarshallerTests.Run();
+JS.GrowHeap
+
+JS.Set("_runTests", () => MarshallerTests.Run());
+
+JS.Set("_runTestA", Callback.CreateOne(() => MarshallerTests.Run()));
 
 
 {   // EnumString<>
