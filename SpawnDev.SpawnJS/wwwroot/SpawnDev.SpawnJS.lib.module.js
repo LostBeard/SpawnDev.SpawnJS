@@ -533,12 +533,23 @@
                     var argsCnt = args.length;
                     // get a temporary hold of the args (released after we notify SpawnJSRuntime)
                     var argsId = SpawnJSInterop.spawnJSObjectHold(args);
-                    // notify SpawnJSRuntime with the argsId and the cnt
-                    handleCallback(callbackId, argsId, argsCnt);
-                    // release the args
-                    SpawnJSInterop.spawnJSObjectRelease(argsId);
-                    // if it was a 1 time use callback, release it
-                    if (once) delete SpawnJSInterop._callbacks[callbackIdPair];
+                    // ⚠️ try/finally, NOT straight-line. .Net deliberately does not release this slot
+                    // itself - that would cost an extra crossing per callback - so the ONLY release is
+                    // here. If handleCallback throws (any exception escaping the .Net handler crosses
+                    // back through here) a straight-line release is SKIPPED and the args array is
+                    // stranded in spawnJSObjects for the life of the page. Same for the `once` cleanup:
+                    // a one-shot callback that threw would never be removed and would keep firing.
+                    // MEASURED 2026-09-02: dumping the table mid-run in the ML demo showed ~30 stranded
+                    // empty arrays alongside the retained adapters.
+                    try {
+                        // notify SpawnJSRuntime with the argsId and the cnt
+                        handleCallback(callbackId, argsId, argsCnt);
+                    } finally {
+                        // release the args
+                        SpawnJSInterop.spawnJSObjectRelease(argsId);
+                        // if it was a 1 time use callback, release it
+                        if (once) delete SpawnJSInterop._callbacks[callbackIdPair];
+                    }
                     // return what is in index argsCnt (the designated place .Net will write to if there is a return value)
                     return args[argsCnt];
                 };
