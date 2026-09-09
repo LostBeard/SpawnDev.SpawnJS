@@ -11,4 +11,4 @@ Deeper documentation for **SpawnDev.SpawnJS** - JSON-free JavaScript interop for
 
 ## The one-paragraph version
 
-Blazor's `IJSInProcessRuntime` routes every interop value through a JSON serialize/parse on both ends. That cost is invisible on bulk data but real on orchestration traffic, and worse, non-primitive return values (even a one-property object or a `Uint8Array`) cannot survive `JSON.stringify` on the JS side, which has no access to the .NET type system. SpawnJS removes JSON from the boundary entirely: values cross as live `JSObject` handles and the **.NET side** does all marshalling through a marshaller graph. No Blazor dependency, so it runs in any .NET WASM host (Blazor, Avalonia, headless console, Web Workers).
+Blazor's `IJSInProcessRuntime` routes every interop value through a JSON serialize/parse on both ends. That cost is invisible on bulk data but real on orchestration traffic, and worse, non-primitive return values (even a one-property object or a `Uint8Array`) cannot survive `JSON.stringify` on the JS side, which has no access to the .NET type system. SpawnJS removes JSON from the boundary entirely.
