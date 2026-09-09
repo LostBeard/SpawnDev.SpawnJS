@@ -3,7 +3,8 @@
 namespace SpawnDev.SpawnJS.Toolbox
 {
     /// <summary>
-    /// Provides access to a Blob as a read-only Stream
+    /// Allows accessing a Blob as an asynchronous read-only read-only Stream.<br/>
+    /// When used with an on-disk File object it allows random access without reading the entire file into memory.
     /// </summary>
     public class BlobStream : JSReadStreamBase
     {

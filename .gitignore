@@ -44,3 +44,4 @@ project.assets.json
 Thumbs.db
 *.log
 *.tmp
+/CLAUDE.md

@@ -1,13 +1,12 @@
-# SpawnDev.SpawnJS
-
 > ### ⚠️ This library needs funding to survive.
-> SpawnJS is built and maintained by **one independent developer, unfunded.** Open-source work at this
-> scale does not sustain itself - without support it dies on the vine. If you or your organization build
-> on SpawnJS, please **[sponsor its development »](https://github.com/sponsors/LostBeard)**.
-> **$500/month gets us back to warp speed.** 58 MIT-licensed packages, 414,000+ NuGet downloads - your
+> SpawnJS is built and maintained by **one independent developer.** If you or your organization build
+> on SpawnJS, please **[sponsor its development](https://github.com/sponsors/LostBeard)**.
+> **$500/month gets us back to warp speed.** 68 MIT-licensed packages, 500,000+ NuGet downloads - your
 > sponsorship is what keeps them alive and moving.
 
-JSON-free JavaScript interop for .NET WebAssembly.
+# SpawnDev.SpawnJS
+[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=SpawnDev.SpawnJS)](https://www.nuget.org/packages/SpawnDev.SpawnJS)  
+[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.Blazor.svg?label=SpawnDev.SpawnJS.Blazor)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)  
 
 > *Blazor pushes the marshalling decision to the side that can't make it. SpawnJS moves it to the side that can.*
 
