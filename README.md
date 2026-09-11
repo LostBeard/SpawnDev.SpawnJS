@@ -222,44 +222,6 @@ whose `CanMarshal` returns true, scanned in **reverse registration order** so la
 earlier ones (built-ins register first; user overrides register last and win). Resolved marshallers are
 cached per type.
 
-Two design laws govern every marshaller:
-
-- **Parity by default, performance by opt-in.** The default marshal graph mirrors what `JSON.stringify`
-  would produce, so existing code behaves identically. `List<long>` becomes an ordinary JS number array,
-  **not** a `BigInt64Array`. TypedArrays and `BigInt` are opt-in via explicit .NET wrapper types - never
-  auto-selected because an element "happens to be" a `long` or a `float`. The caller chooses the fast lane
-  by choosing the type.
-- **Any type, users bring their own.** Because the transport is a live `SpawnJSObjectReference`, a custom marshaller can
-  drop to its own optimal `JSImport`/`JSExport` route with no JSON middleman
-  foreclosing an optimization.
-
-Built-in marshallers include `Default`, `Object`, `IEnumerable`, `ByteArray`, `String`, `Boolean`,
-`Number`, `Struct`, `SpawnJSObject`, `SpawnJSObjectReference`, and `JSToNetInvoker`.
-
-## Argument passing
-
-The call/construct methods (`Call`, `CallVoid`, `CallAsync`, `New`, ...) are explicit fixed-arity overloads
-- `arg1`, `arg1, arg2`, up to `arg1 ... arg20` - rather than a single `params object?[] args` method. This
-is deliberate: with `params object?[]`, a single argument that is *itself* assignable to `object?[]` binds
-**as** the argument array instead of being wrapped -
-
-```csharp
-obj.Call<T>("fn", "hello");         // [ "hello" ]      (wrapped, as expected)
-obj.Call<T>("fn", someObjectArray); // someObjectArray  (spread! NOT [ someObjectArray ])
-obj.Call<T>("fn", someStringArray); // spread too - string?[] is covariant to object?[]
-```
-
-- a silent wrong argument shape with no warning and no exception, and inconsistent by element type (an
-`int[]` wraps, a `string[]` spreads). The fixed-arity overloads build `new object?[] { arg1, ... }`
-internally, so "one array argument" always means exactly one argument. When you genuinely have a pre-built
-array, use the non-`params` `*Apply` methods, which take it as a single explicit parameter:
-
-```csharp
-object?[] args = new object?[] { someObjectArray }; // one argument that is an array
-obj.CallApply<T>("fn", args);
-obj.NewApply("Thing", args);
-```
-
 ## Documentation
 
 Deeper docs live in [`Docs/`](Docs/README.md):
@@ -268,7 +230,6 @@ Deeper docs live in [`Docs/`](Docs/README.md):
 - [Argument passing](Docs/argument-passing.md) - the arity-overload / `Apply` design and the `params` collapse it avoids.
 - [Writing marshallers](Docs/writing-marshallers.md) - the `JSMarshaller` contract, resolution order, and registration.
 - [API reference](Docs/api/_index.md) - per-type reference for the public surface.
-- [Roadmap](Docs/roadmap.md) - current state and what is next.
 
 ## Projects
 
@@ -280,22 +241,6 @@ Deeper docs live in [`Docs/`](Docs/README.md):
 | `BlazorBrowserDemo` | Blazor host demo and the interop benchmark. |
 | `SpawnJS.TestRunner` | Playwright runner that drives the browser suites and the benchmark. |
 | `TestsShared` | Shared interop test cases. |
-
-## Status
-
-**1.0.0.** Verified across three suites (browser, headless Node, trimmed) and end to end by SpawnDev.ILGPU
-running real WebGPU compute kernels headless.
-
-- **.NET &rarr; JS**, sync and async: get, set, delete, call, void call, and construct, with typed returns.
-- **JS &rarr; .NET**: the single inbound channel carries typed calls and callbacks back through the same
-  marshaller graph in reverse.
-- **Marshaller graph** with per-type caching, reverse-order priority, and null-argument handling.
-- **Transport** - a shared flat buffer that unwinds as a stack, plus an argument frame in .NET memory the
-  JavaScript side views directly, so no JavaScript object reference crosses per call.
-- **Slot-backed references** - `SlotInterop` plus a JavaScript slot table; proxies are created lazily.
-  Slot keys are allocated monotonically and never reused, so a disposed handle can never resurrect another
-  value.
-- **Trim-safe** via an embedded `ILLink.Descriptors.xml`.
 
 ## The SpawnDev Crew
 

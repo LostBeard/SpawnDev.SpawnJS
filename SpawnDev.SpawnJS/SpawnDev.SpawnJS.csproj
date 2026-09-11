@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.10</Version>
-		<PackageReleaseNotes>v2.1.10 - Added additiona lloggign when verbose. Fixed unreleased callback args if an exception occurs using a try finally.</PackageReleaseNotes>
+		<Version>2.1.11</Version>
+		<PackageReleaseNotes>v2.1.11 - Added TypeMarshaller</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
