@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.12</Version>
-		<PackageReleaseNotes>v2.1.12 - Added RuntimeTypeMarshaller</PackageReleaseNotes>
+		<Version>2.1.13</Version>
+		<PackageReleaseNotes>v2.1.13 - Added AsyncOPFS.Open methods for opening OPFS streams</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
