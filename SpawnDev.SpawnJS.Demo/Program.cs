@@ -4,6 +4,7 @@ using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Toolbox;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Blob = SpawnDev.SpawnJS.JSObjects.Blob;
 using Document = SpawnDev.SpawnJS.JSObjects.Document;
 
 var JS = SpawnJSRuntime.Instance;
-JS.Verbose = true;
+JS.Verbose = false;
 
 
 
@@ -31,12 +32,17 @@ if (false)
 
 // run marshalelr tests
 await MarshallerTests.Run();
-JS.GrowHeap
 
 JS.Set("_runTests", () => MarshallerTests.Run());
 
 JS.Set("_runTestA", Callback.CreateOne(() => MarshallerTests.Run()));
 
+{ // Type
+    var type = typeof(SpawnJSRuntime);
+    JS.Set("_art", type);
+    var r3 = JS.Get<Type>("_art");
+    var nmt22 = true;
+}
 
 {   // EnumString<>
     EnumString<VideoFacingModeEnum> enumString = VideoFacingModeEnum.Left;

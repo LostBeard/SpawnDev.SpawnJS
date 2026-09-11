@@ -240,6 +240,8 @@ namespace SpawnDev.SpawnJS
             Marshallers.Add(new JsonElementMarshaller());
             // .Net: Type <> <-> JS: string?
             Marshallers.Add(new TypeMarshaller());
+            // .Net: RuntimeType <> <-> JS: string?
+            Marshallers.Add(new RuntimeTypeMarshallerFactory());
             // The one and only permitted JSObject use: hand this app's DotnetInstance to the JS side and
             // immediately reduce it to a numeric SpawnJSObjectReference id. Never touched as a JSObject again.
             DotnetInstance = new SpawnJSObjectReference(

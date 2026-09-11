@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -156,6 +157,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             StringMarshallerTests();
             INumberMarshallerTests();
             INumberNullableMarshallerTests();
+            TypeMarshallerTests();
             DoubleMarshallerTests();
             Int32MarshallerTests();
             BooleanMarshallerTests();
@@ -641,6 +643,20 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(JS.Call<string, long?>("SpawnJSTests.numberFrom", "2147483648"), 2147483648L, "read of a JS number as long?");
                 AssertEqual(JS.Call<long?>("SpawnJSTests.nullValue"), null, "JS null must read as a null long?");
                 AssertEqual(JS.Call<long?>("SpawnJSTests.undefinedValue"), null, "JS undefined must read as a null long?");
+            });
+        }
+
+        // ==========================================================================================
+        // TypeMarshaller
+        // ==========================================================================================
+        static void TypeMarshallerTests()
+        {
+            var type = typeof(SpawnJSRuntime);
+            Test("TypeMarshaller.RoundTrip", () =>
+            {
+                JS.Set(K, type);
+                AssertEqual(TypeOfKey(), "string", "typeof");
+                AssertEqual(JS.Get<Type>(K)?.FullName, type.FullName, "round trip");
             });
         }
 
