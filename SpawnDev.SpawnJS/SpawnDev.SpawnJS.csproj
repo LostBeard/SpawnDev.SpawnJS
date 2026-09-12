@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.13</Version>
-		<PackageReleaseNotes>v2.1.13 - Added AsyncOPFS.Open methods for opening OPFS streams</PackageReleaseNotes>
+		<Version>2.1.14</Version>
+		<PackageReleaseNotes>v2.1.14 - Added missing try catch to AsyncOPFS GetFileHandle call</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
