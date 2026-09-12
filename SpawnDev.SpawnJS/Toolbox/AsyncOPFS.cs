@@ -1,7 +1,4 @@
 ﻿using SpawnDev.SpawnJS.JSObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SpawnDev.SpawnJS.Toolbox
 {
@@ -131,7 +128,12 @@ namespace SpawnDev.SpawnJS.Toolbox
         public static async Task<Stream> OpenAsyncAccess(this FileSystemDirectoryHandle root, string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, CancellationToken cancellationToken = default)
         {
             if (!OperatingSystem.IsBrowser()) throw new PlatformNotSupportedException();
-            var fileHandle = await root.GetFileHandle(name);
+            FileSystemFileHandle? fileHandle = null;
+            try
+            {
+                fileHandle = await root.GetFileHandle(name);
+            }
+            catch { }
             var truncate = false;
             var seekToEnd = false;
             switch (fileMode)
