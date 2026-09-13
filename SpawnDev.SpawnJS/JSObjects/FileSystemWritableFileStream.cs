@@ -67,12 +67,12 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="size"></param>
         /// <returns></returns>
-        public Task Truncate(ulong size) => JSRef!.CallVoidAsync("truncate", size);
+        public Task Truncate(long size) => JSRef!.CallVoidAsync("truncate", size);
         /// <summary>
         /// Updates the current file cursor offset to the position (in bytes) specified.
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        public Task Seek(ulong position) => JSRef!.CallVoidAsync("seek", position);
+        public Task Seek(long position) => JSRef!.CallVoidAsync("seek", position);
     }
 }

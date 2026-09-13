@@ -28,13 +28,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The byte position the current file cursor should move to if type seek is used. Can also be set with if type is write, in which case the write will start at the position.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ulong? Position { get; set; }
+        public long? Position { get; set; }
 
         /// <summary>
         /// An unsigned long value representing the amount of bytes the stream should contain.<br/>
         /// This property is required if type is set to truncate
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ulong? Size { get; set; }
+        public long? Size { get; set; }
     }
 }

@@ -3,9 +3,8 @@ using SpawnDev.SpawnJS.Demo.UnitTests;
 using SpawnDev.SpawnJS.JSObjects;
 using SpawnDev.SpawnJS.Toolbox;
 using System;
+using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Blob = SpawnDev.SpawnJS.JSObjects.Blob;
@@ -14,6 +13,28 @@ using Document = SpawnDev.SpawnJS.JSObjects.Document;
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = false;
 
+
+if (true)
+{
+    var bufferSize = 1024 * 1024 * 4;
+    var testSize = 100 * 1024 * 1024;
+
+    await using (var streamAA = await OPFSStreams.OpenAsyncAccess("MyFile42.txt", FileMode.Create, FileAccess.Write))
+    {
+        var lengtha = streamAA.Length;
+        streamAA.SetLength(testSize);
+        var lengthb = streamAA.Length;
+        await streamAA.FlushAsync();
+        var lengthc = streamAA.Length;
+        var nmtttt = true;
+    }
+
+    await StreamThroughputTester.RunThroughputTestAsync(
+        async () => await OPFSStreams.OpenAsyncAccess("MyFileAsync6.txt", FileMode.Create, FileAccess.Write),
+        async () => await OPFSStreams.OpenAsyncAccess("MyFileAsync6.txt", FileMode.Open, FileAccess.Read),
+        testSize, bufferSize);
+}
+return;
 
 
 if (false)

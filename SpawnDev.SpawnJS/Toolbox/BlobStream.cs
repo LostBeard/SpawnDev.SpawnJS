@@ -3,7 +3,7 @@
 namespace SpawnDev.SpawnJS.Toolbox
 {
     /// <summary>
-    /// Allows accessing a Blob as an asynchronous read-only read-only Stream.<br/>
+    /// Allows accessing a Blob as an asynchronous read-only Stream.<br/>
     /// When used with an on-disk File object it allows random access without reading the entire file into memory.
     /// </summary>
     public class BlobStream : JSReadStreamBase
@@ -29,7 +29,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// </summary>
         protected long _Position = 0;
         /// <inheritdoc/>
-        public override long Position { get => _Position; set => _Position = value; }
+        public override long Position { get => _Position; set => Seek(value, SeekOrigin.Begin); }
         /// <summary>
         /// The source.
         /// </summary>
@@ -53,14 +53,12 @@ namespace SpawnDev.SpawnJS.Toolbox
             IsDisposed = true;
             Source?.Dispose();
             Source = null!;
-            base.Dispose(disposing);
         }
         /// <inheritdoc/>
         public override void Close()
         {
             Source?.Dispose();
             Source = null!;
-            base.Close();
         }
         /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin)
@@ -68,13 +66,13 @@ namespace SpawnDev.SpawnJS.Toolbox
             switch (origin)
             {
                 case SeekOrigin.Begin:
-                    Position = offset;
+                    _Position = offset;
                     break;
                 case SeekOrigin.End:
-                    Position = Length + offset;
+                    _Position = Length + offset;
                     break;
                 case SeekOrigin.Current:
-                    Position = Position + offset;
+                    _Position = _Position + offset;
                     break;
             }
             return Position;
@@ -84,9 +82,13 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// </summary>
         public override void Flush() { }
         /// <inheritdoc/>
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken = default)
         {
-            using var subBlob = ReadBlob(count);
+            return await ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken);
+        }
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            using var subBlob = ReadBlob(buffer.Length);
             var bytesRead = (int)(subBlob?.Size ?? 0);
             if (bytesRead > 0 && subBlob != null)
             {
@@ -94,8 +96,9 @@ namespace SpawnDev.SpawnJS.Toolbox
                 using var subUint8Array = new Uint8Array(subArrayBuffer);
                 // get a heap view of the destination in buffer using the offset and count
                 using var heapView = HeapView.Create(buffer);
+                using var heapUint8Array = heapView.View;
                 // write the source subarray view to the destination
-                heapView.View.Set(subUint8Array, offset);
+                heapUint8Array.Set(subUint8Array);
             }
             return bytesRead;
         }
@@ -124,7 +127,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             return ret;
         }
         /// <inheritdoc/>
-        public override async Task<Uint8Array> ReadUint8ArrayAsync(int count, System.Threading.CancellationToken cancellationToken = default)
+        public override async Task<Uint8Array> ReadUint8ArrayAsync(int count, CancellationToken cancellationToken = default)
         {
             using var subBlob = ReadBlob(count);
             if (subBlob == null || subBlob.Size == 0) return new Uint8Array(0);
@@ -135,7 +138,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         }
         /// <summary>
         /// Not supported - a Blob's bytes are fetched via the async <c>Blob.arrayBuffer()</c> Promise
-        /// (<see cref="CanReadSync"/> is false). Use <see cref="ReadUint8ArrayAsync(int, System.Threading.CancellationToken)"/>.
+        /// (<see cref="CanReadSync"/> is false). Use <see cref="ReadUint8ArrayAsync(int, CancellationToken)"/>.
         /// </summary>
         /// <exception cref="NotSupportedException"></exception>
         public override Uint8Array ReadUint8Array(int count)

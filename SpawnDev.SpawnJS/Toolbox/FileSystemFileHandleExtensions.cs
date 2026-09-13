@@ -17,7 +17,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         public static async Task<long> SeekToEnd(this FileSystemFileHandle fileHandle, FileSystemWritableFileStream fileStream)
         {
             var size = await fileHandle.GetSize();
-            await fileStream.Seek((ulong)size);
+            await fileStream.Seek(size);
             return size;
         }
         /// <summary>
@@ -29,7 +29,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         public static async Task<long> SeekToEnd(this FileSystemWritableFileStream fileStream, FileSystemFileHandle fileHandle)
         {
             var size = await fileHandle.GetSize();
-            await fileStream.Seek((ulong)size);
+            await fileStream.Seek(size);
             return size;
         }
         /// <summary>

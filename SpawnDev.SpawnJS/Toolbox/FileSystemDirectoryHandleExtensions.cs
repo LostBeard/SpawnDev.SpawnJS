@@ -606,7 +606,8 @@ namespace SpawnDev.SpawnJS.Toolbox
             return ret;
         }
         /// <summary>
-        /// Read the data from the file as a Stream
+        /// Read the data from the file as a synchronous Stream.<br/>
+        /// NOTE: Reads the entire file into memory
         /// </summary>
         /// <param name="_this"></param>
         /// <param name="path"></param>

@@ -520,6 +520,9 @@ namespace SpawnDev.SpawnJS.JSObjects
                 ReleaseHandle();
             }
         }
+        public HeapView(TElement[] source, int offset, int count, bool copy = false) :this(new Memory<TElement>(source, offset, count)) {
+
+        }
         public HeapView(Memory<TElement> source, bool copy = false)
         {
             Copy = copy;
