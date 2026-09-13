@@ -3,25 +3,27 @@
     /// <summary>
     /// OPFSStream Stream API mopde
     /// </summary>
-    public enum OPFSSyncMode
+    [Flags]
+    public enum OPFSFileOptions
     {
         /// <summary>
+        /// Async access will be enabled.<br/>
         /// If FileSystemSyncHandle is available (only in a DedicatedWorkerGlobalScope) it will be used and sync Stream access will be enabled. - Default
         /// </summary>
-        Auto = 1,
+        Auto,
         /// <summary>
         /// If FileSystemSyncHandle is available it will be used and sync Stream access will be enabled.<br/>
-        /// If not running in a DedicatedWorkerGlobalScope and Read access is requested, the file will be read into JS memory to allow sync access.<br/>
+        /// If not running in a DedicatedWorkerGlobalScope and Read access is requested and Direct flag is not set, the file will be read into JS memory to allow sync access.<br/>
         /// NOTE: Only DedicatedWorkerGlobalScope supports synchronous write access to FileSystemFileHandles via FileSystemSyncHandle.
         /// </summary>
-        Required = 2,
+        SyncRequired = 2,
         /// <summary>
-        /// If FileSystemSyncHandle is available it will be used and sync Stream access will be enabled otherwise an exception is thrown.
+        /// Only the async access wil be enabled and used
         /// </summary>
-        RequiredOnDisk = 3,
+        SyncDisabled = 4,
         /// <summary>
-        /// Async Stream access will be enabled using BlobStream for read streams and FileSystemHandleWritableStream for write streams.
+        /// Writes directly to file, reads directly from file.
         /// </summary>
-        Disabled = 16,
+        Direct = 8,
     }
 }

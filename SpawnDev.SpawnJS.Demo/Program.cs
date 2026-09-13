@@ -41,7 +41,7 @@ if (true)
     var bufferSize = 1024 * 1024 * 4;
     var testSize = 100 * 1024 * 1024;
 
-    await using (var streamAA = await OPFSStreams.OpenAsyncAccess("MyFile42.txt", FileMode.Create, FileAccess.Write))
+    await using (var streamAA = await OPFSStreams.OpenStream("MyFile42.txt", FileMode.Create, FileAccess.Write))
     {
         var lengtha = streamAA.Length;
         streamAA.SetLength(testSize);
@@ -52,8 +52,8 @@ if (true)
     }
 
     await StreamThroughputTester.RunThroughputTestAsync(
-        async () => await OPFSStreams.OpenAsyncAccess("MyFileAsync6.txt", FileMode.Create, FileAccess.Write),
-        async () => await OPFSStreams.OpenAsyncAccess("MyFileAsync6.txt", FileMode.Open, FileAccess.Read),
+        async () => await OPFSStreams.OpenStream("MyFileAsync6.txt", FileMode.Create, FileAccess.Write),
+        async () => await OPFSStreams.OpenStream("MyFileAsync6.txt", FileMode.Open, FileAccess.Read),
         testSize, bufferSize);
 }
 return;

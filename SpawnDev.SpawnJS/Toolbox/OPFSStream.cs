@@ -54,7 +54,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="cancellationToken">FileAccess</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static async Task<OPFSStream> OpenPath(FileSystemDirectoryHandle root, string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> OpenPath(FileSystemDirectoryHandle root, string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSFileOptions syncMode = OPFSFileOptions.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try
@@ -78,7 +78,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> OpenPath(string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> OpenPath(string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSFileOptions syncMode = OPFSFileOptions.Auto, CancellationToken cancellationToken = default)
         {
             using var navigator = JS!.Get<Navigator>("navigator");
             using var root = await navigator.Storage.GetDirectory();
@@ -94,7 +94,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> Open(FileSystemDirectoryHandle root, string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(FileSystemDirectoryHandle root, string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSFileOptions syncMode = OPFSFileOptions.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try
@@ -118,7 +118,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> Open(string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSFileOptions syncMode = OPFSFileOptions.Auto, CancellationToken cancellationToken = default)
         {
             using var navigator = JS!.Get<Navigator>("navigator");
             using var root = await navigator.Storage.GetDirectory();
@@ -134,7 +134,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static async Task<OPFSStream> Open(FileSystemFileHandle fileHandle, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(FileSystemFileHandle fileHandle, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSFileOptions syncMode = OPFSFileOptions.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try
@@ -149,7 +149,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             return ret;
         }
-        private async Task OpenPathInternal(FileSystemDirectoryHandle root, string path, FileMode fileMode, FileAccess fileAccess, OPFSSyncMode syncMode, CancellationToken cancellationToken)
+        private async Task OpenPathInternal(FileSystemDirectoryHandle root, string path, FileMode fileMode, FileAccess fileAccess, OPFSFileOptions syncMode, CancellationToken cancellationToken)
         {
             switch (fileAccess)
             {
@@ -226,7 +226,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             {
                 throw new FileNotFoundException();
             }
-            if (JS?.IsDedicatedWorkerGlobalScope == true && syncMode != OPFSSyncMode.Disabled)
+            if (JS?.IsDedicatedWorkerGlobalScope == true && (syncMode & OPFSFileOptions.SyncDisabled) == 0)
             {
                 try
                 {
@@ -240,20 +240,21 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             if (_stream == null)
             {
-                if (syncMode == OPFSSyncMode.RequiredOnDisk)
+                // failed if direct write is required
+                if ((fileAccess & FileAccess.Write) != 0 && (syncMode & OPFSFileOptions.Direct) != 0)
                 {
-                    throw new NotSupportedException($"{nameof(OPFSSyncMode.RequiredOnDisk)} failed");
+                    throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} write direct failed");
                 }
-                if (syncMode == OPFSSyncMode.Required)
+                if ((syncMode & OPFSFileOptions.SyncRequired) != 0)
                 {
-                    if (fileAccess == FileAccess.Read)
+                    if ((fileAccess & FileAccess.Read) != 0 && (syncMode & OPFSFileOptions.Direct) == 0)
                     {
                         var arrayBuffer = await fileHandle.ReadArrayBuffer();
                         _stream = new ArrayBufferStream(arrayBuffer);
-                    } 
+                    }
                     else
                     {
-                        throw new NotSupportedException($"{nameof(OPFSSyncMode.Required)} failed");
+                        throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} failed");
                     }
                 }
             }
@@ -274,7 +275,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             _stream!.Position = seekToEnd ? Length : 0;
         }
-        private async Task OpenNameInternal(FileSystemDirectoryHandle root, string name, FileMode fileMode, FileAccess fileAccess, OPFSSyncMode syncMode, CancellationToken cancellationToken)
+        private async Task OpenNameInternal(FileSystemDirectoryHandle root, string name, FileMode fileMode, FileAccess fileAccess, OPFSFileOptions syncMode, CancellationToken cancellationToken)
         {
             switch (fileAccess)
             {
@@ -356,7 +357,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             {
                 throw new FileNotFoundException();
             }
-            if (JS?.IsDedicatedWorkerGlobalScope == true && syncMode != OPFSSyncMode.Disabled)
+            if (JS?.IsDedicatedWorkerGlobalScope == true && (syncMode & OPFSFileOptions.SyncDisabled) == 0)
             {
                 try
                 {
@@ -370,20 +371,21 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             if (_stream == null)
             {
-                if (syncMode == OPFSSyncMode.RequiredOnDisk)
+                // failed if direct write is required
+                if ((fileAccess & FileAccess.Write) != 0 && (syncMode & OPFSFileOptions.Direct) != 0)
                 {
-                    throw new NotSupportedException($"{nameof(OPFSSyncMode.RequiredOnDisk)} failed");
+                    throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} write direct failed");
                 }
-                if (syncMode == OPFSSyncMode.Required)
+                if ((syncMode & OPFSFileOptions.SyncRequired) != 0)
                 {
-                    if (fileAccess == FileAccess.Read)
+                    if ((fileAccess & FileAccess.Read) != 0 && (syncMode & OPFSFileOptions.Direct) == 0)
                     {
                         var arrayBuffer = await fileHandle.ReadArrayBuffer();
                         _stream = new ArrayBufferStream(arrayBuffer);
                     }
                     else
                     {
-                        throw new NotSupportedException($"{nameof(OPFSSyncMode.Required)} failed");
+                        throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} failed");
                     }
                 }
             }
@@ -404,7 +406,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             _stream!.Position = seekToEnd ? Length : 0;
         }
-        private async Task OpenInternal(FileSystemFileHandle fileHandle, FileMode fileMode, FileAccess fileAccess, OPFSSyncMode syncMode, CancellationToken cancellationToken)
+        private async Task OpenInternal(FileSystemFileHandle fileHandle, FileMode fileMode, FileAccess fileAccess, OPFSFileOptions syncMode, CancellationToken cancellationToken)
         {
             if (fileHandle == null)
             {
@@ -456,7 +458,7 @@ namespace SpawnDev.SpawnJS.Toolbox
                     seekToEnd = true;
                     break;
             }
-            if (JS?.IsDedicatedWorkerGlobalScope == true && syncMode != OPFSSyncMode.Disabled)
+            if (JS?.IsDedicatedWorkerGlobalScope == true && (syncMode & OPFSFileOptions.SyncDisabled) == 0)
             {
                 try
                 {
@@ -470,20 +472,21 @@ namespace SpawnDev.SpawnJS.Toolbox
             }
             if (_stream == null)
             {
-                if (syncMode == OPFSSyncMode.RequiredOnDisk)
+                // failed if direct write is required
+                if ((fileAccess & FileAccess.Write) != 0 && (syncMode & OPFSFileOptions.Direct) != 0)
                 {
-                    throw new NotSupportedException($"{nameof(OPFSSyncMode.RequiredOnDisk)} failed");
+                    throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} write direct failed");
                 }
-                if (syncMode == OPFSSyncMode.Required)
+                if ((syncMode & OPFSFileOptions.SyncRequired) != 0)
                 {
-                    if (fileAccess == FileAccess.Read)
+                    if ((fileAccess & FileAccess.Read) != 0 && (syncMode & OPFSFileOptions.Direct) == 0)
                     {
                         var arrayBuffer = await fileHandle.ReadArrayBuffer();
                         _stream = new ArrayBufferStream(arrayBuffer);
                     }
                     else
                     {
-                        throw new NotSupportedException($"{nameof(OPFSSyncMode.Required)} failed");
+                        throw new NotSupportedException($"{nameof(OPFSFileOptions.SyncRequired)} failed");
                     }
                 }
             }
