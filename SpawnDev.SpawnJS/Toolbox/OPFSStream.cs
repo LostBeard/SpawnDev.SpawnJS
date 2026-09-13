@@ -54,7 +54,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="cancellationToken">FileAccess</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static async Task<OPFSStream> OpenPath(FileSystemDirectoryHandle root, string path, FileMode fileMode = FileMode.OpenOrCreate, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> OpenPath(FileSystemDirectoryHandle root, string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try
@@ -78,7 +78,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> OpenPath(string path, FileMode fileMode = FileMode.OpenOrCreate, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> OpenPath(string path, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
         {
             using var navigator = JS!.Get<Navigator>("navigator");
             using var root = await navigator.Storage.GetDirectory();
@@ -94,7 +94,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> Open(FileSystemDirectoryHandle root, string name, FileMode fileMode = FileMode.OpenOrCreate, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(FileSystemDirectoryHandle root, string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try
@@ -118,7 +118,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="syncMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<OPFSStream> Open(string name, FileMode fileMode = FileMode.OpenOrCreate, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(string name, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
         {
             using var navigator = JS!.Get<Navigator>("navigator");
             using var root = await navigator.Storage.GetDirectory();
@@ -134,7 +134,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static async Task<OPFSStream> Open(FileSystemFileHandle fileHandle, FileMode fileMode = FileMode.OpenOrCreate, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
+        public static async Task<OPFSStream> Open(FileSystemFileHandle fileHandle, FileMode fileMode = FileMode.Open, FileAccess fileAccess = FileAccess.Read, OPFSSyncMode syncMode = OPFSSyncMode.Auto, CancellationToken cancellationToken = default)
         {
             OPFSStream? ret = null;
             try

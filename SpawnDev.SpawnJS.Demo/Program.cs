@@ -5,6 +5,7 @@ using SpawnDev.SpawnJS.Toolbox;
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Blob = SpawnDev.SpawnJS.JSObjects.Blob;
@@ -13,6 +14,27 @@ using Document = SpawnDev.SpawnJS.JSObjects.Document;
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = false;
 
+
+{
+    string TestString = "Live long and prosper!";
+    byte[] TestStringBytes = Encoding.UTF8.GetBytes(TestString);
+    var path = "mystream.txt";
+    {
+        await using var stream = await OPFSStream.OpenPath(path, FileMode.Create, FileAccess.Write);
+        await stream.WriteAsync(TestStringBytes);
+    }
+    {
+        await using var stream = await OPFSStream.OpenPath(path, FileMode.Create, FileAccess.Write);
+        await stream.WriteAsync(TestStringBytes);
+    }
+    {
+        await using var stream = await OPFSStream.OpenPath(path);
+        var readBackBytes = new byte[stream.Length];
+        await stream.ReadExactlyAsync(readBackBytes);
+        JS.Log("readBackBytes", readBackBytes);
+        if (!TestStringBytes.SequenceEqual(readBackBytes)) throw new Exception($"Readback failed");
+    }
+}
 
 if (true)
 {

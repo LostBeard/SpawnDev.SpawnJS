@@ -199,6 +199,7 @@ namespace SpawnDev.SpawnJS.Toolbox
             var handleStream = await FileSystemHandleWritableStream.Create(_this, true);
             try
             {
+                handleStream.Position = handleStream.Length;
                 await stream.CopyToAsync(handleStream);
                 await handleStream.CloseAsync();   // AWAIT the commit (not the sync fire-and-forget Dispose)
             }
@@ -207,7 +208,10 @@ namespace SpawnDev.SpawnJS.Toolbox
                 await handleStream.AbortAsync();    // release swap + discard the partial on failure (e.g. quota)
                 throw;
             }
-            finally { handleStream.Dispose(); }
+            finally
+            {
+                await handleStream.DisposeAsync();
+            }
         }
         /// <summary>
         /// Append data to the end of the file
