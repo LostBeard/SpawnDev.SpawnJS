@@ -23,11 +23,24 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public string Kind => JSRef!.Get<string>("kind");
         /// <summary>
-        /// Compares two handles to see if the associated entries (either a file or directory) match.
+        /// Compares two handles to see if the associated entries (either a file or directory) match.<br/>
+        /// Multiple handles can represent the same entry, so this - not reference equality and not the
+        /// handle's <see cref="Name"/> - is the way to test whether two handles point at the same file.
         /// </summary>
-        /// <param name="fsHandle"></param>
-        /// <returns></returns>
-        public bool IsSameEntry(FileSystemHandle fsHandle) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle, bool>("isSameEntry", fsHandle);
+        /// <remarks>
+        /// ⚠️ <c>isSameEntry()</c> returns a <c>Promise&lt;boolean&gt;</c>. This was previously declared as a
+        /// synchronous <c>bool</c> via <c>Call&lt;...&gt;</c>, which returned the pending Promise marshalled as
+        /// a bool rather than the comparison result - so it never answered the question it was asked, and
+        /// did so without throwing.
+        /// <para>
+        /// ⭐ BOTH wrappers carried this, not one: SpawnDev.BlazorJS fixed the identical defect in 3.5.29
+        /// (<c>d898efe</c>, 2026-09-13). Parallel wrappers share a lineage, so they share their bugs -
+        /// finding one in either is reason to check the other rather than to assume it is the odd one out.
+        /// </para>
+        /// </remarks>
+        /// <param name="fsHandle">The handle to compare against.</param>
+        /// <returns>True when both handles represent the same file or directory entry.</returns>
+        public Task<bool> IsSameEntry(FileSystemHandle fsHandle) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle, bool>("isSameEntry", fsHandle);
         /// <summary>
         /// Returns a FileSystemDirectoryHandle or FileSystemFileHandle based on the FileSystemHandle.Kind
         /// </summary>
