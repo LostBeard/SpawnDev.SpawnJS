@@ -29,9 +29,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <remarks>
         /// ⚠️ <c>isSameEntry()</c> returns a <c>Promise&lt;boolean&gt;</c>. This was previously declared as a
-        /// synchronous <c>bool</c> via <c>Call&lt;...&gt;</c>, which returned the pending Promise marshalled as
-        /// a bool rather than the comparison result - so it never answered the question it was asked, and
-        /// did so without throwing.
+        /// synchronous <c>bool</c> via <c>Call&lt;...&gt;</c>, so it asked for the comparison result and got the
+        /// pending Promise - it never answered the question it was asked. MEASURED under SpawnJS: the
+        /// boolean marshaller refuses that value outright (<c>Assert failed: Value is not a Boolean:
+        /// [object Promise]</c>), so the broken form threw rather than answering wrongly.
         /// <para>
         /// ⭐ BOTH wrappers carried this, not one: SpawnDev.BlazorJS fixed the identical defect in 3.5.29
         /// (<c>d898efe</c>, 2026-09-13). Parallel wrappers share a lineage, so they share their bugs -

@@ -57,7 +57,11 @@ try
             return 1;
         }
     }
-    var target = string.IsNullOrEmpty(filter) ? url : $"{url.TrimEnd('/')}/?filter={Uri.EscapeDataString(filter)}";
+    // Always ask for the suite with ?tests=[filter], even when the filter is empty. The demo app the
+    // suite lives in is also TJ's scratch host, and whatever sits at the top of its Program.cs may
+    // return before reaching the tests. The parameter makes the suite unconditional instead of
+    // dependent on that. The app runs everything when the value is empty.
+    var target = $"{url.TrimEnd('/')}/?tests={Uri.EscapeDataString(filter)}";
     return await RunAsync(target, headed, verbose);
 }
 finally

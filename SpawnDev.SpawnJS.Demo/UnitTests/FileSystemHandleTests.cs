@@ -8,15 +8,21 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
     /// <see cref="FileSystemHandle.IsSameEntry(FileSystemHandle)"/> against the live OPFS implementation.
     /// <para>
     /// 🔴 <c>isSameEntry()</c> RETURNS A PROMISE. It was wrapped as a synchronous <c>bool</c> through
-    /// <c>JSRef.Call&lt;...&gt;</c>, so it handed back the pending Promise marshalled as a bool instead of
-    /// the comparison result - the same answer for matching and non-matching handles, and no exception to
-    /// reveal it. SpawnDev.BlazorJS carried the identical defect and fixed it in 3.5.29 (<c>d898efe</c>),
-    /// so this was a shared-lineage bug in both parallel wrappers, not a drift in one of them.
+    /// <c>JSRef.Call&lt;...&gt;</c>, so it asked for the comparison result and got the pending Promise.
+    /// SpawnDev.BlazorJS carried the identical defect and fixed it in 3.5.29 (<c>d898efe</c>), so this was
+    /// a shared-lineage bug in both parallel wrappers, not a drift in one of them.
     /// </para>
     /// <para>
-    /// ⚠️ THE NEGATIVE TEST IS THE ONE THAT CATCHES IT. "Two handles to the same file match" is the
-    /// obvious case to write, and a wrapper that always answers truthy passes it. Only "two handles to
-    /// DIFFERENT files must answer false" can fail against a Promise.
+    /// ⭐ MEASURED, and it corrects what this file and commit <c>1bf1b2c</c> first claimed: under SpawnJS
+    /// the broken wrapper does NOT quietly answer truthy. Its boolean marshaller refuses the value and
+    /// throws - <c>Assert failed: Value is not a Boolean: [object Promise] (object)</c> - so ALL THREE
+    /// cases below fail against it, not only the negative one. Red-checked 2026-09-14 by restoring the
+    /// synchronous <c>Call</c> behind this same signature: 3 failed, 0 passed.
+    /// </para>
+    /// <para>
+    /// ⚠️ Keep the negative case anyway. It is the one that stays load-bearing if the marshaller ever
+    /// coerces instead of asserting (a truthy Promise satisfies "two handles to the same file match"
+    /// perfectly), and it is the case that pins the ANSWER rather than merely the type.
     /// </para>
     /// <para>
     /// Multiple handles may represent one entry, so <c>isSameEntry</c> - not reference equality, not

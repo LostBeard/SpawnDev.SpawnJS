@@ -36,9 +36,22 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         #region harness
         static int _pass, _fail, _skip;
         static readonly List<string> _failures = new();
+        static string _filter = "";
+
+        /// <summary>
+        /// Whether a case runs at all under the current filter.
+        /// <para>
+        /// A filtered run must not merely HIDE the cases it excludes - it must not run them, and the
+        /// counts on the RESULTS line must describe only what ran, so a scoped run can be confirmed by
+        /// test COUNT rather than taken on faith.
+        /// </para>
+        /// </summary>
+        static bool Selected(string name) =>
+            _filter.Length == 0 || name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
 
         static void Test(string name, Action body)
         {
+            if (!Selected(name)) return;
             var sw = Stopwatch.StartNew();
             string result = "Success", detail = "";
             try
@@ -63,6 +76,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
 
         static async Task TestAsync(string name, Func<Task> body)
         {
+            if (!Selected(name)) return;
             var sw = Stopwatch.StartNew();
             string result = "Success", detail = "";
             try
@@ -142,11 +156,16 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         static string Js<T1>(string fn, T1 arg1) => JS.Call<T1, string>($"SpawnJSTests.{fn}", arg1);
         #endregion
 
-        public static async Task Run()
+        /// <param name="filter">
+        /// Case-insensitive substring a test name must contain to run. Empty runs everything.
+        /// </param>
+        public static async Task Run(string filter = "")
         {
             _pass = _fail = _skip = 0;
             _failures.Clear();
-            Console.WriteLine("READY: SpawnJS marshaller tests");
+            _filter = filter ?? "";
+            Console.WriteLine("READY: SpawnJS marshaller tests"
+                + (_filter.Length > 0 ? $" (filter: {_filter})" : ""));
 
             Assert_JSHelpersLoaded();
 

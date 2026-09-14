@@ -14,6 +14,22 @@ using Document = SpawnDev.SpawnJS.JSObjects.Document;
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = false;
 
+// SpawnJS.TestRunner drives this app with ?tests=[filter] and parses the TEST:/RESULTS: lines the
+// suite writes. This has to run BEFORE the demo/scratch code below, because that code ends in its own
+// `return` - while it did, MarshallerTests.Run() was unreachable and the whole suite silently stopped
+// existing. The harness reported only "TIMED OUT" with zero TEST: lines, and nothing named the cause.
+// Keying the suite off the URL means it no longer depends on what sits at the top of this file.
+{
+    using var location = JS.Get<Location>("location")!;
+    using var pageUrl = new URL(location.Href);
+    using var query = pageUrl.SearchParams;
+    if (query.Has("tests"))
+    {
+        await MarshallerTests.Run(query.Get("tests") ?? "");
+        return;
+    }
+}
+
 
 {
     string TestString = "Live long and prosper!";
