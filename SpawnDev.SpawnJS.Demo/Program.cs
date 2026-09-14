@@ -30,28 +30,6 @@ JS.Verbose = false;
     }
 }
 
-
-{
-    string TestString = "Live long and prosper!";
-    byte[] TestStringBytes = Encoding.UTF8.GetBytes(TestString);
-    var path = "mystream.txt";
-    {
-        await using var stream = await OPFSStream.OpenPath(path, FileMode.Create, FileAccess.Write);
-        await stream.WriteAsync(TestStringBytes);
-    }
-    {
-        await using var stream = await OPFSStream.OpenPath(path, FileMode.Create, FileAccess.Write);
-        await stream.WriteAsync(TestStringBytes);
-    }
-    {
-        await using var stream = await OPFSStream.OpenPath(path);
-        var readBackBytes = new byte[stream.Length];
-        await stream.ReadExactlyAsync(readBackBytes);
-        JS.Log("readBackBytes", readBackBytes);
-        if (!TestStringBytes.SequenceEqual(readBackBytes)) throw new Exception($"Readback failed");
-    }
-}
-
 if (true)
 {
     var bufferSize = 1024 * 1024 * 4;
