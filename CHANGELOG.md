@@ -2,6 +2,47 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS.Blazor 2.1.18 - 2026-09-16
+
+### Fixed
+
+- **`ElementReference.As<T>()` returned `null!` when it could not resolve, and said nothing.** A method
+  whose signature promises `T` handing back a null-forgiving null means every caller dereferences it and
+  gets a bare `NullReferenceException` - "Arg_NullReferenceException", no frame, no cause, nothing naming
+  the method at all.
+
+  It resolves through `ElementReference.Context`, recognising only Blazor's `WebElementReferenceContext`.
+  MEASURED 2026-09-16: an app hosted by `SpawnDomRenderer` called it, got null every time, and the symptom
+  - a chat transcript that would not scroll - was blamed in turn on flex layout, on scroll-anchoring logic
+  and on image load order, through three rounds of fixes to a method that had never once run.
+
+  It now throws an `InvalidOperationException` naming the cause and the fix. ⚠️ Nothing that WORKED
+  changes: a caller that got a usable element still gets one.
+
+### Added
+
+- **`ElementRef<T>` - a typed `@ref` target.** Write `@ref="_canvas"` against an
+  `ElementRef<HTMLCanvasElement>` field and ask it for the element: `using var canvas = _canvas.Get();`.
+
+  🔴 **Why a holder rather than implicit operators on the wrappers.** A user-defined conversion must be
+  declared in the source type or the destination type. The source is Microsoft's `ElementReference`; the
+  destinations live in `SpawnDev.SpawnJS`, which deliberately does not reference
+  `Microsoft.AspNetCore.Components` and cannot name `ElementReference` at all. Per-type operators would
+  push a Blazor dependency into the dependency-free core. This package already references Components, so
+  one generic type here covers every wrapper.
+
+  ⭐ **It resolves lazily.** Converting at capture time would allocate a live JS slot per capture, and
+  `@ref` re-captures on re-render - SpawnJS slots are manual, nothing collects them, and the `@ref` syntax
+  gives a component nowhere to dispose the previous value. This stores only the reference (a free struct)
+  and hands out a wrapper for the caller to `using`.
+
+  ⚠️ `Get()` returns null when not yet captured, which is ordinary. A captured reference that cannot be
+  resolved throws instead - that is a misconfiguration, and returning null for it is what cost the
+  afternoon above.
+
+  ⚠️ `SpawnDev.SpawnJS.RazorRenderer` ships its own `ElementRef<T>` for `SpawnDomRenderer` hosts. Different
+  namespaces, and a project has one renderer, so they never meet.
+
 ## [2.1.10] - 2026-09-02
 
 ### Fixed
