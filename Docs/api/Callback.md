@@ -2,136 +2,56 @@
 
 **Namespace:** `SpawnDev.SpawnJS`  
 **Inheritance:** Callback (abstract)  
-**Concrete types:** `ActionCallback`, `ActionCallback<T1>` ... `ActionCallback<T1..T7>`, `FuncCallback<TResult>`, `FuncCallback<T1, TResult>` ... `FuncCallback<T1..T7, TResult>`  
-**Source:** `SpawnDev.SpawnJS/Callback.cs`
+**Concrete types:** `ActionCallback` and `ActionCallback<T1>` ... `ActionCallback<T1..T10>`; `FuncCallback<TResult>` and `FuncCallback<T1, TResult>` ... `FuncCallback<T1..T10, TResult>`  
+**Source:** `Callback.cs`, `Callback.Create.cs`, `ActionCallback.cs`, `FuncCallback.cs`
 
-> Callback makes .NET methods callable from plain JavaScript. When a Callback is serialized to JS, it carries a DotNetObjectReference, a unique callback ID, and parameter type metadata that tells the JS interop layer how to marshal arguments. Callbacks are reference-counted and implement IDisposable - they must be disposed when no longer needed to prevent .NET object reference leaks. Async methods that return Task are automatically converted to JS Promises.
+> Callback makes a .NET method callable from JavaScript. JS holds a numeric callback id; invoking the function calls into .NET via the instance registered at startup (`handleCallback`). Arguments arrive as a held JS array and are read through the marshaller graph. Callbacks are `IDisposable`. Slot and callback tables are strong refs - dispose them.
 
-## Static Factory Methods - Action (void return)
+Passing an `Action` / `Func` as an interop argument also works: `DelegateMarshaller` wraps it in a `Callback` and **reuses one JS function per delegate instance**.
 
-| Method | Return Type | Description |
-|---|---|---|
-| `Create(Action callback, CallbackGroup? group = null)` | `ActionCallback` | Create a reusable callback with no parameters. |
-| `Create<T1>(Action<T1> callback, CallbackGroup? group = null)` | `ActionCallback<T1>` | Create a reusable callback with 1 parameter. |
-| `Create<T1, T2>(Action<T1, T2> callback, ...)` | `ActionCallback<T1, T2>` | Create a reusable callback with 2 parameters. |
-| `Create<T1...T7>(Action<T1...T7> callback, ...)` | `ActionCallback<T1...T7>` | Up to 7 parameters supported. |
-| `CreateOne(Action callback)` | `ActionCallback` | Create a one-shot callback that auto-disposes after first invocation. |
-| `CreateOne<T1>(Action<T1> callback)` | `ActionCallback<T1>` | One-shot with 1 parameter. |
-| `CreateOne<T1...T7>(Action<T1...T7> callback)` | `ActionCallback<T1...T7>` | One-shot, up to 7 parameters. |
+## Static factory methods
 
-## Static Factory Methods - Func (with return value)
+`Create(...)` is reusable. `CreateOne(...)` sets `Once` and disposes after the first invocation (JS also drops `once` callbacks). Optional `CallbackGroup` on `Create` disposes the group together.
 
-| Method | Return Type | Description |
-|---|---|---|
-| `Create<TResult>(Func<TResult> callback, CallbackGroup? group = null)` | `FuncCallback<TResult>` | Create a reusable callback that returns a value. |
-| `Create<T1, TResult>(Func<T1, TResult> callback, ...)` | `FuncCallback<T1, TResult>` | Reusable with 1 parameter and return value. |
-| `Create<T1...T7, TResult>(Func<T1...T7, TResult> callback, ...)` | `FuncCallback<T1...T7, TResult>` | Up to 7 parameters with return value. |
-| `CreateOne<TResult>(Func<TResult> callback)` | `FuncCallback<TResult>` | One-shot with return value. |
-| `CreateOne<T1, TResult>(Func<T1, TResult> callback)` | `FuncCallback<T1, TResult>` | One-shot with 1 parameter and return value. |
-| `CreateOne<T1...T7, TResult>(Func<T1...T7, TResult> callback)` | `FuncCallback<T1...T7, TResult>` | One-shot, up to 7 parameters with return value. |
-
-## Instance Properties
-
-| Property | Type | Description |
-|---|---|---|
-| `IsDisposed` | `bool` | True if the callback has been disposed. Serialized as `isDisposed` in JSON. |
-| `_callback` | `DotNetObjectReference<Callback>` | The .NET object reference used by JS to invoke the callback. |
-| `_callbackId` | `string` | Unique identifier for this callback instance. |
-| `_paramTypes` | `int[]` | Array of parameter type hints for JS interop marshaling. |
-| `_returnVoid` | `bool` | True if the callback returns void (Action-based). |
-
-## Instance Methods
-
-| Method | Return Type | Description |
-|---|---|---|
-| `Dispose()` | `void` | Decrement RefCount by 1. If RefCount reaches 0, the callback is fully disposed. |
-| `Dispose(bool force)` | `void` | If `force` is true, dispose immediately regardless of RefCount. |
-
-## Events
-
-| Event | Type | Description |
-|---|---|---|
-| `OnDisposed` | `Action` | Fired when the callback is fully disposed (RefCount reaches 0). |
-
-## JSON Serialization
-
-When a Callback is passed to JavaScript, it serializes as:
-
-```json
-{
-    "_callback": { /* DotNetObjectReference */ },
-    "_callbackId": "42",
-    "_paramTypes": [0, 1],
-    "_returnVoid": false
-}
-```
-
-The JS interop layer uses this metadata to correctly invoke the .NET method with proper parameter marshaling.
-
-## Example - Basic Action Callback
+Action: 0 to 10 parameters. Func: 0 to 10 parameters plus `TResult`.
 
 ```csharp
-// Simple void callback
 using var cb = Callback.Create(() => Console.WriteLine("Called!"));
-JS.CallVoid("setTimeout", cb, 1000);
+JS.CallVoid<Callback, int>("setTimeout", cb, 1000);
 
-// Callback with parameters
-using var cb = Callback.Create<string, int>((name, count) =>
-{
-    Console.WriteLine($"{name}: {count}");
-});
-someJSObject.JSRef!.CallVoid("onData", cb);
+using var once = Callback.CreateOne<Event>(e => Console.WriteLine(e.Type));
+JS.CallVoid<string, Callback>("addEventListener", "load", once);
+
+JS.Set("_onTick", () => { /* DelegateMarshaller */ });
 ```
 
-## Example - One-Shot Callback
+## Instance
 
-```csharp
-// Auto-disposes after first call - perfect for one-time events
-using var cb = Callback.CreateOne<Event>(e =>
-{
-    Console.WriteLine($"Loaded! Type: {e.Type}");
-});
-JS.CallVoid("addEventListener", "load", cb);
-```
+| Member | Description |
+|---|---|
+| `Id` | Numeric id (never a `DotNetObjectReference`). |
+| `Once` | True for `CreateOne` / `once: true` constructors. |
+| `Sent` | True once the callback has been written to JS. Dispose notifies JS only if `Sent` and JS has not already dropped a `once` callback. |
+| `CalledCount` / `HasBeenCalled` | Invocation count. |
+| `RefCount` | Used by event `CallbackRef`. Setting it to 0 or less disposes. |
+| `IsDisposed` | |
+| `OnDisposed` | Fired from `Dispose()`. |
+| `Dispose()` | Unregisters, notifies JS if needed. Does not decrement `RefCount`; it disposes now. |
 
-## Example - Func Callback (Return Value)
+`CallbackCount` is the number of live instances.
 
-```csharp
-// Callback that returns a value to JavaScript
-using var validator = Callback.Create<string, bool>(input =>
-{
-    return input.Length > 3;
-});
-JS.CallVoid("myLib.setValidator", validator);
-
-// Async callback - Task automatically converts to Promise in JS
-using var fetcher = Callback.Create<string, Task<string>>(async url =>
-{
-    using var response = await JS.CallAsync<Response>("fetch", url);
-    return await response.Text();
-});
-```
-
-## Example - With CallbackGroup
+## CallbackGroup
 
 ```csharp
 using var group = new CallbackGroup();
-
-// All callbacks added to the group are disposed together
-var onOpen = Callback.Create(() => Console.WriteLine("open"), group);
-var onClose = Callback.Create(() => Console.WriteLine("close"), group);
-var onError = Callback.Create<Event>(e => Console.WriteLine("error"), group);
-
-ws.JSRef!.CallVoid("addEventListener", "open", onOpen);
-ws.JSRef!.CallVoid("addEventListener", "close", onClose);
-ws.JSRef!.CallVoid("addEventListener", "error", onError);
-
-// group.Dispose() disposes all three callbacks at once
+var onOpen = Callback.Create(() => { }, group);
+var onClose = Callback.Create(() => { }, group);
+group.Dispose(); // disposes both
 ```
 
-## Important Notes
+## Notes
 
-- **Always dispose Callbacks.** Each Callback holds a DotNetObjectReference that pins .NET objects in memory. Leaking Callbacks leaks memory.
-- **CreateOne auto-disposes** after the first invocation - ideal for one-time event handlers, Promise resolve/reject callbacks, etc.
-- **RefCount-based disposal:** Calling Dispose() decrements the reference count. The callback is only truly disposed when RefCount reaches 0. This supports sharing a single callback across multiple listeners via CallbackRef.
-- **Async support:** If a Callback wraps a `Func` that returns `Task` or `Task<T>`, the return value is automatically converted to a JavaScript Promise.
+- **Always dispose** reusable callbacks. A held JS function plus a .NET dictionary entry will not go away on their own.
+- `CreateOne` is for one-shot handlers (`setTimeout`, Promise `then`, a one-time event).
+- Wrappers (`HTMLButtonElement.OnClick += ...`) typically go through `ActionEvent` / `CallbackRef` and take a `RefCount` so one method subscribed to several events shares one JS function.
+- An **unhandled exception** from a callback can **exit the WASM runtime**. Catch inside the handler if the page must survive.

@@ -1,6 +1,6 @@
 # HeapView
 
-**Namespace:** `SpawnDev.SpawnJS.Toolbox`  
+**Namespace:** `SpawnDev.SpawnJS.JSObjects`  
 **Inheritance:** `HeapView` (base), `HeapView<TElement>` (generic), `HeapViewString` (string variant)
 
 > Pins .NET arrays (or strings) in WASM linear memory using `GCHandle`, then creates JavaScript TypedArray or DataView views that point directly at the pinned memory. This enables **zero-copy** data sharing between .NET and JavaScript - the JS TypedArray reads and writes the exact same bytes as the .NET array. HeapView is fundamental to SpawnDev.SpawnJS's high-performance data transfer and is used extensively throughout the library.

@@ -24,7 +24,7 @@
 | `GetParent(ActionCallback<FileSystemDirectoryEntry> successCallback)` | `void` | The FileSystemEntry interface's method getParent() obtains a FileSystemDirectoryEntry. |
 | `GetParent(ActionCallback<FileSystemDirectoryEntry> successCallback, ActionCallback<DOMException> errorCallback)` | `void` | The FileSystemEntry interface's method getParent() obtains a FileSystemDirectoryEntry. |
 | `GetParentAsync()` | `Task<FileSystemDirectoryEntry>` | The FileSystemEntry interface's method getParent() obtains a FileSystemDirectoryEntry. |
-| `ResolveType(bool moveJSRef)` | `FileSystemEntry` | Returns a FileSystemDirectoryEntry if IsDirectory, FileSystemFileEntry if IsFile, else FileSystemEntry If true, the IJSInProcessReference from this SpawnJSObject is moved to the new type instead of copied |
+| `ResolveType(bool moveJSRef)` | `FileSystemEntry` | Returns a FileSystemDirectoryEntry if IsDirectory, FileSystemFileEntry if IsFile, else FileSystemEntry. If true, the SpawnJSObjectReference from this SpawnJSObject is moved to the new type instead of copied |
 | `ToFileSystemDirectoryEntry(bool moveJSRef)` | `FileSystemDirectoryEntry?` | Returns a FileSystemDirectoryEntry SpawnJSObject for this entry if this entry IsDirectory |
 | `ToFileSystemFileEntry(bool moveJSRef)` | `FileSystemFileEntry?` | Returns a FileSystemFileEntry SpawnJSObject for this entry if this entry IsFile |
 

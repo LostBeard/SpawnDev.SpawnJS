@@ -5,59 +5,153 @@
 > sponsorship is what keeps them alive and moving.
 
 # SpawnDev.SpawnJS
-[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=SpawnDev.SpawnJS)](https://www.nuget.org/packages/SpawnDev.SpawnJS)  
-[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.Blazor.svg?label=SpawnDev.SpawnJS.Blazor)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)  
 
-> *Blazor pushes the marshalling decision to the side that can't make it. SpawnJS moves it to the side that can.*
+[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=SpawnDev.SpawnJS)](https://www.nuget.org/packages/SpawnDev.SpawnJS)
+[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.Blazor.svg?label=SpawnDev.SpawnJS.Blazor)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)
 
-SpawnJS is a direct .NET &harr; JavaScript interop layer built on entirely on `JSImport`/`JSExport`.
-`JSObject` and `JSHost` are intentionally avoided due to `Symbol tagging`, which makes objects incompatible with 
-some browser API calls, shared JSObject handles which causes `Dispose chaos`, and an inability to reference
-any Javascript type. It has **no Blazor dependency**, so it runs in any .NET WASM host - Blazor, Avalonia, 
-Web Workers, and, notably, a **headless .NET WASM console app under Node** with no browser and no DOM at all.
+JSON-free JavaScript interop for **.NET WebAssembly**. No Blazor dependency. Targets **.NET 10**.
 
-*You can even run 2 or more apps using SpawnJS on the same web page without any conflicts.*
+SpawnJS is the next-generation successor to [SpawnDev.BlazorJS](https://github.com/LostBeard/SpawnDev.BlazorJS) (first published December 2022, 198,000+ NuGet downloads). SpawnJS 1.0.0 shipped July 2026 and already has 9,000+ downloads. Version **2.x** rewrote the core: marshalling lives in a managed `JSMarshaller` graph, and the transport is `JSImport` / `JSExport` plus a numeric object table. Microsoft's `JSObject` and `JSHost` are not used as the interop handle.
 
-It provides a familiar interop surface - `Get`/`Set`/`Call`/`New` with strongly-typed generic returns -
-but where Blazor marshals values by serializing them to a JSON string and parsing them on the other side,
-SpawnJS marshals them directly as live JS values, so the JSON serializer is gone from the boundary.
+It runs in any .NET WASM host: Blazor, Avalonia, Web Workers, and a headless .NET WASM console app under Node with no browser and no DOM. Two or more SpawnJS apps can share one page without conflicts.
 
-## Why it exists
+```csharp
+using SpawnDev.SpawnJS;
+using SpawnDev.SpawnJS.JSObjects;
 
-- **Kill the JSON boundary.** Blazor's `IJSInProcessRuntime` routes every value through a JSON
-  serialize/parse on both ends. That cost is invisible on bulk data (already zero-copy) but real on
-  orchestration traffic - the thousands of small property reads, writes, and method calls that make up
-  normal interop. SpawnJS removes the serializer entirely.
-- **Drop the Blazor dependency.** SpawnJS uses only the runtime interop primitives, so libraries built on
-  it reach non-Blazor .NET WASM apps - for example Avalonia.
-- **Make browser GPU compute faster.** [SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) and
-  SpawnDev.ILGPU.ML run real GPU compute in the browser across WebGPU, WebGL and Wasm, and they are
-  interop-heavy: every kernel launch plumbs buffers, bind groups and parameters across the boundary
-  before any work reaches the GPU. A model forward pass runs thousands of launches - that is where the
-  cost concentrates.
-- **Trim-safe - which BlazorJS is not.** SpawnJS ships an embedded `ILLink.Descriptors.xml`, so an
-  app can publish **trimmed**: in one test app that cut the published output from ~30 MB to ~9 MB. The
-  marshaller graph reaches members reflectively and the descriptor preserves exactly what it needs, so the
-  full test suite passes trimmed. SpawnDev.BlazorJS's JSON-serialization interop is not trim-friendly this
-  way (yet).
-- **Run headless - no browser, no Blazor, no DOM.** Because SpawnJS needs only the .NET WASM runtime
-  primitives, it runs in a plain **.NET WASM console app under Node**. That is what lets SpawnDev.ILGPU
-  run its **entire GPU-compute suite headless in CI** - real WebGPU compute through the
-  [`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) npm package (prebuilt Dawn), no browser
-  required - and it opens .NET WASM JavaScript interop to server-side and command-line scenarios that
-  were previously browser-only.
-- **Simplify Web Worker startup.** Without the Blazor interop layer, the fake-`window` shim
-  SpawnDev.BlazorJS.WebWorkers builds to boot a Blazor app inside a worker is no longer needed.
+// JS comes from DI in a real app (see Setup). Instance is the same singleton.
+var JS = SpawnJSRuntime.Instance;
+
+using var bytes = JS.New<int, Uint8Array>("Uint8Array", 100);
+JS.Set("_uint8", bytes);
+bytes.CallVoid<byte[]>("set", new byte[] { 1, 3, 5, 7, 9 });
+int length = bytes.Get<int>("length");
+
+using var canvas = JS.Call<string, HTMLCanvasElement>("document.getElementById", "myCanvas");
+```
+
+`Get` reads a property. `Call` invokes a method. Do not embed a call in a property path: `JS.Get<T>("document.getElementById('id')")` looks up a property of that literal name.
+
+## Why SpawnJS
+
+**Blazor's `IJSInProcessRuntime` JSON-serializes every crossing.** JavaScript has no access to the .NET type system, so a non-primitive return - a one-property object, a `Uint8Array` - must survive `JSON.stringify` on the JS side. Many values do not. SpawnJS never puts the default path through JSON. The value stays live in a JS table; **.NET** chooses the marshaller from the declared (or boxed) type.
+
+**SpawnDev.BlazorJS is not going away**, but it rides that JSON boundary by design. SpawnJS is the library you want when the workload is interop-dense: GPU bind groups, DOM, workers, typed arrays, callbacks.
+
+**Microsoft `JSObject` is not used as a handle.** Three reasons, all measured or observed in production:
+
+1. **Creation and lookup are slow** - surprising, and enough on its own for a hot interop path.
+2. **Symbol tagging** makes some objects incompatible with browser APIs that reject tagged values.
+3. **Shared handles and dispose** - two wrappers can name the same runtime handle, so disposing one poisons the other.
+
+The one exception: `JSHost.DotnetInstance` is handed to `SpawnJSInterop._registerInstance` once so JS can call back into this .NET instance and reach WASM memory. After that, every JS value is an integer id in `SpawnJSInterop.spawnJSObjects`. Ids are monotonic and never reused, so a disposed handle cannot resurrect another value.
+
+**Trim-friendly.** The package embeds `ILLink.Descriptors.xml`. In one test app, a trimmed publish dropped from ~30 MB to ~9 MB and the suite still passed. BlazorJS's JSON-serialization interop is not trim-friendly this way.
+
+**Headless.** SpawnDev.ILGPU runs its GPU-compute suite on SpawnJS in a .NET WASM console app under Node, driving real WebGPU through [`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) (prebuilt Dawn). Same ILGPU source on both interop layers.
+
+## Install
+
+```
+dotnet add package SpawnDev.SpawnJS
+```
+
+Blazor host extras (`ElementReference.As<T>()`, `ElementRef<T>`, `SpawnJSRunAsync`):
+
+```
+dotnet add package SpawnDev.SpawnJS.Blazor
+```
+
+Current versions: **SpawnDev.SpawnJS 2.1.17**, **SpawnDev.SpawnJS.Blazor 2.1.18**. See [`CHANGELOG.md`](CHANGELOG.md).
+
+## Setup
+
+Most apps use **dependency injection**. `AddSpawnJSRuntime()` registers `SpawnJSRuntime` as a singleton, plus `IBackgroundServiceManager`. Full detail: [Hosting](Docs/hosting.md).
+
+**Non-Blazor WASM** - `SpawnJSAppBuilder` in the core package (workers, extensions, RazorRenderer, console WASM):
+
+```csharp
+var builder = SpawnJSAppBuilder.CreateDefault(args, out var JS);
+builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(JS.AppBaseUri) });
+await builder.Build().RunAsync();
+```
+
+`RunAsync()` starts `IBackgroundService` / `IAsyncBackgroundService` and stays alive until `SpawnJSApp.Exit()`. Downstream packages hang extra surface on the same builder (`RootComponents` from RazorRenderer, `AddWebWorkerService()`, ...).
+
+**Blazor** - `WebAssemblyHostBuilder` plus `SpawnDev.SpawnJS.Blazor`:
+
+```csharp
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.Services.AddSpawnJSRuntime(out var JS);
+await builder.Build().SpawnJSRunAsync();
+```
+
+```csharp
+[Inject] SpawnJSRuntime JS { get; set; }   // in a component; not SpawnJSRuntime.Instance
+```
+
+`SpawnJSRunAsync` starts background services, then `WebAssemblyHost.RunAsync` in a window scope. In a worker it does not call `RunAsync`.
+
+Any other `IServiceCollection` can call `AddSpawnJSRuntime()` the same way. `SpawnJSRuntime.Instance` is the same singleton and is what the live test suite (`SpawnDev.SpawnJS.Demo`) uses; prefer the container in application `Program.cs`.
+
+### Blazor elements
+
+Give the element an `id` and fetch it with `Call`, or use the Blazor package:
+
+```razor
+<canvas @ref="_canvas"></canvas>
+@code {
+    ElementRef<HTMLCanvasElement> _canvas;
+    async Task Draw()
+    {
+        using var canvas = _canvas.Get();   // null until first render
+        // ...
+    }
+}
+```
+
+`ElementRef<T>` stores the `ElementReference` (a struct) and allocates a live slot only when you call `Get()`. Dispose that wrapper. `@ref` re-captures on re-render; converting at capture time would leak slots.
+
+## Call surface
+
+On `SpawnJSRuntime` and `SpawnJSObjectReference`: `Get` / `Set` / `Has` / `Delete`, `Call` / `CallVoid` / `CallAsync` / `CallVoidAsync`, `New` / `NewApply`, and the `*Apply` forms. Keys may be a `string`, `int`, or `double`. String keys support dotted paths (`"a.b.c"`) and null-conditional segments (`"a?.b"`).
+
+Generic type arguments are **argument types first, return type last**:
+
+```csharp
+JS.Call<string, string>("btoa", "Hello");
+JS.New<int, Uint8Array>("Uint8Array", 100);
+await JS.CallAsync<string, Response>("fetch", url);
+```
+
+`CallVoid` and `New` (untyped) infer argument types. Overloads go to **10 arguments**. A pre-built array uses `*Apply` - never `params object?[]`. See [Argument passing](Docs/argument-passing.md).
+
+`JS.Verbose = true` logs marshaller selection and JS-side interop to the console.
+
+`JS.AppBaseUri` is the URL this app was loaded from (origin of `_framework` / the entry script, trailing slash). Use it instead of `document.baseURI` when the app is served from a CDN at a different path than the host page. Correct in window and worker scopes. Empty string on a non-browser host.
+
+Handles are **manual lifetime**. `spawnJSObjects[id]` is a strong JS reference nothing collects. `using` / `Dispose` the wrapper or the slot leaks.
+
+## How it works
+
+`[JSImport]` / `[JSExport]` marshalling is frozen at compile time. SpawnJS reduces every operation to a small set of primitives the generator already understands, then composes types in managed code.
+
+1. **JS primitives.** `SpawnJSInterop` (`wwwroot/SpawnDev.SpawnJS.lib.module.js`) exposes `propertyGet`, `propertySet`, `propertyCall`, `propertyNew`, hold/release, and related helpers.
+2. **One outbound dispatcher.** `_spawnJSInteropCall` / `_spawnJSInteropCallAsync` take a `ReturnType` code, a method index, and an argument-array id. Typed `[JSImport]` overloads receive `bool`, `int`, `double`, `string`, or void. Objects come back as table ids.
+3. **Slots, not proxies.** .NET holds a `double` id. Negative ids are sentinels (`globalThis`, `undefined`, `null`, the table, `SpawnJSInterop`).
+4. **Pooled argument arrays.** Arguments are written into a held JS array; JS empties that slot on consume so the same id is reused.
+5. **Marshaller graph.** A registry of `JSMarshaller`s reads and writes typed values. Later registrations win. See [Writing marshallers](Docs/writing-marshallers.md).
+
+JS calling .NET (events, promises, `Action`/`Func`) goes through a registered callback: JS holds a numeric callback id, .NET looks it up, marshals args through the same graph.
+
+Default marshalling matches what `JSON.stringify` would produce: `List<long>` is a JS number array, not a `BigInt64Array`. Typed arrays and `BigInt` are opt-in via wrapper types (`Uint8Array`, `BigInt`, `HeapView`). `byte[]` is the exception: it writes as a `Uint8Array` copy. `JsonElement` is the one type whose marshaller uses `JSON.stringify` / `JSON.parse` on purpose.
 
 ## Performance
 
-Measured against SpawnDev.BlazorJS - both runtimes in one Blazor app, hitting the same JavaScript object
-with the same operation, so the only variable is the interop path. 20,000 iterations per case, real
-Chromium, interpreted WASM (no AOT). **Read the ratios, not the absolute times.**
+Measured against SpawnDev.BlazorJS in one Blazor app, same JS object, same operation. 20,000 iterations, Chromium, interpreted WASM (no AOT). Read the **ratios**.
 
-**Through a held object reference** - the common case: hold a `GPUDevice` or an `HTMLCanvasElement`, then
-read and write it. A simple key resolves to a single typed `Reflect` binding - one crossing, nothing
-allocated.
+**Held object reference** (hold a `GPUDevice` or `HTMLCanvasElement`, then read/write it):
 
 | operation | BlazorJS | SpawnJS | |
 |---|---:|---:|---:|
@@ -66,7 +160,7 @@ allocated.
 | write an int | 1206 ms | **34 ms** | **35.2x** |
 | call a method | 1807 ms | **62 ms** | **29.0x** |
 
-**By dotted path from `globalThis`** - resolved at each call, so it goes through the general dispatcher.
+**Dotted path from `globalThis`:**
 
 | operation | BlazorJS | SpawnJS | |
 |---|---:|---:|---:|
@@ -76,7 +170,7 @@ allocated.
 | write an int | 1087 ms | **233 ms** | **4.7x** |
 | take a handle to an object | 2468 ms | **581 ms** | **4.2x** |
 
-**Object marshalling.**
+**Object marshalling:**
 
 | operation | BlazorJS | SpawnJS | |
 |---|---:|---:|---:|
@@ -86,161 +180,47 @@ allocated.
 | read a 5-member record | 666 ms | **205 ms** | **3.2x** |
 | read a 10-element array | 558 ms | **293 ms** | **1.9x** |
 
-Where the difference comes from:
+Where that comes from: no JSON on the default path, integer slot ids instead of `JSObject` proxy tables, pooled argument arrays, and one JS function per .NET method for `Callback` / `Action` / `Func` (reuse by delegate identity).
 
-- **Nothing is serialized** - no JSON encode or parse on either side.
-- **Nothing is allocated per call** - arguments and results share one flat buffer, and a call carries only
-  a command name, an offset and a length. No JavaScript object reference crosses at all.
-- **One JavaScript function per delegate** - a `Callback` shares its function with every other `Callback`
-  over the same .NET method rather than registering a new one.
-- **No proxy per reference** - JavaScript holds the value in a slot table and .NET holds the integer that
-  addresses it, so a reference costs a number rather than a GC handle plus a proxy-table entry.
-
-**Per-call transport cost** (SpawnJS alone - the figures an interop-heavy consumer scales by launch count):
-writing 5 arguments into .NET memory the JavaScript side views directly costs **1.19 us**, versus **7.82 us**
-to write the same 5 across the boundary one at a time. Inbound (JavaScript calling .NET) costs
-**3.2-12 us** by arity; a void callback **4.0 us**, one returning a value **5.7 us**.
-
-Reproduce it:
-
-```
-dotnet run --project BlazorBrowserDemo -c Release --urls http://localhost:5199
-dotnet run --project SpawnJS.TestRunner -- --url "http://localhost:5199/?bench" --verbose
-```
-
-## Verified on a real workload
-
-Microbenchmarks prove a layer is fast in isolation; they do not prove it moves real work.
-[SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) runs its **full GPU-compute test suite
-headless on SpawnJS** - in a .NET WASM console app under Node, driving real WebGPU compute through the
-[`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) npm package (prebuilt Dawn), no browser at all:
-**542 of 551 tests pass with zero SpawnJS interop bugs** - the nine remaining failures are Node-DOM, Dawn
-WGSL strictness, and f64 tolerance, none of them SpawnJS's. The same ILGPU source runs unchanged on both
-interop layers, and kernel output is verified correct on every run.
-
-This doubles as a working **compatibility proof**: SpawnJS interops correctly not just in the browser but
-across the plain Node runtime, a headless .NET WASM console host, and the npm WebGPU toolchain - so you
-can trust it in CI and command-line environments, not only in Blazor.
-
-One honest open item: a synchronizing dispatch round trip (`SynchronizeAsync`) is still slightly slower
-than the pre-transport baseline, and the cause is not yet understood - the callback id was the stated
-suspect and has been ruled out by measurement. The honest number is tracked in
-[`CHANGELOG.md`](CHANGELOG.md) rather than hidden.
-
-## Complex return values just work
-
-This is the biggest practical win over Blazor interop, and it is about correctness, not only speed.
-
-When a JS method returns anything that is not a primitive - even a plain object with a single property, or
-a `Uint8Array` - Blazor's **JS side** must `JSON.stringify` that value before handing it back to .NET. It
-has no choice: JavaScript has no access to the .NET type system, so it cannot know how .NET wants the value
-marshalled. Many objects (and they need not be complex - a one-property object counts) fail to cross or
-lose their real shape because they do not survive `JSON.stringify`. A `Uint8Array` serializes to nothing
-useful.
-
-**SpawnJS never calls `JSON.stringify` at all.** The return value stays a live `SpawnJSObjectReference` handle, and the
-**.NET side** does every bit of the marshalling through its marshaller graph, reading back exactly the type
-the caller asked for. A `Uint8Array`, a one-property object, a nested object - all cross intact, because
-nothing is serialized on the way.
-
-## Usage
-
-```csharp
-using SpawnDev.SpawnJS;
-
-var JS = new SpawnJSRuntime();
-
-// Construct a JS object: new Uint8Array(100)
-using var uint8Array = JS.New("Uint8Array", 100);
-
-// Set a global property: globalThis._uint8 = uint8Array
-JS.Set("_uint8", uint8Array);
-
-// Call a method: uint8Array.set([1, 3, 5, 7, 9])
-uint8Array.CallVoid("set", new byte[] { 1, 3, 5, 7, 9 });
-
-// Read a property with a target type: uint8Array.length
-int length = uint8Array.Get<int>("length");
-
-// Async call: await someObj.someAsyncMethod(arg)
-var result = await JS.CallAsync<string>("fetchText", url);
-```
-
-The runtime exposes the familiar interop surface: `Get`/`Set`/`Has`/`Delete`,
-`Call`/`CallVoid`/`CallAsync`/`CallVoidAsync`, `New`/`NewApply`, and their `*Apply` overloads, with
-strongly-typed generic returns. Set `SpawnJSRuntime.Verbose = true` for step-by-step interop logging to
-the browser console.
-
-### `AppBaseUri` - where the app was loaded from
-
-`JS.AppBaseUri` is the URL the app itself was loaded from - the origin of its own `_framework` / entry
-script, with a trailing slash. Use it to resolve app-relative assets (worker scripts, `HttpClient` base
-address, fetches) in a way that stays correct **even when the app is served from a CDN** at a different
-path than the host page:
-
-```csharp
-var http = new HttpClient { BaseAddress = new Uri(JS.AppBaseUri) };
-```
-
-Unlike `document.baseURI` (the host page's base, which is wrong under a CDN load), `AppBaseUri` is
-determined per-runtime from the app's own .NET WASM runtime, so it is correct in every scope - window,
-dedicated / shared / service worker - and two SpawnJS apps loaded from different origins on one page each
-report their own base. It is an empty string on a non-browser host (e.g. a Node console app).
-`AppBaseUriSource()` reports which runtime shape it resolved from (diagnostic).
-
-## The core design
-
-`JSImport`/`JSExport` marshalling is frozen at compile time by the source generator - you cannot pick a
-marshaller at runtime. SpawnJS turns that constraint into its architecture:
-
-1. **Reduce every operation to a few fixed-signature JS primitives.** A small JS class (`SpawnJSInterop`,
-   in `wwwroot/SpawnDev.SpawnJS.lib.module.js`) exposes generic operations - `getProperty`, `setProperty`,
-   `deleteProperty`, `invokeProperty`, `invokePropertyConstructor`, and so on - each taking a target, an
-   identifier, and an argument array. Identifiers support dotted paths (`"a.b.c"`) and null-conditional
-   segments (`"a?.b"`).
-2. **Route everything through one dispatcher.** One `JSImport`-bound entry point, `_netToJSCall`, takes a
-   command name plus an offset and length into a shared flat buffer, and invokes the matching primitive.
-   There is no separate async dispatcher: an async command is a **synchronous call that returns a
-   Promise**, converted to a `Task` with `then`, so one path and one buffer serve both.
-3. **Carry references as slots, not proxies.** JavaScript holds values in a slot table and .NET holds the
-   integer that addresses them. A `SpawnJSObjectReference` is a runtime proxy that uses `JSImport` calls
-   and the object id to manage a reference.
-4. **Share one flat buffer.** Arguments are appended and the top unwinds when the call completes, so it
-   behaves as a stack: nothing is allocated per call.
-5. **Compose the richness in managed code** via the marshaller graph.
-
-The **JS &rarr; .NET direction is the exact mirror**: a single `JSExport` channel, `_JSToNetCall(intent,
-argsArray)`, carries every inbound call regardless of type or argument count. The `intent` selects what to
-run and the `argsArray` holds the arguments, marshalled **in** through the same graph and the result
-marshalled back **out**. One channel handles all inbound traffic - the variety lives in the array, never
-in the signature.
-
-## The marshaller registry
-
-The marshaller registry is the product. Any .NET type is marshalled by the first registered `JSMarshaller`
-whose `CanMarshal` returns true, scanned in **reverse registration order** so later registrations override
-earlier ones (built-ins register first; user overrides register last and win). Resolved marshallers are
-cached per type.
+On a real GPU-compute suite (SpawnDev.ILGPU, headless Node + WebGPU): **542 of 551 tests passed with zero SpawnJS interop bugs**. The remaining nine were Node-DOM, Dawn WGSL strictness, and f64 tolerance.
 
 ## Documentation
 
-Deeper docs live in [`Docs/`](Docs/README.md):
+| Page | |
+|---|---|
+| [Hosting](Docs/hosting.md) | DI: `SpawnJSAppBuilder`, Blazor `WebAssemblyHost`, `IServiceCollection` |
+| [Architecture](Docs/architecture.md) | Dispatch, slots, inbound callbacks |
+| [Argument passing](Docs/argument-passing.md) | Fixed-arity overloads vs `params` |
+| [Writing marshallers](Docs/writing-marshallers.md) | `JSMarshaller` contract and registration |
+| [API reference](Docs/api/_index.md) | Per-type reference for the JS wrappers |
+| [Roadmap](Docs/roadmap.md) | Current 2.x state |
 
-- [Architecture](Docs/architecture.md) - the core design, the dispatch primitives, and the shared call buffer.
-- [Argument passing](Docs/argument-passing.md) - the arity-overload / `Apply` design and the `params` collapse it avoids.
-- [Writing marshallers](Docs/writing-marshallers.md) - the `JSMarshaller` contract, resolution order, and registration.
-- [API reference](Docs/api/_index.md) - per-type reference for the public surface.
-
-## Projects
+## This repo
 
 | Project | Purpose |
-| --- | --- |
-| `SpawnDev.SpawnJS` | The core interop runtime. No Blazor dependency. |
-| `WasmBrowserDemo` | Live .NET WASM (non-Blazor) test harness. |
-| `WasmConsoleDemo` | Headless .NET WASM harness, runs the suite under Node. |
-| `BlazorBrowserDemo` | Blazor host demo and the interop benchmark. |
-| `SpawnJS.TestRunner` | Playwright runner that drives the browser suites and the benchmark. |
-| `TestsShared` | Shared interop test cases. |
+|---|---|
+| `SpawnDev.SpawnJS` | Core runtime. No Blazor dependency. |
+| `SpawnDev.SpawnJS.Blazor` | Blazor host: `ElementReference`, `ElementRef<T>`, `SpawnJSRunAsync` |
+| `SpawnDev.SpawnJS.Demo` | Live suite (`UnitTests/`) and scratch host |
+| `SpawnDev.SpawnJS.Blazor.Demo` | Blazor host demo |
+| `SpawnJS.TestRunner` | Playwright runner for the live suite |
+
+```
+dotnet run --project SpawnJS.TestRunner
+dotnet run --project SpawnJS.TestRunner -- IsSameEntry
+dotnet run --project SpawnJS.TestRunner -- --headed --verbose
+```
+
+The runner builds and serves `SpawnDev.SpawnJS.Demo` with `?tests=[filter]` and parses `TEST:` / `RESULTS:` console lines. Navigate on `DOMContentLoaded`, not `NetworkIdle`.
+
+## Family
+
+Built on SpawnJS (browser) or the matching BlazorJS package (Blazor JSON interop):
+
+- [SpawnDev.SpawnJS.WebWorkers](https://www.nuget.org/packages/SpawnDev.SpawnJS.WebWorkers) - workers and service workers without a fake-`window` Blazor boot shim
+- [SpawnDev.SpawnJS.RazorRenderer](https://www.nuget.org/packages/SpawnDev.SpawnJS.RazorRenderer) - Razor UI on `SpawnJSAppBuilder` (no Blazor `WebAssemblyHost`)
+- [SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) / [SpawnDev.ILGPU.ML](https://github.com/LostBeard/SpawnDev.ILGPU.ML) - GPU compute and ML in the browser and on desktop
+- [SpawnDev.WebTorrent](https://www.nuget.org/packages/SpawnDev.WebTorrent), [SpawnDev.RTC](https://www.nuget.org/packages/SpawnDev.RTC)
 
 ## The SpawnDev Crew
 

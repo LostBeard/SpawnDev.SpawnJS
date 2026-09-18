@@ -1,55 +1,68 @@
 # Architecture
 
-## The constraint that shapes everything
+SpawnJS 2.x is a `JSImport` / `JSExport` interop layer plus a managed marshaller graph. It does not use Microsoft's `JSObject` as a handle (creation/lookup cost, Symbol tagging, dispose aliasing). The only `JSObject` in the library is `JSHost.DotnetInstance`, passed once into `SpawnJSInterop._registerInstance`.
 
-.NET WebAssembly interop is built on `[JSImport]` / `[JSExport]`, whose marshalling is decided **at compile time** by a source generator. You cannot choose a marshaller at runtime, and you cannot write one `JSImport` that accepts "any type." Blazor works around this by serializing everything to JSON. SpawnJS takes a different route.
+Version 1.x used a shared heap argument frame (`HEAPF64` / command + offset + length). That transport is gone. Do not treat 1.x frame docs, `SlotInterop.FrameCall`, or `_netToJSCall` as current.
 
-## The core bend
+## The constraint
 
-Instead of trying to make one import handle every type, SpawnJS **reduces every interop operation to a handful of fixed-signature primitives the generator already understands**, carries the arguments in a flat buffer that needs no per-value crossing, and composes the richness back in managed code.
+`[JSImport]` / `[JSExport]` marshalling is decided at compile time. You cannot write one import that accepts "any type," and you cannot pick a marshaller at runtime on the JS side. Blazor works around this with JSON. SpawnJS works around it by crossing only primitives the generator already knows (`bool`, `int`, `double`, `string`, void) and integer object-table ids.
 
-1. **A few generic JS primitives.** A small JS class, `SpawnJSInterop` (in `wwwroot/SpawnDev.SpawnJS.lib.module.js`), exposes generic operations - `getProperty`, `setProperty`, `deleteProperty`, `invokeProperty`, `invokePropertyConstructor`, `hasOwnPropertySafe`, and so on. Each takes a target, an identifier, and its arguments. Identifiers support dotted paths (`"a.b.c"`) and null-conditional segments (`"a?.b"`).
+## Pieces
 
-2. **One dispatcher.** A single `JSImport`-bound entry point carries every outbound call, and **only three primitives cross the boundary: a command name, an offset and a length.** On the JavaScript side, `_netToJSCall(cmd, offset, length)` reads that call's arguments from a shared buffer over the `[offset, offset+length)` slice, invokes `this[cmd](...)`, and leaves the result in the first slot of the caller's own region. The .NET side binds this through `SlotInterop.FrameCall(ctx, cmd, offset, length)`.
+### 1. JS object table
 
-3. **Arguments live in .NET memory.** They are written into an **argument frame in .NET's own linear memory**, which JavaScript views directly through the runtime's `HEAPF64` / `HEAPU8` views. A .NET write is a plain array store that costs nothing to "deliver" - so the call carries only `(cmd, offset, length)`, and no per-argument value has to cross. Object references are carried as **integer slots**, not `JSObject` proxies.
+`SpawnJSInterop.spawnJSObjects` (in `wwwroot/SpawnDev.SpawnJS.lib.module.js`) holds every JS value .NET currently references. .NET addresses it with a `double` id (`SpawnJSObjectReference.Id`).
 
-4. **The result returns in place.** The dispatcher writes the return value back into the first slot of the caller's argument region, so one fixed JS signature can return any type - the .NET side reads that slot back as the caller's target type through the marshaller graph.
+- Ids are monotonic (`_sjsObjectIdNext`) and **never reused**. A disposed handle cannot name a later value.
+- Negative ids are sentinels with no table entry: `-1` `globalThis`, `-2` `undefined`, `-3` `null`, `-4` the table, `-5` `SpawnJSInterop`.
+- `spawnJSObjectHold` / `spawnJSObjectRelease` add and drop entries. The table is a strong ref; nothing in the JS GC will free a held value. Dispose is mandatory.
 
-5. **Managed marshaller graph.** On the .NET side, a registry of `JSMarshaller`s reads and writes typed values. See [writing-marshallers.md](writing-marshallers.md).
+`SpawnJSRuntime` is itself a `SpawnJSObjectReference` whose id is `GlobalThisId`, so `JS.Get` / `JS.Call` operate on `globalThis`.
 
-The whole library is one pattern - **typed read/write over a shared buffer** - applied across get / set / call / construct, in both directions, sync and async.
+### 2. Outbound calls (.NET to JS)
 
-## Outbound call path (.NET -> JS)
+`SpawnJSRuntime.InteropCallApply<T>`:
 
-Managed code (`SpawnJSRuntime.Marshal.cs`) does the same shape for every call:
+1. Resolve `GetMarshaller<T>()` so the JS side knows the `ReturnType`.
+2. If there are arguments, take a pooled JS array (`spawnJSObjectNewArray` / `_callArrays`). For each arg, resolve a marshaller from the **boxed value's runtime type** and `NetToJS` it onto the array by index.
+3. Call `_spawnJSInteropCall*` with `(returnType, methodIndex, argsId)`.
+4. JS looks up `SpawnJSInterop._methodMap[methodIndex]`, replaces the args slot with a fresh `[]` (so the pool can reuse the same id), runs the primitive, then `_serializeToNet` shapes the result (`spawnJSObjectHold` for object returns, `JSON.stringify` only for `ReturnType.Json`).
+5. .NET reads the primitive through the typed import and `JSToNet`s it as `T`.
+6. The emptied args array goes back on the pool.
 
-```
-NetRun<T>(cmd, args):
-  offset = <marshal args into the argument frame in .NET memory>
-  FrameCall(ctx, cmd, offset, args.Length)   // only cmd, offset, length cross the boundary
-  return GetMarshaller(typeof(T))
-           .JSToNet(...)                       // read the result back from the frame as T
-```
+Async is `_spawnJSInteropCallAsync`: JS awaits the primitive (typically a Promise), then invokes the matching `resolve*` callback registered at `_registerInstance`, which completes a `TaskCompletionSource`. No `Task` object crosses the boundary.
 
-`NetRunVoid` skips the return read. The frame region unwinds like a stack when the call completes, so nothing is allocated per call. Held-reference operations (a simple key on an object you already hold) take a typed `Reflect` fast path instead of the general dispatcher - one binding, nothing allocated - which is why they are several times faster again than the dotted-path form.
+Public `Get` / `Set` / `Call` / `New` are thin wrappers that name primitives such as `propertyGet`, `propertySet`, `propertyCall`, `propertyNew`, `propertyCallApply`. Identifiers go through `pathObjectInfo`, which walks dotted paths and `?.` short-circuits.
 
-## Async is the sync path returning a Promise
+Typed `PropertyGet*` / `PropertySet*` `JSImport`s exist for primitive keys and are what marshallers use when writing an `int`/`string`/`bool` onto a parent. The public `Get<T>` / `Set<T>` path still goes through `InteropCall` so the marshaller graph runs.
 
-There is **no async dispatcher.** An async command is just a **synchronous call that happens to return a Promise**, so it rides the same flat buffer as everything else and keeps the same "only primitives cross" property:
+### 3. Inbound calls (JS to .NET)
 
-```
-NetRunAsync<T>(cmd, args):
-  using var promise = NetRun<Promise>(cmd, args)   // the ordinary synchronous call
-  return await promise.ThenAsync<T>()              // then(resolve, reject) with .NET callbacks
-```
+At startup, `_registerInstance` stores this app's `DotnetInstance` and a `handleCallback` function. `propertySetCallback` installs a JS function that, when invoked:
 
-That is what lets the buffer be a stack at all. A real async binding could not use one: the call has not finished when it returns, so its region could not be released in order. Here the synchronous part finishes immediately and the region unwinds; the eventual value arrives later through the callback channel, which has its own storage. No `Task` is ever marshalled across the boundary.
+1. Holds the `arguments` array (`spawnJSObjectHold`).
+2. Calls `handleCallback(callbackId, argsId, argsCount)`.
+3. Releases the args slot in a `finally` (so a throwing handler cannot leak the array or leave a `once` callback registered).
 
-## Inbound call path (JS -> .NET)
+`Callback.HandleCallback` looks up the id, builds a `SpawnJSObjectReference` with `preventDispose: true` (JS owns that slot), and the `ActionCallback` / `FuncCallback` reads args by index through the marshaller graph. Func results are written back onto the same args array for JS to pick up.
 
-The mirror direction uses the same bend in reverse. A single `JSExport` channel - `_JSToNetCall(intent, argsArray)` - carries every inbound call regardless of type or arity: `intent` selects what to run, `argsArray` holds the arguments, which are marshalled **in** through the same graph, and the result is marshalled back **out**. This is the path every DOM event, callback and settled promise takes. The `intent` is a `string` today and can become an `int` (backed by a message-type `enum`) for a more efficient dispatch key without changing the pattern.
+`Action` / `Func` values are wrapped by `DelegateMarshaller`: one `Callback` per delegate instance (cached), so the same .NET method does not allocate a new JS function every crossing.
 
-## Where the win is
+### 4. Multi-instance
 
-The biggest practical win is **correctness**: non-primitive return values that Blazor cannot marshal (it must `JSON.stringify` them on a JS side that has no knowledge of .NET types) cross intact here, because nothing is serialized - the .NET side owns all marshalling. The performance win is on **orchestration traffic** - the many small property/method/metadata calls that each otherwise allocate and parse a JSON string on both ends. Bulk GPU/OPFS data already avoids JSON in SpawnDev.BlazorJS (via typed-array / memory-view paths); SpawnJS does not rescue those, but it makes the zero-copy seam the natural default.
+`SpawnJSInterop._instances` is keyed by the held `dotnetId`. Two .NET WASM apps on one page each register; none of this state lives as a single page global that a second runtime would clobber. `AppBaseUri` is resolved per instance from that app's own load URL.
+
+### 5. Marshallers
+
+See [writing-marshallers.md](writing-marshallers.md). The registry is scanned in reverse registration order and cached per `Type`. Writes type from the value; reads type from the declared `T`.
+
+### 6. Heap views
+
+`HeapView` / `HeapViewDescriptor` pin .NET memory and build a JS `TypedArray` or `DataView` over WASM linear memory (copy or persistent). Heap growth detaches `ArrayBuffer`s; `onDetachedHeap` fires when JS notices. Persistent views are invalid after a detach. Prefer copies (`copy: true`, `To<T>()`) unless the view is short-lived inside one synchronous call.
+
+## What 2.x is not
+
+- Not Blazor's `IJSInProcessRuntime` and not JSON on the default path.
+- Not Microsoft `JSObject` / `JSHost` except the one `DotnetInstance` handoff.
+- Not the 1.x heap argument frame. A call does not carry `(cmd, offset, length)` into `HEAPF64`.

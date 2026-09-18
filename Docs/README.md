@@ -1,14 +1,16 @@
 # SpawnDev.SpawnJS Documentation
 
-Deeper documentation for **SpawnDev.SpawnJS** - JSON-free JavaScript interop for .NET WebAssembly. Start with the top-level [README](../README.md) for the overview; these pages go into the how and why.
+Deeper documentation for **SpawnDev.SpawnJS** - JSON-free JavaScript interop for .NET WebAssembly. Start with the top-level [README](../README.md).
 
 ## Contents
 
-- **[Architecture](architecture.md)** - the core design: how every interop operation collapses to a few fixed `JSImport`/`JSExport` primitives, the `[ret]` array-wrap trick, and the managed marshaller graph that carries all the richness.
-- **[Argument passing](argument-passing.md)** - why the call methods use explicit `0..N`-arg overloads plus an `Apply(object?[])` form instead of `params`, and the silent `params` array-collapse footgun that design avoids.
-- **[Writing marshallers](writing-marshallers.md)** - the `JSMarshaller` contract, how the registry resolves a type to a marshaller, the two design laws (parity-by-default, bring-your-own), and how to register a custom marshaller.
-- **[Roadmap](roadmap.md)** - current state and what is next.
+- **[Hosting](hosting.md)** - how apps start SpawnJS: `SpawnJSAppBuilder`, Blazor `WebAssemblyHost`, any `IServiceCollection`.
+- **[Architecture](architecture.md)** - 2.x core: `JSImport` primitives, the `spawnJSObjects` table, outbound `_spawnJSInteropCall`, inbound callbacks, marshaller graph.
+- **[Argument passing](argument-passing.md)** - explicit 0..10-arg overloads plus `Apply(object?[])`, and why `params` silently spreads arrays.
+- **[Writing marshallers](writing-marshallers.md)** - `JSMarshaller` contract, `ReturnType`, reverse-scan registry, custom registration.
+- **[API reference](api/_index.md)** - per-type reference for the JS wrapper types.
+- **[Roadmap](roadmap.md)** - current 2.x state.
 
 ## The one-paragraph version
 
-Blazor's `IJSInProcessRuntime` routes every interop value through a JSON serialize/parse on both ends. That cost is invisible on bulk data but real on orchestration traffic, and worse, non-primitive return values (even a one-property object or a `Uint8Array`) cannot survive `JSON.stringify` on the JS side, which has no access to the .NET type system. SpawnJS removes JSON from the boundary entirely.
+Blazor's `IJSInProcessRuntime` routes every interop value through JSON. The JS side has no .NET types, so non-primitive returns often cannot cross. SpawnJS keeps values live in a numeric JS table and lets **.NET** marshall through a `JSMarshaller` graph. No Blazor dependency: Blazor, Avalonia, workers, or a headless .NET WASM console under Node.

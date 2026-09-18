@@ -26,7 +26,7 @@
 | Method | Return Type | Description |
 |---|---|---|
 | `IsSameEntry(FileSystemHandle fsHandle)` | `Task<bool>` | Compares two handles to see if the associated entries (either a file or directory) match. Multiple handles can represent the same entry, so this is the way to test handle identity. |
-| `ResolveType(bool moveJSRef)` | `FileSystemHandle` | Returns a FileSystemDirectoryHandle or FileSystemFileHandle based on the FileSystemHandle.Kind If true, the IJSInProcessReference from this SpawnJSObject is moved to the new type instead of copied |
+| `ResolveType(bool moveJSRef)` | `FileSystemHandle` | Returns a FileSystemDirectoryHandle or FileSystemFileHandle based on the FileSystemHandle.Kind If true, the SpawnJSObjectReference from this SpawnJSObject is moved to the new type instead of copied |
 | `ToFileSystemDirectoryHandle(bool moveJSRef)` | `FileSystemDirectoryHandle?` | Returns a FileSystemDirectoryHandle SpawnJSObject for this entry if this entry Kind is directory |
 | `ToFileSystemFileHandle(bool moveJSRef)` | `FileSystemFileHandle?` | Returns a FileSystemFileHandle SpawnJSObject for this entry if this entry Kind is file |
 | `GetReadWritePermissions()` | `Task<string>` | Returns a string with "r", "rw", or "" indicating read, write permissions |
