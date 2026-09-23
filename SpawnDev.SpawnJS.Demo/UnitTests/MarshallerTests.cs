@@ -1246,6 +1246,52 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 catch (Exception ex) when (ex.Message.Contains("type boom")) { }
             });
 
+            // A rejection's NAME must survive as JSException.Name - for a DOMException it is the whole point
+            // (getUserMedia's NotFoundError vs NotAllowedError). The async interop call used to send only
+            // error.message, and an OverconstrainedError (empty message) arrived as a blank exception.
+            await TestAsync("TaskMarshaller.InRejectedWithDOMException_KeepsName", async () =>
+            {
+                try
+                {
+                    await JS.CallAsync<string, string, string>("SpawnJSTests.rejectedPromiseDOMException", "no such device", "NotFoundError");
+                    throw new Exception("a DOMException rejection must surface as a .Net exception");
+                }
+                catch (JSException ex)
+                {
+                    AssertEqual(ex.Name, "NotFoundError", "the DOMException name must survive the async call");
+                    AssertEqual(ex.Message, "no such device", "the message must stay the message, without the name");
+                }
+            });
+
+            await TestAsync("TaskMarshaller.InRejectedWithOverconstrained_KeepsNameAndConstraint", async () =>
+            {
+                try
+                {
+                    await JS.CallAsync<string, string>("SpawnJSTests.rejectedPromiseOverconstrained", "deviceId");
+                    throw new Exception("an OverconstrainedError rejection must surface as a .Net exception");
+                }
+                catch (JSException ex)
+                {
+                    AssertEqual(ex.Name, "OverconstrainedError", "the OverconstrainedError name must survive");
+                    if (!ex.Message.Contains("deviceId"))
+                        throw new Exception($"the failing constraint must be in the message, got '{ex.Message}'");
+                }
+            });
+
+            await TestAsync("TaskMarshaller.InPromiseAsTaskRejectedWithDOMException_KeepsName", async () =>
+            {
+                var task = JS.Call<string, string, Task<string>>("SpawnJSTests.rejectedPromiseDOMException", "no such device", "NotFoundError")!;
+                try
+                {
+                    await task;
+                    throw new Exception("a DOMException rejection read as a Task must fault the Task");
+                }
+                catch (JSException ex)
+                {
+                    AssertEqual(ex.Name, "NotFoundError", "the DOMException name must survive a Promise read as a Task");
+                }
+            });
+
             await TestAsync("TaskMarshaller.InRejectedWithString", async () =>
             {
                 try

@@ -2,6 +2,38 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 2.1.18 - 2026-09-23
+
+### Fixed
+
+- **A rejected async call lost the JS error's NAME.** Every awaited `CallAsync` / `GetAsync` / async
+  method that rejected surfaced as a plain `System.Exception` carrying only `error.message`: a
+  DOMException's name - the part that says WHY (`NotFoundError`, `NotAllowedError`, `NotReadableError`,
+  `AbortError` ...) - was dropped, and an `OverconstrainedError` (what `getUserMedia` raises for an
+  unsatisfiable exact constraint), whose message is usually EMPTY, arrived as a blank exception. Found by
+  SpawnDev.MultiMedia, which could not tell a missing camera from a denied one. It now throws
+  `JSException` with `Name` set; `Message` is unchanged (still just the message), and an
+  OverconstrainedError's message names its constraint. `JSException` derives from `Exception`, so every
+  existing `catch` keeps working.
+- **A rejected Promise read as a `Task` had the same loss.** `TaskMarshaller` flattened the rejection
+  reason to a string, so the name survived only as text inside the message ("NotFoundError: ...").
+  It now converts the reason exactly like `Promise`'s own rejection path and throws `JSException` with
+  `Name`.
+- `FileSystemHandle.IsSameEntry` returned a Promise marshalled as a bool; it now awaits it (and the
+  suite is reachable again from `?tests=`, so its guards are verified).
+
+### Added
+
+- `AudioScheduledSourceNode.Start(double)` / `Stop(double)` overloads: a float-cast `CurrentTime` could
+  schedule a stop in the past and leave an oscillator running forever.
+
+### Tests
+
+- `TaskMarshaller.InRejectedWithDOMException_KeepsName`, `..._InRejectedWithOverconstrained_KeepsNameAndConstraint`,
+  `..._InPromiseAsTaskRejectedWithDOMException_KeepsName`. Red-checked: with the old JS error conversion
+  the two async-call cases fail; the Task case failed before the TaskMarshaller change. Full suite
+  207/207.
+
 ## SpawnDev.SpawnJS.Blazor 2.1.18 - 2026-09-16
 
 ### Fixed

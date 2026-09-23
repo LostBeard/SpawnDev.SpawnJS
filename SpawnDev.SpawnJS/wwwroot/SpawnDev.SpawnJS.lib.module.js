@@ -990,23 +990,31 @@
         static getPropertyConstructorNames(parent, key) {
             return SpawnJSInterop.getConstructorNames(parent[key]);
         }
-        // converts to an error string or returns a generic error string
+        // converts to an error string or returns a generic error string.
+        // A NAMED error (Error subclasses, DOMException - NotFoundError, NotAllowedError, AbortError ... -
+        // and OverconstrainedError, which often has an EMPTY message) is sent as
+        // "\u0001" + name + "\u0002" + message so .Net can rebuild a JSException with its Name
+        // (JSException.FromInteropError). Only the message used to be sent: the name was lost, and an
+        // empty-message OverconstrainedError from getUserMedia arrived as a blank exception.
         static errorToString(error) {
             if (!error) return "Unknown error";
-            // Handle native Error objects (e.g., new Error(), TypeError)
-            if (error instanceof Error) {
-                error = error.message;
-            }
-            else if (typeof error === 'object') {
-                try {
-                    error = error.message || JSON.stringify(error);
-                } catch {
-                    error = String(error);
+            if (typeof error === 'string') return error;
+            let name = null;
+            let message = null;
+            if (typeof error === 'object') {
+                try { if (typeof error.name === 'string' && error.name) name = error.name; } catch { }
+                try { if (typeof error.message === 'string') message = error.message; } catch { }
+                if (message === null && !(error instanceof Error)) {
+                    try { message = JSON.stringify(error); } catch { message = String(error); }
                 }
+                // OverconstrainedError reports the failing constraint separately
+                try { if (typeof error.constraint === 'string' && error.constraint) message = (message ? message + ' ' : '') + '(constraint: ' + error.constraint + ')'; } catch { }
             }
-            error ??= String(error);
-            error ??= "Unknown error";
-            return error;
+            else {
+                message = String(error);
+            }
+            if (!message) message = name ? '' : 'Unknown error';
+            return name ? '\u0001' + name + '\u0002' + message : message;
         }
         // Main .Net to JS entrypoint
         static async _spawnJSInteropLoadExportsAsync(dotnetId, assemblyName) {

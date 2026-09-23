@@ -127,6 +127,10 @@
         static rejectedPromiseString(message) { return Promise.reject(message); }
         static rejectedPromiseNull() { return Promise.reject(null); }
         static rejectedPromiseUndefined() { return Promise.reject(undefined); }
+        // named errors whose NAME is the information: a DOMException (getUserMedia NotFoundError / NotAllowedError)
+        // and an OverconstrainedError, which carries its constraint and usually an EMPTY message
+        static rejectedPromiseDOMException(message, name) { return Promise.reject(new DOMException(message, name)); }
+        static rejectedPromiseOverconstrained(constraint) { return Promise.reject(new OverconstrainedError(constraint, '')); }
         // rejects on a later turn of the event loop rather than synchronously
         static async asyncThrow(message) { await Promise.resolve(); throw new Error(message); }
         static async asyncReturn(value) { await Promise.resolve(); return value; }

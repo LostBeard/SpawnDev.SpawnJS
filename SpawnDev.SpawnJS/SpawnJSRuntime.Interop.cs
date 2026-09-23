@@ -212,14 +212,14 @@ namespace SpawnDev.SpawnJS
                         _voidCallbacks.TryAdd(asyncCallbackId, (error) =>
                         {
                             if (error == null) tcs.TrySetResult(default!);
-                            else tcs.TrySetException(new Exception(error));
+                            else tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                         });
                     }
                     break;
                 case ReturnType.Double:
                     _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        if (error != null) tcs.TrySetException(new Exception(error));
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                         else
                         {
                             var ret = returnMarshaller.JSToNet(value!);
@@ -231,7 +231,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _booleanCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var ret = returnMarshaller.JSToNet(value);
@@ -243,7 +243,7 @@ namespace SpawnDev.SpawnJS
                 case ReturnType.Int32:
                     _int32Callbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        if (error != null) tcs.TrySetException(new Exception(error));
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                         else
                         {
                             var ret = returnMarshaller.JSToNet(value!);
@@ -254,7 +254,7 @@ namespace SpawnDev.SpawnJS
                 case ReturnType.Int32Nullable:
                     _int32NullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        if (error != null) tcs.TrySetException(new Exception(error));
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                         else
                         {
                             var ret = returnMarshaller.JSToNet(value!);
@@ -265,7 +265,7 @@ namespace SpawnDev.SpawnJS
                 case ReturnType.DoubleNullable:
                     _doubleNullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        if (error != null) tcs.TrySetException(new Exception(error));
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                         else
                         {
                             var ret = returnMarshaller.JSToNet(value!);
@@ -277,7 +277,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _booleanNullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var ret = returnMarshaller.JSToNet(value);
@@ -290,7 +290,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _stringCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var ret = returnMarshaller.JSToNet(value!);
@@ -303,7 +303,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var spawnJSObjectReference = SpawnJSObjectReference.FromID(value, false);
@@ -317,7 +317,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var spawnJSObjectReference = SpawnJSObjectReference.FromID(value, true);
@@ -331,7 +331,7 @@ namespace SpawnDev.SpawnJS
                     {
                         _stringCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                         {
-                            if (error != null) tcs.TrySetException(new Exception(error));
+                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
                             else
                             {
                                 var ret = returnMarshaller.JSToNet(value!);

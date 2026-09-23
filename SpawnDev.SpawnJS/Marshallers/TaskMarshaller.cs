@@ -19,10 +19,13 @@ namespace SpawnDev.SpawnJS.Marshallers
                 onReject?.Dispose();
                 tcs.TrySetResult(value);
             });
-            onReject = Callback.CreateOne((string error) =>
+            // The rejection reason arrives as the JS value, not a string: flattening it to a string lost a
+            // DOMException's NAME (NotFoundError, NotAllowedError ...) into the message text. Same conversion
+            // as Promise's own rejection path. (The JSException reads the Error lazily - do not dispose it.)
+            onReject = Callback.CreateOne((JSObjects.Error? error) =>
             {
                 onResolve?.Dispose();
-                tcs.TrySetException(new Exception(error));
+                tcs.TrySetException(JSObjects.Promise.UnknownErrorToException(error));
             });
             value.CallVoid("then", onResolve, onReject);
             return tcs.Task;
@@ -142,10 +145,13 @@ namespace SpawnDev.SpawnJS.Marshallers
                 onReject?.Dispose();
                 tcs.TrySetResult();
             });
-            onReject = Callback.CreateOne((string error) =>
+            // The rejection reason arrives as the JS value, not a string: flattening it to a string lost a
+            // DOMException's NAME (NotFoundError, NotAllowedError ...) into the message text. Same conversion
+            // as Promise's own rejection path. (The JSException reads the Error lazily - do not dispose it.)
+            onReject = Callback.CreateOne((JSObjects.Error? error) =>
             {
                 onResolve?.Dispose();
-                tcs.TrySetException(new Exception(error));
+                tcs.TrySetException(JSObjects.Promise.UnknownErrorToException(error));
             });
             value.CallVoid("then", onResolve, onReject);
             return tcs.Task;

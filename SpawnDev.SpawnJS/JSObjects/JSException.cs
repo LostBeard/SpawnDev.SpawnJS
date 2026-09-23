@@ -36,6 +36,25 @@ namespace SpawnDev.SpawnJS.JSObjects
             _ToString = new Lazy<string>(() => !Error.JSRef!.Has("toString") ? base.ToString() : Error.ToString() ?? base.ToString());
         }
         /// <summary>
+        /// Builds the exception for an async interop call's error string. The JS side sends a NAMED error
+        /// (Error subclasses, DOMException, OverconstrainedError) as "\u0001" + name + "\u0002" + message so
+        /// the name survives; anything else is the plain message.
+        /// </summary>
+        internal static JSException FromInteropError(string error)
+        {
+            if (error.Length > 1 && error[0] == '\u0001')
+            {
+                var sep = error.IndexOf('\u0002');
+                if (sep > 1)
+                {
+                    var name = error.Substring(1, sep - 1);
+                    var message = error.Substring(sep + 1);
+                    return new JSException(string.IsNullOrEmpty(message) ? name : message, name);
+                }
+            }
+            return new JSException(error);
+        }
+        /// <summary>
         /// Creates a new Exception to represent a Javascript Error
         /// </summary>
         public JSException(string message, string? name = null) : base()
