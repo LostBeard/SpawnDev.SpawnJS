@@ -35,7 +35,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Cookie?> Get(CookieSelectOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CookieSelectOptions, Cookie?>("get", options);
+        public Task<Cookie?> Get(CookieSelectOptions options) => JSRef!.CallAsync<CookieSelectOptions, Cookie?>("get", options);
         /// <summary>
         /// The getAll() method gets all matching cookies. It returns a Promise that resolves with a list of cookies.
         /// </summary>
@@ -52,7 +52,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Cookie[]> GetAll(CookieSelectOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.CookieSelectOptions, Cookie[]>("getAll", options);
+        public Task<Cookie[]> GetAll(CookieSelectOptions options) => JSRef!.CallAsync<CookieSelectOptions, Cookie[]>("getAll", options);
         /// <summary>
         /// The set() method sets a cookie with the given name and value or options object. It returns a Promise that resolves when the cookie is set.
         /// </summary>

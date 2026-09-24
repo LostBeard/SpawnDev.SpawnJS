@@ -63,6 +63,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="sym">Symbol, required. The symbol to find a key for.</param>
         /// <returns></returns>
-        public static string? KeyFor(Symbol sym) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Symbol, string?>($"{nameof(Symbol)}.keyFor", sym);
+        public static string? KeyFor(Symbol sym) => JS.Call<Symbol, string?>($"{nameof(Symbol)}.keyFor", sym);
     }
 }

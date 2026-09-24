@@ -40,14 +40,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Response?> Match(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Response?>("match", request, options);
+        public Task<Response?> Match(string request, CacheMatchOptions options) => JSRef!.CallAsync<string, CacheMatchOptions, Response?>("match", request, options);
         /// <summary>
         /// Checks if a given Request is a key in any of the Cache objects that the CacheStorage object tracks, and returns a Promise that resolves to that match.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Response?> Match(Request request, CacheMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.CacheMatchOptions, Response?>("match", request, options);
+        public Task<Response?> Match(Request request, CacheMatchOptions options) => JSRef!.CallAsync<Request, CacheMatchOptions, Response?>("match", request, options);
         /// <summary>
         /// Checks if a given Request is a key in any of the Cache objects that the CacheStorage object tracks, and returns a Promise that resolves to that match.
         /// </summary>
@@ -59,7 +59,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<Response?> Match(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response?>("match", request);
+        public Task<Response?> Match(Request request) => JSRef!.CallAsync<Request, Response?>("match", request);
         /// <summary>
         /// Returns a Promise that resolves to the Cache object matching the cacheName (a new cache is created if it doesn't already exist.)
         /// </summary>

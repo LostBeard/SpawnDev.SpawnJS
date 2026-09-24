@@ -74,7 +74,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - Already aborted, if any of the abort signals given is already aborted. The returned AbortSignal's reason will be already set to the reason of the first abort signal that was already aborted.<br/>
         /// - Asynchronously aborted, when any abort signal in iterable aborts. The reason will be set to the reason of the first abort signal that is aborted.
         /// </returns>
-        public static AbortSignal Any(Array<AbortSignal> signals) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Array<global::SpawnDev.SpawnJS.JSObjects.AbortSignal>, AbortSignal>("AbortSignal.any", signals);
+        public static AbortSignal Any(Array<AbortSignal> signals) => JS.Call<Array<AbortSignal>, AbortSignal>("AbortSignal.any", signals);
         #endregion
     }
 }

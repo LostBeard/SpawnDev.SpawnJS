@@ -23,7 +23,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(Request resource) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response>("fetch", resource);
+        public Task<Response> Fetch(Request resource) => JS.CallAsync<Request, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
@@ -40,7 +40,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, global::SpawnDev.SpawnJS.JSObjects.StructuredCloneOptions, T>("structuredClone", value, options);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, StructuredCloneOptions, T>("structuredClone", value, options);
         /// <summary>
         /// The structuredClone() method of the Window interface creates a deep clone of a given value using the structured clone algorithm.<br/>
         /// The method also allows transferable objects in the original value to be transferred rather than cloned to the new object. Transferred objects are detached from the original object and attached to the new object; they are no longer accessible in the original object.
@@ -98,20 +98,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, int, int, int, int, ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, ImageBitmap>("createImageBitmap", image);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, ImageBitmap>("createImageBitmap", image);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
@@ -121,7 +121,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sw">The width of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
         /// <summary>
         /// Returns the CacheStorage object associated with the current context. This object enables functionality such as storing assets for offline use, and generating custom responses to requests
         /// </summary>

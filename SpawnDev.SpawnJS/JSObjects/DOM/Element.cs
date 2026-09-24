@@ -58,7 +58,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public bool CheckVisibility(CheckVisibilityOptions? options = null) => options == null ? JSRef!.Call<bool>("checkVisibility") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.CheckVisibilityOptions, bool>("checkVisibility", options);
+        public bool CheckVisibility(CheckVisibilityOptions? options = null) => options == null ? JSRef!.Call<bool>("checkVisibility") : JSRef!.Call<CheckVisibilityOptions, bool>("checkVisibility", options);
         /// <summary>
         /// Returns the size of an element and its position relative to the viewport.
         /// </summary>
@@ -128,7 +128,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public ShadowRoot AttachShadow(AttachShadowRootOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.AttachShadowRootOptions, ShadowRoot>("attachShadow", options);
+        public ShadowRoot AttachShadow(AttachShadowRootOptions options) => JSRef!.Call<AttachShadowRootOptions, ShadowRoot>("attachShadow", options);
         /// <summary>
         /// Returns a boolean indicating whether the specified element has the specified attribute or not.
         /// </summary>
@@ -164,7 +164,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="position">One of "beforebegin", "afterbegin", "beforeend", "afterend".</param>
         /// <param name="element">The element to insert.</param>
-        public Element? InsertAdjacentElement(string position, Element element) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.Element, Element?>("insertAdjacentElement", position, element);
+        public Element? InsertAdjacentElement(string position, Element element) => JSRef!.Call<string, Element, Element?>("insertAdjacentElement", position, element);
         /// <summary>
         /// Designates a specific element as the capture target of future pointer events.
         /// </summary>

@@ -20,6 +20,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="baseSpace">An XRSpace to use as the base or origin for computing the relative position and orientation of hit test results.</param>
         /// <returns></returns>
-        public XRPose GetPose(XRSpace baseSpace) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.XRSpace, XRPose>("getPose", baseSpace);
+        public XRPose GetPose(XRSpace baseSpace) => JSRef!.Call<XRSpace, XRPose>("getPose", baseSpace);
     }
 }

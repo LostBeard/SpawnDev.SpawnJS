@@ -45,7 +45,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="size">The number of random bytes to return</param>
         /// <returns></returns>
-        public byte[] GetRandomValues(long size) => new Uint8Array(size).Using(o => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Uint8Array, byte[]>("getRandomValues", o));
+        public byte[] GetRandomValues(long size) => new Uint8Array(size).Using(o => JSRef!.Call<Uint8Array, byte[]>("getRandomValues", o));
         /// <summary>
         /// A string containing a randomly generated, 36 character long v4 UUID.
         /// </summary>

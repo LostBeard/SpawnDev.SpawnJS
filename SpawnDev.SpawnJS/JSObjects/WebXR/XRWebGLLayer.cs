@@ -31,7 +31,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="view"></param>
         /// <returns></returns>
-        public XRViewport GetViewport(XRView view) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.XRView, XRViewport>("getViewport", view);
+        public XRViewport GetViewport(XRView view) => JSRef!.Call<XRView, XRViewport>("getViewport", view);
         /// <summary>
         /// A Boolean value indicating whether or not the WebGL context's framebuffer supports anti-aliasing. The specific type of anti-aliasing is determined by the user agent.
         /// </summary>
@@ -59,7 +59,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="session">The XRSession for which to return the native framebuffer scale factor.</param>
         /// <returns>A floating-point value which, when multiplied by the session's recommended framebuffer dimensions, results in the WebXR device's native resolution.</returns>
-        public static double GetNativeFramebufferScaleFactor(XRSession session) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.XRSession, double>("XRWebGLLayer.getNativeFramebufferScaleFactor", session);
+        public static double GetNativeFramebufferScaleFactor(XRSession session) => JS.Call<XRSession, double>("XRWebGLLayer.getNativeFramebufferScaleFactor", session);
         #endregion
     }
 }

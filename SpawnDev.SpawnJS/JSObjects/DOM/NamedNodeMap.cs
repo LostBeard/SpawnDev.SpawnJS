@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="attr">the attribute to insert in the map.</param>
         /// <returns>Returns the old attribute if replaced, or null if the attribute is new.</returns>
-        public Attr? SetNamedItem(Attr attr) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Attr, Attr>("setNamedItem", attr);
+        public Attr? SetNamedItem(Attr attr) => JSRef!.Call<Attr, Attr>("setNamedItem", attr);
         /// <summary>
         /// The removeNamedItem() method of the NamedNodeMap interface removes the Attr corresponding to the given name from the map.
         /// </summary>
@@ -57,7 +57,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="attr">The attribute to insert in the map.</param>
         /// <returns>Returns the old attribute if replaced, or null if the attribute is new.</returns>
-        public Attr? SetNamedItemNS(Attr attr) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Attr, Attr>("setNamedItemNS", attr);
+        public Attr? SetNamedItemNS(Attr attr) => JSRef!.Call<Attr, Attr>("setNamedItemNS", attr);
         /// <summary>
         /// The removeNamedItemNS() method of the NamedNodeMap interface removes the Attr corresponding to the given namespace and local name from the map.
         /// </summary>

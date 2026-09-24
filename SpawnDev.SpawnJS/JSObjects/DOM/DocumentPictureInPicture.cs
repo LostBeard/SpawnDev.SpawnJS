@@ -28,7 +28,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Window> RequestWindow(PIPRequestWindowOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.PIPRequestWindowOptions, Window>("requestWindow", options);
+        public Task<Window> RequestWindow(PIPRequestWindowOptions options) => JSRef!.CallAsync<PIPRequestWindowOptions, Window>("requestWindow", options);
         /// <summary>
         /// Fired when the Picture-in-Picture window is successfully opened.
         /// </summary>

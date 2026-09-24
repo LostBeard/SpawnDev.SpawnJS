@@ -102,7 +102,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates an IIRFilterNode, which represents an infinite impulse response filter that can be configured as a low-pass filter, high-pass filter, etc.
         /// </summary>
-        public IIRFilterNode CreateIIRFilter(Float32Array feedforward, Float32Array feedback) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Float32Array, global::SpawnDev.SpawnJS.JSObjects.Float32Array, IIRFilterNode>("createIIRFilter", feedforward, feedback);
+        public IIRFilterNode CreateIIRFilter(Float32Array feedforward, Float32Array feedback) => JSRef!.Call<Float32Array, Float32Array, IIRFilterNode>("createIIRFilter", feedforward, feedback);
         /// <summary>
         /// Creates a MediaStreamAudioDestinationNode associated with a MediaStream representing an audio stream which may be stored in a file or sent to another computer.
         /// </summary>
@@ -116,7 +116,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="audioData">An ArrayBuffer containing the audio data to decode (e.g., MP3, WAV, OGG, FLAC).</param>
         /// <returns>An AudioBuffer containing the decoded PCM audio data.</returns>
-        public Task<AudioBuffer> DecodeAudioData(ArrayBuffer audioData) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ArrayBuffer, AudioBuffer>("decodeAudioData", audioData);
+        public Task<AudioBuffer> DecodeAudioData(ArrayBuffer audioData) => JSRef!.CallAsync<ArrayBuffer, AudioBuffer>("decodeAudioData", audioData);
 
         /// <summary>
         /// Creates an OscillatorNode, a source representing a periodic waveform. It basically generates a tone.
@@ -126,7 +126,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a PeriodicWave, used to define a periodic waveform that can be used to shape the output of an OscillatorNode.
         /// </summary>
-        public PeriodicWave CreatePeriodicWave(Float32Array real, Float32Array imag) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Float32Array, global::SpawnDev.SpawnJS.JSObjects.Float32Array, PeriodicWave>("createPeriodicWave", real, imag);
+        public PeriodicWave CreatePeriodicWave(Float32Array real, Float32Array imag) => JSRef!.Call<Float32Array, Float32Array, PeriodicWave>("createPeriodicWave", real, imag);
 
         /// <summary>
         /// A statechange event is fired at a BaseAudioContext object when its state member changes.

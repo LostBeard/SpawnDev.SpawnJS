@@ -23,6 +23,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="imageBitmapSource">The image to detect text in.</param>
         /// <returns>A Promise that returns an array of DetectedText objects.</returns>
-        public Task<List<DetectedText>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.Element, global::SpawnDev.SpawnJS.JSObjects.ImageData, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas>, List<DetectedText>>("detect", imageBitmapSource);
+        public Task<List<DetectedText>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas>, List<DetectedText>>("detect", imageBitmapSource);
     }
 }

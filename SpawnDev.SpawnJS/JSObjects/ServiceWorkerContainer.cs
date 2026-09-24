@@ -53,7 +53,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="scriptURL"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<ServiceWorkerRegistration> Register(string scriptURL, ServiceWorkerRegistrationOptions? options = null) => options == null ? JSRef!.CallAsync<string, ServiceWorkerRegistration>("register", scriptURL) : JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.ServiceWorkerRegistrationOptions, ServiceWorkerRegistration>("register", scriptURL, options);
+        public Task<ServiceWorkerRegistration> Register(string scriptURL, ServiceWorkerRegistrationOptions? options = null) => options == null ? JSRef!.CallAsync<string, ServiceWorkerRegistration>("register", scriptURL) : JSRef!.CallAsync<string, ServiceWorkerRegistrationOptions, ServiceWorkerRegistration>("register", scriptURL, options);
         #endregion
         #region Events
         /// <summary>

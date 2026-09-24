@@ -19,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="permissionDescriptor"></param>
         /// <returns></returns>
-        public Task<PermissionStatus> Query(PermissionDescriptor permissionDescriptor) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.PermissionDescriptor, PermissionStatus>("query", permissionDescriptor);
+        public Task<PermissionStatus> Query(PermissionDescriptor permissionDescriptor) => JSRef!.CallAsync<PermissionDescriptor, PermissionStatus>("query", permissionDescriptor);
     }
 }

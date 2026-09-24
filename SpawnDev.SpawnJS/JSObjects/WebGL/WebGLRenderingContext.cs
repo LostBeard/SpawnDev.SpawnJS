@@ -944,27 +944,27 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram containing the vertex attribute.</param>
         /// <param name="index">A GLuint specifying the index of the vertex attribute to get. This value is an index 0 to N - 1 as returned by gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES).</param>
         /// <returns>A WebGLActiveInfo object.</returns>
-        public WebGLActiveInfo GetActiveAttrib(WebGLProgram program, uint index) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, WebGLActiveInfo>("getActiveAttrib", program, index);
+        public WebGLActiveInfo GetActiveAttrib(WebGLProgram program, uint index) => JSRef!.Call<WebGLProgram, uint, WebGLActiveInfo>("getActiveAttrib", program, index);
         /// <summary>
         /// The WebGLRenderingContext.getActiveUniform() method of the WebGL API returns a WebGLActiveInfo object containing size, type, and name of a uniform attribute. It is generally used when querying unknown uniforms either for debugging or generic library creation.
         /// </summary>
         /// <param name="program">A WebGLProgram specifying the WebGL shader program from which to obtain the uniform variable's information.</param>
         /// <param name="index">A GLuint specifying the index of the uniform attribute to get. This value is an index 0 to N - 1 as returned by gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS).</param>
         /// <returns>A WebGLActiveInfo object describing the uniform.</returns>
-        public WebGLActiveInfo GetActiveUniform(WebGLProgram program, uint index) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, WebGLActiveInfo>("getActiveUniform", program, index);
+        public WebGLActiveInfo GetActiveUniform(WebGLProgram program, uint index) => JSRef!.Call<WebGLProgram, uint, WebGLActiveInfo>("getActiveUniform", program, index);
         /// <summary>
         /// The WebGLRenderingContext.getAttachedShaders() method of the WebGL API returns a list of WebGLShader objects attached to a WebGLProgram.
         /// </summary>
         /// <param name="program">A WebGLProgram object to get attached shaders for.</param>
         /// <returns>An Array of WebGLShader objects that are attached to the given WebGLProgram.</returns>
-        public WebGLShader[] GetAttachedShaders(WebGLProgram program) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, WebGLShader[]>("getAttachedShaders", program);
+        public WebGLShader[] GetAttachedShaders(WebGLProgram program) => JSRef!.Call<WebGLProgram, WebGLShader[]>("getAttachedShaders", program);
         /// <summary>
         /// The WebGLRenderingContext.getAttribLocation() method of the WebGL API returns the location of an attribute variable in a given WebGLProgram.
         /// </summary>
         /// <param name="program">A WebGLProgram containing the attribute variable.</param>
         /// <param name="name">A string specifying the name of the attribute variable whose location to get.</param>
         /// <returns>A GLint number indicating the location of the variable name if found. Returns -1 otherwise.</returns>
-        public int GetAttribLocation(WebGLProgram program, string name) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, int>("getAttribLocation", program, name);
+        public int GetAttribLocation(WebGLProgram program, string name) => JSRef!.Call<WebGLProgram, string, int>("getAttribLocation", program, name);
         /// <summary>
         /// The WebGLRenderingContext.getBufferParameter() method of the WebGL API returns information about the buffer.
         /// </summary>
@@ -1094,7 +1094,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="program">The WebGLProgram to query.</param>
         /// <returns>A string that contains diagnostic messages, warning messages, and other information about the last linking or validation operation. When a WebGLProgram object is initially created, its information log will be a string of length 0.</returns>
-        public string GetProgramInfoLog(WebGLProgram program) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string>("getProgramInfoLog", program);
+        public string GetProgramInfoLog(WebGLProgram program) => JSRef!.Call<WebGLProgram, string>("getProgramInfoLog", program);
         /// <summary>
         /// The WebGLRenderingContext.getProgramParameter() method of the WebGL API returns information about the given program.
         /// </summary>
@@ -1115,7 +1115,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.ACTIVE_UNIFORM_BLOCKS - Returns a GLint indicating the number of uniform blocks containing active uniforms.
         /// </param>
         /// <returns>Returns the requested program information (as specified with pname).</returns>
-        public T GetProgramParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, T>("getProgramParameter", program, pname);
+        public T GetProgramParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, GLenum pname) => JSRef!.Call<WebGLProgram, uint, T>("getProgramParameter", program, pname);
         /// <summary>
         /// The WebGLRenderingContext.getRenderbufferParameter() method of the WebGL API returns information about the renderbuffer.
         /// </summary>
@@ -1152,7 +1152,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="shader">A WebGLShader to query.</param>
         /// <returns>A string that contains diagnostic messages, warning messages, and other information about the last compile operation. When a WebGLShader object is initially created, its information log will be a string of length 0.</returns>
-        public string GetShaderInfoLog(WebGLShader shader) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLShader, string>("getShaderInfoLog", shader);
+        public string GetShaderInfoLog(WebGLShader shader) => JSRef!.Call<WebGLShader, string>("getShaderInfoLog", shader);
         /// <summary>
         /// The WebGLRenderingContext.getShaderParameter() method of the WebGL API returns information about the given shader.
         /// </summary>
@@ -1165,7 +1165,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.SHADER_TYPE - Returns a GLenum indicating whether the shader is a vertex shader (gl.VERTEX_SHADER) or fragment shader (gl.FRAGMENT_SHADER) object.
         /// </param>
         /// <returns>Returns the requested shader information (as specified with pname).</returns>
-        public T GetShaderParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLShader shader, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLShader, uint, T>("getShaderParameter", shader, pname);
+        public T GetShaderParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLShader shader, GLenum pname) => JSRef!.Call<WebGLShader, uint, T>("getShaderParameter", shader, pname);
         /// <summary>
         /// The WebGLRenderingContext.getShaderPrecisionFormat() method of the WebGL API returns a new WebGLShaderPrecisionFormat object describing the range and precision for the specified shader numeric format.
         /// </summary>
@@ -1178,7 +1178,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="shader">A WebGLShader object to get the source code from.</param>
         /// <returns>A string containing the source code of the shader.</returns>
-        public string GetShaderSource(WebGLShader shader) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLShader, string>("getShaderSource", shader);
+        public string GetShaderSource(WebGLShader shader) => JSRef!.Call<WebGLShader, string>("getShaderSource", shader);
         /// <summary>
         /// The WebGLRenderingContext.getSupportedExtensions() method returns a list of all the supported WebGL extensions.
         /// </summary>
@@ -1207,7 +1207,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram containing the uniform attribute.</param>
         /// <param name="location">A WebGLUniformLocation object containing the location of the uniform attribute to get.</param>
         /// <returns>The returned type depends on the uniform type</returns>
-        public T GetUniform<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, WebGLUniformLocation location) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, global::SpawnDev.SpawnJS.JSObjects.WebGLUniformLocation, T>("getUniform", program, location);
+        public T GetUniform<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, WebGLUniformLocation location) => JSRef!.Call<WebGLProgram, WebGLUniformLocation, T>("getUniform", program, location);
         /// <summary>
         /// Part of the WebGL API, the WebGLRenderingContext method getUniformLocation() returns the location of a specific uniform variable which is part of a given WebGLProgram.<br/>
         /// The uniform variable is returned as a WebGLUniformLocation object, which is an opaque identifier used to specify where in the GPU's memory that uniform variable is located.<br/>
@@ -1221,7 +1221,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// - The uniform name indexed with an integer. E.g. the location returned for arrayUniform[2] would point directly to the third entry of the arrayUniform uniform.
         /// </param>
         /// <returns>A WebGLUniformLocation value indicating the location of the named variable, if it exists. If the specified variable doesn't exist, null is returned instead.</returns>
-        public WebGLUniformLocation? GetUniformLocation(WebGLProgram program, string name) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, WebGLUniformLocation?>("getUniformLocation", program, name);
+        public WebGLUniformLocation? GetUniformLocation(WebGLProgram program, string name) => JSRef!.Call<WebGLProgram, string, WebGLUniformLocation?>("getUniformLocation", program, name);
         /// <summary>
         /// The WebGLRenderingContext.getVertexAttrib() method of the WebGL API returns information about a vertex attribute at a given position.
         /// </summary>
@@ -1283,7 +1283,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="buffer">A WebGLBuffer to check.</param>
         /// <returns>A GLboolean indicating whether or not the buffer is valid.</returns>
-        public bool IsBuffer(WebGLBuffer buffer) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLBuffer, bool>("isBuffer", buffer);
+        public bool IsBuffer(WebGLBuffer buffer) => JSRef!.Call<WebGLBuffer, bool>("isBuffer", buffer);
         /// <summary>
         /// The WebGLRenderingContext.isContextLost() method returns a boolean value indicating whether or not the WebGL context has been lost and must be re-established before rendering can resume.
         /// </summary>
@@ -1314,31 +1314,31 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="framebuffer">A WebGLFramebuffer to check.</param>
         /// <returns>A GLboolean indicating whether or not the frame buffer is valid.</returns>
-        public bool IsFramebuffer(WebGLFramebuffer framebuffer) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLFramebuffer, bool>("isFramebuffer", framebuffer);
+        public bool IsFramebuffer(WebGLFramebuffer framebuffer) => JSRef!.Call<WebGLFramebuffer, bool>("isFramebuffer", framebuffer);
         /// <summary>
         /// The WebGLRenderingContext.isProgram() method of the WebGL API returns true if the passed WebGLProgram is valid, false otherwise.
         /// </summary>
         /// <param name="program">A WebGLProgram to check.</param>
         /// <returns>A GLboolean indicating whether or not the program is valid.</returns>
-        public bool IsProgram(WebGLProgram program) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, bool>("isProgram", program);
+        public bool IsProgram(WebGLProgram program) => JSRef!.Call<WebGLProgram, bool>("isProgram", program);
         /// <summary>
         /// The WebGLRenderingContext.isRenderbuffer() method of the WebGL API returns true if the passed WebGLRenderbuffer is valid and false otherwise.
         /// </summary>
         /// <param name="renderbuffer">A WebGLRenderbuffer to check.</param>
         /// <returns>A GLboolean indicating whether or not the renderbuffer is valid.</returns>
-        public bool IsRenderbuffer(WebGLRenderbuffer renderbuffer) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLRenderbuffer, bool>("isRenderbuffer", renderbuffer);
+        public bool IsRenderbuffer(WebGLRenderbuffer renderbuffer) => JSRef!.Call<WebGLRenderbuffer, bool>("isRenderbuffer", renderbuffer);
         /// <summary>
         /// The WebGLRenderingContext.isShader() method of the WebGL API returns true if the passed WebGLShader is valid, false otherwise.
         /// </summary>
         /// <param name="shader">A WebGLShader to check.</param>
         /// <returns>A GLboolean indicating whether or not the shader is valid.</returns>
-        public bool IsShader(WebGLShader shader) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLShader, bool>("isShader", shader);
+        public bool IsShader(WebGLShader shader) => JSRef!.Call<WebGLShader, bool>("isShader", shader);
         /// <summary>
         /// The WebGLRenderingContext.isTexture() method of the WebGL API returns true if the passed WebGLTexture is valid and false otherwise.
         /// </summary>
         /// <param name="texture">A WebGLTexture to check.</param>
         /// <returns>A GLboolean indicating whether or not the texture is valid.</returns>
-        public bool IsTexture(WebGLTexture texture) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLTexture, bool>("isTexture", texture);
+        public bool IsTexture(WebGLTexture texture) => JSRef!.Call<WebGLTexture, bool>("isTexture", texture);
         /// <summary>
         /// The WebGLRenderingContext.lineWidth() method of the WebGL API sets the line width of rasterized lines.
         /// </summary>

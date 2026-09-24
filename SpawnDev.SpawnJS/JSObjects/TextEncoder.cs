@@ -30,6 +30,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="text"></param>
         /// <param name="dest"></param>
         /// <returns></returns>
-        public EncodeIntoProgress EncodeInto(string text, Uint8Array dest) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.Uint8Array, EncodeIntoProgress>("encodeInto", text, dest);
+        public EncodeIntoProgress EncodeInto(string text, Uint8Array dest) => JSRef!.Call<string, Uint8Array, EncodeIntoProgress>("encodeInto", text, dest);
     }
 }

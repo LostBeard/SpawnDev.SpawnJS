@@ -29,7 +29,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Task Write(IEnumerable<ClipboardItem> data) => JSRef!.CallAsync<global::System.Collections.Generic.IEnumerable<global::SpawnDev.SpawnJS.JSObjects.ClipboardItem>, string>("write", data);
+        public Task Write(IEnumerable<ClipboardItem> data) => JSRef!.CallAsync<global::System.Collections.Generic.IEnumerable<ClipboardItem>, string>("write", data);
         /// <summary>
         /// Writes text to the system clipboard, returning a Promise which is resolved once the text is fully copied into the clipboard.
         /// </summary>

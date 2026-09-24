@@ -38,6 +38,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="imageBitmapSource">Receives an ImageBitmapSource as a parameter. This can be an element, a Blob of type image or an ImageData object.</param>
         /// <returns></returns>
-        public Task<Array<DetectedBarcode>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.Element, global::SpawnDev.SpawnJS.JSObjects.ImageData, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas>, Array<DetectedBarcode>>("detect", imageBitmapSource);
+        public Task<Array<DetectedBarcode>> Detect(Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas> imageBitmapSource) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<Blob, Element, ImageData, ImageBitmap, OffscreenCanvas>, Array<DetectedBarcode>>("detect", imageBitmapSource);
     }
 }

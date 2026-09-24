@@ -233,20 +233,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, int, int, int, int, ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <param name="options">An object that sets options for the image's extraction.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, ImageBitmapOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, ImageBitmapOptions, ImageBitmap>("createImageBitmap", image, options);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
         /// <param name="image">An image source</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, ImageBitmap>("createImageBitmap", image);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, ImageBitmap>("createImageBitmap", image);
         /// <summary>
         /// The createImageBitmap() method of the Window interface creates a bitmap from a given source, optionally cropped to contain only a portion of that source. It accepts a variety of different image sources, and returns a Promise which resolves to an ImageBitmap.
         /// </summary>
@@ -256,7 +256,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sw">The width of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <param name="sh">The height of the rectangle from which the ImageBitmap will be extracted. This value can be negative.</param>
         /// <returns>A Promise which resolves to an ImageBitmap object containing bitmap data from the given rectangle.</returns>
-        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, global::SpawnDev.SpawnJS.JSObjects.VideoFrame, global::SpawnDev.SpawnJS.JSObjects.Blob, global::SpawnDev.SpawnJS.JSObjects.ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
+        public Task<ImageBitmap> CreateImageBitmap(ImageBitmapSource image, int sx, int sy, int sw, int sh) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<HTMLImageElement, SVGImageElement, HTMLVideoElement, HTMLCanvasElement, ImageBitmap, OffscreenCanvas, VideoFrame, Blob, ImageData>, int, int, int, int, ImageBitmap>("createImageBitmap", image, sx, sy, sw, sh);
         /// <summary>
         /// The window.requestAnimationFrame() method tells the browser you wish to perform an animation. It requests the browser to call a user-supplied callback function before the next repaint.
         /// </summary>
@@ -303,7 +303,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestIdleCallback(ActionCallback<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.IdleDeadline>, long>("requestIdleCallback", callback);
+        public long RequestIdleCallback(ActionCallback<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<IdleDeadline>, long>("requestIdleCallback", callback);
         /// <summary>
         /// The Window.resizeBy() method resizes the current window by a specified amount.
         /// </summary>
@@ -356,7 +356,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="value">The object to be cloned. This can be any structured-cloneable type.</param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, global::SpawnDev.SpawnJS.JSObjects.StructuredCloneOptions, T>("structuredClone", value, options);
+        public T StructuredClone<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(object value, StructuredCloneOptions options) => JSRef!.Call<object, StructuredCloneOptions, T>("structuredClone", value, options);
         /// <summary>
         /// The structuredClone() method of the Window interface creates a deep clone of a given value using the structured clone algorithm.<br/>
         /// The method also allows transferable objects in the original value to be transferred rather than cloned to the new object. Transferred objects are detached from the original object and attached to the new object; they are no longer accessible in the original object.
@@ -376,7 +376,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public long RequestIdleCallback(Action<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<global::SpawnDev.SpawnJS.JSObjects.IdleDeadline>, long>("requestIdleCallback", Callback.CreateOne(callback));
+        public long RequestIdleCallback(Action<IdleDeadline> callback) => JSRef!.Call<global::SpawnDev.SpawnJS.ActionCallback<IdleDeadline>, long>("requestIdleCallback", Callback.CreateOne(callback));
         /// <summary>
         /// Enables you to cancel a callback previously scheduled with Window.requestIdleCallback.
         /// </summary>
@@ -400,7 +400,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Calls fetch
         /// </summary>
-        public Task<Response> Fetch(Request resource) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, Response>("fetch", resource);
+        public Task<Response> Fetch(Request resource) => JS.CallAsync<Request, Response>("fetch", resource);
         /// <summary>
         /// Calls fetch
         /// </summary>
@@ -419,7 +419,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="element">The Element for which to get the computed style.</param>
         /// <param name="pseudoElement">A string specifying the pseudo-element to match. Omitted (or null) for real elements.</param>
         /// <returns>A live CSSStyleDeclaration object, which updates automatically when the element's styles are changed.</returns>
-        public CSSStyleDeclaration GetComputedStyle(Element element, string? pseudoElement = null) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Element, string, CSSStyleDeclaration>("getComputedStyle", element, pseudoElement!);
+        public CSSStyleDeclaration GetComputedStyle(Element element, string? pseudoElement = null) => JSRef!.Call<Element, string, CSSStyleDeclaration>("getComputedStyle", element, pseudoElement!);
         /// <summary>
         /// The getSelection() method of the Window interface returns the Selection object associated with the window's document, representing the range of text selected by the user or the current position of the caret.
         /// </summary>
@@ -744,7 +744,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<FileSystemDirectoryHandle> ShowDirectoryPicker(ShowDirectoryPickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<FileSystemDirectoryHandle>("showDirectoryPicker") :
-            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowDirectoryPickerOptions, FileSystemDirectoryHandle>("showDirectoryPicker", options);
+            JSRef!.CallAsync<ShowDirectoryPickerOptions, FileSystemDirectoryHandle>("showDirectoryPicker", options);
         /// <summary>
         /// The showOpenFilePicker() method of the Window interface shows a file picker that allows a user to select a file or multiple files and returns a handle for the file(s).
         /// </summary>
@@ -752,7 +752,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<Array<FileSystemFileHandle>> ShowOpenFilePicker(ShowOpenFilePickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<Array<FileSystemFileHandle>>("showOpenFilePicker") :
-            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowOpenFilePickerOptions, Array<FileSystemFileHandle>>("showOpenFilePicker", options);
+            JSRef!.CallAsync<ShowOpenFilePickerOptions, Array<FileSystemFileHandle>>("showOpenFilePicker", options);
         /// <summary>
         /// The showSaveFilePicker() method of the Window interface shows a file picker that allows a user to save a file. Either by selecting an existing file, or entering a name for a new file.
         /// </summary>
@@ -760,6 +760,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <returns></returns>
         public Task<FileSystemFileHandle> ShowSaveFilePicker(ShowSaveFilePickerOptions? options = null) => options == null ?
             JSRef!.CallAsync<FileSystemFileHandle>("showSaveFilePicker") :
-            JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ShowSaveFilePickerOptions, FileSystemFileHandle>("showSaveFilePicker", options);
+            JSRef!.CallAsync<ShowSaveFilePickerOptions, FileSystemFileHandle>("showSaveFilePicker", options);
     }
 }

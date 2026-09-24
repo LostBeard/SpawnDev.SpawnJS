@@ -18,7 +18,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="requests"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRegistration> Fetch(string id, IEnumerable<Union<string, Request>> requests, BackgroundFetchOptions options) => JSRef!.CallAsync<string, global::System.Collections.Generic.IEnumerable<global::SpawnDev.SpawnJS.Union<string, global::SpawnDev.SpawnJS.JSObjects.Request>>, global::SpawnDev.SpawnJS.JSObjects.BackgroundFetchOptions, BackgroundFetchRegistration>("fetch", id, requests, options);
+        public Task<BackgroundFetchRegistration> Fetch(string id, IEnumerable<Union<string, Request>> requests, BackgroundFetchOptions options) => JSRef!.CallAsync<string, global::System.Collections.Generic.IEnumerable<global::SpawnDev.SpawnJS.Union<string, Request>>, BackgroundFetchOptions, BackgroundFetchRegistration>("fetch", id, requests, options);
         /// <summary>
         /// Returns a Promise that resolves with the BackgroundFetchRegistration associated with the provided id or undefined if the id is not found.
         /// </summary>

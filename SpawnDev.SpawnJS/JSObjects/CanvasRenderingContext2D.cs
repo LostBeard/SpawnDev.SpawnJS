@@ -402,14 +402,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="height">The height to give the new ImageData object. A negative value flips the rectangle around the horizontal axis.</param>
         /// <param name="settings"></param>
         /// <returns></returns>
-        public ImageData CreateImageData(double width, double height, ImageDataSettings settings) => JSRef!.Call<double, double, global::SpawnDev.SpawnJS.JSObjects.ImageDataSettings, ImageData>("createImageData", width, height, settings);
+        public ImageData CreateImageData(double width, double height, ImageDataSettings settings) => JSRef!.Call<double, double, ImageDataSettings, ImageData>("createImageData", width, height, settings);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createImageData() method of the Canvas 2D API creates a new, blank ImageData object with the specified dimensions. All of the pixels in the new object are transparent black.
         /// </summary>
         /// <param name="imageData">An existing ImageData object from which to copy the width and height. The image itself is not copied.</param>
         /// <returns></returns>
-        public ImageData CreateImageData(ImageData imageData) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ImageData, ImageData>("createImageData", imageData);
+        public ImageData CreateImageData(ImageData imageData) => JSRef!.Call<ImageData, ImageData>("createImageData", imageData);
 
         /// <summary>
         /// The CanvasRenderingContext2D.beginPath() method of the Canvas 2D API starts a new path by emptying the list of sub-paths.
@@ -533,7 +533,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="x">The x-axis coordinate of the point to check.</param>
         /// <param name="y">The y-axis coordinate of the point to check.</param>
         /// <returns>True if the specified point is contained in the current path; otherwise, false.</returns>
-        public bool IsPointInPath(Path2D path, double x, double y) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Path2D, double, double, bool>("isPointInPath", path, x, y);
+        public bool IsPointInPath(Path2D path, double x, double y) => JSRef!.Call<Path2D, double, double, bool>("isPointInPath", path, x, y);
 
         /// <summary>
         /// The CanvasRenderingContext2D.isPointInStroke() method of the Canvas 2D API reports whether or not the specified point is inside the area contained by the stroking of a path.
@@ -550,7 +550,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="x">The x-axis coordinate of the point to check.</param>
         /// <param name="y">The y-axis coordinate of the point to check.</param>
         /// <returns>True if the specified point is inside the area contained by the stroking of a path; otherwise, false.</returns>
-        public bool IsPointInStroke(Path2D path, double x, double y) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Path2D, double, double, bool>("isPointInStroke", path, x, y);
+        public bool IsPointInStroke(Path2D path, double x, double y) => JSRef!.Call<Path2D, double, double, bool>("isPointInStroke", path, x, y);
 
         /// <summary>
         /// The CanvasRenderingContext2D.rotate() method of the Canvas 2D API adds a rotation to the transformation matrix.
@@ -627,7 +627,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(HTMLImageElement image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLImageElement, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(HTMLImageElement image, string repetition) => JSRef!.Call<HTMLImageElement, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -635,7 +635,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(SVGImageElement image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.SVGImageElement, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(SVGImageElement image, string repetition) => JSRef!.Call<SVGImageElement, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -643,7 +643,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(HTMLVideoElement image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLVideoElement, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(HTMLVideoElement image, string repetition) => JSRef!.Call<HTMLVideoElement, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -651,7 +651,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(HTMLCanvasElement image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.HTMLCanvasElement, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(HTMLCanvasElement image, string repetition) => JSRef!.Call<HTMLCanvasElement, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -659,7 +659,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(ImageBitmap image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.ImageBitmap, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(ImageBitmap image, string repetition) => JSRef!.Call<ImageBitmap, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -667,7 +667,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(OffscreenCanvas image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.OffscreenCanvas, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(OffscreenCanvas image, string repetition) => JSRef!.Call<OffscreenCanvas, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createPattern() method of the Canvas 2D API creates a pattern using the specified image (a CanvasImageSource). It repeats the source in the directions specified by the repetition argument.
@@ -675,7 +675,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="image">A CanvasImageSource to be used as the image to repeat.</param>
         /// <param name="repetition">A string indicating how to repeat the image. Possible values are: "repeat", "repeat-x", "repeat-y", and "no-repeat".</param>
         /// <returns>A CanvasPattern object that can be used as a fill or stroke style.</returns>
-        public CanvasPattern CreatePattern(VideoFrame image, string repetition) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.VideoFrame, string, CanvasPattern>("createPattern", image, repetition);
+        public CanvasPattern CreatePattern(VideoFrame image, string repetition) => JSRef!.Call<VideoFrame, string, CanvasPattern>("createPattern", image, repetition);
 
         /// <summary>
         /// The CanvasRenderingContext2D.createLinearGradient() method of the Canvas 2D API creates a linear gradient along the line connecting two given coordinates.
@@ -766,7 +766,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="sh">The height of the rectangle from which the ImageData will be extracted.</param>
         /// <param name="settings">An optional ImageDataSettings object to specify additional settings.</param>
         /// <returns>An ImageData object representing the underlying pixel data for the specified portion of the canvas.</returns>
-        public ImageData GetImageData(double sx, double sy, double sw, double sh, ImageDataSettings settings) => JSRef!.Call<double, double, double, double, global::SpawnDev.SpawnJS.JSObjects.ImageDataSettings, ImageData>("getImageData", sx, sy, sw, sh, settings);
+        public ImageData GetImageData(double sx, double sy, double sw, double sh, ImageDataSettings settings) => JSRef!.Call<double, double, double, double, ImageDataSettings, ImageData>("getImageData", sx, sy, sw, sh, settings);
 
         /// <summary>
         /// The CanvasRenderingContext2D.getContextAttributes() method of the Canvas 2D API returns an object that contains the actual context parameters.

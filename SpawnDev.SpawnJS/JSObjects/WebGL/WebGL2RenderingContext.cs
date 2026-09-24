@@ -649,7 +649,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram to query.</param>
         /// <param name="name">A string specifying the name of the user-defined varying out variable.</param>
         /// <returns>A GLint indicating the assigned color number binding, or -1 otherwise.</returns>
-        public GLint GetFragDataLocation(WebGLProgram program, string name) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, GLint>("getFragDataLocation", program, name);
+        public GLint GetFragDataLocation(WebGLProgram program, string name) => JSRef!.Call<WebGLProgram, string, GLint>("getFragDataLocation", program, name);
         #endregion
 
         #region Uniforms and attributes - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#uniforms_and_attributes
@@ -1241,7 +1241,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public bool IsQuery(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, bool>("isQuery", query);
+        public bool IsQuery(WebGLQuery query) => JSRef!.Call<WebGLQuery, bool>("isQuery", query);
         /// <summary>
         /// The WebGL2RenderingContext.getQuery() method of the WebGL 2 API returns the currently active WebGLQuery for the target, or null.
         /// </summary>
@@ -1267,19 +1267,19 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.QUERY_RESULT_AVAILABLE - Returns a GLboolean indicating whether or not a query result is available.<br/>
         /// </param>
         /// <returns>Depends on the pname parameter, either a GLuint or a GLboolean.</returns>
-        public T GetQueryParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLQuery query, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, T>("getQueryParameter", query, pname);
+        public T GetQueryParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLQuery query, GLenum pname) => JSRef!.Call<WebGLQuery, uint, T>("getQueryParameter", query, pname);
         /// <summary>
         /// Returns true if the query parameter is available.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public GLboolean GetQueryParameterAvailable(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, GLboolean>("getQueryParameter", query, GL.QUERY_RESULT_AVAILABLE);
+        public GLboolean GetQueryParameterAvailable(WebGLQuery query) => JSRef!.Call<WebGLQuery, uint, GLboolean>("getQueryParameter", query, GL.QUERY_RESULT_AVAILABLE);
         /// <summary>
         /// Returns the query result.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public GLuint GetQueryParameterResult(WebGLQuery query) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLQuery, uint, GLuint>("getQueryParameter", query, GL.QUERY_RESULT);
+        public GLuint GetQueryParameterResult(WebGLQuery query) => JSRef!.Call<WebGLQuery, uint, GLuint>("getQueryParameter", query, GL.QUERY_RESULT);
         #endregion
 
         #region Sampler objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sampler_objects
@@ -1304,7 +1304,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="sampler"></param>
         /// <returns></returns>
-        public GLboolean IsSampler(WebGLSampler sampler) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSampler, GLboolean>("isSampler", sampler);
+        public GLboolean IsSampler(WebGLSampler sampler) => JSRef!.Call<WebGLSampler, GLboolean>("isSampler", sampler);
         /// <summary>
         /// The WebGL2RenderingContext.samplerParameter[if]() methods of the WebGL 2 API set WebGLSampler parameters.
         /// </summary>
@@ -1352,7 +1352,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.TEXTURE_WRAP_S - A GLenum specifying the texture wrapping function for the texture coordinate s.<br/>
         /// gl.TEXTURE_WRAP_T - A GLenum specifying the texture wrapping function for the texture coordinate t.</param>
         /// <returns>Depends on the pname parameter, either a GLenum or a GLfloat.</returns>
-        public float GetSamplerParameter(WebGLSampler sampler, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSampler, uint, float>("getSamplerParameter", sampler, pname);
+        public float GetSamplerParameter(WebGLSampler sampler, GLenum pname) => JSRef!.Call<WebGLSampler, uint, float>("getSamplerParameter", sampler, pname);
         #endregion
 
         #region Sync objects - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#sync_objects
@@ -1368,7 +1368,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="sync"></param>
         /// <returns></returns>
-        public GLboolean IsSync(WebGLSync sync) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, GLboolean>("isSync", sync);
+        public GLboolean IsSync(WebGLSync sync) => JSRef!.Call<WebGLSync, GLboolean>("isSync", sync);
         /// <summary>
         /// The WebGL2RenderingContext.deleteSync() method of the WebGL 2 API deletes a given WebGLSync object.
         /// </summary>
@@ -1385,7 +1385,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.TIMEOUT_EXPIRED: Indicates that the timeout time passed and that the sync object did not become signaled.<br/>
         /// gl.CONDITION_SATISFIED: Indicates that the sync object was signaled before the timeout expired.<br/>
         /// gl.WAIT_FAILED: Indicates that an error occurred during the execution.</returns>
-        public GLenum clientWaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, uint, long, GLenum>("clientWaitSync", sync, flags, timeout);
+        public GLenum clientWaitSync(WebGLSync sync, GLbitfield flags, GLint64 timeout) => JSRef!.Call<WebGLSync, uint, long, GLenum>("clientWaitSync", sync, flags, timeout);
         /// <summary>
         /// The WebGL2RenderingContext.waitSync() method of the WebGL 2 API returns immediately, but waits on the GL server until the given WebGLSync object is signaled.<br/>
         /// The method is a no-op in the absence of the possibility of synchronizing between multiple GL contexts.
@@ -1404,7 +1404,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         ///  gl.SYNC_CONDITION - Returns a GLenum indicating the sync objects' condition (always gl.SYNC_GPU_COMMANDS_COMPLETE).<br/>
         ///  gl.SYNC_FLAGS - Returns a GLenum indicating the flags with which the sync object was created(always 0 as no flags are supported).</param>
         /// <returns>Depends on the pname parameter, either a GLenum or a GLbitfield.</returns>
-        public uint GetSyncParameter(WebGLSync sync, GLenum pname) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLSync, uint, uint>("getSyncParameter", sync, pname);
+        public uint GetSyncParameter(WebGLSync sync, GLenum pname) => JSRef!.Call<WebGLSync, uint, uint>("getSyncParameter", sync, pname);
         #endregion
 
         #region Transform feedback - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext#transform_feedback
@@ -1423,7 +1423,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="transformFeedback">A WebGLTransformFeedback object to test.</param>
         /// <returns>A GLboolean indicating whether the given object is a valid WebGLTransformFeedback object (true) or not (false).</returns>
-        public bool IsTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLTransformFeedback, bool>("isTransformFeedback", transformFeedback);
+        public bool IsTransformFeedback(WebGLTransformFeedback transformFeedback) => JSRef!.Call<WebGLTransformFeedback, bool>("isTransformFeedback", transformFeedback);
         /// <summary>
         /// The WebGL2RenderingContext.bindTransformFeedback() method of the WebGL 2 API binds a passed WebGLTransformFeedback object to the current GL state.
         /// </summary>
@@ -1460,7 +1460,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="index">A GLuint specifying the index of the varying variable whose information to retrieve.</param>
         /// <returns>A WebGLActiveInfo object.</returns>
         public WebGLActiveInfo GetTransformFeedbackVarying(WebGLProgram program, GLuint index)
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, WebGLActiveInfo>("getTransformFeedbackVarying", program, index);
+            => JSRef!.Call<WebGLProgram, uint, WebGLActiveInfo>("getTransformFeedbackVarying", program, index);
         /// <summary>
         /// The WebGL2RenderingContext.pauseTransformFeedback() method of the WebGL 2 API pauses a transform feedback operation.
         /// </summary>
@@ -1499,7 +1499,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="program">A WebGLProgram containing uniforms whose indices to query.</param>
         /// <param name="uniformNames">An Array of string specifying the names of the uniforms to query.</param>
         public GLuint[] GetUniformIndices(WebGLProgram program, string[] uniformNames)
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string[], GLuint[]>("getUniformIndices", program, uniformNames);
+            => JSRef!.Call<WebGLProgram, string[], GLuint[]>("getUniformIndices", program, uniformNames);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniforms() method of the WebGL 2 API retrieves information about active uniforms within a WebGLProgram.
         /// </summary>
@@ -1517,7 +1517,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// gl.UNIFORM_IS_ROW_MAJOR - Returns an Array of GLboolean indicating whether each of the uniforms is a row-major matrix or not.</param>
         /// <returns>Depends on which information is requested using the pname parameter.</returns>
         public T[] GetActiveUniforms<T>(WebGLProgram program, GLuint[] uniformIndices, GLenum pname) where T : struct
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint[], uint, T[]>("getActiveUniforms", program, uniformIndices, pname);
+            => JSRef!.Call<WebGLProgram, uint[], uint, T[]>("getActiveUniforms", program, uniformIndices, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getUniformBlockIndex() method of the WebGL 2 API retrieves the index of a uniform block within a WebGLProgram.
         /// </summary>
@@ -1525,7 +1525,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="uniformBlockName">A string specifying the name of the uniform block to whose index to retrieve.</param>
         /// <returns>A GLuint indicating the uniform block index.</returns>
         public GLuint GetUniformBlockIndex(WebGLProgram program, string uniformBlockName)
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, string, GLuint>("getUniformBlockIndex", program, uniformBlockName);
+            => JSRef!.Call<WebGLProgram, string, GLuint>("getUniformBlockIndex", program, uniformBlockName);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniformBlockParameter() method of the WebGL 2 API retrieves information about an active uniform block within a WebGLProgram.
         /// </summary>
@@ -1543,7 +1543,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </param>
         /// <returns>Depends on which information is requested using the pname parameter. If an error occurs, null is returned.</returns>
         public T? GetActiveUniformBlockParameter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(WebGLProgram program, GLuint uniformBlockIndex, GLenum pname) where T : struct
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, uint, T>("getActiveUniformBlockParameter", program, uniformBlockIndex, pname);
+            => JSRef!.Call<WebGLProgram, uint, uint, T>("getActiveUniformBlockParameter", program, uniformBlockIndex, pname);
         /// <summary>
         /// The WebGL2RenderingContext.getActiveUniformBlockName() method of the WebGL 2 API retrieves the name of the active uniform block at a given index within a WebGLProgram.
         /// </summary>
@@ -1551,7 +1551,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="uniformBlockIndex">A GLuint specifying the index of the uniform block to whose name to retrieve.</param>
         /// <returns>A string indicating the active uniform block name.</returns>
         public string GetActiveUniformBlockName(WebGLProgram program, GLuint uniformBlockIndex)
-            => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLProgram, uint, string>("getActiveUniformBlockName", program, uniformBlockIndex);
+            => JSRef!.Call<WebGLProgram, uint, string>("getActiveUniformBlockName", program, uniformBlockIndex);
         /// <summary>
         /// The WebGL2RenderingContext.uniformBlockBinding() method of the WebGL 2 API assigns binding points for active uniform blocks.
         /// </summary>
@@ -1578,7 +1578,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="vertexArray">A WebGLVertexArrayObject (VAO) object to test.</param>
         /// <returns>A GLboolean indicating whether the given object is a valid WebGLVertexArrayObject object (true) or not (false).</returns>
-        public bool IsVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.WebGLVertexArrayObject, bool>("isVertexArray", vertexArray);
+        public bool IsVertexArray(WebGLVertexArrayObject vertexArray) => JSRef!.Call<WebGLVertexArrayObject, bool>("isVertexArray", vertexArray);
         /// <summary>
         /// The WebGL2RenderingContext.bindVertexArray() method of the WebGL 2 API binds a passed WebGLVertexArrayObject object to the buffer.
         /// </summary>

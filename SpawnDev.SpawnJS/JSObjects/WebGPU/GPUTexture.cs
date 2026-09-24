@@ -60,7 +60,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Creates a GPUTextureView representing a specific view of the GPUTexture with the given descriptor.
         /// </summary>
-        public GPUTextureView CreateView(GPUTextureViewDescriptor descriptor) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPUTextureViewDescriptor, GPUTextureView>("createView", descriptor);
+        public GPUTextureView CreateView(GPUTextureViewDescriptor descriptor) => JSRef!.Call<GPUTextureViewDescriptor, GPUTextureView>("createView", descriptor);
 
         /// <summary>
         /// Destroys the GPUTexture.

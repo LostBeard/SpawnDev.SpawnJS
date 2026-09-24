@@ -50,7 +50,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options">An optional object specifying requirements for the returned MediaStream. The options for getDisplayMedia() work in the same as the constraints for the MediaDevices.getUserMedia() method, although in that case only audio and video can be specified.</param>
         /// <returns>A Promise that resolves to a MediaStream containing a video track whose contents come from a user-selected screen area, as well as an optional audio track.</returns>
-        public Task<MediaStream?> GetDisplayMedia(DisplayMediaStreamOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.DisplayMediaStreamOptions, MediaStream?>("getDisplayMedia", options);
+        public Task<MediaStream?> GetDisplayMedia(DisplayMediaStreamOptions options) => JSRef!.CallAsync<DisplayMediaStreamOptions, MediaStream?>("getDisplayMedia", options);
         /// <summary>
         /// Prompts the user to select a display or portion of a display (such as a window) to capture as a MediaStream for sharing or recording purposes. Returns a promise that resolves to a MediaStream.
         /// </summary>
@@ -98,7 +98,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The constraints parameter is an object with two members: video and audio, describing the media types requested. Either or both must be specified. If the browser cannot find all media tracks with the specified types that meet the constraints given, then the returned promise is rejected with NotFoundError DOMException.<br/>
         /// </param>
         /// <returns></returns>
-        public Task<MediaStream?> GetUserMedia(MediaStreamConstraints constraints) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.MediaStreamConstraints, MediaStream?>("getUserMedia", constraints);
+        public Task<MediaStream?> GetUserMedia(MediaStreamConstraints constraints) => JSRef!.CallAsync<MediaStreamConstraints, MediaStream?>("getUserMedia", constraints);
         /// <summary>
         /// With the user's permission through a prompt, turns on a camera and/or a microphone on the system and provides a MediaStream containing a video track and/or an audio track with the input.
         /// </summary>

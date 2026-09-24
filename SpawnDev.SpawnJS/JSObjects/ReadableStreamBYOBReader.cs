@@ -19,7 +19,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns a Promise that resolves with an object containing the next chunk from the stream's internal queues.
         /// </summary>
         /// <param name="view">The ArrayBufferView to write the data into.</param>
-        public Task<ReadableStreamReadResult> Read(ArrayBufferView view) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::SpawnDev.SpawnJS.JSObjects.DataView, byte[]>, ReadableStreamReadResult>("read", view);
+        public Task<ReadableStreamReadResult> Read(ArrayBufferView view) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.Union<TypedArray, DataView, byte[]>, ReadableStreamReadResult>("read", view);
 
         /// <summary>
         /// Returns a Promise that resolves when the stream is released.

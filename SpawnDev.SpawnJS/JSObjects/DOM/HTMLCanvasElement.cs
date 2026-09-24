@@ -61,7 +61,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public ImageBitmapRenderingContext GetImageBitmapRenderingContext(ImageBitmapRenderingContextSettings? contextAttributes = null)
         {
             if (contextAttributes == null) return JSRef!.Call<string, ImageBitmapRenderingContext>("getContext", "bitmaprenderer");
-            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ImageBitmapRenderingContextSettings, ImageBitmapRenderingContext>("getContext", "bitmaprenderer", contextAttributes);
+            return JSRef!.Call<string, ImageBitmapRenderingContextSettings, ImageBitmapRenderingContext>("getContext", "bitmaprenderer", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("2d"), leading to the creation of a CanvasRenderingContext2D object representing a two-dimensional rendering context.
@@ -71,7 +71,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public CanvasRenderingContext2D Get2DContext(CanvasRenderingContext2DSettings? contextAttributes = null)
         {
             if (contextAttributes == null) return JSRef!.Call<string, CanvasRenderingContext2D>("getContext", "2d");
-            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.CanvasRenderingContext2DSettings, CanvasRenderingContext2D>("getContext", "2d", contextAttributes);
+            return JSRef!.Call<string, CanvasRenderingContext2DSettings, CanvasRenderingContext2D>("getContext", "2d", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgl") which will create a WebGLRenderingContext object representing a three-dimensional rendering context. This context is only available on browsers that implement WebGL version 1 (OpenGL ES 2.0).
@@ -81,7 +81,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public WebGLRenderingContext GetWebGLContext(WebGLContextAttributes? contextAttributes = null)
         {
             if (contextAttributes == null) return JSRef!.Call<string, WebGLRenderingContext>("getContext", "webgl");
-            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.WebGLContextAttributes, WebGLRenderingContext>("getContext", "webgl", contextAttributes);
+            return JSRef!.Call<string, WebGLContextAttributes, WebGLRenderingContext>("getContext", "webgl", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgl2") which will create a WebGL2RenderingContext object representing a three-dimensional rendering context. This context is only available on browsers that implement WebGL version 2 (OpenGL ES 3.0). 
@@ -91,7 +91,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public WebGL2RenderingContext GetWebGL2Context(WebGLContextAttributes? contextAttributes = null)
         {
             if (contextAttributes == null) return JSRef!.Call<string, WebGL2RenderingContext>("getContext", "webgl2");
-            return JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.WebGLContextAttributes, WebGL2RenderingContext>("getContext", "webgl2", contextAttributes);
+            return JSRef!.Call<string, WebGLContextAttributes, WebGL2RenderingContext>("getContext", "webgl2", contextAttributes);
         }
         /// <summary>
         /// Calls canvas.getContext("webgpu") which will create a GPUCanvasContext object representing a three-dimensional rendering context for WebGPU render pipelines. This context is only available on browsers that implement The WebGPU API.

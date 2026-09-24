@@ -28,6 +28,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<ColorSelectionResult> Open(EyeDropperOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.EyeDropperOptions, ColorSelectionResult>("open", options);
+        public Task<ColorSelectionResult> Open(EyeDropperOptions options) => JSRef!.CallAsync<EyeDropperOptions, ColorSelectionResult>("open", options);
     }
 }

@@ -128,7 +128,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="locales">A string with a BCP 47 language tag, or an array of such strings</param>
         /// <param name="options">An object with a localeMatcher property</param>
         /// <returns>An array of strings representing a subset of the given locale tags that are supported in date and time formatting</returns>
-        public static string[] SupportedLocalesOf(Union<string, string[]> locales, IntlDateTimeFormatOptions options) => JS.Call<global::SpawnDev.SpawnJS.Union<string, string[]>, global::SpawnDev.SpawnJS.JSObjects.IntlDateTimeFormatOptions, string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales, options);
+        public static string[] SupportedLocalesOf(Union<string, string[]> locales, IntlDateTimeFormatOptions options) => JS.Call<global::SpawnDev.SpawnJS.Union<string, string[]>, IntlDateTimeFormatOptions, string[]>("Intl.DateTimeFormat.supportedLocalesOf", locales, options);
         #endregion
     }
 }

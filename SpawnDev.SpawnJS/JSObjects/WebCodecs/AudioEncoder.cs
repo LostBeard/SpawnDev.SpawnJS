@@ -61,6 +61,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Checks if the given config is supported.
         /// </summary>
-        public static Task<AudioEncoderSupport> IsConfigSupported(AudioEncoderConfig config) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.AudioEncoderConfig, AudioEncoderSupport>($"{nameof(AudioEncoder)}.isConfigSupported", config);
+        public static Task<AudioEncoderSupport> IsConfigSupported(AudioEncoderConfig config) => JS.CallAsync<AudioEncoderConfig, AudioEncoderSupport>($"{nameof(AudioEncoder)}.isConfigSupported", config);
     }
 }

@@ -187,7 +187,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public bool Contains(Node node) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool>("contains", node);
+        public bool Contains(Node node) => JSRef!.Call<Node, bool>("contains", node);
         /// <summary>
         /// The getRootNode() method of the Node interface returns the context object's root, which optionally includes the shadow root if it is available.
         /// </summary>
@@ -204,14 +204,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Node GetRootNode(GetRootNodeOptions options) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GetRootNodeOptions, Node>("getRootNode", options);
+        public Node GetRootNode(GetRootNodeOptions options) => JSRef!.Call<GetRootNodeOptions, Node>("getRootNode", options);
         /// <summary>
         /// The getRootNode() method of the Node interface returns the context object's root, which optionally includes the shadow root if it is available.
         /// </summary>
         /// <typeparam name="TNode"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
-        public TNode GetRootNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(GetRootNodeOptions options) where TNode : Node => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GetRootNodeOptions, TNode>("getRootNode", options);
+        public TNode GetRootNode<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(GetRootNodeOptions options) where TNode : Node => JSRef!.Call<GetRootNodeOptions, TNode>("getRootNode", options);
         /// <summary>
         /// Returns a boolean value indicating whether or not the element has any child nodes.
         /// </summary>
@@ -224,13 +224,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="newNode"></param>
         /// <param name="referenceNode"></param>
         /// <returns></returns>
-        public TNode InsertBefore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(TNode newNode, Node? referenceNode) where TNode : Node => JSRef!.Call<TNode, global::SpawnDev.SpawnJS.JSObjects.Node, TNode>("insertBefore", newNode, referenceNode!);
+        public TNode InsertBefore<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(TNode newNode, Node? referenceNode) where TNode : Node => JSRef!.Call<TNode, Node, TNode>("insertBefore", newNode, referenceNode!);
         /// <summary>
         /// The isSameNode() method of the Node interface is a legacy alias the for the === strict equality operator. That is, it tests whether two nodes are the same (in other words, whether they reference the same object).
         /// </summary>
         /// <param name="otherNode"></param>
         /// <returns></returns>
-        public bool IsSameNode(Node otherNode) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool>("isSameNode", otherNode);
+        public bool IsSameNode(Node otherNode) => JSRef!.Call<Node, bool>("isSameNode", otherNode);
         /// <summary>
         /// The normalize() method of the Node interface puts the specified node and all of its sub-tree into a normalized form. In a normalized sub-tree, no text nodes in the sub-tree are empty and there are no adjacent text nodes.
         /// </summary>
@@ -249,7 +249,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="newChild">The new node to replace oldChild.</param>
         /// <param name="oldChild">The child to be replaced.</param>
         /// <returns>The replaced Node. This is the same node as oldChild.</returns>
-        public TNode ReplaceChild<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(Node newChild, TNode oldChild) where TNode : Node => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, TNode, TNode>("replaceChild", newChild, oldChild);
+        public TNode ReplaceChild<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TNode>(Node newChild, TNode oldChild) where TNode : Node => JSRef!.Call<Node, TNode, TNode>("replaceChild", newChild, oldChild);
         #endregion
 
         /// <summary>

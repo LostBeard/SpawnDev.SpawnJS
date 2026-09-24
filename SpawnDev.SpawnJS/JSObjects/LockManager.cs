@@ -41,7 +41,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, Func<Lock, Task<TResult>> callback)
         {
             using var funcCallback = Callback.Create(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.FuncCallback<global::SpawnDev.SpawnJS.JSObjects.Lock, global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, funcCallback);
+            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.FuncCallback<Lock, global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, funcCallback);
         }
         /// <summary>
         /// The request() method of the LockManager interface requests a Lock object with parameters specifying its name and characteristics. The requested Lock is passed to a callback, while the function itself returns a Promise that resolves (or rejects) with the result of the callback after the lock is released, or rejects if the request is aborted.
@@ -87,7 +87,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, LockRequestOptions options, Func<Lock?, Task<TResult>> callback)
         {
             using var funcCallback = Callback.Create(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<global::SpawnDev.SpawnJS.JSObjects.Lock, global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, options, funcCallback!);
+            return await JSRef!.CallAsync<string, LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<Lock, global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, options, funcCallback!);
         }
         /// <summary>
         /// The request() method of the LockManager interface requests a Lock object with parameters specifying its name and characteristics. The requested Lock is passed to a callback, while the function itself returns a Promise that resolves (or rejects) with the result of the callback after the lock is released, or rejects if the request is aborted.
@@ -111,7 +111,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, LockRequestOptions options, Func<Task<TResult>> callback)
         {
             using var funcCallback = Callback.Create(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, options, funcCallback);
+            return await JSRef!.CallAsync<string, LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<global::System.Threading.Tasks.Task<TResult>>, TResult>("request", lockName, options, funcCallback);
         }
         #endregion
         #region Requests with Sync callbacks
@@ -136,7 +136,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, Func<Lock, TResult> callback)
         {
             using var funcCallback = new FuncCallback<Lock, TResult>(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.FuncCallback<global::SpawnDev.SpawnJS.JSObjects.Lock, TResult>, TResult>("request", lockName, funcCallback);
+            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.FuncCallback<Lock, TResult>, TResult>("request", lockName, funcCallback);
         }
         /// <summary>
         /// The request() method of the LockManager interface requests a Lock object with parameters specifying its name and characteristics. The requested Lock is passed to a callback, while the function itself returns a Promise that resolves (or rejects) with the result of the callback after the lock is released, or rejects if the request is aborted.
@@ -182,7 +182,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, LockRequestOptions options, Func<Lock?, TResult> callback)
         {
             using var funcCallback = new FuncCallback<Lock, TResult>(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<global::SpawnDev.SpawnJS.JSObjects.Lock, TResult>, TResult>("request", lockName, options, funcCallback);
+            return await JSRef!.CallAsync<string, LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<Lock, TResult>, TResult>("request", lockName, options, funcCallback);
         }
         /// <summary>
         /// The request() method of the LockManager interface requests a Lock object with parameters specifying its name and characteristics. The requested Lock is passed to a callback, while the function itself returns a Promise that resolves (or rejects) with the result of the callback after the lock is released, or rejects if the request is aborted.
@@ -206,7 +206,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         public async Task<TResult> Request<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TResult>(string lockName, LockRequestOptions options, Func<TResult> callback)
         {
             using var funcCallback = new FuncCallback<TResult>(callback);
-            return await JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<TResult>, TResult>("request", lockName, options, funcCallback);
+            return await JSRef!.CallAsync<string, LockRequestOptions, global::SpawnDev.SpawnJS.FuncCallback<TResult>, TResult>("request", lockName, options, funcCallback);
         }
         #endregion
         /// <summary>

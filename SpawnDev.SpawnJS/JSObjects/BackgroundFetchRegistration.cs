@@ -55,20 +55,20 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord> Match(string request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.BackgroundFetchMatchOptions, BackgroundFetchRecord>("match", request, options);
+        public Task<BackgroundFetchRecord> Match(string request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<string, BackgroundFetchMatchOptions, BackgroundFetchRecord>("match", request, options);
         /// <summary>
         /// Returns a single BackgroundFetchRecord object which is the first match for the arguments.
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord> Match(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, BackgroundFetchRecord>("match", request);
+        public Task<BackgroundFetchRecord> Match(Request request) => JSRef!.CallAsync<Request, BackgroundFetchRecord>("match", request);
         /// <summary>
         /// Returns a single BackgroundFetchRecord object which is the first match for the arguments.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord> Match(Request request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.BackgroundFetchMatchOptions, BackgroundFetchRecord>("match", request, options);
+        public Task<BackgroundFetchRecord> Match(Request request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<Request, BackgroundFetchMatchOptions, BackgroundFetchRecord>("match", request, options);
         /// <summary>
         /// Returns a single BackgroundFetchRecord object which is the first match for the arguments.
         /// </summary>
@@ -85,14 +85,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord[]> MatchAll(Request request) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, BackgroundFetchRecord[]>("matchAll", request);
+        public Task<BackgroundFetchRecord[]> MatchAll(Request request) => JSRef!.CallAsync<Request, BackgroundFetchRecord[]>("matchAll", request);
         /// <summary>
         /// Returns a Promise that resolves with an array of BackgroundFetchRecord objects containing requests and responses.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord[]> MatchAll(Request request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.Request, global::SpawnDev.SpawnJS.JSObjects.BackgroundFetchMatchOptions, BackgroundFetchRecord[]>("matchAll", request, options);
+        public Task<BackgroundFetchRecord[]> MatchAll(Request request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<Request, BackgroundFetchMatchOptions, BackgroundFetchRecord[]>("matchAll", request, options);
         /// <summary>
         /// Returns a Promise that resolves with an array of BackgroundFetchRecord objects containing requests and responses.
         /// </summary>
@@ -105,7 +105,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="request"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<BackgroundFetchRecord[]> MatchAll(string request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<string, global::SpawnDev.SpawnJS.JSObjects.BackgroundFetchMatchOptions, BackgroundFetchRecord[]>("matchAll", request, options);
+        public Task<BackgroundFetchRecord[]> MatchAll(string request, BackgroundFetchMatchOptions options) => JSRef!.CallAsync<string, BackgroundFetchMatchOptions, BackgroundFetchRecord[]>("matchAll", request, options);
         /// <summary>
         /// Fired when there is a change to any of the following properties: uploaded, downloaded, result or failureReason.
         /// </summary>

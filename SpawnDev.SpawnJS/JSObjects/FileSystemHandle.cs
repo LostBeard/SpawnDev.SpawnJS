@@ -41,7 +41,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </remarks>
         /// <param name="fsHandle">The handle to compare against.</param>
         /// <returns>True when both handles represent the same file or directory entry.</returns>
-        public Task<bool> IsSameEntry(FileSystemHandle fsHandle) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle, bool>("isSameEntry", fsHandle);
+        public Task<bool> IsSameEntry(FileSystemHandle fsHandle) => JSRef!.CallAsync<FileSystemHandle, bool>("isSameEntry", fsHandle);
         /// <summary>
         /// Returns a FileSystemDirectoryHandle or FileSystemFileHandle based on the FileSystemHandle.Kind
         /// </summary>
@@ -140,7 +140,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             {
                 return PERMISSION_GRANTED;
             }
-            return await JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle.FilePermissionsOptions, string>("queryPermission", new FilePermissionsOptions(writePermission));
+            return await JSRef!.CallAsync<FileSystemHandle.FilePermissionsOptions, string>("queryPermission", new FilePermissionsOptions(writePermission));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             {
                 return PERMISSION_GRANTED;
             }
-            return await JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.FileSystemHandle.FilePermissionsOptions, string>("requestPermission", new FilePermissionsOptions(writePermission));
+            return await JSRef!.CallAsync<FileSystemHandle.FilePermissionsOptions, string>("requestPermission", new FilePermissionsOptions(writePermission));
         }
         /// <summary>
         /// "granted"

@@ -38,6 +38,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="input">A TrustedHTML instance produced by a Trusted Type policy.</param>
         /// <param name="mimeType">A string that specifies whether the XML parser or the HTML parser is used to parse the string.</param>
         /// <returns></returns>
-        public Document ParseFromString(TrustedHTML input, string mimeType) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.TrustedHTML, string, Document>("parseFromString", input, mimeType);
+        public Document ParseFromString(TrustedHTML input, string mimeType) => JSRef!.Call<TrustedHTML, string, Document>("parseFromString", input, mimeType);
     }
 }

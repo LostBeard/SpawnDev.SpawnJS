@@ -32,14 +32,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         public XRProjectionLayer CreateProjectionLayer(XRGPUProjectionLayerInit? options = null)
             => options == null
                 ? JSRef!.Call<XRProjectionLayer>("createProjectionLayer")
-                : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.XRGPUProjectionLayerInit, XRProjectionLayer>("createProjectionLayer", options);
+                : JSRef!.Call<XRGPUProjectionLayerInit, XRProjectionLayer>("createProjectionLayer", options);
         /// <summary>
         /// Returns an XRGPUSubImage for a projection layer view, providing the GPU texture to render into.
         /// </summary>
         /// <param name="layer">The XRProjectionLayer to get the sub-image for.</param>
         /// <param name="view">The XRView (eye) to get the sub-image for.</param>
         /// <returns>An XRGPUSubImage containing the GPU texture and viewport.</returns>
-        public XRGPUSubImage GetViewSubImage(XRProjectionLayer layer, XRView view) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.XRProjectionLayer, global::SpawnDev.SpawnJS.JSObjects.XRView, XRGPUSubImage>("getViewSubImage", layer, view);
+        public XRGPUSubImage GetViewSubImage(XRProjectionLayer layer, XRView view) => JSRef!.Call<XRProjectionLayer, XRView, XRGPUSubImage>("getViewSubImage", layer, view);
         /// <summary>
         /// Returns the preferred GPU texture format for the XR session's color attachments.
         /// </summary>

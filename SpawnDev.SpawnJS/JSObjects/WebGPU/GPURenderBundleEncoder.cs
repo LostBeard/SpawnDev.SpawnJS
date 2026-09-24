@@ -79,7 +79,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="descriptor">optional options</param>
         /// <returns></returns>
         public GPURenderBundle Finish(GPURenderBundleDescriptor? descriptor = null)
-            => descriptor == null ? JSRef!.Call<GPURenderBundle>("finish") : JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.GPURenderBundleDescriptor, GPURenderBundle>("finish", descriptor);
+            => descriptor == null ? JSRef!.Call<GPURenderBundle>("finish") : JSRef!.Call<GPURenderBundleDescriptor, GPURenderBundle>("finish", descriptor);
         #endregion
     }
 }

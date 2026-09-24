@@ -26,7 +26,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a Promise that resolves with an array of connected HIDDevice objects. Calling this function will trigger the user agent's permission flow in order to gain permission to access one selected device from the returned list of devices.
         /// </summary>
-        public Task<Array<HIDDevice>> RequestDevice(HIDDeviceRequestOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.HIDDeviceRequestOptions, Array<HIDDevice>>("requestDevice", options);
+        public Task<Array<HIDDevice>> RequestDevice(HIDDeviceRequestOptions options) => JSRef!.CallAsync<HIDDeviceRequestOptions, Array<HIDDevice>>("requestDevice", options);
         #endregion
 
         #region Events

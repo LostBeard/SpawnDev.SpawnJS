@@ -26,7 +26,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Shows the payment UI to the user.
         /// </summary>
-        public Task<PaymentResponse> Show(Task<PaymentDetailsInit> detailsPromise) => JSRef!.CallAsync<global::System.Threading.Tasks.Task<global::SpawnDev.SpawnJS.JSObjects.PaymentDetailsInit>, PaymentResponse>("show", detailsPromise);
+        public Task<PaymentResponse> Show(Task<PaymentDetailsInit> detailsPromise) => JSRef!.CallAsync<global::System.Threading.Tasks.Task<PaymentDetailsInit>, PaymentResponse>("show", detailsPromise);
 
         /// <summary>
         /// Aborts the payment request.

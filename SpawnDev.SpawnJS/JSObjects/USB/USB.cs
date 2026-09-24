@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Returns a Promise that resolves with an instance of USBDevice if the specified device is found. Calling this function triggers the user agent's pairing flow.
         /// </summary>
         /// <returns></returns>
-        public Task<USBDevice> RequestDevice(USBDeviceRequestOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.USBDeviceRequestOptions, USBDevice>("requestDevice", options);
+        public Task<USBDevice> RequestDevice(USBDeviceRequestOptions options) => JSRef!.CallAsync<USBDeviceRequestOptions, USBDevice>("requestDevice", options);
         #endregion
 
         #region Events

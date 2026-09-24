@@ -85,46 +85,46 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="TValue"></typeparam>
         /// <param name="other"></param>
         /// <returns>A new Set object containing elements in this set but not in the other set.</returns>
-        public Set<TValue> Difference<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("difference", other);
+        public Set<TValue> Difference<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<Set, Set<TValue>>("difference", other);
         /// <summary>
         /// The intersection() method of Set instances takes a set and returns a new set containing elements in both this set and the given set.
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> Intersection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("intersection", other);
+        public Set<TValue> Intersection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<Set, Set<TValue>>("intersection", other);
         /// <summary>
         /// The symmetricDifference() method of Set instances takes a set and returns a new set containing elements which are in either this set or the given set, but not in both.
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> SymmetricDifference<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("symmetricDifference", other);
+        public Set<TValue> SymmetricDifference<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<Set, Set<TValue>>("symmetricDifference", other);
         /// <summary>
         /// The union() method of Set instances takes a set and returns a new set containing elements which are in either or both of this set and the given set.
         /// </summary>
         /// <typeparam name="TValue"></typeparam>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> Union<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("union", other);
+        public Set<TValue> Union<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(Set other) => JSRef!.Call<Set, Set<TValue>>("union", other);
         /// <summary>
         /// The isDisjointFrom() method of Set instances takes a set and returns a boolean indicating if this set has no elements in common with the given set.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool IsDisjointedFrom(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, bool>("isDisjointedFrom", other);
+        public bool IsDisjointedFrom(Set other) => JSRef!.Call<Set, bool>("isDisjointedFrom", other);
         /// <summary>
         /// The isSubsetOf() method of Set instances takes a set and returns a boolean indicating if all elements of this set are in the given set.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool IsSubsetOf(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, bool>("isSubsetOf", other);
+        public bool IsSubsetOf(Set other) => JSRef!.Call<Set, bool>("isSubsetOf", other);
         /// <summary>
         /// The isSupersetOf() method of Set instances takes a set and returns a boolean indicating if all elements of the given set are in this set.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool IsSupersetOf(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, bool>("isSupersetOf", other);
+        public bool IsSupersetOf(Set other) => JSRef!.Call<Set, bool>("isSupersetOf", other);
         #endregion
     }
 
@@ -200,25 +200,25 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other"></param>
         /// <returns>A new Set object containing elements in this set but not in the other set.</returns>
-        public Set<TValue> Difference(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("difference", other);
+        public Set<TValue> Difference(Set other) => JSRef!.Call<Set, Set<TValue>>("difference", other);
         /// <summary>
         /// The intersection() method of Set instances takes a set and returns a new set containing elements in both this set and the given set.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> Intersection(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("intersection", other);
+        public Set<TValue> Intersection(Set other) => JSRef!.Call<Set, Set<TValue>>("intersection", other);
         /// <summary>
         /// The symmetricDifference() method of Set instances takes a set and returns a new set containing elements which are in either this set or the given set, but not in both.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> SymmetricDifference(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("symmetricDifference", other);
+        public Set<TValue> SymmetricDifference(Set other) => JSRef!.Call<Set, Set<TValue>>("symmetricDifference", other);
         /// <summary>
         /// The union() method of Set instances takes a set and returns a new set containing elements which are in either or both of this set and the given set.
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public Set<TValue> Union(Set other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Set, Set<TValue>>("union", other);
+        public Set<TValue> Union(Set other) => JSRef!.Call<Set, Set<TValue>>("union", other);
         #endregion
     }
 }

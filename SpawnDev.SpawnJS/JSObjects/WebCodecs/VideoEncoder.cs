@@ -61,6 +61,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Checks if the given config is supported.
         /// </summary>
-        public static Task<VideoEncoderSupport> IsConfigSupported(VideoEncoderConfig config) => JS.CallAsync<global::SpawnDev.SpawnJS.JSObjects.VideoEncoderConfig, VideoEncoderSupport>($"{nameof(VideoEncoder)}.isConfigSupported", config);
+        public static Task<VideoEncoderSupport> IsConfigSupported(VideoEncoderConfig config) => JS.CallAsync<VideoEncoderConfig, VideoEncoderSupport>($"{nameof(VideoEncoder)}.isConfigSupported", config);
     }
 }

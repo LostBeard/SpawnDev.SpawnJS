@@ -43,7 +43,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="tagName"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public T CreateElement<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string tagName, ElementCreationOptions options) where T : Element => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, T>("createElement", tagName, options);
+        public T CreateElement<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string tagName, ElementCreationOptions options) where T : Element => JSRef!.Call<string, ElementCreationOptions, T>("createElement", tagName, options);
         /// <summary>
         /// In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.
         /// </summary>
@@ -56,7 +56,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="tagName"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Element CreateElement(string tagName, ElementCreationOptions options) => JSRef!.Call<string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, Element>("createElement", tagName, options);
+        public Element CreateElement(string tagName, ElementCreationOptions options) => JSRef!.Call<string, ElementCreationOptions, Element>("createElement", tagName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -65,7 +65,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <param name="options">An optional ElementCreationOptions object containing a single property named is, whose value is the tag name for a custom element previously defined using customElements.define()</param>
         /// <returns>TElement</returns>
-        public TElement CreateElementNS<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string namespaceURI, string qualifiedName, ElementCreationOptions options) where TElement : Element => JSRef!.Call<string, string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, TElement>("createElementNS", namespaceURI, qualifiedName, options);
+        public TElement CreateElementNS<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement>(string namespaceURI, string qualifiedName, ElementCreationOptions options) where TElement : Element => JSRef!.Call<string, string, ElementCreationOptions, TElement>("createElementNS", namespaceURI, qualifiedName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -73,7 +73,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="qualifiedName">A string that specifies the type of element to be created. The nodeName property of the created element is initialized with the value of qualifiedName.</param>
         /// <param name="options">An optional ElementCreationOptions object containing a single property named is, whose value is the tag name for a custom element previously defined using customElements.define()</param>
         /// <returns>TElement</returns>
-        public Element CreateElementNS(string namespaceURI, string qualifiedName, ElementCreationOptions options) => JSRef!.Call<string, string, global::SpawnDev.SpawnJS.JSObjects.ElementCreationOptions, Element>("createElementNS", namespaceURI, qualifiedName, options);
+        public Element CreateElementNS(string namespaceURI, string qualifiedName, ElementCreationOptions options) => JSRef!.Call<string, string, ElementCreationOptions, Element>("createElementNS", namespaceURI, qualifiedName, options);
         /// <summary>
         /// Creates a new element with the given tag name and namespace URI.
         /// </summary>
@@ -189,11 +189,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Imports a node from an external document.
         /// </summary>
-        public Node ImportNode(Node node, bool deep = false) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, bool, Node>("importNode", node, deep);
+        public Node ImportNode(Node node, bool deep = false) => JSRef!.Call<Node, bool, Node>("importNode", node, deep);
         /// <summary>
         /// Adopts a node from an external document. The node and its subtree are removed from the document it's in.
         /// </summary>
-        public Node AdoptNode(Node node) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Node, Node>("adoptNode", node);
+        public Node AdoptNode(Node node) => JSRef!.Call<Node, Node>("adoptNode", node);
         /// <summary>
         /// Creates a new Range object.
         /// </summary>

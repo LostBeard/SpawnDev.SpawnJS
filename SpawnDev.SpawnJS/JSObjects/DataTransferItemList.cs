@@ -36,7 +36,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public DataTransferItem Add(File data) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.File, DataTransferItem>("add", data);
+        public DataTransferItem Add(File data) => JSRef!.Call<File, DataTransferItem>("add", data);
         /// <summary>
         /// An unsigned long that is the number of drag items in the list.
         /// </summary>

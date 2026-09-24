@@ -30,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<Array<Client>> MatchAll(ClientsMatchAllOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.ClientsMatchAllOptions, Array<Client>>("matchAll", options);
+        public Task<Array<Client>> MatchAll(ClientsMatchAllOptions options) => JSRef!.CallAsync<ClientsMatchAllOptions, Array<Client>>("matchAll", options);
         /// <summary>
         /// The openWindow() method of the Clients interface creates a new top level browsing context and loads a given URL. If the calling script doesn't have permission to show popups, openWindow() will throw an InvalidAccessError.<br/>
         /// In Firefox, the method is allowed to show popups only when called as the result of a notification click event.<br/>

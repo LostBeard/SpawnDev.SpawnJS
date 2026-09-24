@@ -19,6 +19,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public Task<InkPresenter> RequestPresenter(InkPresenterParam param) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.InkPresenterParam, InkPresenter>("requestPresenter", param);
+        public Task<InkPresenter> RequestPresenter(InkPresenterParam param) => JSRef!.CallAsync<InkPresenterParam, InkPresenter>("requestPresenter", param);
     }
 }

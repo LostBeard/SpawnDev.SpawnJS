@@ -27,7 +27,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<SerialPort> RequestPort(SerialPortOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.SerialPortOptions, SerialPort>("requestPort", options);
+        public Task<SerialPort> RequestPort(SerialPortOptions options) => JSRef!.CallAsync<SerialPortOptions, SerialPort>("requestPort", options);
         /// <summary>
         /// The Serial.requestPort() method of the Serial interface returns a Promise that resolves with an instance of SerialPort representing the device chosen by the user or rejects if no device was selected.
         /// </summary>

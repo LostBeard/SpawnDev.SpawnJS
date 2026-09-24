@@ -48,7 +48,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key">The key or key range that identifies the record to be counted.</param>
         /// <returns>A IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<int> Count(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<int>>("count", key!);
+        public IDBRequest<int> Count(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<int>>("count", key!);
         /// <summary>
         /// returns the number of records within a key range.
         /// </summary>
@@ -60,13 +60,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key">A key or IDBKeyRange that identifies the record to be retrieved. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<TValue> Get(Union<IDBKeyRange<TIndexKey>, TIndexKey> key) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TValue>>("get", key);
+        public IDBRequest<TValue> Get(Union<IDBKeyRange<TIndexKey>, TIndexKey> key) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TValue>>("get", key);
         /// <summary>
         /// Returns an IDBRequest object, and, in a separate thread, finds either the value in the referenced object store that corresponds to the given key or the first corresponding value, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="key">A key or IDBKeyRange that identifies the record to be retrieved. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<TValueAlt> Get<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey> key) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TValueAlt>>("get", key);
+        public IDBRequest<TValueAlt> Get<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey> key) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TValueAlt>>("get", key);
         /// <summary>
         /// Returns the IDBRequest result of the get request<br/>
         /// throws an exception if not found
@@ -87,14 +87,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="query">A key or an IDBKeyRange identifying the records to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <param name="count">The number of records to return. If this value exceeds the number of records in the query, the browser will only retrieve the queried records. If it is lower than 0 or greater than 2^32 - 1 a TypeError exception will be thrown.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TValue>> GetAll(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TValue>>>("getAll", query!, count);
+        public IDBRequest<Array<TValue>> GetAll(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TValue>>>("getAll", query!, count);
         /// <summary>
         /// Returns an IDBRequest object, in a separate thread, finds all matching values in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the records to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <param name="count">The number of records to return. If this value exceeds the number of records in the query, the browser will only retrieve the queried records. If it is lower than 0 or greater than 2^32 - 1 a TypeError exception will be thrown.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TValueAlt>> GetAll<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TValueAlt>>>("getAll", query!, count);
+        public IDBRequest<Array<TValueAlt>> GetAll<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TValueAlt>>>("getAll", query!, count);
         /// <summary>
         /// Returns all matching values in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
@@ -114,13 +114,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the records to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns></returns>
-        public IDBRequest<Array<TValue>> GetAll(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TValue>>>("getAll", query!);
+        public IDBRequest<Array<TValue>> GetAll(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TValue>>>("getAll", query!);
         /// <summary>
         /// Returns an IDBRequest object, in a separate thread, finds all matching values in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the records to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns></returns>
-        public IDBRequest<Array<TValueAlt>> GetAll<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TValueAlt>>>("getAll", query!);
+        public IDBRequest<Array<TValueAlt>> GetAll<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TValueAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TValueAlt>>>("getAll", query!);
         /// <summary>
         /// Returns all matching values in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
@@ -138,13 +138,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="key">A key or IDBKeyRange that identifies a record to be retrieved. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<TIndexKey> GetKey(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TIndexKey>>("getKey", key!);
+        public IDBRequest<TIndexKey> GetKey(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TIndexKey>>("getKey", key!);
         /// <summary>
         /// Returns an IDBRequest object, and, in a separate thread, finds either the given key or the primary key, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="key">A key or IDBKeyRange that identifies a record to be retrieved. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<TIndexKeyAlt> GetKey<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TIndexKeyAlt>>("getKey", key!);
+        public IDBRequest<TIndexKeyAlt> GetKey<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? key = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<TIndexKeyAlt>>("getKey", key!);
         /// <summary>
         /// Returns either the given key or the primary key, if key is an IDBKeyRange.
         /// </summary>
@@ -163,14 +163,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="query">A key or an IDBKeyRange identifying the keys to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <param name="count">The number records to return. If this value exceeds the number of records in the query, the browser will only retrieve the first item. If it is lower than 0 or greater than 2^32 - 1 a TypeError exception will be thrown.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TIndexKey>> GetAllKeys(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TIndexKey>>>("getAllKeys", query!, count);
+        public IDBRequest<Array<TIndexKey>> GetAllKeys(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TIndexKey>>>("getAllKeys", query!, count);
         /// <summary>
         /// Returns an IDBRequest object, in a separate thread, finds all matching keys in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the keys to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <param name="count">The number records to return. If this value exceeds the number of records in the query, the browser will only retrieve the first item. If it is lower than 0 or greater than 2^32 - 1 a TypeError exception will be thrown.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TIndexKeyAlt>> GetAllKeys<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TIndexKeyAlt>>>("getAllKeys", query!, count);
+        public IDBRequest<Array<TIndexKeyAlt>> GetAllKeys<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query, int count) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, int, IDBRequest<Array<TIndexKeyAlt>>>("getAllKeys", query!, count);
         /// <summary>
         /// Returns all matching keys in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
@@ -190,13 +190,13 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the keys to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TIndexKey>> GetAllKeys(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TIndexKey>>>("getAllKeys", query!);
+        public IDBRequest<Array<TIndexKey>> GetAllKeys(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TIndexKey>>>("getAllKeys", query!);
         /// <summary>
         /// Returns an IDBRequest object, in a separate thread, finds all matching keys in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
         /// <param name="query">A key or an IDBKeyRange identifying the keys to retrieve. If this value is null or missing, the browser will use an unbound key range.</param>
         /// <returns>An IDBRequest object on which subsequent events related to this operation are fired.</returns>
-        public IDBRequest<Array<TIndexKeyAlt>> GetAllKeys<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TIndexKeyAlt>>>("getAllKeys", query!);
+        public IDBRequest<Array<TIndexKeyAlt>> GetAllKeys<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] TIndexKeyAlt>(Union<IDBKeyRange<TIndexKey>, TIndexKey>? query = null) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<Array<TIndexKeyAlt>>>("getAllKeys", query!);
         /// <summary>
         /// Returns all matching keys in the referenced object store that correspond to the given key or are in range, if key is an IDBKeyRange.
         /// </summary>
@@ -224,7 +224,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="range">A key or IDBKeyRange to use as the cursor's range. If nothing is passed, this will default to a key range that selects all the records in this object store.</param>
         /// <returns></returns>
-        public IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>> OpenCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>>>("openCursor", range!);
+        public IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>> OpenCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>>>("openCursor", range!);
         /// <summary>
         /// Creates a cursor over the specified key range.
         /// </summary>
@@ -243,7 +243,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// "prevunique" - The cursor is opened at the start of the store; then, the cursor returns all records, that are not duplicates, in the decreasing order of keys.<br/>
         /// </param>
         /// <returns></returns>
-        public IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>> OpenCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range, string direction) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, string, IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>>>("openCursor", range!, direction);
+        public IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>> OpenCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range, string direction) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, string, IDBRequest<IDBCursorWithValue<TIndexKey, TPrimaryKey, TValue>>>("openCursor", range!, direction);
         /// <summary>
         /// Creates a cursor over the specified key range.
         /// </summary>
@@ -269,7 +269,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// "prevunique" - The cursor is opened at the start of the store; then, the cursor returns all records, that are not duplicates, in the decreasing order of keys.<br/>
         /// </param>
         /// <returns></returns>
-        public IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>> OpenKeyCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range, string direction) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, string, IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>>>("openKeyCursor", range!, direction);
+        public IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>> OpenKeyCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range, string direction) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, string, IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>>>("openKeyCursor", range!, direction);
         /// <summary>
         /// Returns an IDBRequest object, and, in a separate thread, creates a cursor over the specified key range, as arranged by this index.
         /// </summary>
@@ -288,7 +288,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="range">A key or IDBKeyRange to use as the cursor's range. If nothing is passed, this will default to a key range that selects all the records in this object store.</param>
         /// <returns></returns>
-        public IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>> OpenKeyCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<global::SpawnDev.SpawnJS.JSObjects.IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>>>("openKeyCursor", range!);
+        public IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>> OpenKeyCursor(Union<IDBKeyRange<TIndexKey>, TIndexKey>? range) => JSRef!.Call<global::SpawnDev.SpawnJS.Union<IDBKeyRange<TIndexKey>, TIndexKey>, IDBRequest<IDBCursor<TIndexKey, TPrimaryKey, TValue>>>("openKeyCursor", range!);
         /// <summary>
         /// Returns an IDBRequest object, and, in a separate thread, creates a cursor over the specified key range, as arranged by this index.
         /// </summary>

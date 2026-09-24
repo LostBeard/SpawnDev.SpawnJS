@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<PushSubscription> Subscribe(PushManagerSubscribeOptions options) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.PushManagerSubscribeOptions, PushSubscription>("subscribe", options);
+        public Task<PushSubscription> Subscribe(PushManagerSubscribeOptions options) => JSRef!.CallAsync<PushManagerSubscribeOptions, PushSubscription>("subscribe", options);
         /// <summary>
         /// Retrieves an existing push subscription. It returns a Promise that resolves to a PushSubscription object containing details of an existing subscription. If no existing subscription exists, this resolves to a null value.
         /// </summary>

@@ -30,6 +30,6 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <see cref="String"/> overload when the text is already held JS-side.</summary>
         public bool Test(string str) => JSRef!.Call<string, bool>("test", str);
         /// <summary>Tests for a match against a JS String held JS-side (no marshaling of the text).</summary>
-        public bool Test(String str) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.String, bool>("test", str);
+        public bool Test(String str) => JSRef!.Call<String, bool>("test", str);
     }
 }

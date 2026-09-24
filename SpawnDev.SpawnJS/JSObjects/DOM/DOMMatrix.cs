@@ -184,14 +184,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrix object to multiply the matrix by.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix MultiplySelf(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrix>("multiplySelf", other);
+        public DOMMatrix MultiplySelf(DOMMatrixInit other) => JSRef!.Call<DOMMatrixInit, DOMMatrix>("multiplySelf", other);
 
         /// <summary>
         /// The DOMMatrix.preMultiplySelf() method pre-multiplies the current matrix by another matrix and returns the result.
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrix object to pre-multiply the matrix by.</param>
         /// <returns>The current DOMMatrix object.</returns>
-        public DOMMatrix PreMultiplySelf(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrix>("preMultiplySelf", other);
+        public DOMMatrix PreMultiplySelf(DOMMatrixInit other) => JSRef!.Call<DOMMatrixInit, DOMMatrix>("preMultiplySelf", other);
 
         /// <summary>
         /// The DOMMatrix.translateSelf() method translates the current matrix by the specified x, y, and z values and returns the result.

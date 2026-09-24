@@ -53,16 +53,16 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>Splits the string by a separator into a JS Array of substrings (held JS-side).</summary>
         public Array Split(string separator) => JSRef!.Call<string, Array>("split", separator);
         /// <summary>Splits the string by a RegExp into a JS Array of substrings (held JS-side).</summary>
-        public Array Split(RegExp separator) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.RegExp, Array>("split", separator);
+        public Array Split(RegExp separator) => JSRef!.Call<RegExp, Array>("split", separator);
         /// <summary>Replaces matches of a RegExp, returning a NEW JS String held JS-side (the content
         /// never enters the .NET heap). Use a global ("g") RegExp to replace all. Replacement supports
         /// JS patterns like $1, $&amp;.</summary>
-        public String Replace(RegExp pattern, string replacement) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.RegExp, string, String>("replace", pattern, replacement);
+        public String Replace(RegExp pattern, string replacement) => JSRef!.Call<RegExp, string, String>("replace", pattern, replacement);
         /// <summary>Replaces the first literal occurrence, returning a new JS String held JS-side.</summary>
         public String Replace(string search, string replacement) => JSRef!.Call<string, string, String>("replace", search, replacement);
         /// <summary>Runs match() against a RegExp and returns the JS result Array held JS-side (null if no
         /// match). With a global RegExp this is the array of matched substrings; read Length for a count
         /// without marshaling, or ToList&lt;string&gt;() to bring the (bounded) matches into .NET.</summary>
-        public Array? Match(RegExp pattern) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.RegExp, Array?>("match", pattern);
+        public Array? Match(RegExp pattern) => JSRef!.Call<RegExp, Array?>("match", pattern);
     }
 }

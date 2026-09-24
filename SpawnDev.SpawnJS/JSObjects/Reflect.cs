@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="thisArgument">The value of this provided for the call to target</param>
         /// <param name="argumentList">An array-like object specifying the arguments with which target should be called.</param>
         /// <returns>The result of calling the given target function with the specified this value and arguments.</returns>
-        public static T Apply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object? thisArgument, object[] argumentList) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Function, object, object[], T>("Reflect.apply", target, thisArgument!, argumentList);
+        public static T Apply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object? thisArgument, object[] argumentList) => JS.Call<Function, object, object[], T>("Reflect.apply", target, thisArgument!, argumentList);
         /// <summary>
         /// Calls a target function with arguments as specified by the argumentsList parameter. See also Function.prototype.apply()
         /// </summary>
@@ -30,7 +30,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="target">The target function to call.</param>
         /// <param name="argumentList">An array-like object specifying the arguments with which target should be called.</param>
         /// <returns>A new instance of target (or newTarget, if present), initialized by target as a constructor with the given argumentsList.</returns>
-        public static T Construct<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object[] argumentList) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Function, object[], T>("Reflect.construct", target, argumentList);
+        public static T Construct<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object[] argumentList) => JS.Call<Function, object[], T>("Reflect.construct", target, argumentList);
         /// <summary>
         /// The Reflect.construct() static method is like the new operator, but as a function. It is equivalent to calling new target(...args). It gives also the added option to specify a different new.target value.
         /// </summary>
@@ -39,7 +39,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="argumentList">An array-like object specifying the arguments with which target should be called.</param>
         /// <param name="newTarget">The value of new.target operator, which usually specifies the prototype of the returned object. If newTarget is not present, its value defaults to target.</param>
         /// <returns>A new instance of target (or newTarget, if present), initialized by target as a constructor with the given argumentsList.</returns>
-        public static T Construct<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object[] argumentList, Function newTarget) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Function, object[], global::SpawnDev.SpawnJS.JSObjects.Function, T>("Reflect.construct", target, argumentList, newTarget);
+        public static T Construct<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Function target, object[] argumentList, Function newTarget) => JS.Call<Function, object[], Function, T>("Reflect.construct", target, argumentList, newTarget);
         /// <summary>
         /// The Reflect.defineProperty() static method is like Object.defineProperty() but returns a Boolean
         /// </summary>

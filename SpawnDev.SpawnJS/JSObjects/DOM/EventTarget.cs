@@ -24,7 +24,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="event"></param>
         /// <returns></returns>
-        public bool DispatchEvent(Event @event) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.Event, bool>("dispatchEvent", @event);
+        public bool DispatchEvent(Event @event) => JSRef!.Call<Event, bool>("dispatchEvent", @event);
         /// <summary>
         /// Registers an event handler of a specific event type on the EventTarget.
         /// </summary>

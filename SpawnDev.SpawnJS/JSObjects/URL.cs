@@ -78,7 +78,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static string CreateObjectURL(Blob obj) => JS.Call<global::SpawnDev.SpawnJS.JSObjects.Blob, string>("URL.createObjectURL", obj);
+        public static string CreateObjectURL(Blob obj) => JS.Call<Blob, string>("URL.createObjectURL", obj);
         /// <summary>
         /// Revokes an object URL previously created using URL.createObjectURL().
         /// </summary>

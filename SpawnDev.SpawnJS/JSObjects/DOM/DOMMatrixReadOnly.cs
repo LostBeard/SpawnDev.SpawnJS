@@ -42,21 +42,21 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to initialize the new matrix with.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromMatrix(DOMMatrixInit other) => JS.New<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrixReadOnly>("DOMMatrixReadOnly", other);
+        public static DOMMatrixReadOnly FromMatrix(DOMMatrixInit other) => JS.New<DOMMatrixInit, DOMMatrixReadOnly>("DOMMatrixReadOnly", other);
 
         /// <summary>
         /// The DOMMatrixReadOnly.fromFloat32Array() method creates a new DOMMatrixReadOnly object given a Float32Array representing a 4x4 matrix.
         /// </summary>
         /// <param name="array32">A Float32Array representing a 4x4 matrix.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromFloat32Array(Float32Array array32) => JS.New<global::SpawnDev.SpawnJS.JSObjects.Float32Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array32);
+        public static DOMMatrixReadOnly FromFloat32Array(Float32Array array32) => JS.New<Float32Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array32);
 
         /// <summary>
         /// The DOMMatrixReadOnly.fromFloat64Array() method creates a new DOMMatrixReadOnly object given a Float64Array representing a 4x4 matrix.
         /// </summary>
         /// <param name="array64">A Float64Array representing a 4x4 matrix.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public static DOMMatrixReadOnly FromFloat64Array(Float64Array array64) => JS.New<global::SpawnDev.SpawnJS.JSObjects.Float64Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array64);
+        public static DOMMatrixReadOnly FromFloat64Array(Float64Array array64) => JS.New<Float64Array, DOMMatrixReadOnly>("DOMMatrixReadOnly", array64);
 
         /// <summary>
         /// The DOMMatrixReadOnly.is2D property returns a boolean value indicating whether the matrix is 2D or 3D.
@@ -136,7 +136,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="other">A DOMMatrixInit dictionary or another DOMMatrixReadOnly object to multiply the matrix by.</param>
         /// <returns>A new DOMMatrixReadOnly object.</returns>
-        public DOMMatrixReadOnly Multiply(DOMMatrixInit other) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMMatrixInit, DOMMatrixReadOnly>("multiply", other);
+        public DOMMatrixReadOnly Multiply(DOMMatrixInit other) => JSRef!.Call<DOMMatrixInit, DOMMatrixReadOnly>("multiply", other);
 
         /// <summary>
         /// The DOMMatrixReadOnly.flipX() method returns a new DOMMatrixReadOnly object which is the result of the flipping of the matrix along the x-axis.
@@ -161,7 +161,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         /// <param name="point">A DOMPointInit dictionary or another DOMPoint object to transform.</param>
         /// <returns>A new DOMPoint object.</returns>
-        public DOMPoint TransformPoint(DOMPointInit point) => JSRef!.Call<global::SpawnDev.SpawnJS.JSObjects.DOMPointInit, DOMPoint>("transformPoint", point);
+        public DOMPoint TransformPoint(DOMPointInit point) => JSRef!.Call<DOMPointInit, DOMPoint>("transformPoint", point);
 
         /// <summary>
         /// The DOMMatrixReadOnly.toFloat32Array() method returns a new Float32Array object which is the result of the conversion of the matrix to a 4x4 matrix.

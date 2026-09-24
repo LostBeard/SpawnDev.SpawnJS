@@ -121,7 +121,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="setup">The setup packet for the control transfer.</param>
         /// <param name="length">The data to transfer.</param>
         /// <returns>A promise that resolves with the result of the transfer.</returns>
-        public Task<USBInTransferResult> ControlTransferIn(USBControlTransferParameters setup, int length) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.USBControlTransferParameters, int, USBInTransferResult>("controlTransferIn", setup, length);
+        public Task<USBInTransferResult> ControlTransferIn(USBControlTransferParameters setup, int length) => JSRef!.CallAsync<USBControlTransferParameters, int, USBInTransferResult>("controlTransferIn", setup, length);
 
         /// <summary>
         /// Controls a transfer to the USB device.
@@ -129,14 +129,14 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="setup">The setup packet for the control transfer.</param>
         /// <param name="data">The data to transfer.</param>
         /// <returns>A promise that resolves with the result of the transfer.</returns>
-        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup, TypedArray data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.USBControlTransferParameters, global::SpawnDev.SpawnJS.JSObjects.TypedArray, USBOutTransferResult>("controlTransferOut", setup, data);
+        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup, TypedArray data) => JSRef!.CallAsync<USBControlTransferParameters, TypedArray, USBOutTransferResult>("controlTransferOut", setup, data);
 
         /// <summary>
         /// Controls a transfer to the USB device.
         /// </summary>
         /// <param name="setup">The setup packet for the control transfer.</param>
         /// <returns>A promise that resolves with the result of the transfer.</returns>
-        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.USBControlTransferParameters, USBOutTransferResult>("controlTransferOut", setup);
+        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup) => JSRef!.CallAsync<USBControlTransferParameters, USBOutTransferResult>("controlTransferOut", setup);
 
         /// <summary>
         /// Controls a transfer to the USB device.
@@ -144,7 +144,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="setup">The setup packet for the control transfer.</param>
         /// <param name="data">The data to transfer.</param>
         /// <returns>A promise that resolves with the result of the transfer.</returns>
-        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup, byte[] data) => JSRef!.CallAsync<global::SpawnDev.SpawnJS.JSObjects.USBControlTransferParameters, byte[], USBOutTransferResult>("controlTransferOut", setup, data);
+        public Task<USBOutTransferResult> ControlTransferOut(USBControlTransferParameters setup, byte[] data) => JSRef!.CallAsync<USBControlTransferParameters, byte[], USBOutTransferResult>("controlTransferOut", setup, data);
 
         /// <summary>
         /// Closes the connection to the USB device.
@@ -173,7 +173,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="packetLengths">An array of lengths for the packets being transferred.</param>
         /// <returns>A Promise that resolves with a USBIsochronousOutTransferResult.</returns>
         public Task<USBIsochronousOutTransferResult> IsochronousTransferOut(int endpointNumber, TypedArray data, IEnumerable<IEnumerable<int>> packetLengths)
-            => JSRef!.CallAsync<int, global::SpawnDev.SpawnJS.JSObjects.TypedArray, global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.IEnumerable<int>>, USBIsochronousOutTransferResult>("isochronousTransferOut", endpointNumber, data, packetLengths);
+            => JSRef!.CallAsync<int, TypedArray, global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.IEnumerable<int>>, USBIsochronousOutTransferResult>("isochronousTransferOut", endpointNumber, data, packetLengths);
 
         /// <summary>
         /// The isochronousTransferOut() method of the USBDevice interface returns a Promise that resolves with a USBIsochronousOutTransferResult when time sensitive information has been transmitted from the USB device.
@@ -229,7 +229,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="endpointNumber">The endpoint number to transfer to.</param>
         /// <param name="data">The data to transfer.</param>
         /// <returns>A promise that resolves with the result of the transfer.</returns>
-        public Task<USBOutTransferResult> TransferOut(int endpointNumber, TypedArray data) => JSRef!.CallAsync<int, global::SpawnDev.SpawnJS.JSObjects.TypedArray, USBOutTransferResult>("transferOut", endpointNumber, data);
+        public Task<USBOutTransferResult> TransferOut(int endpointNumber, TypedArray data) => JSRef!.CallAsync<int, TypedArray, USBOutTransferResult>("transferOut", endpointNumber, data);
 
         /// <summary>
         /// Performs a transfer to the USB device.
