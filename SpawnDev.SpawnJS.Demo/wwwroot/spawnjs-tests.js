@@ -53,6 +53,8 @@
         static nothing() { return undefined; }
         static nul() { return null; }
         static beyondInt32() { return 4294967301; }   // 2^32 + 5
+        // the Javascript functions SpawnJS holds for .Net Callbacks - one per callback sent, until it is released
+        static callbackFunctionCount() { return Object.keys(SpawnJSInterop._callbacks).length; }
         static isUndefined(v) { return v === undefined; }
         static isNull(v) { return v === null; }
         static same(a, b) { return a === b; }
