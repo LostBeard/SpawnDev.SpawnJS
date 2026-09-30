@@ -90,6 +90,12 @@ namespace SpawnDev.SpawnJS.Marshallers
     {
         public override TDelegate? JSToNet(SpawnJSObjectReference value)
             => throw new NotImplementedException($"Reading a JS function back into a {typeof(TDelegate).Name} is not supported by SpawnJS.Core.");
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, TDelegate? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteCallback(DelegateCallbacks.GetOrCreate(value));
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TDelegate? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }

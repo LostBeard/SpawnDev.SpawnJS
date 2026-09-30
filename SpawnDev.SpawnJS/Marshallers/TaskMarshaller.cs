@@ -30,6 +30,49 @@ namespace SpawnDev.SpawnJS.Marshallers
             value.CallVoid("then", onResolve, onReject);
             return tcs.Task;
         }
+        ValueWriter<T>? _result;
+        /// <inheritdoc/>
+        /// <remarks>
+        /// A Task that has completed crosses as Promise.resolve(result) / Promise.reject(error), built as it is read. One
+        /// still running needs a live promise to settle later: that is made by its own call (the tape stacks it inside
+        /// this one) and written by reference, and settled when the Task completes.
+        /// </remarks>
+        public override void Write(JSTape tape, Task<T>? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            if (value.IsCompleted)
+            {
+                if (value.IsCompletedSuccessfully)
+                {
+                    tape.WriteRevived(InteropMethod.PromiseResolved);
+                    (_result ??= new ValueWriter<T>()).Write(tape, value.Result);
+                }
+                else
+                {
+                    tape.WriteRevived(InteropMethod.PromiseRejected);
+                    tape.WriteString(value.Exception?.ToString() ?? "Unknown error");
+                }
+                return;
+            }
+            var promise = JS.InteropCall<SpawnJSObjectReference>(InteropMethod.NewEasyPromise);
+            tape.WriteRef(promise.Id);
+            value.ContinueWith((t) =>
+            {
+                using (promise)
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        var returnValue = value.Result;
+                        promise.CallVoid("resolve", returnValue);
+                    }
+                    else
+                    {
+                        var error = t.Exception?.ToString() ?? "Unknown error";
+                        promise.CallVoid("reject", error);
+                    }
+                }
+            });
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, Task<T>? value)
         {
             if (value == null)
@@ -155,6 +198,43 @@ namespace SpawnDev.SpawnJS.Marshallers
             });
             value.CallVoid("then", onResolve, onReject);
             return tcs.Task;
+        }
+        /// <inheritdoc/>
+        /// <remarks>As the generic form, with an undefined result.</remarks>
+        public override void Write(JSTape tape, Task? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            if (value.IsCompleted)
+            {
+                if (value.IsCompletedSuccessfully)
+                {
+                    tape.WriteRevived(InteropMethod.PromiseResolved);
+                    tape.WriteUndefined();
+                }
+                else
+                {
+                    tape.WriteRevived(InteropMethod.PromiseRejected);
+                    tape.WriteString(value.Exception?.ToString() ?? "Unknown error");
+                }
+                return;
+            }
+            var promise = JS.InteropCall<SpawnJSObjectReference>(InteropMethod.NewEasyPromise);
+            tape.WriteRef(promise.Id);
+            value.ContinueWith((t) =>
+            {
+                using (promise)
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        promise.CallVoid("resolve");
+                    }
+                    else
+                    {
+                        var error = t.Exception?.ToString() ?? "Unknown error";
+                        promise.CallVoid("reject", error);
+                    }
+                }
+            });
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, Task? value)
         {

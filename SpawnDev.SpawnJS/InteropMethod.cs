@@ -20,6 +20,12 @@ namespace SpawnDev.SpawnJS
         public static readonly InteropMethod ReturnMe = new("returnMe");
         public static readonly InteropMethod ObjectEquals = new("objectEquals");
         public static readonly InteropMethod GetHeapSize = new("getHeapSize");
+        public static readonly InteropMethod NewEasyPromise = new("newEasyPromise");
+        // revivers (JSTape.WriteRevived)
+        public static readonly InteropMethod StringToBigInt = new("stringToBigInt");
+        public static readonly InteropMethod ReviverJson = new("__reviverJson");
+        public static readonly InteropMethod PromiseResolved = new("promiseResolved");
+        public static readonly InteropMethod PromiseRejected = new("promiseRejected");
 
         /// <summary>The SpawnJSInterop static method's name.</summary>
         public string Name { get; }

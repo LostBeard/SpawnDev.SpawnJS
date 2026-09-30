@@ -17,6 +17,12 @@ namespace SpawnDev.SpawnJS.Marshallers
             return value == null ? null : new EpochDateTime((long)value.Value);
         }
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, EpochDateTime? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteNumber(value.ValueEpoch);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, EpochDateTime? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }

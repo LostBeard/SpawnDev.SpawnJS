@@ -52,6 +52,10 @@ namespace SpawnDev.SpawnJS
         internal const double TagNumbers = 12;
         // viewType, byte offset in the .Net heap, element count, copy - a view of .Net memory, as HeapViewDescriptor
         internal const double TagHeapView = 13;
+        // count, then count (key, value) pairs - an object whose keys are data (a dictionary), not a shape
+        internal const double TagRecord = 14;
+        // methodIndex, then one value - Javascript passes the value through that SpawnJSInterop function
+        internal const double TagRevive = 15;
 
         const int HeaderCells = 4;
         const int InitialSegmentCells = 8 * 1024;
@@ -236,6 +240,38 @@ namespace SpawnDev.SpawnJS
             var handle = GCHandle.Alloc(array, GCHandleType.Pinned);
             (_frames[_depth - 1].Pins ??= new List<GCHandle>()).Add(handle);
             WriteHeapView(new HeapViewDescriptor(handle.AddrOfPinnedObject(), array.Length, type, true));
+        }
+
+        /// <summary>
+        /// Starts an object whose keys are data (a dictionary). Exactly <paramref name="count"/> pairs must follow, each a
+        /// <see cref="WriteKey"/> then one value.
+        /// </summary>
+        public void WriteRecord(int count)
+        {
+            EnsureCells(2);
+            var cells = Current.Cells;
+            cells[_position] = TagRecord;
+            cells[_position + 1] = count;
+            _position += 2;
+        }
+        /// <summary>A record's key; its value follows.</summary>
+        public void WriteKey(string key) => WriteChars(key);
+
+        /// <summary>
+        /// The next value is passed through the SpawnJSInterop function <paramref name="reviverName"/> - called as
+        /// (key, value, true), the same convention as a v2 property reviver - and the call's result is what arrives. How
+        /// a marshaller builds a value that has no plain Javascript form of its own (a BigInt from a string, JSON...).
+        /// Exactly one value must follow.
+        /// </summary>
+        public void WriteRevived(string reviverName) => WriteRevived(_js.InteropMethodIndex(reviverName));
+        internal void WriteRevived(InteropMethod reviver) => WriteRevived(reviver.IndexIn(_js));
+        void WriteRevived(int methodIndex)
+        {
+            EnsureCells(2);
+            var cells = Current.Cells;
+            cells[_position] = TagRevive;
+            cells[_position + 1] = methodIndex;
+            _position += 2;
         }
 
         /// <summary>

@@ -52,6 +52,19 @@ namespace SpawnDev.SpawnJS.Marshallers
         }
 
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        /// <remarks>An object whose keys are the dictionary's keys (stringified as Javascript would); each value by what it IS.</remarks>
+        public override void Write(JSTape tape, TDictionary? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            if (value is not IDictionary dictionary) { tape.WriteRecord(0); return; }
+            tape.WriteRecord(dictionary.Count);
+            foreach (DictionaryEntry entry in dictionary)
+            {
+                tape.WriteKey(KeyToString(entry.Key));
+                tape.WriteValue(entry.Value);
+            }
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TDictionary? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }

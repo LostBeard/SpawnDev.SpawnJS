@@ -47,6 +47,8 @@ namespace SpawnDev.SpawnJS.Marshallers
             return default;
         }
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, DateTime value) => tape.WriteString(value.ToString("O", CultureInfo.InvariantCulture));
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, DateTime value)
         {
             jsParent.PropertySet(jsKey, value.ToString("O", CultureInfo.InvariantCulture));
@@ -101,6 +103,12 @@ namespace SpawnDev.SpawnJS.Marshallers
             return default;
         }
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, DateTime? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteString(value.Value.ToString("O", CultureInfo.InvariantCulture));
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, DateTime? value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }

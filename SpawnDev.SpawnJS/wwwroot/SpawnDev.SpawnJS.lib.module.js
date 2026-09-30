@@ -130,7 +130,7 @@
             return dotnetId;
         }
         // Call tape value tags - JSTape.Tag* in JSTape.cs must match
-        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12, HeapView: 13 };
+        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12, HeapView: 13, Record: 14, Revive: 15 };
         // TagNumbers kinds - JSTape.NumberKind must match
         static TapeNumberCtors = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array];
         // what a member written as TagAbsent reads as: the property is not assigned
@@ -335,6 +335,22 @@
                     reader.p += (count * ctor.BYTES_PER_ELEMENT + 7) >>> 3;
                     // a plain Array, as element-by-element writing produced; a TypedArray stays opt in
                     return Array.from(view);
+                }
+                case 14: {
+                    var count = reader.views.f64[reader.p++];
+                    var record = {};
+                    for (var i = 0; i < count; i++) {
+                        var key = SpawnJSInterop._tapeReadChars(reader);
+                        var value = SpawnJSInterop._tapeRead(reader);
+                        record[key] = SpawnJSInterop.reviveValue(key, value === SpawnJSInterop._tapeAbsent ? undefined : value, false);
+                    }
+                    return record;
+                }
+                case 15: {
+                    var reviver = SpawnJSInterop._methodMap[reader.views.f64[reader.p++]];
+                    if (!reviver) throw new Error('SpawnJSInterop: tape reviver not found');
+                    // (key, value, directCall) - the v2 property reviver convention; there is no property key here
+                    return reviver(null, SpawnJSInterop._tapeRead(reader), true);
                 }
                 case 13: {
                     var f = reader.views.f64;
@@ -1129,6 +1145,9 @@
             }
             return value;
         }
+        // tape revivers (JSTape.WriteRevived) for a Task that completed before it was written
+        static promiseResolved(key, value) { return Promise.resolve(value); }
+        static promiseRejected(key, value) { return Promise.reject(value); }
         // create a new Promsie with the resolve and reject methods attached to the promise for easy calling from .Net
         static newEasyPromise() {
             var _resolve = null;

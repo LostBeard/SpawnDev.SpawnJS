@@ -10,6 +10,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) return new BigInteger();
             return BigInteger.Parse(value);
         }
+        /// <inheritdoc/>
+        /// <remarks>Its decimal string, made a BigInt by stringToBigInt - a Javascript number cannot hold it exactly.</remarks>
+        public override void Write(JSTape tape, BigInteger value)
+        {
+            tape.WriteRevived(InteropMethod.StringToBigInt);
+            tape.WriteString(value.ToString());
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, BigInteger value)
         {
             jsParent.PropertySetWithReviver("stringToBigInt", jsKey, value.ToString());
@@ -25,6 +32,13 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value == null) return null;
             return BigInteger.Parse(value);
+        }
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, BigInteger? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteRevived(InteropMethod.StringToBigInt);
+            tape.WriteString(value.Value.ToString());
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, BigInteger? value)
         {

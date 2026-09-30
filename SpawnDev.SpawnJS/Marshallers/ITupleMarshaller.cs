@@ -35,6 +35,14 @@ namespace SpawnDev.SpawnJS.Marshallers
             value.Dispose();
             return (TTuple)tuple;
         }
+        /// <inheritdoc/>
+        /// <remarks>A Javascript array, positional; each item by what it IS.</remarks>
+        public override void Write(JSTape tape, TTuple value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteArray(value.Length);
+            for (var i = 0; i < value.Length; i++) tape.WriteValue(value[i]);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TTuple value) => Write(jsParent, jsKey, value);
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TTuple value) => Write(jsParent, jsKey, value);
         void Write(SpawnJSObjectReference jsParent, int jsKey, TTuple value)
@@ -66,6 +74,14 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value == null) return null;
             return inner.JSToNet(value);
+        }
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, TTuple? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            var tuple = value.Value;
+            tape.WriteArray(tuple.Length);
+            for (var i = 0; i < tuple.Length; i++) tape.WriteValue(tuple[i]);
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TTuple? value)
         {

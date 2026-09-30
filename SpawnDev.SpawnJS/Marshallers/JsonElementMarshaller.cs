@@ -34,6 +34,14 @@ namespace SpawnDev.SpawnJS.Marshallers
             using var doc = JsonDocument.Parse(value);
             return doc.RootElement.Clone();
         }
+        /// <inheritdoc/>
+        /// <remarks>Its raw JSON text, parsed Javascript side; an Undefined element is JS undefined.</remarks>
+        public override void Write(JSTape tape, JsonElement value)
+        {
+            if (value.ValueKind == JsonValueKind.Undefined) { tape.WriteUndefined(); return; }
+            tape.WriteRevived(InteropMethod.ReviverJson);
+            tape.WriteString(value.GetRawText());
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, JsonElement value)
         {
             // default(JsonElement) has no raw text to take. Undefined is what a JS undefined reads
