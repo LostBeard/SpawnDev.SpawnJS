@@ -62,7 +62,7 @@ Blazor host extras (`ElementReference.As<T>()`, `ElementRef<T>`, `SpawnJSRunAsyn
 dotnet add package SpawnDev.SpawnJS.Blazor
 ```
 
-Current versions: **SpawnDev.SpawnJS 3.0.0**, **SpawnDev.SpawnJS.Blazor 3.0.0**. See [`CHANGELOG.md`](CHANGELOG.md). Coming from 2.x: the call surface is unchanged; only a custom `JSMarshaller` needs porting ([Writing marshallers](Docs/writing-marshallers.md)).
+Current versions: **SpawnDev.SpawnJS 3.0.0**, **SpawnDev.SpawnJS.Blazor 3.0.0**. See [`CHANGELOG.md`](CHANGELOG.md). Coming from 2.x: the call surface is unchanged; only a custom `JSMarshaller` needs porting ([Writing marshallers](Docs/writing-marshallers.md)). The POCO codec generator runs in projects that reference `SpawnDev.SpawnJS` directly; a project that only gets it through another package marshals POCOs by reflection, as 2.x did.
 
 ## Setup
 
