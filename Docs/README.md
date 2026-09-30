@@ -5,7 +5,7 @@ Deeper documentation for **SpawnDev.SpawnJS** - JSON-free JavaScript interop for
 ## Contents
 
 - **[Hosting](hosting.md)** - how apps start SpawnJS: `SpawnJSAppBuilder`, Blazor `WebAssemblyHost`, any `IServiceCollection`.
-- **[Architecture](architecture.md)** - 2.x core: `JSImport` primitives, the `spawnJSObjects` table, outbound `_spawnJSInteropCall`, inbound callbacks, marshaller graph.
+- **[Architecture](architecture.md)** - 3.x core: the per-instance call tape (one crossing per call), shapes and schemas, the `spawnJSObjects` table, inbound callbacks, marshaller graph.
 - **[Argument passing](argument-passing.md)** - explicit 0..10-arg overloads plus `Apply(object?[])`, and why `params` silently spreads arrays.
 - **[Writing marshallers](writing-marshallers.md)** - `JSMarshaller` contract, `ReturnType`, reverse-scan registry, custom registration.
 - **[API reference](api/_index.md)** - per-type reference for the JS wrapper types.

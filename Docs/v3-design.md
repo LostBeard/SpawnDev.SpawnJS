@@ -1,6 +1,8 @@
 # SpawnJS v3 - one crossing per call
 
-Status: design approved by TJ 2026-09-30, implementation not started. Branch `v3`, local only.
+Status: design approved by TJ 2026-09-30. Implemented on branch `v3` (local only): every call direction is one
+crossing - arguments, results, and callback arguments. Remaining: a Func callback's return value (one extra call),
+generated POCO plans, and a consumer trial.
 
 ## The problem, measured
 

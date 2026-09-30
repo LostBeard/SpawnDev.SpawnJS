@@ -37,7 +37,7 @@ Each fixed-arity overload names the argument as `object?` (or a typed `T1`):
 
 ```csharp
 public T Call<T1, T>(string identifier, T1 arg1)
-    => JS.InteropCall<double, string, T1, T>("propertyCall", Id, identifier, arg1);
+    => JS.InteropCall<double, string, T1, T>(InteropMethod.PropertyCall, Id, identifier, arg1);
 ```
 
 One array argument is one argument. The `Apply` methods take `object?[]` as a **named** parameter, so there is no collapse:
