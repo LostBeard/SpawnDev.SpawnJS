@@ -68,7 +68,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         {
             public int Extra { get; set; }
         }
-        // written by the codec; read by reflection (generated code cannot set an init-only or required member)
+        // init-only and required members: set through [UnsafeAccessor]s, as reflection sets them
         public class CgInit
         {
             public string? Name { get; init; }
@@ -78,6 +78,13 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         {
             public required string Name { get; set; }
             public int Size { get; set; }
+        }
+        public class CgReadonlyField
+        {
+            [JsonInclude]
+            public readonly int Value;
+            public CgReadonlyField() { }
+            public CgReadonlyField(int value) => Value = value;
         }
         // an override: reflection merges it with its base declaration, so the generator leaves it to reflection
         public class CgVirtualBase
@@ -114,6 +121,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgDerived))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgInit))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgRequired))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgReadonlyField))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgOverride))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgAttributeOnly))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(CgObjectOnly))]
@@ -145,8 +153,10 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 Reads(typeof(CgDerived));
                 Reads(typeof(CgAttributeOnly));
                 Reads(typeof(CgObjectHolder));
-                WritesOnly(typeof(CgInit));
-                WritesOnly(typeof(CgRequired));
+                Reads(typeof(CgInit));
+                Reads(typeof(CgRequired));
+                // a readonly field: reflection can set it, generated code leaves the read to reflection
+                WritesOnly(typeof(CgReadonlyField));
                 None(typeof(CgOverride));
                 None(typeof(CgObjectOnly));
                 // the library's own descriptors, generated in the library
@@ -272,10 +282,16 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 JS.Set(K, new CgInit { Name = "i", Size = 5 });
                 AssertEqual(ShapeKey(), "{name:string(\"i\"),size:number(5)}", "init shape");
                 var init = JS.Get<CgInit>(K)!;
-                AssertEqual(init.Name, "i", "init-only member, read by reflection");
-                AssertEqual(init.Size, 5, "init-only member, read by reflection");
+                AssertEqual(init.Name, "i", "init-only member");
+                AssertEqual(init.Size, 5, "init-only member");
                 JS.Set(K, new CgRequired { Name = "r", Size = 6 });
                 AssertEqual(ShapeKey(), "{name:string(\"r\"),size:number(6)}", "required shape");
+                var required = JS.Get<CgRequired>(K)!;
+                AssertEqual(required.Name, "r", "required member");
+                AssertEqual(required.Size, 6, "member of a type with a required member");
+                JS.Set(K, new CgReadonlyField(9));
+                AssertEqual(ShapeKey(), "{value:number(9)}", "readonly field shape");
+                AssertEqual(JS.Get<CgReadonlyField>(K)!.Value, 9, "readonly field, read by reflection");
             });
 
             Test("Codec.RoundTrip.Override", () =>

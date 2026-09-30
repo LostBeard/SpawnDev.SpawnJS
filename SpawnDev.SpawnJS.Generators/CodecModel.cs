@@ -53,6 +53,9 @@ namespace SpawnDev.SpawnJS.Generators
         public List<MemberModel> WriteMembers = new List<MemberModel>();
         /// <summary>Null when reading is left to the reflection plan.</summary>
         public List<MemberModel>? ReadMembers;
+        /// <summary>A required member: C# will not <c>new</c> the type without setting it, so the codec constructs it
+        /// through an [UnsafeAccessor] - the same public parameterless constructor Activator.CreateInstance runs.</summary>
+        public bool HasRequired;
 
         static readonly SymbolDisplayFormat TypeFormat = SymbolDisplayFormat.FullyQualifiedFormat;
 
@@ -115,9 +118,11 @@ namespace SpawnDev.SpawnJS.Generators
                         // read: a property with a setter (PocoReadPlan), set the way generated code can match exactly
                         if (property.SetMethod == null) continue;
                         member.SetMethodName = property.SetMethod.MetadataName;
-                        if (property.SetMethod.IsInitOnly || property.IsRequired
-                            || (inherited && property.SetMethod.DeclaredAccessibility == Accessibility.Private)) readable = false;
-                        member.Set = Accessible(property.SetMethod) ? Access.Direct : Access.Method;
+                        if (inherited && property.SetMethod.DeclaredAccessibility == Accessibility.Private) readable = false;
+                        if (property.IsRequired) model.HasRequired = true;
+                        // an init-only setter is an ordinary method to the runtime: an [UnsafeAccessor] calls it where
+                        // C# would not, as the reflection plan's setter delegate does
+                        member.Set = Accessible(property.SetMethod) && !property.SetMethod.IsInitOnly ? Access.Direct : Access.Method;
                     }
                     else if (symbol is IFieldSymbol field)
                     {
@@ -147,7 +152,8 @@ namespace SpawnDev.SpawnJS.Generators
                             Get = access,
                             Set = access,
                         };
-                        if (field.IsReadOnly || field.IsRequired) readable = false;
+                        if (field.IsReadOnly) readable = false;
+                        if (field.IsRequired) model.HasRequired = true;
                         fields.Add(member);
                     }
                 }
@@ -264,7 +270,9 @@ namespace SpawnDev.SpawnJS.Generators
                 source.AppendLine($"        protected override global::SpawnDev.SpawnJS.JSSchema[] ReadMemberSchemas() => new global::SpawnDev.SpawnJS.JSSchema[] {{ {string.Join(", ", ReadMembers.Select((m, i) => $"_r{i}.Schema"))} }};");
                 source.AppendLine($"        public override {TypeName} ReadMembers(ref global::SpawnDev.SpawnJS.JSTapeReader reader)");
                 source.AppendLine("        {");
-                source.AppendLine(isStruct ? $"            {TypeName} value = default;" : $"            var value = new {TypeName}();");
+                source.AppendLine(isStruct ? $"            {TypeName} value = default;"
+                    : HasRequired ? "            var value = Construct();"
+                    : $"            var value = new {TypeName}();");
                 for (var i = 0; i < ReadMembers.Count; i++)
                 {
                     var member = ReadMembers[i];
@@ -297,6 +305,11 @@ namespace SpawnDev.SpawnJS.Generators
             }
             if (ReadMembers != null)
             {
+                if (HasRequired && !isStruct)
+                {
+                    source.AppendLine("        [global::System.Runtime.CompilerServices.UnsafeAccessor(global::System.Runtime.CompilerServices.UnsafeAccessorKind.Constructor)]");
+                    source.AppendLine($"        static extern {TypeName} Construct();");
+                }
                 for (var i = 0; i < ReadMembers.Count; i++)
                 {
                     var member = ReadMembers[i];
