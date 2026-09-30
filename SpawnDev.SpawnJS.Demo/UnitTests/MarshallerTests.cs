@@ -1047,6 +1047,15 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 JS.Delete("__rdScratch");
             }
         }
+        // a wrapper whose constructor invokes a callback from Javascript - reading one runs a nested callback
+        public class RdCallbackInvokingWrapper : SpawnJSObject
+        {
+            public static ActionCallback<string>? Inner;
+            public RdCallbackInvokingWrapper(SpawnJSObjectReference _ref) : base(_ref)
+            {
+                if (Inner != null) JS.CallVoid("SpawnJSTests.invokeInner", Inner);
+            }
+        }
         public class RdWithWrapper
         {
             public RdReentrantWrapper? First { get; set; }
@@ -1059,8 +1068,49 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdNode))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdWithWrapper))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdReentrantWrapper))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdCallbackInvokingWrapper))]
         static async Task ReadTests()
         {
+            Test("Callback.PocoArrayAndScalarArguments", () =>
+            {
+                string? seen = null;
+                using var callback = new ActionCallback<int, string, RdInner, int[]>((n, s, inner, numbers) =>
+                    seen = $"{n}|{s}|{inner?.A}|{inner?.B}|{string.Join(",", numbers)}");
+                JS.CallVoid("SpawnJSTests.invokeWithArgs", callback);
+                AssertEqual(seen, "5|five|1|one|1,2,3", "arguments");
+            });
+
+            Test("Callback.ArgumentsLargerThanTheInboundBuffer", () =>
+            {
+                // 300K chars = 600 KB: more than the inbound buffer, so Javascript holds them and .Net fetches them
+                int length = -1;
+                using var callback = new ActionCallback<string>(s => length = s?.Length ?? -1);
+                JS.CallVoid("SpawnJSTests.invokeWithBigString", callback, 300_000);
+                AssertEqual(length, 300_000, "the big argument");
+                // and the buffer is usable again afterwards
+                JS.CallVoid("SpawnJSTests.invokeWithBigString", callback, 10);
+                AssertEqual(length, 10, "a small argument after a held one");
+            });
+
+            Test("Callback.NestedCallbackDoesNotOverwriteTheOuterArguments", () =>
+            {
+                // Reading the outer callback's first argument constructs a wrapper whose constructor invokes a nested
+                // callback - which writes ITS arguments into the inbound buffer - while the outer's second argument is
+                // still unread there. The inbound buffer is a stack, so the nested arguments must land above it.
+                string? outerSeen = null, innerSeen = null;
+                using var inner = new ActionCallback<string>(s => innerSeen = s);
+                RdCallbackInvokingWrapper.Inner = inner;
+                using var outer = new ActionCallback<RdCallbackInvokingWrapper, string>((w, s) =>
+                {
+                    w?.Dispose();
+                    outerSeen = s;
+                });
+                JS.CallVoid("SpawnJSTests.invokeOuter", outer);
+                RdCallbackInvokingWrapper.Inner = null;
+                AssertEqual(innerSeen, "inner-" + new string('i', 9000), "inner argument");
+                AssertEqual(outerSeen, "outer-" + new string('o', 5000), "the outer argument read after the nested callback");
+            });
+
             Test("Read.PocoWithEveryKindOfMember", () =>
             {
                 Js<string>("readFixturePoco", "");

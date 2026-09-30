@@ -307,7 +307,11 @@
                 case 6: {
                     var callbackId = f64[reader.p++];
                     var once = f64[reader.p++] !== 0;
-                    return SpawnJSInterop._callbackFunction(reader.dotnetId, callbackId, once);
+                    // the schemas its arguments are written by (defined after this frame's arguments when new)
+                    var argumentCount = f64[reader.p++];
+                    var argumentSchemas = new Array(argumentCount);
+                    for (var i = 0; i < argumentCount; i++) argumentSchemas[i] = f64[reader.p++];
+                    return SpawnJSInterop._callbackFunction(reader.dotnetId, callbackId, once, argumentSchemas);
                 }
                 case 8: return SpawnJSInterop._tapeAbsent;
                 case 9: {
@@ -881,7 +885,41 @@
             return SpawnJSInterop.heapViewRefresh(heapViewInfo);
         }
         // The Javascript function that invokes a .Net Callback, created once per callback and reused
-        static _callbackFunction(dotnetId, callbackId, once) {
+        // .Net gives each instance a pinned buffer that a callback's arguments are written into before it calls .Net
+        // JSImport
+        // void _registerInbound(double dotnetId, double address, int cells);
+        static _registerInbound(dotnetId, address, cells) {
+            // cell 0 carries the offset of the arguments of the callback being called
+            SpawnJSInterop.getInstace(dotnetId).inbound = { address, cells, top: 1 };
+        }
+        // Writes a callback's arguments by their schemas into the instance's inbound buffer, as a stack (a callback can
+        // run inside another), and puts their offset in cell 0. Arguments too large for the space left are held for
+        // _spawnJSInteropCallResult instead, and cell 0 is minus their size. Returns the top to restore afterwards.
+        static _tapeWriteInbound(instance, argumentSchemas, args) {
+            var inbound = instance.inbound;
+            var top = inbound.top;
+            var s = SpawnJSInterop._tapeScratchWriter(instance);
+            try {
+                for (var i = 0; i < argumentSchemas.length; i++) {
+                    SpawnJSInterop._tapeEncode(instance, s, SpawnJSInterop._tapeSchema(instance, argumentSchemas[i]), args[i]);
+                }
+                var views = SpawnJSInterop._tapeViews(instance, inbound.address + inbound.cells * 8);
+                var offset;
+                if (top + s.p <= inbound.cells) {
+                    new Uint8Array(views.buffer, inbound.address + top * 8, s.p * 8).set(new Uint8Array(s.buffer, 0, s.p * 8));
+                    offset = top;
+                    inbound.top = top + s.p;
+                } else {
+                    instance.tapePendingResult = new Uint8Array(s.buffer.slice(0, s.p * 8));
+                    offset = -(s.p * 8);
+                }
+                views.f64[inbound.address >>> 3] = offset;
+            } finally {
+                SpawnJSInterop._tapeScratchRelease(instance, s);
+            }
+            return top;
+        }
+        static _callbackFunction(dotnetId, callbackId, once, argumentSchemas) {
             if (!callbackId || !dotnetId) {
                 return null;
             }
@@ -896,7 +934,8 @@
                         return;
                     }
                     // get the SpawnJSRuntime instance's method that is used to report the callback 
-                    var { handleCallback } = SpawnJSInterop.getInstace(dotnetId);
+                    var instance = SpawnJSInterop.getInstace(dotnetId);
+                    var { handleCallback } = instance;
                     // get argsCnt because after when we call handleCallback .Net will write
                     // the return value to at the end of the array after the last argument (index argsCnt)
                     // unless the return value should be undefined
@@ -911,10 +950,13 @@
                     // a one-shot callback that threw would never be removed and would keep firing.
                     // MEASURED 2026-09-02: dumping the table mid-run in the ML demo showed ~30 stranded
                     // empty arrays alongside the retained adapters.
+                    // the arguments go to .Net memory now, so the call below is the only crossing they need
+                    var inboundTop = SpawnJSInterop._tapeWriteInbound(instance, argumentSchemas ?? [], args);
                     try {
                         // notify SpawnJSRuntime with the argsId and the cnt
                         handleCallback(callbackId, argsId, argsCnt);
                     } finally {
+                        instance.inbound.top = inboundTop;
                         // release the args
                         SpawnJSInterop.spawnJSObjectRelease(argsId);
                         // if it was a 1 time use callback, release it

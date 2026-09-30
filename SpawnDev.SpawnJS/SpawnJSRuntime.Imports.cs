@@ -40,6 +40,10 @@ namespace SpawnDev.SpawnJS
         internal static partial int _spawnJSInteropCallResult(double dotnetId, double address, int capacity);
         #endregion
 
+        /// <summary>Gives this instance's Javascript side the buffer it writes Callback arguments into.</summary>
+        [JSImport("globalThis.SpawnJSInterop._registerInbound")]
+        internal static partial void _registerInbound(double dotnetId, double address, int cells);
+
         #region _spawnJSInteropCallAsync
         /// <summary>
         /// The async form of <see cref="_spawnJSInteropCall"/>. Javascript reads the frame before it returns; the

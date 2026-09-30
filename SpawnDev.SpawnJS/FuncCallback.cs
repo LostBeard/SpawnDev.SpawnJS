@@ -9,6 +9,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<TResult>?(Func<TResult>? callback) => callback == null ? null : new FuncCallback<TResult>(callback);
         Func<TResult> _callback;
+        static readonly Type[] _argumentTypes = [];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -24,7 +27,7 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
             var ret = _callback();
             args?.Set(argsCount, ret);
@@ -38,6 +41,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, TResult>?(Func<T1, TResult>? callback) => callback == null ? null : new FuncCallback<T1, TResult>(callback);
         Func<T1, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -53,9 +59,9 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -67,6 +73,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, TResult>?(Func<T1, T2, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, TResult>(callback);
         Func<T1, T2, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -82,10 +91,10 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -97,6 +106,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, TResult>?(Func<T1, T2, T3, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, TResult>(callback);
         Func<T1, T2, T3, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -112,11 +124,11 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -128,6 +140,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, TResult>?(Func<T1, T2, T3, T4, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, TResult>(callback);
         Func<T1, T2, T3, T4, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -143,12 +158,12 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -160,6 +175,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, TResult>?(Func<T1, T2, T3, T4, T5, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, TResult>(callback);
         Func<T1, T2, T3, T4, T5, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -175,13 +193,13 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -193,6 +211,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, TResult>?(Func<T1, T2, T3, T4, T5, T6, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -208,14 +229,14 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4),
-                argsCount <= 5 ? default! : args.Get<T6>(5));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount),
+                ReadArg<T6>(ref reader, 5, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -227,6 +248,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -242,15 +266,15 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4),
-                argsCount <= 5 ? default! : args.Get<T6>(5),
-                argsCount <= 6 ? default! : args.Get<T7>(6));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount),
+                ReadArg<T6>(ref reader, 5, argsCount),
+                ReadArg<T7>(ref reader, 6, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -262,6 +286,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -277,16 +304,16 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4),
-                argsCount <= 5 ? default! : args.Get<T6>(5),
-                argsCount <= 6 ? default! : args.Get<T7>(6),
-                argsCount <= 7 ? default! : args.Get<T8>(7));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount),
+                ReadArg<T6>(ref reader, 5, argsCount),
+                ReadArg<T7>(ref reader, 6, argsCount),
+                ReadArg<T8>(ref reader, 7, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -298,6 +325,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -313,17 +343,17 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4),
-                argsCount <= 5 ? default! : args.Get<T6>(5),
-                argsCount <= 6 ? default! : args.Get<T7>(6),
-                argsCount <= 7 ? default! : args.Get<T8>(7),
-                argsCount <= 8 ? default! : args.Get<T9>(8));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount),
+                ReadArg<T6>(ref reader, 5, argsCount),
+                ReadArg<T7>(ref reader, 6, argsCount),
+                ReadArg<T8>(ref reader, 7, argsCount),
+                ReadArg<T9>(ref reader, 8, argsCount));
             args?.Set(argsCount, ret);
         }
     }
@@ -335,6 +365,9 @@ namespace SpawnDev.SpawnJS
         /// <summary>Implicitly converts a .Net delegate into a FuncCallback.</summary>
         public static implicit operator FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>?(Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>? callback) => callback == null ? null : new FuncCallback<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(callback);
         Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> _callback;
+        static readonly Type[] _argumentTypes = [typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10)];
+        /// <inheritdoc/>
+        protected override Type[] ArgumentTypes => _argumentTypes;
         /// <summary>
         /// New Callback instance
         /// </summary>
@@ -350,18 +383,18 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
-        protected override void HandleCallback(SpawnJSObjectReference args, double argsCount)
+        protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
         {
-            var ret = _callback(argsCount <= 0 ? default! : args.Get<T1>(0),
-                argsCount <= 1 ? default! : args.Get<T2>(1),
-                argsCount <= 2 ? default! : args.Get<T3>(2),
-                argsCount <= 3 ? default! : args.Get<T4>(3),
-                argsCount <= 4 ? default! : args.Get<T5>(4),
-                argsCount <= 5 ? default! : args.Get<T6>(5),
-                argsCount <= 6 ? default! : args.Get<T7>(6),
-                argsCount <= 7 ? default! : args.Get<T8>(7),
-                argsCount <= 8 ? default! : args.Get<T9>(8),
-                argsCount <= 9 ? default! : args.Get<T10>(9));
+            var ret = _callback(ReadArg<T1>(ref reader, 0, argsCount),
+                ReadArg<T2>(ref reader, 1, argsCount),
+                ReadArg<T3>(ref reader, 2, argsCount),
+                ReadArg<T4>(ref reader, 3, argsCount),
+                ReadArg<T5>(ref reader, 4, argsCount),
+                ReadArg<T6>(ref reader, 5, argsCount),
+                ReadArg<T7>(ref reader, 6, argsCount),
+                ReadArg<T8>(ref reader, 7, argsCount),
+                ReadArg<T9>(ref reader, 8, argsCount),
+                ReadArg<T10>(ref reader, 9, argsCount));
             args?.Set(argsCount, ret);
         }
     }

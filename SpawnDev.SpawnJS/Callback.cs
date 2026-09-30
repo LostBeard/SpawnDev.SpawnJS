@@ -79,15 +79,42 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         /// <param name="args"></param>
         /// <param name="argsCount"></param>
-        protected abstract void HandleCallback(SpawnJSObjectReference args, double argsCount);
+        /// <summary>
+        /// Invokes the handler. Every argument Javascript passed is already in .Net memory, written by
+        /// <see cref="ArgumentSchemas"/>: read them in order with <see cref="ReadArg{T}"/>. <paramref name="args"/> is the
+        /// Javascript arguments array, where a return value is written (at index <paramref name="argsCount"/>).
+        /// </summary>
+        protected abstract void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount);
+        /// <summary>The .Net types of the arguments, in order. Javascript writes each by its type's schema.</summary>
+        protected virtual Type[] ArgumentTypes => Type.EmptyTypes;
+        JSSchema[]? _argumentSchemas;
+        /// <summary>The schemas Javascript writes the arguments by, sent with the Callback.</summary>
+        internal JSSchema[] ArgumentSchemas => _argumentSchemas ??= ArgumentTypes.Select(t => SpawnJSRuntime.Instance.GetMarshaller(t).Schema).ToArray();
+        /// <summary>
+        /// Reads argument <paramref name="index"/>. Every declared argument is written (a missing one as undefined), so
+        /// each is read in order; one Javascript did not pass reads as default, as it always did.
+        /// </summary>
+        protected static T ReadArg<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicConstructors)] T>(ref JSTapeReader reader, int index, double argsCount)
+        {
+            var value = SpawnJSRuntime.Instance.GetMarshaller<T>().Read(ref reader);
+            return index < argsCount ? value : default!;
+        }
         /// <summary>
         /// Recieved the notifications call from Javascript when a Callabck has been called
         /// </summary>
         /// <param name="callbackId">The callback being called</param>
         /// <param name="argsId">The incoming AND outgoing buffer</param>
         /// <param name="argsCount">The in argument count</param>
+        /// <param name="callbackId">The callback being called</param>
+        /// <param name="argsId">The Javascript arguments array; a return value is written to it</param>
+        /// <param name="argsCount">How many arguments Javascript passed</param>
         internal static void HandleCallback(double callbackId, double argsId, double argsCount)
         {
+            // Where Javascript wrote the arguments in the runtime's inbound buffer, in cells - or, below zero, minus the
+            // bytes of arguments too large for it, held for _spawnJSInteropCallResult. Cell 0 carries it because a
+            // generated JSImport callback takes at most 3 arguments. Read first: a nested callback (which would write it
+            // again) can only start once this one calls into Javascript.
+            var inboundOffset = SpawnJSRuntime.Instance.InboundCells[0];
             if (_callbacks.TryGetValue(callbackId, out var callback))
             {
                 // we use preventDispose = true on this SpawnJSObjectReference to save an unnecessary JS call in the dispose...
@@ -98,8 +125,18 @@ namespace SpawnDev.SpawnJS
                 callback.CalledCount++;
                 // Dispose now if Once (Javascript has already removed it on its end)
                 if (callback.Once) callback.Dispose();
-                // fire the strongly typed ActionCallback/FuncCallback handler
-                callback.HandleCallback(args, argsCount);
+                // fire the strongly typed ActionCallback/FuncCallback handler, reading the arguments Javascript wrote
+                var js = SpawnJSRuntime.Instance;
+                if (inboundOffset >= 0)
+                {
+                    var reader = new JSTapeReader(js.InboundCells.AsSpan((int)inboundOffset));
+                    callback.HandleCallback(ref reader, args, argsCount);
+                }
+                else
+                {
+                    var reader = new JSTapeReader(js.FetchHeldResult((int)-inboundOffset));
+                    callback.HandleCallback(ref reader, args, argsCount);
+                }
             }
         }
         /// <summary>

@@ -66,6 +66,8 @@ namespace SpawnDev.SpawnJS.Demo.Bench
             var doubles1000 = Enumerable.Range(0, 1000).Select(i => i * 0.5).ToArray();
             var strings8 = new[] { "setPipeline", "setBindGroup", "dispatchWorkgroups", "end", "finish", "submit", "rgba8unorm", "compute" };
             var bytes4096 = new byte[4096];
+            double callbackSum = 0;
+            using var callback3 = new ActionCallback<double, string, BenchInner>((n, s, inner) => callbackSum += n + s.Length + inner.A);
 
             // pass 1 counts crossings with the counter installed; pass 2 times with it taken back out
             foreach (var counting in new[] { true, false })
@@ -84,6 +86,7 @@ namespace SpawnDev.SpawnJS.Demo.Bench
                 Case("call void byte[4096]", () => bench.CallVoid("sink1", bytes4096));
                 Case("call return Dto16 POCO", () => bench.Call<BenchDto16>("makeDto16"));
                 Case("call return int[1000]", () => bench.Call<int[]>("makeInts1000"));
+                Case("callback from JS (num,str,POCO)", () => bench.CallVoid("invokeCallback", callback3));
             }
 
             // pure .Net: the operations one tape call makes, each in isolation - no crossing at all

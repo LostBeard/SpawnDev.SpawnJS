@@ -132,7 +132,7 @@ namespace SpawnDev.SpawnJS
             {
                 var marshaller = GetMarshaller<T>();
                 var schema = marshaller.Schema;
-                Tape.WriteSchemaDefinitions(schema);
+                Tape.WriteDefinitions(schema);
                 var (address, length, capacity) = Tape.Send(schema);
                 var written = _spawnJSInteropCall(DotnetInstance.Id, address, length, capacity);
                 Tape.ConfirmDefinitions();
@@ -153,6 +153,12 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         T ReadHeldResult<T>(JSMarshaller<T> marshaller, int bytes)
         {
+            var reader = new JSTapeReader(FetchHeldResult(bytes));
+            return marshaller.Read(ref reader);
+        }
+        /// <summary>Fetches the bytes Javascript is holding into an array of their own.</summary>
+        internal ReadOnlySpan<double> FetchHeldResult(int bytes)
+        {
             var cells = new double[(bytes + 7) >> 3];
             var handle = GCHandle.Alloc(cells, GCHandleType.Pinned);
             int written;
@@ -164,8 +170,21 @@ namespace SpawnDev.SpawnJS
             {
                 handle.Free();
             }
-            var reader = new JSTapeReader(cells.AsSpan(0, (written + 7) >> 3));
-            return marshaller.Read(ref reader);
+            return cells.AsSpan(0, (written + 7) >> 3);
+        }
+
+        /// <summary>
+        /// Where Javascript writes a Callback's arguments before it calls into .Net - pinned for the life of the runtime
+        /// and registered with this instance only, so a callback's arguments cross with the call itself. Javascript uses
+        /// it as a stack (a callback can run inside another); arguments that do not fit are held and fetched instead.
+        /// Cell 0 is the offset of the arguments of the callback being called (see Callback.HandleCallback).
+        /// </summary>
+        internal double[] InboundCells { get; } = new double[16 * 1024];
+        GCHandle _inboundHandle;
+        void RegisterInbound()
+        {
+            _inboundHandle = GCHandle.Alloc(InboundCells, GCHandleType.Pinned);
+            _registerInbound(DotnetInstance.Id, (double)_inboundHandle.AddrOfPinnedObject(), InboundCells.Length);
         }
         #endregion
 
@@ -204,7 +223,7 @@ namespace SpawnDev.SpawnJS
                 tcs = new TaskCompletionSource<T>();
                 asyncCallbackId = ++_asyncCallbackId;
                 RegisterAsyncCompletion(returnMarshaller, schema, tcs, asyncCallbackId);
-                Tape.WriteSchemaDefinitions(schema);
+                Tape.WriteDefinitions(schema);
                 var (address, length, _) = Tape.Send(schema);
                 try
                 {

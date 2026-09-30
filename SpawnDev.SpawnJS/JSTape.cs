@@ -88,6 +88,8 @@ namespace SpawnDev.SpawnJS
             public List<JSDefinition>? Defined;
             // arrays pinned for this frame, because Javascript reads them by address when the call runs
             public List<GCHandle>? Pins;
+            // schemas the frame's values refer to (a Callback's arguments), defined after the arguments
+            public List<JSSchema>? PendingSchemas;
         }
 
         readonly SpawnJSRuntime _js;
@@ -159,18 +161,27 @@ namespace SpawnDev.SpawnJS
             cells[_position + 1] = sjsId;
             _position += 2;
         }
-        /// <summary>Writes the Javascript function that invokes <paramref name="callback"/>. A null callback writes
-        /// undefined, as v2 did.</summary>
+        /// <summary>Writes the Javascript function that invokes <paramref name="callback"/>, with the schemas Javascript
+        /// writes its arguments by (defined in this frame when they are new). A null callback writes undefined, as v2 did.</summary>
         public void WriteCallback(Callback? callback)
         {
             if (callback == null) { WriteUndefined(); return; }
             callback.Sent = true;
-            EnsureCells(3);
+            var schemas = callback.ArgumentSchemas;
+            EnsureCells(4 + schemas.Length);
             var cells = Current.Cells;
             cells[_position] = TagCallback;
             cells[_position + 1] = callback.Id;
             cells[_position + 2] = callback.Once ? 1 : 0;
-            _position += 3;
+            cells[_position + 3] = schemas.Length;
+            _position += 4;
+            for (var i = 0; i < schemas.Length; i++)
+            {
+                var schema = schemas[i];
+                AssignId(schema);
+                if (!schema.IsBuiltin) (_frames[_depth - 1].PendingSchemas ??= new List<JSSchema>()).Add(schema);
+                cells[_position++] = schema.Id;
+            }
         }
         /// <summary>A member that is not written: Javascript does not assign the property at all.</summary>
         public void WriteAbsent() { EnsureCells(1); Current.Cells[_position++] = TagAbsent; }
@@ -428,6 +439,13 @@ namespace SpawnDev.SpawnJS
         /// arguments, since it only needs them once the call has run. A schema this runtime has confirmed, or this frame
         /// already carries, is not written again; a schema that contains itself stops there.
         /// </summary>
+        /// <summary>The definitions a frame needs after its arguments: the result's schema, and any its values refer to.</summary>
+        internal void WriteDefinitions(JSSchema resultSchema)
+        {
+            WriteSchemaDefinitions(resultSchema);
+            var pending = _frames[_depth - 1].PendingSchemas;
+            if (pending != null) foreach (var schema in pending) WriteSchemaDefinitions(schema);
+        }
         internal void WriteSchemaDefinitions(JSSchema schema)
         {
             if (schema.IsBuiltin) return;

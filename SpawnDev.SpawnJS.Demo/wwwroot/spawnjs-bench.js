@@ -23,6 +23,7 @@
         sink5(a, b, c, d, e) { this.last = e; },
         makeDto16() { return dto16; },
         makeInts1000() { return ints1000; },
+        invokeCallback(cb) { cb(1.5, 'setBindGroup', { a: 7, b: 8.5, c: 'inner' }); },
     };
 
     // Counts .Net -> JS boundary crossings. Every JSImport SpawnJS makes lands on a static member of

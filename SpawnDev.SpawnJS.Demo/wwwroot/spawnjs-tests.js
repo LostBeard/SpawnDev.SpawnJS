@@ -47,6 +47,13 @@
         static codeUnits(s) { return Array.prototype.map.call(s, c => c.charCodeAt(0).toString(16)).join(','); }
         static argsShape(...args) { return args.map(SpawnJSTests.shape).join('|'); }
         static callThenReturn(cb, s) { cb(); return s + '!'; }
+        // ---- callback argument fixtures ----
+        static invokeWithArgs(cb) { return cb(5, 'five', { a: 1, b: 'one' }, [1, 2, 3]); }
+        static invokeWithBigString(cb, n) { return cb('z'.repeat(n)); }
+        // cb(object, string): reading the first argument (a wrapper whose constructor calls invokeInner) runs a nested
+        // callback while the second is still unread in the inbound buffer
+        static invokeOuter(cb) { return cb({}, 'outer-' + 'o'.repeat(5000)); }
+        static invokeInner(cb) { return cb('inner-' + 'i'.repeat(9000)); }
         // ---- read-by-schema fixtures ----
         static readFixturePoco() {
             globalThis.__mt = { number: 7, text: 'seven', inner: { a: 1, b: 'one' }, numbers: [1, 2, 3], words: ['a', 'b'], anything: { x: 1 }, getOnly: 99 };
