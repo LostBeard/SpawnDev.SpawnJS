@@ -8,6 +8,8 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             throw new NotImplementedException();
         }
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, HeapViewDescriptor value) => tape.WriteHeapView(value);
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, HeapViewDescriptor value)
         {
             jsParent.PropertySetHeapView(jsKey, value.Offset, value.Length, value.Type, value.Copy);

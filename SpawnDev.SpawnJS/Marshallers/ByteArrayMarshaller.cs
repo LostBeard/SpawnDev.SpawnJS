@@ -20,6 +20,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
             return ret;
         }
+        /// <inheritdoc/>
+        /// <remarks>A Uint8Array copy, made by Javascript straight out of the pinned array.</remarks>
+        public override void Write(JSTape tape, byte[]? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteArrayCopy(value, JSArrayBufferView.Uint8Array);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, byte[]? value)
         {
             if (value == null)

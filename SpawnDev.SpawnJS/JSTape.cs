@@ -50,6 +50,8 @@ namespace SpawnDev.SpawnJS
         internal const double TagArray = 11;
         // kind, count, then the raw numbers - a primitive array in one copy. Javascript builds a plain Array.
         internal const double TagNumbers = 12;
+        // viewType, byte offset in the .Net heap, element count, copy - a view of .Net memory, as HeapViewDescriptor
+        internal const double TagHeapView = 13;
 
         const int HeaderCells = 4;
         const int InitialSegmentCells = 8 * 1024;
@@ -82,6 +84,8 @@ namespace SpawnDev.SpawnJS
             public long Serial;
             // shapes whose definitions this frame carries - confirmed if the call completes
             public List<JSShape>? Defined;
+            // arrays pinned for this frame, because Javascript reads them by address when the call runs
+            public List<GCHandle>? Pins;
         }
 
         readonly SpawnJSRuntime _js;
@@ -202,6 +206,36 @@ namespace SpawnDev.SpawnJS
         {
             if (value == null) { WriteNull(); return; }
             Marshaller.BoxedWriter.For(value.GetType()).Write(this, value);
+        }
+
+        /// <summary>
+        /// Writes a view of .Net memory (a <see cref="HeapViewDescriptor"/>): Javascript builds the view - or, with
+        /// Copy, a copy - over the heap at <see cref="HeapViewDescriptor.Offset"/> when the call runs. The memory
+        /// must stay where it is until then; for a managed array use <see cref="WriteArrayCopy{T}"/>, which pins it.
+        /// </summary>
+        public void WriteHeapView(HeapViewDescriptor view)
+        {
+            EnsureCells(5);
+            var cells = Current.Cells;
+            cells[_position] = TagHeapView;
+            cells[_position + 1] = (int)view.Type;
+            cells[_position + 2] = view.Offset;
+            cells[_position + 3] = view.Length;
+            cells[_position + 4] = view.Copy ? 1 : 0;
+            _position += 5;
+        }
+
+        /// <summary>
+        /// Writes a copy of <paramref name="array"/> as a Javascript <paramref name="type"/> (a byte[] as a
+        /// Uint8Array). Javascript copies straight out of the array when the call runs - one copy, none into the tape -
+        /// so the array is pinned until the call ends: anything written after it can allocate, and a collection would
+        /// otherwise move the array away from the address Javascript was given.
+        /// </summary>
+        public void WriteArrayCopy<T>(T[] array, JSArrayBufferView type) where T : unmanaged
+        {
+            var handle = GCHandle.Alloc(array, GCHandleType.Pinned);
+            (_frames[_depth - 1].Pins ??= new List<GCHandle>()).Add(handle);
+            WriteHeapView(new HeapViewDescriptor(handle.AddrOfPinnedObject(), array.Length, type, true));
         }
 
         /// <summary>
@@ -395,6 +429,7 @@ namespace SpawnDev.SpawnJS
         {
             ref var frame = ref _frames[_depth - 1];
             if (frame.Scratch != null) _js.ReturnScratchArray(frame.Scratch);
+            if (frame.Pins != null) foreach (var pin in frame.Pins) pin.Free();
             _segmentIndex = frame.OuterSegmentIndex;
             _position = frame.OuterPosition;
             frame = default;

@@ -130,7 +130,7 @@
             return dotnetId;
         }
         // Call tape value tags - JSTape.Tag* in JSTape.cs must match
-        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12 };
+        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12, HeapView: 13 };
         // TagNumbers kinds - JSTape.NumberKind must match
         static TapeNumberCtors = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array];
         // what a member written as TagAbsent reads as: the property is not assigned
@@ -335,6 +335,12 @@
                     reader.p += (count * ctor.BYTES_PER_ELEMENT + 7) >>> 3;
                     // a plain Array, as element-by-element writing produced; a TypedArray stays opt in
                     return Array.from(view);
+                }
+                case 13: {
+                    var f = reader.views.f64;
+                    var viewType = f[reader.p], offset = f[reader.p + 1], count = f[reader.p + 2], copy = f[reader.p + 3] !== 0;
+                    reader.p += 4;
+                    return SpawnJSInterop._heapView(reader.dotnetId, viewType, offset, count, copy);
                 }
                 default: throw new Error(`SpawnJSInterop: unknown tape tag ${tag} at cell ${reader.p - 1}`);
             }
@@ -674,6 +680,11 @@
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
             var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
             if (shortCircuit) return;
+            parent[propertyName] = SpawnJSInterop._heapView(dotnetId, viewType, offset, length, copy);
+        }
+        // A view of - or with copy, a copy of - .Net memory. A live view carries its _heapViewInfo so the heap view
+        // reviver can rebuild it after the heap grows. Used by propertySetHeapView and the tape (TagHeapView).
+        static _heapView(dotnetId, viewType, offset, length, copy) {
             // create the heapView meta data
             var heapViewInfo = { dotnetId, viewType, offset, length, copy };
             // viewType is an INDEX into HeapViewCtors, and index 0 (BigInt64Array) is a real value - a
@@ -685,9 +696,7 @@
             heapViewInfo.sizeHistory = [];
             heapViewInfo.ctor = SpawnJSInterop.getArrayBufferViewConstructor(heapViewInfo.viewType);
             // refresh the heapView
-            var value = SpawnJSInterop.heapViewRefresh(heapViewInfo);
-            // set to the proeprty
-            parent[propertyName] = value;
+            return SpawnJSInterop.heapViewRefresh(heapViewInfo);
         }
         // set property null
         // JSImport

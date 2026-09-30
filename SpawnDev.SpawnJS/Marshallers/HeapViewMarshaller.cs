@@ -39,6 +39,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             throw new NotImplementedException();
         }
         /// <inheritdoc/>
+        /// <inheritdoc/>
+        /// <remarks>The view's live Javascript object, by reference; a copy-on-marshal view refreshes its copy first.</remarks>
+        public override void Write(JSTape tape, THeapView? value)
+        {
+            if (value?.RefreshCopyOnMarshal == true) value.RefreshCopy();
+            tape.WriteValue(value?._View);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, THeapView? value)
         {
             if (value?.RefreshCopyOnMarshal == true) value.RefreshCopy();

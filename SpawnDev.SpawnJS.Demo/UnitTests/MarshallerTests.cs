@@ -728,6 +728,35 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         // The call tape - every call crosses once through JSTape; these exercise its edges
         // ==========================================================================================
         public enum TapeColor { Red = 1, Green = 2 }
+        // reading Churn allocates and forces a compacting collection, in the middle of writing a call
+        public class TapeGcChurn
+        {
+            public int Churn
+            {
+                get
+                {
+                    var junk = new List<byte[]>();
+                    for (var i = 0; i < 200; i++) junk.Add(new byte[1024]);
+                    GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+                    return junk.Count;
+                }
+            }
+        }
+        // Data is a FRESH array nothing else references; Churn (written after it) collects
+        public class TapeTransientBytes
+        {
+            public int Round { get; set; }
+            public byte[] Data
+            {
+                get
+                {
+                    var bytes = new byte[4096];
+                    for (var i = 0; i < bytes.Length; i++) bytes[i] = (byte)(i * 7 + Round);
+                    return bytes;
+                }
+            }
+            public int Churn => new TapeGcChurn().Churn;
+        }
         // used by exactly one test, so its shape is new to the runtime when that test runs
         public class TapeShapeProbe
         {
@@ -832,6 +861,37 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(ShapeKey(), "{a:number(2),b:string(\"y\")}", "the shape after an abandoned call");
             });
 
+            Test("Tape.ByteArrayStaysPinnedUntilTheCallRuns", () =>
+            {
+                // Javascript copies a byte[] out of .Net memory when the call runs, AFTER every argument is written. A
+                // later argument that allocates and collects must not move the array away from the address it wrote.
+                // ⚠️ This guards that the bytes arrive intact; it cannot prove the pin. MEASURED 2026-09-30: this
+                // runtime's GC moved an array 0 times in 50 forced compacting collections, so removing the pin passes
+                // here too. The pin stays because .Net's contract lets the GC move an unpinned array, and a runtime
+                // that does (CoreCLR on WASM) would copy the wrong memory with nothing reporting it.
+                for (var round = 0; round < 20; round++)
+                {
+                    var bytes = new byte[4096];
+                    for (var i = 0; i < bytes.Length; i++) bytes[i] = (byte)(i * 7 + round);
+                    uint expected = 0;
+                    foreach (var b in bytes) expected = unchecked(expected * 31 + b);
+                    var got = JS.Call<byte[], TapeGcChurn, string>("SpawnJSTests.bytesSum", bytes, new TapeGcChurn());
+                    AssertEqual(got, $"Uint8Array:4096:{expected}", $"round {round}");
+                }
+            });
+
+            Test("Tape.TransientByteArrayStaysPinnedUntilTheCallRuns", () =>
+            {
+                for (var round = 0; round < 20; round++)
+                {
+                    var probe = new TapeTransientBytes { Round = round };
+                    uint expected = 0;
+                    foreach (var b in probe.Data) expected = unchecked(expected * 31 + b);
+                    var got = JS.Call<TapeTransientBytes, string>("SpawnJSTests.bytesSumOf", probe);
+                    AssertEqual(got, $"Uint8Array:4096:{expected}", $"round {round}");
+                }
+            });
+
             Test("Tape.ArgumentThatThrowsReleasesTheFrame", () =>
             {
                 // a bare object has no marshaller that can write it
@@ -889,6 +949,8 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         }
 
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TapeShapeProbe))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TapeGcChurn))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TapeTransientBytes))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiBase))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiAll))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiStruct))]

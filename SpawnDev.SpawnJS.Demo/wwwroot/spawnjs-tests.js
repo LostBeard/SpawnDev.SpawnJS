@@ -47,6 +47,8 @@
         static codeUnits(s) { return Array.prototype.map.call(s, c => c.charCodeAt(0).toString(16)).join(','); }
         static argsShape(...args) { return args.map(SpawnJSTests.shape).join('|'); }
         static callThenReturn(cb, s) { cb(); return s + '!'; }
+        static bytesSumOf(o) { return SpawnJSTests.bytesSum(o.data); }
+        static bytesSum(bytes, ignored) { let s = 0; for (const b of bytes) s = (s * 31 + b) >>> 0; return `${bytes.constructor.name}:${bytes.length}:${s}`; }
         static longString(n) { return 'x'.repeat(n); }
         static nothing() { return undefined; }
         static nul() { return null; }

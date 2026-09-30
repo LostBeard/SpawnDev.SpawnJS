@@ -115,6 +115,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
             return null;
         }
+        /// <inheritdoc/>
+        /// <remarks>A union writes exactly what the value it holds would, chosen by what that value IS.</remarks>
+        public override void Write(JSTape tape, TUnion value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            tape.WriteValue(value.Value);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TUnion value)
         {
             if (value == null) { jsParent.PropertySetNull(jsKey); return; }
