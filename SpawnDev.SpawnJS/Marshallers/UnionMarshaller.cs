@@ -122,16 +122,5 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             tape.WriteValue(value.Value);
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TUnion value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            // value.Value is object?; the ObjectMarshaller re-dispatches it by its runtime type.
-            jsParent.Set(jsKey, value.Value);
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TUnion value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            jsParent.Set(jsKey, value.Value);
-        }
     }
 }

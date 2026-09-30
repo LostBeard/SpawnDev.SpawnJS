@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS
     /// Layout. Everything is a cell of 8 bytes, so every value is 8 byte aligned and Javascript reads it through
     /// a Float64Array over the heap. A frame is a header followed by one tagged value per argument:
     /// <code>
-    /// header:  methodIndex | returnType | argCount | scratchId
+    /// header:  methodIndex | returnType | argCount
     /// value:   tag [payload cells]      (tags below; must match SpawnJSInterop.TapeTag)
     /// string:  TagString | length | UTF-16 code units, 4 per cell
     /// object:  [TagShape | id | count | names]  TagObject | id | one value per name (TagAbsent = not assigned)
@@ -37,9 +37,7 @@ namespace SpawnDev.SpawnJS
         internal const double TagString = 4;
         internal const double TagRef = 5;
         internal const double TagCallback = 6;
-        // TRANSITIONAL: the value was built by a marshaller's per-value NetToJS into the call's scratch array.
-        // Goes away with JSMarshaller.Write's default, once every marshaller writes the tape itself.
-        internal const double TagScratch = 7;
+        // 7 is unused (it was the transitional scratch-array value)
         // a member skipped by [JsonIgnore(WhenWritingNull/WhenWritingDefault)] - the property is not assigned
         internal const double TagAbsent = 8;
         // shapeId, then one value per shape member
@@ -57,7 +55,7 @@ namespace SpawnDev.SpawnJS
         // methodIndex, then one value - Javascript passes the value through that SpawnJSInterop function
         internal const double TagRevive = 15;
 
-        const int HeaderCells = 4;
+        const int HeaderCells = 3;
         const int InitialSegmentCells = 8 * 1024;
 
         sealed class Segment : IDisposable
@@ -82,8 +80,6 @@ namespace SpawnDev.SpawnJS
             // where the enclosing frame's writing had got to; restored when this frame ends
             public int OuterSegmentIndex;
             public int OuterPosition;
-            public SpawnJSObjectReference? Scratch;
-            public int ScratchCount;
             // unique per frame; a shape carries its definition once per frame
             public long Serial;
             // shapes whose definitions this frame carries - confirmed if the call completes
@@ -359,23 +355,6 @@ namespace SpawnDev.SpawnJS
             _position += 1 + charCells;
         }
 
-        /// <summary>
-        /// TRANSITIONAL - the seam for marshallers that do not write the tape yet (see
-        /// <see cref="JSMarshaller{TType}.Write"/>). The value is built the v2 way, by the marshaller's own NetToJS,
-        /// into this call's scratch array, and the tape carries its index. Deleted with that default.
-        /// </summary>
-        internal void WriteViaScratch<T>(JSMarshaller<T> marshaller, T value)
-        {
-            ref var frame = ref _frames[_depth - 1];
-            frame.Scratch ??= _js.RentScratchArray();
-            var index = frame.ScratchCount++;
-            marshaller.NetToJS(frame.Scratch, index, value);
-            EnsureCells(2);
-            var cells = Current.Cells;
-            cells[_position] = TagScratch;
-            cells[_position + 1] = index;
-            _position += 2;
-        }
         #endregion
 
         #region Frames
@@ -408,7 +387,6 @@ namespace SpawnDev.SpawnJS
             cells[_position] = methodIndex;
             cells[_position + 1] = 0;   // returnType, filled by Send
             cells[_position + 2] = argCount;
-            cells[_position + 3] = SpawnJSObjectReference.UndefinedId;   // scratchId, filled by Send
             _position += HeaderCells;
         }
 
@@ -416,13 +394,11 @@ namespace SpawnDev.SpawnJS
         /// Finishes the innermost frame's header and hands its location to Javascript. The frame stays open, and its
         /// cells stay put, until <see cref="EndCall"/> - the result is written back over it.
         /// </summary>
-        internal (double Address, int Length, int Capacity) Send(ReturnType returnType, out double scratchId)
+        internal (double Address, int Length, int Capacity) Send(ReturnType returnType)
         {
             ref var frame = ref _frames[_depth - 1];
             var segment = _segments[frame.SegmentIndex];
             segment.Cells[frame.Start + 1] = (int)returnType;
-            scratchId = frame.Scratch?.Id ?? SpawnJSObjectReference.UndefinedId;
-            segment.Cells[frame.Start + 3] = scratchId;
             var address = (double)(segment.Address + frame.Start * 8);
             var length = (_position - frame.Start) * 8;
             var capacity = (segment.Cells.Length - frame.Start) * 8;
@@ -460,11 +436,10 @@ namespace SpawnDev.SpawnJS
             for (var i = 0; i < defined.Count; i++) defined[i].Confirmed = true;
         }
 
-        /// <summary>Closes the innermost frame, returns its scratch array, and restores the enclosing frame's position.</summary>
+        /// <summary>Closes the innermost frame, releases its pins, and restores the enclosing frame's position.</summary>
         internal void EndCall()
         {
             ref var frame = ref _frames[_depth - 1];
-            if (frame.Scratch != null) _js.ReturnScratchArray(frame.Scratch);
             if (frame.Pins != null) foreach (var pin in frame.Pins) pin.Free();
             _segmentIndex = frame.OuterSegmentIndex;
             _position = frame.OuterPosition;

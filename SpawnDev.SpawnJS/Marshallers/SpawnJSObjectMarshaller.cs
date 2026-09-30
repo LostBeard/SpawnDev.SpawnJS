@@ -27,13 +27,4 @@ public class SpawnJSObjectMarshaller<[DynamicallyAccessedMembers(DynamicallyAcce
     /// <inheritdoc/>
     /// <inheritdoc/>
     public override void Write(JSTape tape, TSpawnJSObject? value) { if (value?.JSRef == null) tape.WriteNull(); else tape.WriteRef(value.JSRef.Id); }
-    public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TSpawnJSObject? value)
-    {
-        jsParent.Set(jsKey, value?.JSRef);
-    }
-    /// <inheritdoc/>
-    public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TSpawnJSObject? value)
-    {
-        jsParent.Set(jsKey, value?.JSRef);
-    }
 }

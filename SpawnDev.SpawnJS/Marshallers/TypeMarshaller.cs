@@ -6,7 +6,5 @@ namespace SpawnDev.SpawnJS.Marshallers
     {
         public override Type? JSToNet(string value) => string.IsNullOrEmpty(value) ? null : TypeExtensions.GetType(value);
         public override void Write(JSTape tape, Type? value) => tape.WriteString(value?.FullName);
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, Type? value) => jsParent.PropertySet(jsKey, value?.FullName!);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, Type? value) => jsParent.PropertySet(jsKey, value?.FullName!);
     }
 }

@@ -23,16 +23,5 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             tape.WriteNumber(value.ValueEpoch);
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, EpochDateTime? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            jsParent.PropertySet(jsKey, value.ValueEpoch);
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, EpochDateTime? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            jsParent.PropertySet(jsKey, value.ValueEpoch);
-        }
     }
 }

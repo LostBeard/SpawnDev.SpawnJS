@@ -130,7 +130,7 @@
             return dotnetId;
         }
         // Call tape value tags - JSTape.Tag* in JSTape.cs must match
-        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12, HeapView: 13, Record: 14, Revive: 15 };
+        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12, HeapView: 13, Record: 14, Revive: 15 };
         // TagNumbers kinds - JSTape.NumberKind must match
         static TapeNumberCtors = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array];
         // what a member written as TagAbsent reads as: the property is not assigned
@@ -261,13 +261,8 @@
             var methodIndex = f64[p];
             var returnType = f64[p + 1];
             var argCount = f64[p + 2];
-            var scratchId = f64[p + 3];
             // one reader per call: a nested call (a reviver can run .Net) gets its own
-            var reader = {
-                instance, dotnetId, address, length, views, p: p + 4,
-                // TRANSITIONAL: values built by the v2 per-value path, emptied in place so .Net reuses the array
-                scratch: scratchId === -2 ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(scratchId, []),
-            };
+            var reader = { instance, dotnetId, address, length, views, p: p + 3 };
             var args = new Array(argCount);
             for (var i = 0; i < argCount; i++) {
                 var value = SpawnJSInterop._tapeRead(reader);
@@ -296,7 +291,6 @@
                     var once = f64[reader.p++] !== 0;
                     return SpawnJSInterop._callbackFunction(reader.dotnetId, callbackId, once);
                 }
-                case 7: return reader.scratch[f64[reader.p++]];
                 case 8: return SpawnJSInterop._tapeAbsent;
                 case 9: {
                     var names = reader.instance.tapeShapes?.[f64[reader.p]];

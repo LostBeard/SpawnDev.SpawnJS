@@ -6,7 +6,5 @@ namespace SpawnDev.SpawnJS.Marshallers
     {
         public override TRuntimeType? JSToNet(string value) => string.IsNullOrEmpty(value) ? default : (TRuntimeType)(object)TypeExtensions.GetType(value);
         public override void Write(JSTape tape, TRuntimeType value) => tape.WriteString((value as Type)?.FullName);
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TRuntimeType value) => jsParent.PropertySet(jsKey, (value as Type)?.FullName!);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TRuntimeType value) => jsParent.PropertySet(jsKey, (value as Type)?.FullName!);
     }
 }

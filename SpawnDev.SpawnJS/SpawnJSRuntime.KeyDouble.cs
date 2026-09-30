@@ -93,67 +93,27 @@ namespace SpawnDev.SpawnJS
 
 
 
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, string value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, bool value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, double value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, int value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, bool? value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySet")]
-        internal static partial void _propertySet(double sjsId, double key, double? value);
 
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetSpawnJSObject")]
-        internal static partial void _propertySetSpawnJSObject(double sjsId, double key, double value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySetJson")]
-        internal static partial void _propertySetJson(double sjsId, double key, string value);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySetHeapView")]
-        internal static partial void _propertySetHeapView(double sjsId, double key, double dotnetId, double viewType, double offset, double length, bool copy);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySetNull")]
-        internal static partial void _propertySetNull(double sjsId, double key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySetUndefined")]
-        internal static partial void _propertySetUndefined(double sjsId, double key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertySetCallback")]
-        internal static partial void _propertySetCallback(double sjsId, double key, double dotnetId, double callbackId, bool once);
 
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, string value, double reviverIndex);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, double value, double reviverIndex);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, string value, double reviverIndex, string reviverConfig);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, double value, double reviverIndex, string reviverConfig);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, string value, double reviverIndex, double reviverConfig);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, double value, double reviverIndex, double reviverConfig);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, string value, double reviverIndex, bool reviverConfig);
 
-        [JSImport("globalThis.SpawnJSInterop.propertySetWithReviver")]
-        internal static partial void _propertySetWithReviver(double sjsId, double key, double value, double reviverIndex, bool reviverConfig);
+
+
+
+
+
+
+
+
+
+
 
     }
 }

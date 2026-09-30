@@ -70,33 +70,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             TapeCollections.WriteEnumerable(tape, value, _elements ??= new ValueWriter<TElement>());
         }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, IEnumerable<TElement>? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outArray = JS.NewJSArray();
-            var i = 0;
-            foreach (var item in value)
-            {
-                outArray.Set(i, item);
-                i++;
-            }
-            jsParent.PropertySet(jsKey, outArray);
-        }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, IEnumerable<TElement>? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outArray = JS.NewJSArray();
-            var i = 0;
-            foreach (var item in value)
-            {
-                outArray.Set(i, item);
-                i++;
-            }
-            jsParent.PropertySet(jsKey, outArray);
-        }
     }
 
     /// <summary>
@@ -138,42 +112,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             tape.EndArray(token, count);
         }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TCollection? value)
-            => Write(jsParent, jsKey, value);
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TCollection? value)
-            => Write(jsParent, jsKey, value);
 
-        void Write(SpawnJSObjectReference jsParent, object jsKey, TCollection? value)
-        {
-            if (value == null)
-            {
-                if (jsKey is int i) jsParent.PropertySetNull(i);
-                else jsParent.PropertySetNull((string)jsKey);
-                return;
-            }
-            using var outArray = JS.NewJSArray();
-            var index = 0;
-            foreach (var item in (IEnumerable)value)
-            {
-                if (item == null)
-                {
-                    outArray.PropertySetNull(index);
-                }
-                else
-                {
-                    // runtime Type -> <TItem> so each element uses its own marshaller (e.g. SerialPortFilter POCO)
-                    var itemType = item.GetType();
-                    ((Delegate)writeTyped<object>).InvokeGeneric(itemType, item);
-                    void writeTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TItem>(TItem v)
-                        => JS.GetMarshallerForWrite<TItem>().NetToJS(outArray, index, v);
-                }
-                index++;
-            }
-            if (jsKey is int ik) jsParent.PropertySet(ik, outArray);
-            else jsParent.PropertySet((string)jsKey, outArray);
-        }
     }
 }

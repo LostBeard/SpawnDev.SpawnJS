@@ -43,22 +43,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             tape.WriteArray(value.Length);
             for (var i = 0; i < value.Length; i++) tape.WriteValue(value[i]);
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TTuple value) => Write(jsParent, jsKey, value);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TTuple value) => Write(jsParent, jsKey, value);
-        void Write(SpawnJSObjectReference jsParent, int jsKey, TTuple value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var array = JS.NewJSArray();
-            for (var i = 0; i < value.Length; i++) array.Set(i, value[i]);
-            jsParent.PropertySet(jsKey, array);
-        }
-        void Write(SpawnJSObjectReference jsParent, string jsKey, TTuple value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var array = JS.NewJSArray();
-            for (var i = 0; i < value.Length; i++) array.Set(i, value[i]);
-            jsParent.PropertySet(jsKey, array);
-        }
     }
     /// <summary>
     /// Marshals a nullable value tuple (<c>ValueTuple&lt;...&gt;?</c>). A <see cref="Nullable{T}"/> of a
@@ -82,16 +66,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             var tuple = value.Value;
             tape.WriteArray(tuple.Length);
             for (var i = 0; i < tuple.Length; i++) tape.WriteValue(tuple[i]);
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TTuple? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            inner.NetToJS(jsParent, jsKey, value.Value);
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TTuple? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            inner.NetToJS(jsParent, jsKey, value.Value);
         }
     }
 }

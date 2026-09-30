@@ -7,8 +7,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// Marshals <see cref="JsonElement"/> to/from a JS any.
     /// <para>
     /// A JsonElement already IS parsed JSON, so both directions move the raw JSON text and let the
-    /// other side parse it - no serializer, and nothing is encoded twice. Going out, the text goes
-    /// through <c>PropertySetRawJson</c>, whose JS half JSON.parse's it, so the value lands as a real
+    /// other side parse it - no serializer, and nothing is encoded twice. Going out, the text is written to the
+    /// tape revived by <c>__reviverJson</c>, which JSON.parse's it, so the value lands as a real
     /// Javascript object/array/primitive rather than as a string containing JSON. Coming in, the JS
     /// side JSON.stringify's the value and <see cref="JsonDocument"/> parses the result.
     /// </para>
@@ -41,20 +41,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value.ValueKind == JsonValueKind.Undefined) { tape.WriteUndefined(); return; }
             tape.WriteRevived(InteropMethod.ReviverJson);
             tape.WriteString(value.GetRawText());
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, JsonElement value)
-        {
-            // default(JsonElement) has no raw text to take. Undefined is what a JS undefined reads
-            // back AS, so writing undefined keeps the round trip symmetric (and distinct from null).
-            if (value.ValueKind == JsonValueKind.Undefined) { jsParent.PropertySetUndefined(jsKey); return; }
-            jsParent.PropertySetRawJson(jsKey, value.GetRawText());
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, JsonElement value)
-        {
-            // default(JsonElement) has no raw text to take. Undefined is what a JS undefined reads
-            // back AS, so writing undefined keeps the round trip symmetric (and distinct from null).
-            if (value.ValueKind == JsonValueKind.Undefined) { jsParent.PropertySetUndefined(jsKey); return; }
-            jsParent.PropertySetRawJson(jsKey, value.GetRawText());
         }
     }
 }

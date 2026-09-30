@@ -92,15 +92,6 @@ namespace SpawnDev.SpawnJS
         }
         #endregion
 
-        #region Scratch arrays - TRANSITIONAL
-        // Marshallers not yet moved to the tape build their value into a pooled JS array (see
-        // JSTape.WriteViaScratch). Javascript empties the array in place of reading it, so the same held array is
-        // reused. Goes away with the last NetToJS.
-        readonly Queue<SpawnJSObjectReference> _scratchArrays = new Queue<SpawnJSObjectReference>();
-        internal SpawnJSObjectReference RentScratchArray() => _scratchArrays.TryDequeue(out var array) ? array : NewJSArray();
-        internal void ReturnScratchArray(SpawnJSObjectReference array) => _scratchArrays.Enqueue(array);
-        #endregion
-
         #region Sync calls
         /// <summary>
         /// Call any SpawnJSInterop static method that returns nothing (void).
@@ -139,7 +130,7 @@ namespace SpawnDev.SpawnJS
             {
                 var marshaller = GetMarshaller<T>();
                 var returnType = marshaller?.ReturnType ?? ReturnType.Void;
-                var (address, length, capacity) = Tape.Send(returnType, out _);
+                var (address, length, capacity) = Tape.Send(returnType);
                 var written = _spawnJSInteropCall(DotnetInstance.Id, address, length, capacity);
                 Tape.ConfirmShapes();
                 if (returnType == ReturnType.Void) return default!;
@@ -229,7 +220,7 @@ namespace SpawnDev.SpawnJS
                 tcs = new TaskCompletionSource<T>();
                 asyncCallbackId = ++_asyncCallbackId;
                 RegisterAsyncCompletion(returnMarshaller, returnType, tcs, asyncCallbackId);
-                var (address, length, _) = Tape.Send(returnType, out _);
+                var (address, length, _) = Tape.Send(returnType);
                 try
                 {
                     // 1: the frame was read, and the call is running. 0: it could not be read; the resolver has the error.

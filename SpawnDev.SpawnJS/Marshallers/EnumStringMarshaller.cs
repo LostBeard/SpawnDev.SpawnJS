@@ -55,16 +55,5 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         /// <inheritdoc/>
         public override void Write(JSTape tape, EnumString<TEnum>? value) => tape.WriteString(value?.String);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, EnumString<TEnum>? value)
-        {
-            // write the Javascript string the enum member maps to, which is all Javascript ever sees
-            jsParent.PropertySet(jsKey, value?.String!);
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, EnumString<TEnum>? value)
-        {
-            // write the Javascript string the enum member maps to, which is all Javascript ever sees
-            jsParent.PropertySet(jsKey, value?.String!);
-        }
     }
 }

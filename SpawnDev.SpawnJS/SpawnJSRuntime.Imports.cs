@@ -49,11 +49,6 @@ namespace SpawnDev.SpawnJS
         internal static partial int _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
         #endregion
 
-        /// <summary>
-        /// Creates a new JS Array, holds it, and returns the sjsId
-        /// </summary>
-        [JSImport("globalThis.SpawnJSInterop.spawnJSObjectNewArray")]
-        internal static partial double _spawnJSObjectNewArray();
 
         /// <summary>
         /// Gets an up to date method map so calls can use method indexes instead of names

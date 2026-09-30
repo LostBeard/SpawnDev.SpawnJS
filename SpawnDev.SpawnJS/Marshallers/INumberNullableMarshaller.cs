@@ -52,10 +52,6 @@ namespace SpawnDev.SpawnJS.Marshallers
 
         /// <inheritdoc/>
         public override void Write(JSTape tape, TNumber? value) { if (value is null) tape.WriteNull(); else tape.WriteNumber(double.CreateChecked(value.Value)); }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TNumber? value)
-            => jsParent.PropertySet(jsKey, value is null ? (double?)null : double.CreateChecked(value.Value));
 
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TNumber? value)
-            => jsParent.PropertySet(jsKey, value is null ? (double?)null : double.CreateChecked(value.Value));
     }
 }

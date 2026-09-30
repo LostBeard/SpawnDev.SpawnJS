@@ -5,9 +5,13 @@ using System.Collections;
 namespace SpawnDev.SpawnJS.Marshallers
 {
     /// <summary>
-    /// Marshals a .Net List to/from a JS array. Registered as <c>ListMarshaller&lt;object&gt;</c>, but
-    /// when selected it re-specializes to the concrete element type (see <see cref="GetMarshaller{T}"/>) so
-    /// each element goes through its own strongly-typed marshaller with no boxing.
+    /// Marshals a .Net IList to/from a JS array. When selected it re-specializes to the concrete element type (see
+    /// <see cref="GetMarshaller{T}"/>) so each element goes through its own strongly-typed marshaller with no boxing.
+    /// <para>
+    /// ⚠️ NOT REGISTERED (neither in v2 nor here): a value declared IList&lt;T&gt; is marshalled by its runtime type
+    /// (a List&lt;T&gt; by ListMarshaller). Its CanMarshal used to test for List&lt;&gt; - ListMarshaller's type -
+    /// and now tests IList&lt;&gt;, so it is correct if it is ever registered.
+    /// </para>
     /// </summary>
     public class IListMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TElement> : JSMarshallerFromSpawnJSObjectReference<IList<TElement>?>
     {
@@ -15,8 +19,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override bool CanMarshal(Type type)
         {
             var genericType = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
-            var ret = genericType == typeof(List<>);
-            return ret;
+            return genericType == typeof(IList<>);
         }
         /// <summary>
         /// Builds an <see cref="ArrayMarshaller{T}"/> bound to the concrete element type of
@@ -34,6 +37,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             Type typedMarshaller = openType.MakeGenericType(elementType!);
             return (JSMarshaller<T>)Activator.CreateInstance(typedMarshaller)!;
         }
+        ValueWriter<TElement>? _elements;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, IList<TElement>? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            TapeCollections.WriteEnumerable(tape, value, _elements ??= new ValueWriter<TElement>());
+        }
         /// <inheritdoc/>
         public override IList<TElement>? JSToNet(SpawnJSObjectReference value1)
         {
@@ -47,24 +57,6 @@ namespace SpawnDev.SpawnJS.Marshallers
                 retArray.Add(value1.Get<TElement>(i));
             }
             return retArray;
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, IList<TElement>? objects)
-        {
-            // Build a fresh JS array, write each element into it, then assign it to the parent property.
-            if (objects == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outArray = JS.NewJSArray();
-            for (var i = 0; i < objects.Count; i++) outArray.Set(i, objects[i]);
-            jsParent.PropertySet(jsKey, outArray);
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, IList<TElement>? objects)
-        {
-            // Build a fresh JS array, write each element into it, then assign it to the parent property.
-            if (objects == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outArray = JS.NewJSArray();
-            for (var i = 0; i < objects.Count; i++) outArray.Set(i, objects[i]);
-            jsParent.PropertySet(jsKey, outArray);
         }
     }
 }

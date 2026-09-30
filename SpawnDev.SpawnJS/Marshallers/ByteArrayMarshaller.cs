@@ -27,39 +27,5 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             tape.WriteArrayCopy(value, JSArrayBufferView.Uint8Array);
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, byte[]? value)
-        {
-            if (value == null)
-            {
-                jsParent.PropertySetNull(jsKey);
-                return;
-            }
-            unsafe
-            {
-                fixed (byte* ptr = value)
-                {
-                    IntPtr address = (IntPtr)ptr;
-                    var heapViewDescriptor = new HeapViewDescriptor(address, value.Length, true);
-                    jsParent.PropertySet(jsKey, heapViewDescriptor);
-                }
-            }
-        }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, byte[]? value)
-        {
-            if (value == null)
-            {
-                jsParent.PropertySetNull(jsKey);
-                return;
-            }
-            unsafe
-            {
-                fixed (byte* ptr = value)
-                {
-                    IntPtr address = (IntPtr)ptr;
-                    var heapViewDescriptor = new HeapViewDescriptor(address, value.Length, true);
-                    jsParent.PropertySet(jsKey, heapViewDescriptor);
-                }
-            }
-        }
     }
 }

@@ -46,16 +46,5 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value?.RefreshCopyOnMarshal == true) value.RefreshCopy();
             tape.WriteValue(value?._View);
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, THeapView? value)
-        {
-            if (value?.RefreshCopyOnMarshal == true) value.RefreshCopy();
-            jsParent.Set(jsKey, value?._View);
-        }
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, THeapView? value)
-        {
-            if (value?.RefreshCopyOnMarshal == true) value.RefreshCopy();
-            jsParent.Set(jsKey, value?._View);
-        }
     }
 }

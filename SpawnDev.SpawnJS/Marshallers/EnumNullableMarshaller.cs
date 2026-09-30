@@ -15,9 +15,5 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override TEnum? JSToNet(int? value) => value.HasValue ? (TEnum)Enum.ToObject(typeof(TEnum), value.Value) : null;
         /// <inheritdoc/>
         public override void Write(JSTape tape, TEnum? value) { if (value.HasValue) tape.WriteNumber(Convert.ToInt32(value.Value)); else tape.WriteNull(); }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TEnum? value)
-            => jsParent.PropertySet(jsKey, value.HasValue ? (int?)Convert.ToInt32(value.Value) : null);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TEnum? value)
-            => jsParent.PropertySet(jsKey, value.HasValue ? (int?)Convert.ToInt32(value.Value) : null);
     }
 }

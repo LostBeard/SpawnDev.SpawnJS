@@ -112,71 +112,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             else PocoWritePlan.For(type).WriteBoxed(tape, value);
         }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, T? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            // The new object is a TEMPORARY: Set copies the reference into jsParent, which keeps the
-            // JS value alive on its own. The slot the temp holds must be released here or it leaks -
-            // the slot table is a strong reference with manual lifetime, nothing collects it. Every
-            // sibling marshaller (Array/IList/List/IEnumerable/ITuple) already does this via
-            // `using var outArray = JS.NewJSArray()`.
-            using var outObj = WriteToNewObject(value);
-            jsParent.Set(jsKey, outObj);
-        }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, T? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outObj = WriteToNewObject(value);
-            jsParent.Set(jsKey, outObj);
-        }
 
-        SpawnJSObjectReference WriteToNewObject(T value)
-        {
-            var outObj = JS.New<SpawnJSObjectReference>("Object");
-            // The members to walk are the underlying type's. A write normally types itself from the boxed
-            // VALUE - and boxing a non-null Nullable<TStruct> already yields a boxed TStruct - so T is
-            // rarely Nullable here; when it is, walking Nullable<> itself would marshal HasValue and Value
-            // instead of the struct's own members.
-            var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-            // Walk the VALUE's type when it is a subclass of the declared one. Typed calls marshal by the
-            // DECLARED parameter type, so SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...) handed a
-            // Pbkdf2Params used to write only KeyDeriveParams.Name - salt / hash / iterations never reached JS
-            // ("Pbkdf2Params: salt: Missing required property") and every PBKDF2 key derivation failed.
-            // BlazorJS never hit this: it passed params object[] (runtime types). The same shape exists in
-            // deriveBits, importKey/generateKey algorithm params, and any wrapper taking a base POCO.
-            var valueType = value!.GetType();
-            if (valueType != targetType && !targetType.IsValueType && targetType.IsAssignableFrom(valueType))
-                targetType = valueType;
-            foreach (var member in targetType.GetTypeJsonProperties())
-            {
-                var memberValue = member.PropertyInfo != null
-                    ? member.PropertyInfo.GetValue(value)
-                    : member.FieldInfo!.GetValue(value);
-                if (!member.GetShouldWrite(memberValue)) continue; // honours [JsonIgnore] Always/WhenWritingNull/WhenWritingDefault
-                var name = member.GetJsonName();
-                if (memberValue == null) { outObj.PropertySetNull(name); continue; }
-                // The VALUE decides, never the declared member type. A member declared object, an interface or an
-                // abstract base holds some concrete type, and only that type has a marshaller: picking the declared
-                // type for every interface/abstract threw "GetMarshaller failed" for a custom interface or abstract
-                // class. A collection expression's compiler-synthesized list (<>z__ReadOnlySingleElementList<E>,
-                // the Serial.requestPort / USB.requestDevice filter case) is a concrete IEnumerable, which
-                // IEnumerableMarshaller writes through IEnumerableConcreteWriteMarshaller.
-                ((Delegate)writeTyped<object>).InvokeGeneric(memberValue.GetType(), memberValue);
-                void writeTyped<TMember>(TMember v)
-                {
-                    // When the member's runtime type is fixed (value type or sealed), resolve its marshaller
-                    // once and reuse it - the per-member Type->marshaller lookup is otherwise repaid on every
-                    // marshal. Otherwise a base-typed member may hold any subclass, so it must resolve per value.
-                    var marshaller = member.RuntimeTypeIsKnown
-                        ? (JSMarshaller<TMember>)(member.CachedMarshaller ??= JS.GetMarshallerForWrite<TMember>())
-                        : JS.GetMarshallerForWrite<TMember>();
-                    marshaller.NetToJS(outObj, name, v);
-                }
-            }
-            return outObj;
-        }
     }
 }

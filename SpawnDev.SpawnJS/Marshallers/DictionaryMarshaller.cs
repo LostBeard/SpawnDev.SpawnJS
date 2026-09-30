@@ -65,44 +65,8 @@ namespace SpawnDev.SpawnJS.Marshallers
                 tape.WriteValue(entry.Value);
             }
         }
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TDictionary? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            // The new object is a TEMPORARY: Set copies the reference into jsParent, which keeps the
-            // JS value alive on its own. The slot the temp holds must be released here or it leaks -
-            // the slot table is a strong reference with manual lifetime, nothing collects it.
-            using var outObj = WriteToNewObject(value);
-            jsParent.Set(jsKey, outObj);
-        }
 
-        /// <inheritdoc/>
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TDictionary? value)
-        {
-            if (value == null) { jsParent.PropertySetNull(jsKey); return; }
-            using var outObj = WriteToNewObject(value);
-            jsParent.Set(jsKey, outObj);
-        }
 
-        SpawnJSObjectReference WriteToNewObject(TDictionary value)
-        {
-            var outObj = JS.New<SpawnJSObjectReference>("Object");
-            if (value is IDictionary dictionary)
-            {
-                foreach (DictionaryEntry entry in dictionary)
-                {
-                    // Javascript object keys are strings; stringify any non-string key the same way JS does
-                    // (obj[1] = x stores under "1"). null keys can't exist in a Dictionary<,>.
-                    var key = KeyToString(entry.Key);
-                    if (entry.Value == null) { outObj.PropertySetNull(key); continue; }
-                    // runtime Type -> <TValue> so each value goes through its own strongly-typed marshaller with
-                    // no boxing (a record can hold numbers, strings, booleans, a JSObject wrapper, a Callback...).
-                    var valueType = entry.Value.GetType();
-                    ((Delegate)writeTyped<object>).InvokeGeneric(valueType, entry.Value);
-                    void writeTyped<TValue>(TValue v) => JS.GetMarshallerForWrite<TValue>().NetToJS(outObj, key, v);
-                }
-            }
-            return outObj;
-        }
 
         /// <inheritdoc/>
         [UnconditionalSuppressMessage("Trimming", "IL2055",

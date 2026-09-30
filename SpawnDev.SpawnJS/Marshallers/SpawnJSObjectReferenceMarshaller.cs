@@ -12,7 +12,5 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override SpawnJSObjectReference JSToNet(SpawnJSObjectReference value) => value;
         /// <inheritdoc/>
         public override void Write(JSTape tape, SpawnJSObjectReference value) { if (value == null) tape.WriteNull(); else tape.WriteRef(value.Id); }
-        public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, SpawnJSObjectReference value) => jsParent.PropertySet(jsKey, value);
-        public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, SpawnJSObjectReference value) => jsParent.PropertySet(jsKey, value);
     }
 }
