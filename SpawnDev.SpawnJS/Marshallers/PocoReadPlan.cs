@@ -33,7 +33,11 @@ namespace SpawnDev.SpawnJS.Marshallers
         public static PocoReadPlan For(Type type)
         {
             if (_plans.TryGetValue(type, out var plan)) return plan;
-            plan = (PocoReadPlan)Activator.CreateInstance(typeof(PocoReadPlan<>).MakeGenericType(type))!;
+            var codec = JSPocoCodecs.Get(type);
+            // a generated codec that reads; otherwise (none, or it left reading to reflection) the reflection plan
+            plan = codec is { ReadNames: not null }
+                ? (PocoReadPlan)Activator.CreateInstance(typeof(GeneratedReadPlan<>).MakeGenericType(type), codec)!
+                : (PocoReadPlan)Activator.CreateInstance(typeof(PocoReadPlan<>).MakeGenericType(type))!;
             if (!_plans.TryAdd(type, plan)) return _plans[type];
             try
             {
@@ -98,6 +102,29 @@ namespace SpawnDev.SpawnJS.Marshallers
             return true;
         }
 
+        public override object? ReadBoxed(ref JSTapeReader reader) => Read(ref reader, out var value) ? value : null;
+    }
+
+    /// <summary>A type read by its generated <see cref="JSPocoCodec{T}"/>.</summary>
+    internal sealed class GeneratedReadPlan<TObj> : PocoReadPlan
+    {
+        readonly JSPocoCodec<TObj> _codec;
+        public GeneratedReadPlan(JSPocoCodec<TObj> codec)
+        {
+            _codec = codec;
+            Schema = codec.ReadSchema;
+        }
+        protected override void ResolveMembers() => _codec.ResolveReadMembers();
+        public bool Read(ref JSTapeReader reader, out TObj value)
+        {
+            if (!reader.ReadObjectStart())
+            {
+                value = default!;
+                return false;
+            }
+            value = _codec.ReadMembers(ref reader);
+            return true;
+        }
         public override object? ReadBoxed(ref JSTapeReader reader) => Read(ref reader, out var value) ? value : null;
     }
 

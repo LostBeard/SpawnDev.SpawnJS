@@ -64,6 +64,15 @@ Two .NET WASM apps can share a page. Everything per runtime lives on the `instan
 
 See [writing-marshallers.md](writing-marshallers.md). The registry is scanned in reverse registration order; the winner is cached per type in a static slot. Writes type from the value; reads type from the declared `T`.
 
+### 6a. Generated POCO codecs
+
+`SpawnDev.SpawnJS.Generators` (a Roslyn incremental generator shipped in the package under `analyzers/dotnet/cs`) writes a `JSPocoCodec<T>` for each POCO an assembly sends or reads, registered by a module initializer. A codec reads and sets members directly (an `[UnsafeAccessor]` for a private or protected one), with `[JsonIgnore]` / `[JsonPropertyName]` / `[JsonInclude]` resolved at compile time. Each value still goes through the member type's marshaller, so Javascript receives exactly what the reflection plan sends.
+
+- **Found by use:** the type arguments of every SpawnJS method called and SpawnJS type named, the type of every argument passed to one, and everything reachable through their members, elements and type arguments. Only types declared in the compiling assembly.
+- **Found by attribute:** `[SpawnJSPoco]`, for a type only the running code knows (held in an `object`, an interface or a base class member).
+- **Left to reflection:** anything the generator cannot mirror exactly: generic, abstract, enumerable or dedicated-marshaller types, an `override` or a `new` redeclaration, an indexer, a write-only property. Reads are left to reflection when a member is init-only, `required` or a readonly field, or there is no public parameterless constructor.
+- **The gate:** `Codec.Parity.Names` compares every codec's names and order with `GetTypeJsonProperties`, and `Codec.Parity.Write` compares what Javascript receives from each type, empty and filled, codec against reflection. The whole suite also runs with `?nocodecs` (`SpawnJS.TestRunner --nocodecs`, `JSPocoCodecs.UseGenerated = false`), and must pass both ways.
+
 ### 7. Heap views
 
 `HeapView` / `HeapViewDescriptor` build a JS `TypedArray` or `DataView` over WASM linear memory (copy or persistent). A `byte[]` argument is pinned until its call ends and copied once, by JS. Heap growth detaches `ArrayBuffer`s; the tape re-reads the buffer when it has changed. Persistent views are invalid after a detach.

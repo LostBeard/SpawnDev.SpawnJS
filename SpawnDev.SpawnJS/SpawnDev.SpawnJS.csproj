@@ -45,6 +45,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- The POCO codec generator: runs on this library, and ships in the package so it runs on every consumer -->
+		<ProjectReference Include="..\SpawnDev.SpawnJS.Generators\SpawnDev.SpawnJS.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+		<None Include="..\SpawnDev.SpawnJS.Generators\bin\$(Configuration)\netstandard2.0\SpawnDev.SpawnJS.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- Preserves wrapper .ctor(SpawnJSObjectReference) + accessors under trimming (built via Activator.CreateInstance in SpawnJSObjectMarshaller). Ships in the package so consumers can PublishTrimmed. -->
 		<EmbeddedResource Include="ILLink.Descriptors.xml">
 			<LogicalName>ILLink.Descriptors.xml</LogicalName>

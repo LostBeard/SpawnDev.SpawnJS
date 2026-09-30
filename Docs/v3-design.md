@@ -83,6 +83,6 @@ TJ does not want the interop band-aided. One call is one crossing, with normal e
 1. Core: tape, one JSImport, numbers / strings / refs, call on a held object.
 2. Two-instance test (two .NET runtimes, one page). Bench against the v2 baseline.
 3. Port the marshallers, one at a time, the existing suite green after each.
-4. Generated POCO encoders.
+4. Generated POCO encoders. Done: `SpawnDev.SpawnJS.Generators`, see [architecture.md](architecture.md#6a-generated-poco-codecs). 354 codecs in the suite (327 of them the library's own descriptors). On a trimmed Release build, A/B against the reflection plan: return Dto16 10.0-10.4 -> 6.9-7.1 us, GPUBindGroupDescriptor 11.7-12.6 -> 9.4-10.0 us, Dto16 argument 8.5-10.2 -> 7.2-8.3 us. Still one crossing.
 
 Every step: full suite green (v2 baseline 228/228 as of 2.1.20-local.3), benchmark numbers in the commit message.

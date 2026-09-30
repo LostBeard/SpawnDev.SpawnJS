@@ -75,6 +75,7 @@ namespace SpawnDev.SpawnJS.Marshallers
         public override T? Read(ref JSTapeReader reader)
         {
             var plan = ReadPlan;
+            if (plan is GeneratedReadPlan<T> generated) return generated.Read(ref reader, out var read) ? read : default;
             if (plan is PocoReadPlan<T> typed) return typed.Read(ref reader, out var value) ? value : default;
             // Nullable<TStruct>: read the struct, then unbox it into the nullable
             var boxed = plan.ReadBoxed(ref reader);
@@ -91,14 +92,17 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             if (value == null) { tape.WriteNull(); return; }
             // a plain struct cannot be anything else, and asking would box it
-            if (typeof(T).IsValueType && Nullable.GetUnderlyingType(typeof(T)) == null)
+            if ((typeof(T).IsValueType && Nullable.GetUnderlyingType(typeof(T)) == null) || value.GetType() == typeof(T))
             {
-                (_plan ??= (PocoWritePlan<T>)PocoWritePlan.For(typeof(T))).Write(tape, value);
+                if (JSPocoCodecs.Get<T>() is { } codec)
+                {
+                    tape.WriteObject(codec.Shape);
+                    codec.WriteMembers(tape, value);
+                }
+                else (_plan ??= new PocoWritePlan<T>()).Write(tape, value);
                 return;
             }
-            var type = value.GetType();
-            if (type == typeof(T)) (_plan ??= (PocoWritePlan<T>)PocoWritePlan.For(type)).Write(tape, value);
-            else PocoWritePlan.For(type).WriteBoxed(tape, value);
+            PocoWritePlan.For(value.GetType()).WriteBoxed(tape, value);
         }
 
 

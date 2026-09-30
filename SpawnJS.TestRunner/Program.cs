@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- --url http://...  use an already running dev server
 //   dotnet run --project SpawnJS.TestRunner -- --bench [filter]   run the interop benchmark instead
 //   dotnet run --project SpawnJS.TestRunner -- --twin             two runtimes in one page (TwinTests)
+//   dotnet run --project SpawnJS.TestRunner -- --nocodecs         the suite with every POCO by reflection, not generated codecs
 //   dotnet run --project SpawnJS.TestRunner -- --bench <case> --profile   CPU profile of the run, self time by function
 //
 // Exit code is the number of failed tests, so it is usable as a gate.
@@ -21,6 +22,7 @@ var verbose = false;
 var bench = false;
 var twin = false;
 var profile = false;
+var noCodecs = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -30,11 +32,12 @@ for (var i = 0; i < args.Length; i++)
         case "--bench": bench = true; break;
         case "--twin": twin = true; break;
         case "--profile": profile = true; break;
+        case "--nocodecs": noCodecs = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile] [--nocodecs]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -74,6 +77,8 @@ try
     var target = $"{url.TrimEnd('/')}/?{(bench ? "bench" : "tests")}={Uri.EscapeDataString(filter)}";
     // --twin boots two runtimes of the app into one page and runs TwinTests in each
     if (twin) target = $"{url.TrimEnd('/')}/twin.html";
+    // --nocodecs: the same suite with the generated POCO codecs switched off - both must pass
+    if (noCodecs) target += (target.Contains('?') ? "&" : "?") + "nocodecs";
     return await RunAsync(target, headed, verbose, profile);
 }
 finally

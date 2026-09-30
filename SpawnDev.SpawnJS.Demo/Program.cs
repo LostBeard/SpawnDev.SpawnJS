@@ -17,6 +17,9 @@ JS.Verbose = false;
 using var location = JS.Get<Location>("location")!;
 using var pageUrl = new URL(location.Href);
 using var query = pageUrl.SearchParams;
+// ?nocodecs: every POCO by the reflection plan instead of its generated codec - before any POCO crosses, since
+// a type's read plan is chosen once
+if (query.Get("nocodecs") != null) JSPocoCodecs.UseGenerated = false;
 // ?bench=[filter] runs the interop benchmark instead of the suite
 var benchFilter = query.Get("bench");
 if (benchFilter != null)

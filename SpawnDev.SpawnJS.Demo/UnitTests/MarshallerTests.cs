@@ -28,7 +28,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
     /// value first (see spawnjs-tests.js) so the read is fed a genuine Javascript value.
     /// </para>
     /// </summary>
-    public static class MarshallerTests
+    public static partial class MarshallerTests
     {
         static SpawnJSRuntime JS => SpawnJSRuntime.Instance;
         const string K = "__mt";
@@ -199,6 +199,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             RuntimeTypedMemberTests();
             TapeTests();
             JsonIgnoreTests();
+            CodecTests();
             await ReadTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();

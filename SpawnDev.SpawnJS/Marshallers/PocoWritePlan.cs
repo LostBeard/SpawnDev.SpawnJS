@@ -27,8 +27,28 @@ namespace SpawnDev.SpawnJS.Marshallers
         [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Closes SpawnJS's own plan over a POCO type; a consumer marshalling a POCO in a trimmed app preserves its accessors, the same contract v2's reflection walk had.")]
         [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "See IL2070.")]
         [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The same runtime-Type instantiation v2's walk made through InvokeGeneric.")]
-        public static PocoWritePlan For(Type type) => _plans.GetOrAdd(type,
-            t => (PocoWritePlan)Activator.CreateInstance(typeof(PocoWritePlan<>).MakeGenericType(t))!);
+        public static PocoWritePlan For(Type type) => _plans.GetOrAdd(type, t => JSPocoCodecs.Get(t) is { } codec
+            ? (PocoWritePlan)Activator.CreateInstance(typeof(GeneratedWritePlan<>).MakeGenericType(t), codec)!
+            : (PocoWritePlan)Activator.CreateInstance(typeof(PocoWritePlan<>).MakeGenericType(t))!);
+    }
+
+    /// <summary>A type written by its generated <see cref="JSPocoCodec{T}"/>.</summary>
+    internal sealed class GeneratedWritePlan<TObj> : PocoWritePlan
+    {
+        readonly JSPocoCodec<TObj> _codec;
+        PocoWritePlan<TObj>? _reflection;
+        public GeneratedWritePlan(JSPocoCodec<TObj> codec) => _codec = codec;
+        public override void WriteBoxed(JSTape tape, object value)
+        {
+            // this plan is cached per type; the switch is honoured per write, as PocoMarshaller.Write honours it
+            if (!JSPocoCodecs.UseGenerated)
+            {
+                (_reflection ??= new PocoWritePlan<TObj>()).Write(tape, (TObj)value);
+                return;
+            }
+            tape.WriteObject(_codec.Shape);
+            _codec.WriteMembers(tape, (TObj)value);
+        }
     }
 
     internal sealed class PocoWritePlan<TObj> : PocoWritePlan
