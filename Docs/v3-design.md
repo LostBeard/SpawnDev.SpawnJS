@@ -53,7 +53,7 @@ what v2's ObjectMarshaller returns today.
 
 **The value decides on write.** A member or argument declared `object`, `object[]`, an interface or an
 abstract base is written by its RUNTIME type. The declared type only matters for reads. Guarded by the
-`RuntimeTyped.*` tests; v2 fails two of them (custom interface, abstract base).
+`RuntimeTyped.*` tests (16). v2 failed two of them (custom interface, abstract base) until 2.1.20-local.3.
 
 **Per instance, always.** Tape address, shape cache, string table: on the `instanceInfo` that
 `_registerInstance` creates, keyed by `dotnetId`. The only page global is the `SpawnJSInterop` class itself.
@@ -79,4 +79,4 @@ TJ does not want the interop band-aided. One call is one crossing, with normal e
 3. Port the marshallers, one at a time, the existing suite green after each.
 4. Generated POCO encoders.
 
-Every step: full suite green (v2 baseline 212/212 plus the new cases), benchmark numbers in the commit message.
+Every step: full suite green (v2 baseline 228/228 as of 2.1.20-local.3), benchmark numbers in the commit message.
