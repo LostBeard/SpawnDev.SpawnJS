@@ -5,7 +5,8 @@ namespace SpawnDev.SpawnJS
     /// <para>
     /// A POCO this assembly passes to or reads from SpawnJS - as a type argument, an argument, or a member of one - is
     /// found without it. Mark the types only the running code knows about: one held in an <c>object</c>, an interface
-    /// or a base class member, or passed through an <c>object[]</c>. A type the generator cannot mirror exactly keeps
+    /// or a base class member, or passed through an <c>object[]</c> - and the types used only in <c>.razor</c> markup,
+    /// which Razor's own source generator compiles out of this one's sight. A type the generator cannot mirror exactly keeps
     /// the reflection plan either way.
     /// </para>
     /// </summary>
