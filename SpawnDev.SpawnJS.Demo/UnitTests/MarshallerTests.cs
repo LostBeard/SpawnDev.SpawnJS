@@ -297,6 +297,9 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Vec2))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Texture))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUCopyExternalImageSourceInfo))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUCopyExternalImageDestInfo))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUSamplerBindingLayout))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUExternalTextureDescriptor))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pbkdf2Params))]
         static void PocoMarshallerTests()
         {
@@ -367,6 +370,27 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 var back = raw.Get<byte[]>("salt");
                 Assert(back != null && back.SequenceEqual(salt), "salt bytes differ after the crossing");
                 AssertEqual(raw.Get<int>("iterations"), 1000, "iterations");
+            });
+
+            // Optional WebGPU dictionary members with a spec default must be OMITTED when unset: an explicit null is not
+            // the default, it is an invalid enum value. GPUCopyExternalImageDestInfo.colorSpace = null made every
+            // copyExternalImageToTexture throw (found in Anaglyphohol's video ingest).
+            Test("PocoMarshaller.WebGPUOptionalEnumMembersOmittedWhenUnset", () =>
+            {
+                JS.Set(K, new GPUCopyExternalImageDestInfo());
+                using (var raw = JS.Get(K)!) Assert(!raw.Has("colorSpace"), "unset colorSpace was written (as null)");
+                JS.Set(K, new GPUCopyExternalImageDestInfo { ColorSpace = PredefinedColorSpace.DisplayP3 });
+                using (var raw = JS.Get(K)!) AssertEqual(raw.Get<string>("colorSpace"), "display-p3", "colorSpace crosses as its WebGPU string");
+                JS.Set(K, new GPUSamplerBindingLayout());
+                using (var raw = JS.Get(K)!) Assert(!raw.Has("type"), "unset sampler type was written (as null)");
+                JS.Set(K, new GPUCopyExternalImageDestInfo { ColorSpace = PredefinedColorSpace.Srgb });
+                using (var raw = JS.Get(K)!) AssertEqual(raw.Get<string>("colorSpace"), "srgb", "srgb crosses as a string");
+                using (var video = new HTMLVideoElement())
+                {
+                    JS.Set(K, new GPUExternalTextureDescriptor { Source = video, ColorSpace = PredefinedColorSpace.DisplayP3 });
+                    using var raw = JS.Get(K)!;
+                    AssertEqual(raw.Get<string>("colorSpace"), "display-p3", "GPUExternalTextureDescriptor.colorSpace must be marshalled (was a field)");
+                }
             });
 
             Test("PocoMarshaller.InFromJavascriptObject", () =>

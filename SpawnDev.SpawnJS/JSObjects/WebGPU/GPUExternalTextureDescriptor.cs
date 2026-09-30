@@ -1,3 +1,4 @@
+﻿using System.Text.Json.Serialization;
 
 using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.JSObjects;
@@ -16,6 +17,9 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// The color space the image contents of source will be converted into when reading.
         /// </summary>
-        public PredefinedColorSpace ColorSpace = PredefinedColorSpace.Srgb;
+        /// <remarks>Was a public FIELD (never marshalled - the POCO walk reads properties) holding a bare enum (which
+        /// would have crossed as a number). Optional; the spec default is "srgb", so unset is omitted.</remarks>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public EnumString<PredefinedColorSpace>? ColorSpace { get; set; }
     }
 }

@@ -5,6 +5,12 @@ All notable changes to SpawnDev.SpawnJS.
 ## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.1)
 
 ### Fixed
+- **WebGPU optional enum members crossed as `null` or as numbers.** `GPUCopyExternalImageDestInfo.ColorSpace`
+  (`PredefinedColorSpace?`, no WhenWritingNull) sent `colorSpace: null`, so EVERY `copyExternalImageToTexture` threw
+  "not a valid enum value of type PredefinedColorSpace"; when set it crossed as a NUMBER (bare enums marshal as
+  numbers). Now `EnumString<PredefinedColorSpace>?`, omitted when unset. `GPUExternalTextureDescriptor.ColorSpace` was
+  a public FIELD (never marshalled) - now an omitted-when-unset `EnumString` property. `GPUSamplerBindingLayout.Type`
+  (spec default "filtering") is omitted when unset instead of sent as null.
 - **A POCO passed where its BASE type is declared lost its derived members.** Typed calls marshal by the declared
   parameter type, so `SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...)` given a `Pbkdf2Params` wrote only
   `{ name }` and `deriveKey` threw `Pbkdf2Params: salt: Missing required property` - every PBKDF2 key derivation (and
@@ -15,6 +21,7 @@ All notable changes to SpawnDev.SpawnJS.
   `[Obsolete]` alias that forwards to `FlipY` and is not serialized. Same fix in SpawnDev.BlazorJS.
 
 ### Tests
+- `PocoMarshaller.WebGPUOptionalEnumMembersOmittedWhenUnset` (red-checked: fails "unset colorSpace was written").
 - `PocoMarshaller.DerivedValueThroughBaseDeclaredType` + `PocoMarshaller.SubtleCryptoDeriveKeyPbkdf2` (a real
   PBKDF2 -> AES-GCM deriveKey). Red-checked against the old marshaller: both fail with the exact browser error.
   Full suite 211/211.
