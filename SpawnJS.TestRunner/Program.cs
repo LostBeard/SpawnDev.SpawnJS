@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- --headed          watch it in a real browser window
 //   dotnet run --project SpawnJS.TestRunner -- --url http://...  use an already running dev server
 //   dotnet run --project SpawnJS.TestRunner -- --bench [filter]   run the interop benchmark instead
+//   dotnet run --project SpawnJS.TestRunner -- --twin             two runtimes in one page (TwinTests)
 //
 // Exit code is the number of failed tests, so it is usable as a gate.
 
@@ -17,6 +18,7 @@ var headed = false;
 var externalUrl = "";
 var verbose = false;
 var bench = false;
+var twin = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -24,11 +26,12 @@ for (var i = 0; i < args.Length; i++)
         case "--headed": headed = true; break;
         case "--verbose": verbose = true; break;
         case "--bench": bench = true; break;
+        case "--twin": twin = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -66,6 +69,8 @@ try
     // dependent on that. The app runs everything when the value is empty.
     // --bench runs the interop benchmark (?bench=) instead of the suite; same TEST:/RESULTS: contract
     var target = $"{url.TrimEnd('/')}/?{(bench ? "bench" : "tests")}={Uri.EscapeDataString(filter)}";
+    // --twin boots two runtimes of the app into one page and runs TwinTests in each
+    if (twin) target = $"{url.TrimEnd('/')}/twin.html";
     return await RunAsync(target, headed, verbose);
 }
 finally
@@ -142,6 +147,8 @@ static async Task<int> RunAsync(string url, bool headed, bool verbose)
         }
     };
     page.PageError += (_, err) => Console.WriteLine($"  [pageerror] {err}");
+    // a console "Failed to load resource" line does not say WHICH resource
+    page.Response += (_, response) => { if (verbose && response.Status >= 400) Console.WriteLine($"  [http {response.Status}] {response.Url}"); };
 
     Console.WriteLine($"running {url}");
     // Navigate only until the document is parsed - NOT network-idle. A test that holds a long-lived

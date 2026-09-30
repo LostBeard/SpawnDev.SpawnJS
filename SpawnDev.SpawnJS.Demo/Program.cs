@@ -2,6 +2,13 @@
 using SpawnDev.SpawnJS.Demo.UnitTests;
 using SpawnDev.SpawnJS.JSObjects;
 
+// twin.html boots two runtimes of this app into one page, each with ("twin", name)
+if (args.Length >= 2 && args[0] == "twin")
+{
+    await TwinTests.Run(args[1]);
+    return;
+}
+
 var JS = SpawnJSRuntime.Instance;
 JS.Verbose = false;
 

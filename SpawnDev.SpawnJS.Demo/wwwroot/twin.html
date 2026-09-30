@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SpawnDev.SpawnJS.Demo - two runtimes</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Two independent .Net runtimes of this app in ONE page (see twin.js). SpawnJS.TestRunner --twin opens it. -->
+    <script src="spawnjs-tests#[.{fingerprint}].js"></script>
+    <script>
+        // test fixture: hands a call to the OTHER runtime's callback, so a call can bounce A -> B -> A -> B
+        globalThis.__twinBounce = (target, s, depth) => globalThis['__twinCallback_' + target](s, depth);
+        // test fixture: are there really two runtimes, each with its own WebAssembly memory?
+        globalThis.__twinSeparate = () => {
+            const infos = Object.values(globalThis.SpawnJSInterop._instances);
+            return `${infos.length} instances, ${new Set(infos.map(i => i.dotnetId)).size} ids, ${new Set(infos.map(i => i.getHeap())).size} heaps`;
+        };
+    </script>
+    <script type="importmap"></script>
+    <script type='module' src="twin#[.{fingerprint}].js"></script>
+</head>
+<body>
+</body>
+</html>
