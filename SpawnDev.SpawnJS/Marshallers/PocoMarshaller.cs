@@ -9,11 +9,11 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// marshalled through the normal marshaller graph. Respects the System.Text.Json attributes
     /// <c>[JsonPropertyName]</c> (member name) and <c>[JsonIgnore]</c> (Always / WhenWritingNull /
     /// WhenWritingDefault), plus <c>[JsonInclude]</c> for non-public members and for fields, via
-    /// <see cref="ClassMemberJsonInfo"/> / <see cref="TypeExtensions.GetTypeJsonProperties"/>.
+    /// <see cref="ClassMemberJsonInfo"/> / <c>TypeExtensions.GetTypeJsonProperties</c>.
     /// <para>
     /// Structs are handled here rather than by a separate marshaller because they differ in exactly one
-    /// place: the read has to build into a boxed instance, since SetValue boxes its target (see
-    /// <see cref="JSToNet"/>). Everything else - the member walk, the Json attribute handling, the
+    /// place: a struct is read through by-ref setters (see <see cref="PocoReadPlan"/>). Everything else - the member walk,
+    /// the Json attribute handling, the
     /// per-member marshaller resolution and its cache - is identical, and a second near-copy of it would
     /// be free to drift out of step with this one.
     /// <c>Nullable&lt;TStruct&gt;</c> marshals as the underlying struct, or as JS null.

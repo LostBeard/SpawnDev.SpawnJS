@@ -11,7 +11,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// per runtime instead of with every object - and one typed writer per member. Built once per type per runtime.
     /// <para>
     /// The members, their names, their order and their [JsonIgnore] rules are exactly what v2's property walk used
-    /// (<see cref="TypeExtensions.GetTypeJsonProperties"/>). What changes is the reading: a property getter becomes a
+    /// (<c>TypeExtensions.GetTypeJsonProperties</c>). What changes is the reading: a property getter becomes a
     /// typed delegate, so a member is read without a reflection invoke and without boxing, and its value goes through
     /// a <see cref="ValueWriter{T}"/> - the declared type's marshaller when that type fixes the runtime type, what the
     /// value IS otherwise.

@@ -76,7 +76,6 @@ namespace SpawnDev.SpawnJS.Marshaller
         /// cheap in isolation but ran once per member per marshal and measured 2.86us of the 20.2us cost of
         /// marshalling a five member descriptor - more than the reflection reads in the same walk.
         /// </summary>
-        internal JSMarshaller? CachedMarshaller;
 
         static Type UnwrapNullable(Type type) => Nullable.GetUnderlyingType(type) ?? type;
 

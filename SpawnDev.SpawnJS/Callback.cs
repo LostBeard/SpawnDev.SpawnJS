@@ -75,15 +75,12 @@ namespace SpawnDev.SpawnJS
             _callbacks.TryAdd(Id, this);
         }
         /// <summary>
-        /// The method inheriting classes must provide
+        /// The method inheriting classes must provide. Invokes the handler. Every argument Javascript passed is already in .Net memory, written by
+        /// <see cref="ArgumentSchemas"/>: read them in order with <see cref="ReadArg{T}"/>.
         /// </summary>
-        /// <param name="args"></param>
-        /// <param name="argsCount"></param>
-        /// <summary>
-        /// Invokes the handler. Every argument Javascript passed is already in .Net memory, written by
-        /// <see cref="ArgumentSchemas"/>: read them in order with <see cref="ReadArg{T}"/>. <paramref name="args"/> is the
-        /// Javascript arguments array, where a return value is written (at index <paramref name="argsCount"/>).
-        /// </summary>
+        /// <param name="reader">The arguments, in order</param>
+        /// <param name="args">The Javascript arguments array, where a return value is written (at index argsCount)</param>
+        /// <param name="argsCount">How many arguments Javascript passed</param>
         protected abstract void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount);
         /// <summary>The .Net types of the arguments, in order. Javascript writes each by its type's schema.</summary>
         protected virtual Type[] ArgumentTypes => Type.EmptyTypes;
@@ -102,9 +99,6 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Recieved the notifications call from Javascript when a Callabck has been called
         /// </summary>
-        /// <param name="callbackId">The callback being called</param>
-        /// <param name="argsId">The incoming AND outgoing buffer</param>
-        /// <param name="argsCount">The in argument count</param>
         /// <param name="callbackId">The callback being called</param>
         /// <param name="argsId">The Javascript arguments array; a return value is written to it</param>
         /// <param name="argsCount">How many arguments Javascript passed</param>

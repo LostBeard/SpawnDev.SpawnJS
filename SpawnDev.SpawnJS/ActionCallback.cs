@@ -25,6 +25,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -56,6 +57,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -87,6 +89,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -119,6 +122,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -152,6 +156,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -186,6 +191,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -221,6 +227,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -257,6 +264,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -294,6 +302,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -332,6 +341,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)
@@ -371,6 +381,7 @@ namespace SpawnDev.SpawnJS
         /// argsis the incoming data AND where the outgoing result will be written (at index 0)
         /// argsdoes not have to be disposed. it is auto removed from the hold after the call ends
         /// </summary>
+        /// <param name="reader">The arguments Javascript wrote into .Net memory, read in order</param>
         /// <param name="args">The incoming AND outgoing buffer. Auto-released after the call</param>
         /// <param name="argsCount">The number of arguments in the args array</param>
         protected override void HandleCallback(ref JSTapeReader reader, SpawnJSObjectReference args, double argsCount)

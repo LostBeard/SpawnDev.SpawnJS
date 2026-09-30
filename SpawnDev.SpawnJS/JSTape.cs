@@ -435,7 +435,7 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>
-        /// Writes the definitions Javascript needs to write the result back by <paramref name="schema"/> - after the
+        /// Writes the definitions Javascript needs to write the result back by <c>schema</c> - after the
         /// arguments, since it only needs them once the call has run. A schema this runtime has confirmed, or this frame
         /// already carries, is not written again; a schema that contains itself stops there.
         /// </summary>

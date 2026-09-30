@@ -72,6 +72,7 @@ namespace SpawnDev.SpawnJS.Marshaller
         public static readonly SpanWriter? Write = Create();
 
         [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Closes SpawnJS's own method over a primitive number type.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2091", Justification = "T is checked above to be a primitive number type; a primitive's parameterless constructor is never trimmed.")]
         [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Primitive number types only.")]
         static SpanWriter? Create()
         {

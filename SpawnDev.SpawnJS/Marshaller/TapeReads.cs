@@ -16,7 +16,7 @@ namespace SpawnDev.SpawnJS.Marshaller
                 : JSSchema.Array(element);
 
         /// <summary>
-        /// Reads <paramref name="count"/> elements (after <see cref="JSTapeReader.ReadCount"/>) straight into
+        /// Reads <c>destination.Length</c> elements (after <see cref="JSTapeReader.ReadCount"/>) straight into
         /// <paramref name="destination"/> - an array's or a list's own memory.
         /// </summary>
         public static void ReadElements<T>(ref JSTapeReader reader, JSSchema schema, JSMarshaller<T> element, Span<T> destination)

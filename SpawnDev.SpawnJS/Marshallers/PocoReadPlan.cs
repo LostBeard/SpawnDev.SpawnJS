@@ -9,7 +9,7 @@ namespace SpawnDev.SpawnJS.Marshallers
     /// How a POCO type is read from the tape: an Object <see cref="JSSchema"/> - Javascript writes every member in the
     /// call's one crossing - and one typed setter per member. Built once per type per runtime.
     /// <para>
-    /// Same members, names and types as v2's read (<see cref="TypeExtensions.GetTypeJsonProperties"/>, each member read
+    /// Same members, names and types as v2's read (<c>TypeExtensions.GetTypeJsonProperties</c>, each member read
     /// by its DECLARED type's marshaller), and the same rule that a member read as null is not set, so it keeps its
     /// initializer. One deliberate difference: a property with no setter is left out. v2 tried to set it and threw.
     /// </para>
@@ -65,6 +65,8 @@ namespace SpawnDev.SpawnJS.Marshallers
 
         [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "See PocoReadPlan.For.")]
         [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "See PocoReadPlan.For.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2076",
+            Justification = "A member's type comes from reflection (PropertyType), which cannot carry DynamicallyAccessedMembers - the same boundary as v2's per-member Get<TMember>. Built-in wrapper constructors are preserved by the embedded ILLink.Descriptors.xml; a consumer POCO member of a custom wrapper type in a trimmed app must preserve that type's constructor itself.")]
         [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "See PocoReadPlan.For.")]
         protected override void ResolveMembers()
         {
@@ -80,7 +82,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             _members = members;
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "PocoMarshaller<T> carries PublicConstructors for T; this is the same type.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2087", Justification = "TObj is PocoMarshaller<T>'s T (or its Nullable underlying struct), which carries PublicConstructors; the plan is closed over it by reflection, so the annotation cannot flow here.")]
         public bool Read(ref JSTapeReader reader, out TObj value)
         {
             if (!reader.ReadObjectStart())
