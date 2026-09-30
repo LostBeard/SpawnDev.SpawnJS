@@ -139,7 +139,8 @@
         // JSImport
         // int _spawnJSInteropCall(double dotnetId, double address, int length, int capacity);
         static _spawnJSInteropCall(dotnetId, address, length, capacity) {
-            SpawnJSInterop.detachedEventCheck();
+            // no detachedEventCheck(): _tapeViews checks this instance's heap, and walking every OTHER instance on
+            // every call was redundant - each is checked on its own calls and by the 500 ms timer
             var instance = SpawnJSInterop.getInstace(dotnetId);
             var call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
             var ret = call.target(...call.args);
@@ -164,7 +165,6 @@
         // JSImport
         // void _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
         static async _spawnJSInteropCallAsync(dotnetId, asyncCallId, address, length) {
-            SpawnJSInterop.detachedEventCheck();
             var instance = SpawnJSInterop.getInstace(dotnetId);
             var returnType = SpawnJSInterop._tapeViews(instance, address + length).f64[(address >>> 3) + 1];
             var error = null;
@@ -1112,21 +1112,21 @@
             }
             return keys;
         }
-        static reviveValue(key, initialValue, directCall) {
-            // Pipe the value through each reviver sequentially
-            return SpawnJSInterop._revivers.reduce((currentValue, currentReviver) => {
-                // Short-circuit: if a previous reviver dropped the value, skip the rest
-                if (currentValue === undefined) return undefined;
-                return currentReviver(key, currentValue, directCall); // the true tells the reviver this is a call revive as opposed to a propertySet revive
-            }, initialValue);
+        // Pipe the value through each reviver sequentially; a reviver that drops the value (undefined) skips the rest.
+        // A plain loop: this runs for every argument of every call, and reduce() allocated a closure each time.
+        static reviveValue(key, value, directCall) {
+            var revivers = SpawnJSInterop._revivers;
+            for (var i = 0; i < revivers.length && value !== undefined; i++) {
+                value = revivers[i](key, value, directCall); // directCall tells the reviver this is a call revive as opposed to a propertySet revive
+            }
+            return value;
         }
-        static replaceValue(key, initialValue, directCall) {
-            // Pipe the value through each reviver sequentially
-            return SpawnJSInterop._replacers.reduce((currentValue, currentReplacer) => {
-                // Short-circuit: if a previous reviver dropped the value, skip the rest
-                if (currentValue === undefined) return undefined;
-                return currentReplacer(key, currentValue, directCall); // the true tells the reviver this is a call revive as opposed to a propertySet revive
-            }, initialValue);
+        static replaceValue(key, value, directCall) {
+            var replacers = SpawnJSInterop._replacers;
+            for (var i = 0; i < replacers.length && value !== undefined; i++) {
+                value = replacers[i](key, value, directCall);
+            }
+            return value;
         }
         // returns the types the object inherits from
         // returns string[]

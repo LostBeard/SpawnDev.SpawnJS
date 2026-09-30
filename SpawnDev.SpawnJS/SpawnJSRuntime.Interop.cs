@@ -7,8 +7,13 @@ namespace SpawnDev.SpawnJS
 {
     public partial class SpawnJSRuntime
     {
-        // Per-type marshaller cache. Populated by GetMarshaller so a resolved marshaller can be reused.
-        ConcurrentDictionary<Type, JSMarshaller> _typeMarshallerCache = new ConcurrentDictionary<Type, JSMarshaller>();
+        // The resolved marshaller for T. Statics are per .Net runtime and SpawnJSRuntime is that runtime's singleton,
+        // so this is per instance. A slot read is ~4 ns interpreted; the dictionary it replaced was ~170 ns, paid for
+        // every argument and every return of every call.
+        static class MarshallerSlot<T>
+        {
+            public static JSMarshaller<T>? Value;
+        }
         public JSMarshaller GetMarshaller(Type type)
         {
             return (JSMarshaller)((Delegate)GetMarshaller<object>).InvokeGeneric(type)!;
@@ -21,12 +26,8 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         public JSMarshaller<TType> GetMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TType>()
         {
+            if (MarshallerSlot<TType>.Value is { } cached) return cached;
             var type = typeof(TType);
-            //var selectionType = Nullable.GetUnderlyingType(type) ?? type;
-            if (_typeMarshallerCache.TryGetValue(type, out var cachedMarshaller))
-            {
-                return (JSMarshaller<TType>)cachedMarshaller;
-            }
             JSMarshaller<TType>? marshaller = null;
             var length = Marshallers.Count;
             for (var i = length - 1; i >= 0; i--)
@@ -39,7 +40,7 @@ namespace SpawnDev.SpawnJS
                 var typeMarshaller = candidate.GetMarshaller<TType>();
                 if (typeMarshaller == null) continue;
                 marshaller = typeMarshaller;
-                _typeMarshallerCache.TryAdd(type, typeMarshaller);
+                MarshallerSlot<TType>.Value = typeMarshaller;
                 break;
             }
             if (marshaller == null) throw new Exception($"GetMarshaller failed: {type?.GetCSharpName()}");
@@ -82,9 +83,9 @@ namespace SpawnDev.SpawnJS
             }
         }
         string[] _interopMethods = System.Array.Empty<string>();
-        // name -> index, rebuilt with the map. A linear search of the names used to run on every call.
+        // name -> index, rebuilt with the map. Consulted once per method (InteropMethod.IndexIn), never per call.
         Dictionary<string, int> _interopMethodIndexes = new Dictionary<string, int>();
-        int InteropMethodIndex(string methodName)
+        internal int InteropMethodIndex(string methodName)
         {
             if (_interopMethodIndexes.TryGetValue(methodName, out var index)) return index;
             throw new Exception($"Unknown SpawnJSInterop method. Index not found: {_interopMethods.Length} {methodName}");
@@ -104,15 +105,15 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Call any SpawnJSInterop static method that returns nothing (void).
         /// </summary>
-        internal void InteropCallApplyVoid(string methodName, object?[]? args = null) => InteropCallApply<VoidType>(methodName, args);
+        internal void InteropCallApplyVoid(InteropMethod method, object?[]? args = null) => InteropCallApply<VoidType>(method, args);
         /// <summary>
         /// Calls a SpawnJSInterop static method synchronously with arguments whose types are only known at run
         /// time, reading the result back as <typeparamref name="T"/>.
         /// </summary>
-        internal T InteropCallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, object?[]? args = null)
+        internal T InteropCallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, object?[]? args = null)
         {
             var argCount = args?.Length ?? 0;
-            Tape.BeginCall(InteropMethodIndex(methodName), argCount);
+            Tape.BeginCall(method.IndexIn(this), argCount);
             try
             {
                 for (var i = 0; i < argCount; i++) WriteRuntimeTyped(args![i]);
@@ -201,10 +202,10 @@ namespace SpawnDev.SpawnJS
         /// <summary>
         /// Calls a SpawnJSInterop static method asynchronously with arguments whose types are only known at run time.
         /// </summary>
-        internal Task<T> InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, object?[]? args = null)
+        internal Task<T> InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, object?[]? args = null)
         {
             var argCount = args?.Length ?? 0;
-            Tape.BeginCall(InteropMethodIndex(methodName), argCount);
+            Tape.BeginCall(method.IndexIn(this), argCount);
             try
             {
                 for (var i = 0; i < argCount; i++) WriteRuntimeTyped(args![i]);
@@ -340,14 +341,14 @@ namespace SpawnDev.SpawnJS
         #region Typed InteropCall
         // InteropCall methods write each argument through its compile-time type's marshaller, so there is no
         // runtime Type bridge at all. The method is named by index, never by string.
-        internal T InteropCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName)
+        internal T InteropCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 0);
+            Tape.BeginCall(method.IndexIn(this), 0);
             return EndCall<T>();
         }
-        internal T InteropCall<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1)
+        internal T InteropCall<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 1);
+            Tape.BeginCall(method.IndexIn(this), 1);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -355,9 +356,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2)
+        internal T InteropCall<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 2);
+            Tape.BeginCall(method.IndexIn(this), 2);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -366,9 +367,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3)
+        internal T InteropCall<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 3);
+            Tape.BeginCall(method.IndexIn(this), 3);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -378,9 +379,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        internal T InteropCall<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 4);
+            Tape.BeginCall(method.IndexIn(this), 4);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -391,9 +392,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+        internal T InteropCall<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 5);
+            Tape.BeginCall(method.IndexIn(this), 5);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -405,9 +406,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 6);
+            Tape.BeginCall(method.IndexIn(this), 6);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -420,9 +421,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 7);
+            Tape.BeginCall(method.IndexIn(this), 7);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -436,9 +437,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 8);
+            Tape.BeginCall(method.IndexIn(this), 8);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -453,9 +454,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 9);
+            Tape.BeginCall(method.IndexIn(this), 9);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -471,9 +472,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 10);
+            Tape.BeginCall(method.IndexIn(this), 10);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -490,9 +491,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 11);
+            Tape.BeginCall(method.IndexIn(this), 11);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -510,9 +511,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCall<T>();
         }
-        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
+        internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 12);
+            Tape.BeginCall(method.IndexIn(this), 12);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -534,14 +535,14 @@ namespace SpawnDev.SpawnJS
         #endregion
 
         #region Typed InteropCallAsync
-        internal Task<T> InteropCallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName)
+        internal Task<T> InteropCallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 0);
+            Tape.BeginCall(method.IndexIn(this), 0);
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1)
+        internal Task<T> InteropCallAsync<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 1);
+            Tape.BeginCall(method.IndexIn(this), 1);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -549,9 +550,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2)
+        internal Task<T> InteropCallAsync<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 2);
+            Tape.BeginCall(method.IndexIn(this), 2);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -560,9 +561,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3)
+        internal Task<T> InteropCallAsync<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 3);
+            Tape.BeginCall(method.IndexIn(this), 3);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -572,9 +573,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 4);
+            Tape.BeginCall(method.IndexIn(this), 4);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -585,9 +586,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 5);
+            Tape.BeginCall(method.IndexIn(this), 5);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -599,9 +600,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 6);
+            Tape.BeginCall(method.IndexIn(this), 6);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -614,9 +615,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 7);
+            Tape.BeginCall(method.IndexIn(this), 7);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -630,9 +631,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 8);
+            Tape.BeginCall(method.IndexIn(this), 8);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -647,9 +648,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 9);
+            Tape.BeginCall(method.IndexIn(this), 9);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -665,9 +666,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 10);
+            Tape.BeginCall(method.IndexIn(this), 10);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -684,9 +685,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 11);
+            Tape.BeginCall(method.IndexIn(this), 11);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);
@@ -704,9 +705,9 @@ namespace SpawnDev.SpawnJS
             catch { Tape.EndCall(); throw; }
             return EndCallAsync<T>();
         }
-        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
+        internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(InteropMethod method, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            Tape.BeginCall(InteropMethodIndex(methodName), 12);
+            Tape.BeginCall(method.IndexIn(this), 12);
             try
             {
                 GetMarshallerForWrite<T1>().Write(Tape, arg1);

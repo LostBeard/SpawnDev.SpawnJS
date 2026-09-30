@@ -42,16 +42,16 @@ namespace SpawnDev.SpawnJS.Marshallers
                 if (value.IsCompletedSuccessfully)
                 {
                     var returnValue = value.Result;
-                    JS.InteropCall<double, int, T, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey, returnValue);
+                    JS.InteropCall<double, int, T, VoidType>(InteropMethod.PropertySetResolvedPromise, jsParent.Id, jsKey, returnValue);
                 }
                 else
                 {
                     var error = value.Exception?.ToString() ?? "Unknown error";
-                    JS.InteropCall<double, int, string, VoidType>("propertySetRejectedPromise", jsParent.Id, jsKey, error);
+                    JS.InteropCall<double, int, string, VoidType>(InteropMethod.PropertySetRejectedPromise, jsParent.Id, jsKey, error);
                 }
                 return;
             }
-            var promise = JS.InteropCall<double, int, SpawnJSObjectReference>("propertySetNewPromise", jsParent.Id, jsKey);
+            var promise = JS.InteropCall<double, int, SpawnJSObjectReference>(InteropMethod.PropertySetNewPromise, jsParent.Id, jsKey);
             value.ContinueWith((t) =>
             {
                 using (promise)
@@ -83,16 +83,16 @@ namespace SpawnDev.SpawnJS.Marshallers
                     // the RESULT has to go with it - resolving with nothing hands Javascript a promise
                     // for undefined, which looks like a working promise and loses the value silently
                     var returnValue = value.Result;
-                    JS.InteropCall<double, string, T, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey, returnValue);
+                    JS.InteropCall<double, string, T, VoidType>(InteropMethod.PropertySetResolvedPromise, jsParent.Id, jsKey, returnValue);
                 }
                 else
                 {
                     var error = value.Exception?.ToString() ?? "Unknown error";
-                    JS.InteropCall<double, string, string, VoidType>("propertySetRejectedPromise", jsParent.Id, jsKey, error);
+                    JS.InteropCall<double, string, string, VoidType>(InteropMethod.PropertySetRejectedPromise, jsParent.Id, jsKey, error);
                 }
                 return;
             }
-            var promise = JS.InteropCall<double, string, SpawnJSObjectReference>("propertySetNewPromise", jsParent.Id, jsKey);
+            var promise = JS.InteropCall<double, string, SpawnJSObjectReference>(InteropMethod.PropertySetNewPromise, jsParent.Id, jsKey);
             value.ContinueWith((t) =>
             {
                 using (promise)
@@ -167,16 +167,16 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 if (value.IsCompletedSuccessfully)
                 {
-                    JS.InteropCall<double, int, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey);
+                    JS.InteropCall<double, int, VoidType>(InteropMethod.PropertySetResolvedPromise, jsParent.Id, jsKey);
                 }
                 else
                 {
                     var error = value.Exception?.ToString() ?? "Unknown error";
-                    JS.InteropCall<double, int, string, VoidType>("propertySetRejectedPromise", jsParent.Id, jsKey, error);
+                    JS.InteropCall<double, int, string, VoidType>(InteropMethod.PropertySetRejectedPromise, jsParent.Id, jsKey, error);
                 }
                 return;
             }
-            var promise = JS.InteropCall<double, int, SpawnJSObjectReference>("propertySetNewPromise", jsParent.Id, jsKey);
+            var promise = JS.InteropCall<double, int, SpawnJSObjectReference>(InteropMethod.PropertySetNewPromise, jsParent.Id, jsKey);
             value.ContinueWith((t) =>
             {
                 using (promise)
@@ -204,16 +204,16 @@ namespace SpawnDev.SpawnJS.Marshallers
             {
                 if (value.IsCompletedSuccessfully)
                 {
-                    JS.InteropCall<double, string, VoidType>("propertySetResolvedPromise", jsParent.Id, jsKey);
+                    JS.InteropCall<double, string, VoidType>(InteropMethod.PropertySetResolvedPromise, jsParent.Id, jsKey);
                 }
                 else
                 {
                     var error = value.Exception?.ToString() ?? "Unknown error";
-                    JS.InteropCall<double, string, string, VoidType>("propertySetRejectedPromise", jsParent.Id, jsKey, error);
+                    JS.InteropCall<double, string, string, VoidType>(InteropMethod.PropertySetRejectedPromise, jsParent.Id, jsKey, error);
                 }
                 return;
             }
-            var promise = JS.InteropCall<double, string, SpawnJSObjectReference>("propertySetNewPromise", jsParent.Id, jsKey);
+            var promise = JS.InteropCall<double, string, SpawnJSObjectReference>(InteropMethod.PropertySetNewPromise, jsParent.Id, jsKey);
             value.ContinueWith((t) =>
             {
                 using (promise)

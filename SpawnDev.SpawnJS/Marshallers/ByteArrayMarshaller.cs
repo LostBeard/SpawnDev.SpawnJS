@@ -15,7 +15,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 fixed (byte* ptr = ret)
                 {
                     var address = (double)(IntPtr)ptr;
-                    JS.InteropCall<double, SpawnJSObjectReference, double, double, double, VoidType>("writeArrayBufferViewToHeap", JS.DotnetInstance.Id, value, 0, address, byteLength);
+                    JS.InteropCall<double, SpawnJSObjectReference, double, double, double, VoidType>(InteropMethod.WriteArrayBufferViewToHeap, JS.DotnetInstance.Id, value, 0, address, byteLength);
                 }
             }
             return ret;

@@ -307,7 +307,7 @@ namespace SpawnDev.SpawnJS
         /// Get the current heap size
         /// </summary>
         /// <returns></returns>
-        public long GetHeapSize() => InteropCall<double, long>("getHeapSize", DotnetInstance.Id);
+        public long GetHeapSize() => InteropCall<double, long>(InteropMethod.GetHeapSize, DotnetInstance.Id);
         /// <summary>
         /// Force the heap to grow. Useful for debugging heap growth issues.
         /// </summary>
@@ -348,7 +348,7 @@ namespace SpawnDev.SpawnJS
         /// <typeparam name="T">The type to return value as</typeparam>
         /// <typeparam name="T1">The value</typeparam>
         /// <returns>value as type T</returns>
-        public T ReturnAs<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T1 value) => InteropCall<T1, T>("returnMe", value);
+        public T ReturnAs<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(T1 value) => InteropCall<T1, T>(InteropMethod.ReturnMe, value);
         /// <summary>
         /// Returns value as type
         /// </summary>
@@ -360,7 +360,7 @@ namespace SpawnDev.SpawnJS
         /// Compares two values using Javascript equality.<br/>
         /// full == true uses strict equality (===), otherwise loose equality (==)
         /// </summary>
-        public bool ObjectEquals<T1, T2>(T1 obj1, T2 obj2, bool full = false) => InteropCall<T1, T2, bool, bool>("objectEquals", obj1, obj2, full);
+        public bool ObjectEquals<T1, T2>(T1 obj1, T2 obj2, bool full = false) => InteropCall<T1, T2, bool, bool>(InteropMethod.ObjectEquals, obj1, obj2, full);
         /// <summary>
         /// Log to the Javascript console (console.log)
         /// </summary>

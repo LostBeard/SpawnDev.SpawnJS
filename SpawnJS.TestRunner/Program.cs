@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- --url http://...  use an already running dev server
 //   dotnet run --project SpawnJS.TestRunner -- --bench [filter]   run the interop benchmark instead
 //   dotnet run --project SpawnJS.TestRunner -- --twin             two runtimes in one page (TwinTests)
+//   dotnet run --project SpawnJS.TestRunner -- --bench <case> --profile   CPU profile of the run, self time by function
 //
 // Exit code is the number of failed tests, so it is usable as a gate.
 
@@ -19,6 +20,7 @@ var externalUrl = "";
 var verbose = false;
 var bench = false;
 var twin = false;
+var profile = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -27,11 +29,12 @@ for (var i = 0; i < args.Length; i++)
         case "--verbose": verbose = true; break;
         case "--bench": bench = true; break;
         case "--twin": twin = true; break;
+        case "--profile": profile = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -71,7 +74,7 @@ try
     var target = $"{url.TrimEnd('/')}/?{(bench ? "bench" : "tests")}={Uri.EscapeDataString(filter)}";
     // --twin boots two runtimes of the app into one page and runs TwinTests in each
     if (twin) target = $"{url.TrimEnd('/')}/twin.html";
-    return await RunAsync(target, headed, verbose);
+    return await RunAsync(target, headed, verbose, profile);
 }
 finally
 {
@@ -122,11 +125,21 @@ static async Task<(Process?, string)> StartServerAsync(string demoProject)
     return (process, completed == urlFound.Task ? urlFound.Task.Result : "");
 }
 
-static async Task<int> RunAsync(string url, bool headed, bool verbose)
+static async Task<int> RunAsync(string url, bool headed, bool verbose, bool profile)
 {
     using var playwright = await Playwright.CreateAsync();
     await using var browser = await LaunchAsync(playwright, headed);
     var page = await browser.NewPageAsync();
+    // --profile: Chrome's sampling CPU profiler over CDP for the whole run. Interpreted .Net runs inside wasm
+    // functions, so the split between those and the named Javascript functions is the first thing it shows.
+    ICDPSession? cdp = null;
+    if (profile)
+    {
+        cdp = await page.Context.NewCDPSessionAsync(page);
+        await cdp.SendAsync("Profiler.enable");
+        await cdp.SendAsync("Profiler.setSamplingInterval", new Dictionary<string, object> { ["interval"] = 50 });
+        await cdp.SendAsync("Profiler.start");
+    }
 
     var finished = new TaskCompletionSource<string>();
     var results = new List<string>();
@@ -170,6 +183,7 @@ static async Task<int> RunAsync(string url, bool headed, bool verbose)
         Console.WriteLine($"  {mark}  {parts[0]} ({parts[2]}ms)");
         if (parts.Length > 3 && !string.IsNullOrWhiteSpace(parts[3])) Console.WriteLine($"        {parts[3]}");
     }
+    if (cdp != null) PrintProfile(await cdp.SendAsync("Profiler.stop"));
     Console.WriteLine();
     if (completed != finished.Task)
     {
@@ -178,6 +192,34 @@ static async Task<int> RunAsync(string url, bool headed, bool verbose)
     }
     Console.WriteLine(finished.Task.Result);
     return failed;
+}
+
+// Self time by function, heaviest first. A wasm function is reported by its name when the module carries a name
+// section and by its index otherwise; all wasm is also totalled, since that is where interpreted .Net runs.
+static void PrintProfile(System.Text.Json.JsonElement? result)
+{
+    if (result == null) return;
+    var profileJson = result.Value.GetProperty("profile");
+    var nodes = profileJson.GetProperty("nodes").EnumerateArray().ToList();
+    var samples = profileJson.GetProperty("samples").EnumerateArray().Select(s => s.GetInt32()).ToList();
+    var byId = nodes.ToDictionary(n => n.GetProperty("id").GetInt32());
+    var self = new Dictionary<string, int>();
+    var wasm = 0;
+    foreach (var id in samples)
+    {
+        var frame = byId[id].GetProperty("callFrame");
+        var fn = frame.GetProperty("functionName").GetString();
+        var scriptUrl = frame.GetProperty("url").GetString() ?? "";
+        var isWasm = scriptUrl.StartsWith("wasm://") || scriptUrl.EndsWith(".wasm");
+        if (isWasm) wasm++;
+        var key = $"{(string.IsNullOrEmpty(fn) ? "(anonymous)" : fn)}  [{(isWasm ? "wasm" : Path.GetFileName(scriptUrl.Split('?')[0]))}]";
+        self[key] = self.GetValueOrDefault(key) + 1;
+    }
+    var total = samples.Count;
+    Console.WriteLine();
+    Console.WriteLine($"PROFILE: {total} samples, wasm {100.0 * wasm / total:F1}%");
+    foreach (var (key, count) in self.OrderByDescending(kv => kv.Value).Take(40))
+        Console.WriteLine($"  {100.0 * count / total,5:F1}%  {key}");
 }
 
 static async Task<IBrowser> LaunchAsync(IPlaywright playwright, bool headed)

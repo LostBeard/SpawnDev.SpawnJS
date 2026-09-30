@@ -29,6 +29,9 @@
     // SpawnJSInterop, so each static is wrapped; a call counts only when it is entered from OUTSIDE the
     // interop layer (depth 0), which excludes SpawnJSInterop calling itself. Counting is exact no matter
     // how loaded the machine is, which timing is not.
+    // The wrappers cost time on every internal call too, so the bench counts first and then calls
+    // uninstall() before timing. A JSImport binds its function once, so the entry points .Net already
+    // called keep their wrapper: one per crossing, the same for every version measured.
     globalThis.__sjsInstallCrossingCounter = function () {
         const I = globalThis.SpawnJSInterop;
         if (!I || I.__crossingCounterInstalled) return;
@@ -42,6 +45,8 @@
             // dispatcher entry) are already in byName, so the caller subtracts a calibrated overhead
             snapshot() { this.snap = JSON.stringify(this.byName); },
         };
+        const originals = {};
+        stats.uninstall = () => { for (const name in originals) I[name] = originals[name]; };
         let depth = 0;
         // detachedEventCheck also runs from a timer - counting it would add phantom crossings
         const skip = new Set(['detachedEventCheck', 'length', 'name', 'prototype']);
@@ -49,6 +54,7 @@
             if (skip.has(name)) continue;
             const orig = I[name];
             if (typeof orig !== 'function') continue;
+            originals[name] = orig;
             I[name] = function () {
                 if (depth === 0) {
                     stats.count++;

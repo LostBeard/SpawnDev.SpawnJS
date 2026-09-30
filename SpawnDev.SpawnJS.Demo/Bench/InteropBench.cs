@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using SpawnDev.SpawnJS.JSObjects;
 using System.Diagnostics;
@@ -21,6 +22,9 @@ namespace SpawnDev.SpawnJS.Demo.Bench
         static SpawnJSRuntime JS => SpawnJSRuntime.Instance;
         static string _filter = "";
         static double _readOverhead;
+        static bool _counting;
+        // crossings/op and the first op's breakdown, from the counting pass, by case name
+        static readonly Dictionary<string, (double Crossings, string Breakdown)> _counts = new();
 
         // The bench POCOs are read only by the reflection marshaller, so a trimmed publish strips their getters
         // and the write throws Arg_GetMethNotFnd. Root them - the same thing any consumer POCO needs today.
@@ -63,18 +67,41 @@ namespace SpawnDev.SpawnJS.Demo.Bench
             var strings8 = new[] { "setPipeline", "setBindGroup", "dispatchWorkgroups", "end", "finish", "submit", "rgba8unorm", "compute" };
             var bytes4096 = new byte[4096];
 
-            Case("get double (held obj)", () => bench.Get<double>("num"));
-            Case("call void 0 args", () => bench.CallVoid("sink0"));
-            Case("call void 1 double", () => bench.CallVoid("sink1", 1.5));
-            Case("call void 5 mixed (num,str,bool,ref,num)", () => bench.CallVoid("sink5", 1.5, "setBindGroup", true, buf0, 7));
-            Case("call void Dto16 POCO", () => bench.CallVoid("sink1", dto));
-            Case("call void GPUBindGroupDescriptor (3 entries)", () => bench.CallVoid("sink1", desc));
-            Case("call void int[1000]", () => bench.CallVoid("sink1", ints1000));
-            Case("call void double[1000]", () => bench.CallVoid("sink1", doubles1000));
-            Case("call void string[8]", () => bench.CallVoid("sink1", strings8));
-            Case("call void byte[4096]", () => bench.CallVoid("sink1", bytes4096));
-            Case("call return Dto16 POCO", () => bench.Call<BenchDto16>("makeDto16"));
-            Case("call return int[1000]", () => bench.Call<int[]>("makeInts1000"));
+            // pass 1 counts crossings with the counter installed; pass 2 times with it taken back out
+            foreach (var counting in new[] { true, false })
+            {
+                if (!counting) JS.CallVoid("__sjsCrossings.uninstall");
+                _counting = counting;
+                Case("get double (held obj)", () => bench.Get<double>("num"));
+                Case("call void 0 args", () => bench.CallVoid("sink0"));
+                Case("call void 1 double", () => bench.CallVoid("sink1", 1.5));
+                Case("call void 5 mixed (num,str,bool,ref,num)", () => bench.CallVoid("sink5", 1.5, "setBindGroup", true, buf0, 7));
+                Case("call void Dto16 POCO", () => bench.CallVoid("sink1", dto));
+                Case("call void GPUBindGroupDescriptor (3 entries)", () => bench.CallVoid("sink1", desc));
+                Case("call void int[1000]", () => bench.CallVoid("sink1", ints1000));
+                Case("call void double[1000]", () => bench.CallVoid("sink1", doubles1000));
+                Case("call void string[8]", () => bench.CallVoid("sink1", strings8));
+                Case("call void byte[4096]", () => bench.CallVoid("sink1", bytes4096));
+                Case("call return Dto16 POCO", () => bench.Call<BenchDto16>("makeDto16"));
+                Case("call return int[1000]", () => bench.Call<int[]>("makeInts1000"));
+            }
+
+            // pure .Net: the operations one tape call makes, each in isolation - no crossing at all
+            var methodNames = new Dictionary<string, int> { ["propertyGet"] = 1, ["propertyCall"] = 2, ["propertySet"] = 3 };
+            var typeCache = new System.Collections.Concurrent.ConcurrentDictionary<Type, object>();
+            typeCache[typeof(double)] = new object();
+            var cells = new double[64];
+            var key = "setBindGroup";
+            Micro("GetMarshaller<double>()", () => JS.GetMarshaller<double>());
+            Micro("Dictionary<string,int> method name lookup", () => methodNames.TryGetValue("propertyCall", out _));
+            var byReference = new Dictionary<string, int>(ReferenceEqualityComparer.Instance) { ["propertyGet"] = 1, ["propertyCall"] = 2, ["propertySet"] = 3 };
+            Micro("Dictionary<string,int> by reference", () => byReference.TryGetValue("propertyCall", out _));
+            string lastName = "propertyCall"; int lastIndex = 2;
+            Micro("last-name reference check", () => { if (!ReferenceEquals(lastName, "propertyCall")) lastIndex = 0; _sink = lastIndex; });
+            Micro("ConcurrentDictionary<Type,..> lookup", () => typeCache.TryGetValue(typeof(double), out _));
+            Micro("static generic field read", () => _sink = StaticSlot<double>.Value);
+            Micro("12-char string copy into double[]", () => key.AsSpan().CopyTo(System.Runtime.InteropServices.MemoryMarshal.Cast<double, char>(cells.AsSpan(2, 3))));
+            Micro("empty lambda (loop floor)", () => { });
 
             Console.WriteLine("RESULTS: bench done");
         }
@@ -87,15 +114,20 @@ namespace SpawnDev.SpawnJS.Demo.Bench
             {
                 for (var i = 0; i < 50; i++) op();   // warm marshaller caches and the JS JIT
 
-                // crossings, from one op's breakdown and an average over 20
-                JS.CallVoid("__sjsCrossings.reset");
-                op();
-                JS.CallVoid("__sjsCrossings.snapshot");
-                var breakdown = JS.Get<string>("__sjsCrossings.snap");
-                const int countOps = 20;
-                JS.CallVoid("__sjsCrossings.reset");
-                for (var i = 0; i < countOps; i++) op();
-                var crossings = (JS.Get<double>("__sjsCrossings.count") - _readOverhead) / countOps;
+                if (_counting)
+                {
+                    // crossings, from one op's breakdown and an average over 20
+                    JS.CallVoid("__sjsCrossings.reset");
+                    op();
+                    JS.CallVoid("__sjsCrossings.snapshot");
+                    var snap = JS.Get<string>("__sjsCrossings.snap");
+                    const int countOps = 20;
+                    JS.CallVoid("__sjsCrossings.reset");
+                    for (var i = 0; i < countOps; i++) op();
+                    _counts[name] = ((JS.Get<double>("__sjsCrossings.count") - _readOverhead) / countOps, snap);
+                    return;
+                }
+                var (crossings, breakdown) = _counts[name];
 
                 // time: grow the batch until it is long enough to time, then take the median of 5
                 var n = 16;
@@ -116,6 +148,22 @@ namespace SpawnDev.SpawnJS.Demo.Bench
             {
                 Console.WriteLine($"TEST: bench {name}|Error|{total.ElapsedMilliseconds}|{ex.GetType().Name}: {ex.Message.Replace('\n', ' ')}");
             }
+        }
+
+        static class StaticSlot<T> { public static object? Value = new object(); }
+        static object? _sink;
+
+        static void Micro(string name, Action op)
+        {
+            name = "micro " + name;
+            if (_filter.Length > 0 && !name.Contains(_filter, StringComparison.OrdinalIgnoreCase)) return;
+            for (var i = 0; i < 1000; i++) op();
+            var n = 1 << 16;
+            while (TimeBatch(op, n) < 100 && n < 1 << 24) n *= 2;
+            var samples = new double[5];
+            for (var s = 0; s < samples.Length; s++) samples[s] = TimeBatch(op, n) * 1_000_000.0 / n;
+            System.Array.Sort(samples);
+            Console.WriteLine($"TEST: bench {name}|Success|0|{samples[2]:F0} ns/op (n={n})");
         }
 
         static double TimeBatch(Action op, int n)
