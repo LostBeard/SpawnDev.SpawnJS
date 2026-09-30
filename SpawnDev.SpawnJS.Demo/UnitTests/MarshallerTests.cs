@@ -189,6 +189,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             CallbackMarshallerTests();
             ByteArrayMarshallerTests();
             await TaskMarshallerTests();
+            await PocoPolymorphismTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();
             DelegateMarshallerTests();
@@ -239,6 +240,46 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             public string? City { get; set; }
         }
 
+        // A POCO passed where its BASE type is declared must marshal as what it IS. Typed calls marshal by the
+        // declared parameter type: SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...) handed a Pbkdf2Params used
+        // to write only { name } - salt/hash/iterations were dropped and deriveKey threw
+        // "Pbkdf2Params: salt: Missing required property" (found in Anaglyphohol's encrypted settings storage).
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pbkdf2Params))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(KeyDeriveParams))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(AesKeyGenParams))]
+        static async Task PocoPolymorphismTests()
+        {
+            Test("PocoMarshaller.DerivedValueThroughBaseDeclaredType", () =>
+            {
+                var salt = new byte[16];
+                for (int i = 0; i < salt.Length; i++) salt[i] = (byte)(i + 1);
+                KeyDeriveParams declaredAsBase = new Pbkdf2Params(salt) { Hash = "SHA-256", Iterations = 1000 };
+                JS.Set<KeyDeriveParams>(K, declaredAsBase);
+                using var raw = JS.Get(K)!;
+                AssertEqual(raw.Get<string>("name"), "PBKDF2", "name (base member)");
+                Assert(raw.Has("salt"), "derived member salt dropped: marshalled as the declared base type");
+                AssertEqual(raw.Get<string>("hash"), "SHA-256", "hash (derived member)");
+                AssertEqual(raw.Get<int>("iterations"), 1000, "iterations (derived member)");
+                var back = raw.Get<byte[]>("salt");
+                Assert(back != null && back.SequenceEqual(salt), "salt bytes");
+            });
+
+            await TestAsync("PocoMarshaller.SubtleCryptoDeriveKeyPbkdf2", async () =>
+            {
+                // the real call that failed: PBKDF2 -> AES-GCM key, end to end in the browser
+                using var crypto = JS.Get<Crypto>("crypto");
+                using var subtle = crypto.Subtle;
+                var secret = new byte[32];
+                for (int i = 0; i < secret.Length; i++) secret[i] = (byte)(i * 3 + 7);
+                var salt = new byte[16];
+                for (int i = 0; i < salt.Length; i++) salt[i] = (byte)(i * 5 + 11);
+                using var baseKey = await subtle.ImportKey("raw", secret, "PBKDF2", false, new[] { "deriveKey" });
+                using var key = await subtle.DeriveKey(new Pbkdf2Params(salt) { Hash = "SHA-256", Iterations = 1000 }, baseKey,
+                    new AesKeyGenParams { Name = "AES-GCM", Length = 256 }, true, new[] { "encrypt", "decrypt" });
+                Assert(key != null, "DeriveKey returned null");
+            });
+        }
+
         // PocoMarshaller property-walks a POCO reflectively, so under trimming the APP is responsible for
         // preserving that POCO's accessors - the same contract as any reflection-based object mapping
         // (the library's DynamicallyAccessedMembers reaches the ctor, not the accessors).
@@ -256,6 +297,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Vec2))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Texture))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUCopyExternalImageSourceInfo))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Pbkdf2Params))]
         static void PocoMarshallerTests()
         {
             Test("PocoMarshaller.Out", () =>
@@ -307,6 +349,24 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                     Assert(!raw.Has("flip"), "the obsolete Flip alias must not be written as \"flip\"");
                     AssertEqual(raw.Get<bool>("flipY"), true, "Flip forwards to flipY");
                 }
+            });
+
+            // A POCO member typed as a Union (BufferSource = Union<ArrayBuffer, TypedArray, DataView, byte[]>) holding a
+            // byte[] must cross as a Uint8Array. Pbkdf2Params.Salt reached SubtleCrypto.deriveKey missing ("Pbkdf2Params:
+            // salt: Missing required property"), so every AES-GCM key derivation failed (found in Anaglyphohol).
+            Test("PocoMarshaller.UnionMemberHoldingByteArray", () =>
+            {
+                var salt = new byte[16];
+                for (int i = 0; i < salt.Length; i++) salt[i] = (byte)(i * 7 + 1);
+                JS.Set(K, new Pbkdf2Params(salt) { Hash = "SHA-256", Iterations = 1000 });
+                using var raw = JS.Get(K)!;
+                AssertEqual(raw.Get<string>("name"), "PBKDF2", "name");
+                Assert(raw.Has("salt"), "salt (a byte[] inside a BufferSource union) was not written");
+                using var saltRef = raw.Get("salt")!;
+                AssertEqual(saltRef.ConstructorName(), "Uint8Array", "salt must cross as a Uint8Array");
+                var back = raw.Get<byte[]>("salt");
+                Assert(back != null && back.SequenceEqual(salt), "salt bytes differ after the crossing");
+                AssertEqual(raw.Get<int>("iterations"), 1000, "iterations");
             });
 
             Test("PocoMarshaller.InFromJavascriptObject", () =>

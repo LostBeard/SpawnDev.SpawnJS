@@ -2,14 +2,23 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS - Unreleased
+## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.1)
 
 ### Fixed
+- **A POCO passed where its BASE type is declared lost its derived members.** Typed calls marshal by the declared
+  parameter type, so `SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...)` given a `Pbkdf2Params` wrote only
+  `{ name }` and `deriveKey` threw `Pbkdf2Params: salt: Missing required property` - every PBKDF2 key derivation (and
+  `SpawnDev.SpawnJS.Cryptography`'s `GenerateAESGCMKey`) failed. `PocoMarshaller` now walks the VALUE's type when it is
+  a subclass of the declared one. BlazorJS never hit this (it passed `params object[]`).
 - `GPUCopyExternalImageSourceInfo.Flip` crossed to JavaScript as `flip`, which is not a WebGPU member, so
   `copyExternalImageToTexture` silently ignored it and never flipped. Added `FlipY` (the spec name); `Flip` is now an
   `[Obsolete]` alias that forwards to `FlipY` and is not serialized. Same fix in SpawnDev.BlazorJS.
 
 ### Tests
+- `PocoMarshaller.DerivedValueThroughBaseDeclaredType` + `PocoMarshaller.SubtleCryptoDeriveKeyPbkdf2` (a real
+  PBKDF2 -> AES-GCM deriveKey). Red-checked against the old marshaller: both fail with the exact browser error.
+  Full suite 211/211.
+- `PocoMarshaller.UnionMemberHoldingByteArray`.
 - `PocoMarshaller.GPUCopyExternalImageSourceInfo.FlipY`: asserts the JS object carries `flipY` and no `flip`, for both
   `FlipY` and the obsolete `Flip`. Red-checked: forcing the old `flip` wire name fails it.
 

@@ -121,6 +121,15 @@ namespace SpawnDev.SpawnJS.Marshallers
             // rarely Nullable here; when it is, walking Nullable<> itself would marshal HasValue and Value
             // instead of the struct's own members.
             var targetType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+            // Walk the VALUE's type when it is a subclass of the declared one. Typed calls marshal by the
+            // DECLARED parameter type, so SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...) handed a
+            // Pbkdf2Params used to write only KeyDeriveParams.Name - salt / hash / iterations never reached JS
+            // ("Pbkdf2Params: salt: Missing required property") and every PBKDF2 key derivation failed.
+            // BlazorJS never hit this: it passed params object[] (runtime types). The same shape exists in
+            // deriveBits, importKey/generateKey algorithm params, and any wrapper taking a base POCO.
+            var valueType = value!.GetType();
+            if (valueType != targetType && !targetType.IsValueType && targetType.IsAssignableFrom(valueType))
+                targetType = valueType;
             foreach (var member in targetType.GetTypeJsonProperties())
             {
                 var memberValue = member.PropertyInfo != null
