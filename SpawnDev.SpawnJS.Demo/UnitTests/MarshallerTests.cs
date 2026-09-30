@@ -577,7 +577,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         // The data a call carries is often not known until the call goes through: a POCO member declared
         // object, object[], an interface or an abstract base must cross as what the VALUE is. v2 fixed this
         // piecemeal (PocoMarshaller c2d6da6, IEnumerable 85d95d2 - the latter with no test); these pin it
-        // down so a marshaller redesign cannot quietly lose it.
+        // down. A custom interface or abstract base member used to throw "GetMarshaller failed" (2.1.20).
         public class RtInner
         {
             public int A { get; set; }
@@ -604,6 +604,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             public IList<object>? Mixed { get; set; }
             public IRtShape? Shape { get; set; }
             public RtAnimal? Pet { get; set; }
+            public IEnumerable<RtInner>? Filters { get; set; }
         }
 
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtInner))]
@@ -614,8 +615,8 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         static void RuntimeTypedMemberTests()
         {
             // only one member is set per case; the rest cross as null
-            static string Holder(string value = "null", string items = "null", string seq = "null", string mixed = "null", string shape = "null", string pet = "null")
-                => $"{{value:{value},items:{items},seq:{seq},mixed:{mixed},shape:{shape},pet:{pet}}}";
+            static string Holder(string value = "null", string items = "null", string seq = "null", string mixed = "null", string shape = "null", string pet = "null", string filters = "null")
+                => $"{{value:{value},items:{items},seq:{seq},mixed:{mixed},shape:{shape},pet:{pet},filters:{filters}}}";
 
             Test("RuntimeTyped.ObjectMemberHoldingInt", () =>
             {
@@ -672,6 +673,19 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             {
                 JS.Set(K, new RtHolder { Seq = [1, 2, 3] });
                 AssertEqual(ShapeKey(), Holder(seq: "[number(1),number(2),number(3)]"), "shape");
+            });
+
+            Test("RuntimeTyped.IEnumerableOfPocoMemberCollectionExpressionSingle", () =>
+            {
+                // the Serial.requestPort / USB.requestDevice shape: Filters = [filter] used to InvalidCast (85d95d2)
+                JS.Set(K, new RtHolder { Filters = [new RtInner { A = 1, B = "f" }] });
+                AssertEqual(ShapeKey(), Holder(filters: "[{a:number(1),b:string(\"f\")}]"), "shape");
+            });
+
+            Test("RuntimeTyped.IEnumerableOfPocoMemberCollectionExpressionMany", () =>
+            {
+                JS.Set(K, new RtHolder { Filters = [new RtInner { A = 1, B = "f" }, new RtInner { A = 2, B = "g" }] });
+                AssertEqual(ShapeKey(), Holder(filters: "[{a:number(1),b:string(\"f\")},{a:number(2),b:string(\"g\")}]"), "shape");
             });
 
             Test("RuntimeTyped.IListOfObjectMemberMixed", () =>
