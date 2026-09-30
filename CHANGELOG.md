@@ -2,6 +2,17 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS - Unreleased
+
+### Fixed
+- `GPUCopyExternalImageSourceInfo.Flip` crossed to JavaScript as `flip`, which is not a WebGPU member, so
+  `copyExternalImageToTexture` silently ignored it and never flipped. Added `FlipY` (the spec name); `Flip` is now an
+  `[Obsolete]` alias that forwards to `FlipY` and is not serialized. Same fix in SpawnDev.BlazorJS.
+
+### Tests
+- `PocoMarshaller.GPUCopyExternalImageSourceInfo.FlipY`: asserts the JS object carries `flipY` and no `flip`, for both
+  `FlipY` and the obsolete `Flip`. Red-checked: forcing the old `flip` wire name fails it.
+
 ## SpawnDev.SpawnJS 2.1.18 - 2026-09-23
 
 ### Fixed

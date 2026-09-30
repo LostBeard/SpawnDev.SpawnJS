@@ -255,6 +255,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Extent3D))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Vec2))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Texture))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(GPUCopyExternalImageSourceInfo))]
         static void PocoMarshallerTests()
         {
             Test("PocoMarshaller.Out", () =>
@@ -284,6 +285,28 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(back.Score, 99.5, "Score");
                 AssertEqual(back.City, null, "City");
                 AssertEqual(back.Secret, null, "an ignored member must not come back");
+            });
+
+            // WebGPU spells the member "flipY". The wrapper property was named Flip, so it crossed as "flip", which the
+            // browser silently ignores: a requested flip never happened.
+            Test("PocoMarshaller.GPUCopyExternalImageSourceInfo.FlipY", () =>
+            {
+                using var canvas = new OffscreenCanvas(1, 1);
+                JS.Set(K, new GPUCopyExternalImageSourceInfo { Source = canvas, FlipY = true });
+                using (var raw = JS.Get(K)!)
+                {
+                    Assert(raw.Has("flipY"), "FlipY must cross as the WebGPU member name \"flipY\"");
+                    Assert(!raw.Has("flip"), "\"flip\" is not a GPUCopyExternalImageSourceInfo member");
+                    AssertEqual(raw.Get<bool>("flipY"), true, "flipY value");
+                }
+#pragma warning disable CS0618 // the obsolete alias must still reach "flipY"
+                JS.Set(K, new GPUCopyExternalImageSourceInfo { Source = canvas, Flip = true });
+#pragma warning restore CS0618
+                using (var raw = JS.Get(K)!)
+                {
+                    Assert(!raw.Has("flip"), "the obsolete Flip alias must not be written as \"flip\"");
+                    AssertEqual(raw.Get<bool>("flipY"), true, "Flip forwards to flipY");
+                }
             });
 
             Test("PocoMarshaller.InFromJavascriptObject", () =>
