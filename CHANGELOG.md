@@ -2,6 +2,60 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.0 / SpawnDev.SpawnJS.Blazor 3.0.0 - 2026-09-30
+
+**One crossing per call.** 2.x crossed the .NET/JS boundary once per value: each argument, each POCO member, each array
+element, and each member of a result read back. 3.0 writes the whole call - arguments, POCOs, arrays, the method - into a
+per-instance **call tape** of 8-byte cells in pinned .NET memory. Javascript reads it through heap views in ONE `JSImport`
+and writes the result back by a schema in the same crossing. Design and measurements: [Docs/v3-design.md](Docs/v3-design.md),
+[Docs/architecture.md](Docs/architecture.md).
+
+### Changed
+- **Calls:** `Get` / `Set` / `Call` / `New` and their async forms are one crossing whatever the arguments - a
+  `GPUBindGroupDescriptor` with 3 entries was 104, a 16-member POCO 55, an `int[1000]` 4,006. The public call surface is
+  unchanged.
+- **Results:** a POCO, array, list, dictionary, tuple or `byte[]` returned from Javascript is described by a `JSSchema`
+  and written back in the same crossing (async ones through `resolveTape`). Built-in scalar returns are unchanged.
+- **Callbacks (JS -> .NET):** the arguments are written by their schemas into a pinned inbound buffer before .NET is
+  called, so a handler reads nothing back across the boundary. A `Func` return value still costs one call.
+- **POCO shapes:** member names cross once per runtime (a `JSShape`), not with every object. `[JsonIgnore]`
+  (`Always`, `WhenWritingNull`, `WhenWritingDefault`), `[JsonPropertyName]` and `[JsonInclude]` behave exactly as in 2.x,
+  and members declared `object`, an interface or a base class are still written by what the value IS.
+- **Multi-instance:** everything is per .NET instance (`instanceInfo` keyed by `dotnetId`); the only page global is
+  the `SpawnJSInterop` class. Two runtimes in one page are tested (`SpawnJS.TestRunner --twin`).
+
+### Added
+- **Generated POCO codecs.** `SpawnDev.SpawnJS.Generators`, a Roslyn source generator shipped inside this package, writes
+  a codec for each POCO an assembly sends or reads: members read and set directly (private and protected ones, `init`
+  setters and `required` members through `[UnsafeAccessor]`), Json attributes resolved at compile time, nothing for the
+  trimmer to remove. Found by use (the types passed to and read from SpawnJS, and everything reachable through their
+  members) and by the new `[SpawnJSPoco]` attribute for types only the running code knows (held in an `object`, used
+  only in `.razor` markup). A type it cannot mirror exactly keeps the reflection plan. `JSPocoCodecs.UseGenerated =
+  false` switches every POCO back to reflection.
+- `JSTape` / `JSTapeReader` / `JSShape` / `JSSchema` - the marshaller API (see [Writing marshallers](Docs/writing-marshallers.md)).
+
+### Breaking - custom marshallers only
+- The marshaller contract is `Write(JSTape, T)`, `Schema` and `Read(ref JSTapeReader)`. `NetToJS` is removed, and so are
+  the `JSToNet(ref ...)` read overloads the schemas replaced. A marshaller that only overrides the scalar `JSToNet`
+  overloads keeps working for reads. Nothing in the SpawnDev packages implements a marshaller.
+- `Callback.HandleCallback` (protected, for `Callback` subclasses) takes the argument reader.
+- Binary compatibility, checked: every reference that SpawnDev.SpawnJS.WebWorkers 2.1.19, .RazorRenderer 2.1.11,
+  .RazorUI 2.1.9, .BrowserExtension 2.1.5, .Cryptography 2.0.2, .Blazor 2.1.19, SpawnDev.RTC, SpawnDev.WebTorrent,
+  SpawnDev.MultiMedia, SpawnDev.AsyncFileSystem, SpawnDev.UnitTesting.Browser and SpawnDev.ILGPU 5.2.25 make into
+  SpawnDev.SpawnJS resolves against 3.0.0 (0 missing), so they run on 3.0 without a rebuild.
+
+### Fixed
+- `IListMarshaller.CanMarshal` tested for the wrong type (it is not registered, so nothing reached it).
+
+### Measured
+Published Release, Chrome, us per call, 2.1.20 -> 3.0.0 (1 crossing each in 3.0): see the README's Performance
+section. SpawnDev.ILGPU on WebGPU: `createBindGroup` 202 -> 38 us, an unbatched dispatch 251 -> 80 us host time.
+
+### Tests
+Live suite 268 cases (was 229), all passing untrimmed and trimmed, with generated codecs and with `?nocodecs`
+(`SpawnJS.TestRunner --nocodecs`); `Codec.Parity.*` compare every generated codec with the reflection plan. Twin
+(two runtimes, one page) 12/12.
+
 ## SpawnDev.SpawnJS 2.1.20 - 2026-09-30
 
 ### Fixed

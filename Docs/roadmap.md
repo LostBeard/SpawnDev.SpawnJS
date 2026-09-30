@@ -1,15 +1,27 @@
 # Roadmap
 
-SpawnJS **2.x** is the current line. The 1.x heap argument frame (`HEAPF64`, `(cmd, offset, length)`, `SlotInterop.FrameCall`) is gone. The live core is `JSImport` + `spawnJSObjects` + the `JSMarshaller` registry. Versions of record are in [`CHANGELOG.md`](../CHANGELOG.md) (core **2.1.17**, Blazor package **2.1.18** as of this writing).
+SpawnJS **3.x** is the current line. Versions of record are in [`CHANGELOG.md`](../CHANGELOG.md) (core and Blazor package **3.0.0** as of this writing).
 
-## Done in 2.x
+## Done in 3.x
 
-- Marshaller graph as the public extension point (`CanMarshal`, `NetToJS`, `JSToNet`, `ReturnType`).
+- **One crossing per call.** Arguments, POCOs, arrays and the method travel in a per-instance call tape in .NET memory; Javascript reads it in one `JSImport` and writes the result back by a `JSSchema` in the same crossing ([Architecture](architecture.md), [v3 design](v3-design.md)).
+- **Callback arguments in .NET memory before the call.** A JS -> .NET handler reads nothing back across the boundary.
+- **Marshaller contract:** `Write(JSTape, T)` / `Schema` / `Read(ref JSTapeReader)` ([Writing marshallers](writing-marshallers.md)). `NetToJS` is gone.
+- **Generated POCO codecs** (`SpawnDev.SpawnJS.Generators`, shipped in the package) with `[SpawnJSPoco]` for runtime-only types; the reflection plan stays for anything the generator cannot mirror exactly.
+- Multi-instance kept: all state per .NET instance, tested with two runtimes in one page.
+
+## Carried from 2.x
+
 - Microsoft `JSObject` avoided as a handle (speed, Symbol tagging, dispose aliasing). `JSHost.DotnetInstance` used once at register.
-- Typed wrappers kept (`SpawnJSObject` / `JSRef`) so BlazorJS-style wrapper bodies port.
-- Blazor extras split into `SpawnDev.SpawnJS.Blazor` (`ElementReference.As<T>()`, `ElementRef<T>`, `SpawnJSRunAsync`) so the core stays Blazor-free.
+- Typed wrappers (`SpawnJSObject` / `JSRef`) so BlazorJS-style wrapper bodies port.
+- Blazor extras in `SpawnDev.SpawnJS.Blazor` (`ElementReference.As<T>()`, `ElementRef<T>`, `SpawnJSRunAsync`) so the core stays Blazor-free.
 - Trim descriptor shipped in the package.
-- Live suite in `SpawnDev.SpawnJS.Demo` + `SpawnJS.TestRunner` (Playwright). `TestsShared` / `WasmBrowserDemo` / `WasmConsoleDemo` are not in this repo.
+- Live suite in `SpawnDev.SpawnJS.Demo` + `SpawnJS.TestRunner` (Playwright).
+
+## Open
+
+- A `Func` callback's return value costs one extra call (a deliberate trade: the return value's pins must outlive the handler in threaded builds).
+- Generated codecs leave readonly fields, `override` / `new` members and types without a public parameterless constructor to the reflection plan.
 
 ## Standing constraints (not temporary)
 

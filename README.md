@@ -11,7 +11,7 @@
 
 JSON-free JavaScript interop for **.NET WebAssembly**. No Blazor dependency. Targets **.NET 10**.
 
-SpawnJS is the next-generation successor to [SpawnDev.BlazorJS](https://github.com/LostBeard/SpawnDev.BlazorJS) (first published December 2022, 198,000+ NuGet downloads). SpawnJS 1.0.0 shipped July 2026 and already has 9,000+ downloads. Version **2.x** rewrote the core: marshalling lives in a managed `JSMarshaller` graph, and the transport is `JSImport` / `JSExport` plus a numeric object table. Microsoft's `JSObject` and `JSHost` are not used as the interop handle.
+SpawnJS is the next-generation successor to [SpawnDev.BlazorJS](https://github.com/LostBeard/SpawnDev.BlazorJS) (first published December 2022, 198,000+ NuGet downloads). SpawnJS 1.0.0 shipped July 2026 and already has 9,000+ downloads. Version **2.x** rewrote the core: marshalling lives in a managed `JSMarshaller` graph, and the transport is `JSImport` / `JSExport` plus a numeric object table. Microsoft's `JSObject` and `JSHost` are not used as the interop handle. Version **3.x** makes every call **one crossing**: arguments, POCOs, arrays and the result travel in a call tape in .NET memory instead of one boundary crossing per value, and POCO codecs are generated at compile time.
 
 It runs in any .NET WASM host: Blazor, Avalonia, Web Workers, and a headless .NET WASM console app under Node with no browser and no DOM. Two or more SpawnJS apps can share one page without conflicts.
 
@@ -46,7 +46,7 @@ using var canvas = JS.Call<string, HTMLCanvasElement>("document.getElementById",
 
 The one exception: `JSHost.DotnetInstance` is handed to `SpawnJSInterop._registerInstance` once so JS can call back into this .NET instance and reach WASM memory. After that, every JS value is an integer id in `SpawnJSInterop.spawnJSObjects`. Ids are monotonic and never reused, so a disposed handle cannot resurrect another value.
 
-**Trim-friendly.** The package embeds `ILLink.Descriptors.xml`. In one test app, a trimmed publish dropped from ~30 MB to ~9 MB and the suite still passed. BlazorJS's JSON-serialization interop is not trim-friendly this way.
+**Trim-friendly.** The package embeds `ILLink.Descriptors.xml`, and its source generator writes a codec for each POCO you send or read, so the trimmer sees every member used. In one test app, a trimmed publish dropped from ~30 MB to ~9 MB and the suite still passed. BlazorJS's JSON-serialization interop is not trim-friendly this way.
 
 **Headless.** SpawnDev.ILGPU runs its GPU-compute suite on SpawnJS in a .NET WASM console app under Node, driving real WebGPU through [`@kmamal/gpu`](https://www.npmjs.com/package/@kmamal/gpu) (prebuilt Dawn). Same ILGPU source on both interop layers.
 
@@ -62,7 +62,7 @@ Blazor host extras (`ElementReference.As<T>()`, `ElementRef<T>`, `SpawnJSRunAsyn
 dotnet add package SpawnDev.SpawnJS.Blazor
 ```
 
-Current versions: **SpawnDev.SpawnJS 2.1.17**, **SpawnDev.SpawnJS.Blazor 2.1.18**. See [`CHANGELOG.md`](CHANGELOG.md).
+Current versions: **SpawnDev.SpawnJS 3.0.0**, **SpawnDev.SpawnJS.Blazor 3.0.0**. See [`CHANGELOG.md`](CHANGELOG.md). Coming from 2.x: the call surface is unchanged; only a custom `JSMarshaller` needs porting ([Writing marshallers](Docs/writing-marshallers.md)).
 
 ## Setup
 
@@ -135,21 +135,40 @@ Handles are **manual lifetime**. `spawnJSObjects[id]` is a strong JS reference n
 
 ## How it works
 
-`[JSImport]` / `[JSExport]` marshalling is frozen at compile time. SpawnJS reduces every operation to a small set of primitives the generator already understands, then composes types in managed code.
+`[JSImport]` / `[JSExport]` marshalling is frozen at compile time, and every crossing of the .NET/JS boundary has a fixed cost. SpawnJS 3.x crosses **once per call**, whatever the arguments are.
 
-1. **JS primitives.** `SpawnJSInterop` (`wwwroot/SpawnDev.SpawnJS.lib.module.js`) exposes `propertyGet`, `propertySet`, `propertyCall`, `propertyNew`, hold/release, and related helpers.
-2. **One outbound dispatcher.** `_spawnJSInteropCall` / `_spawnJSInteropCallAsync` take a `ReturnType` code, a method index, and an argument-array id. Typed `[JSImport]` overloads receive `bool`, `int`, `double`, `string`, or void. Objects come back as table ids.
-3. **Slots, not proxies.** .NET holds a `double` id. Negative ids are sentinels (`globalThis`, `undefined`, `null`, the table, `SpawnJSInterop`).
-4. **Pooled argument arrays.** Arguments are written into a held JS array; JS empties that slot on consume so the same id is reused.
-5. **Marshaller graph.** A registry of `JSMarshaller`s reads and writes typed values. Later registrations win. See [Writing marshallers](Docs/writing-marshallers.md).
+1. **Slots, not proxies.** JS values live in `SpawnJSInterop.spawnJSObjects`; .NET holds a `double` id. Negative ids are sentinels (`globalThis`, `undefined`, `null`, the table, `SpawnJSInterop`).
+2. **The call tape.** A call is written into a per-instance tape of 8-byte cells in pinned .NET memory: the method, then each argument as a tagged value - numbers, strings (UTF-16), slot ids, callbacks, whole POCOs, number arrays copied in bulk. One `JSImport` hands JS the address; JS reads it through heap views and runs the primitive (`propertyGet`, `propertySet`, `propertyCall`, `propertyNew`, ...).
+3. **Shapes and schemas.** A POCO's member names cross once per runtime (a *shape*), then each object is just its values. The result is written back by a *schema* - a POCO, array, list, dictionary or tuple comes back in the same crossing.
+4. **Callbacks.** JS -> .NET calls (events, promises, `Action` / `Func`) write their arguments into .NET memory before .NET is called, so the handler reads nothing back across the boundary.
+5. **Marshaller graph.** A registry of `JSMarshaller`s (`Write` / `Schema` / `Read`) decides how each .NET type crosses; later registrations win. POCO codecs are generated at compile time (`[SpawnJSPoco]` marks types only the running code knows). See [Architecture](Docs/architecture.md) and [Writing marshallers](Docs/writing-marshallers.md).
 
-JS calling .NET (events, promises, `Action`/`Func`) goes through a registered callback: JS holds a numeric callback id, .NET looks it up, marshals args through the same graph.
+Every piece of state is per .NET instance; the only page global is the `SpawnJSInterop` class, so two SpawnJS apps can share a page.
 
 Default marshalling matches what `JSON.stringify` would produce: `List<long>` is a JS number array, not a `BigInt64Array`. Typed arrays and `BigInt` are opt-in via wrapper types (`Uint8Array`, `BigInt`, `HeapView`). `byte[]` is the exception: it writes as a `Uint8Array` copy. `JsonElement` is the one type whose marshaller uses `JSON.stringify` / `JSON.parse` on purpose.
 
 ## Performance
 
-Measured against SpawnDev.BlazorJS in one Blazor app, same JS object, same operation. 20,000 iterations, Chromium, interpreted WASM (no AOT). Read the **ratios**.
+**3.0 against 2.x.** Published Release, Chrome, interpreted WASM, microseconds per call (best of 3 runs), with the exact number of .NET/JS crossings. Reproduce with `dotnet run --project SpawnJS.TestRunner -- --bench`.
+
+| call | 2.1.20 | crossings | 3.0.0 | crossings | |
+|---|---:|---:|---:|---:|---:|
+| read a number from a held object | 3.15 us | 3 | **1.90 us** | 1 | 1.7x |
+| call, no arguments | 3.17 us | 3 | **1.66 us** | 1 | 1.9x |
+| call, 5 mixed arguments | 10.5 us | 11 | **2.75 us** | 1 | 3.8x |
+| call with a 16-member POCO | 98.0 us | 55 | **6.68 us** | 1 | 14.7x |
+| call with a `GPUBindGroupDescriptor` (3 entries) | 165 us | 104 | **8.91 us** | 1 | 18.6x |
+| call with `string[8]` | 38.2 us | 38 | **4.18 us** | 1 | 9.1x |
+| call with `int[1000]` | 3,870 us | 4,006 | **15.4 us** | 1 | 251x |
+| call with `double[1000]` | 3,897 us | 4,006 | **19.1 us** | 1 | 204x |
+| call with `byte[4096]` | 7.05 us | 4 | **5.60 us** | 1 | 1.3x |
+| return a 16-member POCO | 155 us | 74 | **6.74 us** | 1 | 23.1x |
+| return `int[1000]` | 3,100 us | 3,005 | **3.29 us** | 1 | 942x |
+| JS calls .NET with (number, string, POCO) | 30.6 us | 4 | **5.39 us** | 1 | 5.7x |
+
+In SpawnDev.ILGPU on WebGPU, the same library code on each version: `createBindGroup` 202 us -> 38 us, and an unbatched kernel dispatch 251 us -> 80 us of host time.
+
+**2.x against SpawnDev.BlazorJS.** Measured in one Blazor app, same JS object, same operation. 20,000 iterations, Chromium, interpreted WASM (no AOT). Read the **ratios**. These rows were measured on 2.x and not re-run against 3.0.
 
 **Held object reference** (hold a `GPUDevice` or `HTMLCanvasElement`, then read/write it):
 
@@ -180,7 +199,7 @@ Measured against SpawnDev.BlazorJS in one Blazor app, same JS object, same opera
 | read a 5-member record | 666 ms | **205 ms** | **3.2x** |
 | read a 10-element array | 558 ms | **293 ms** | **1.9x** |
 
-Where that comes from: no JSON on the default path, integer slot ids instead of `JSObject` proxy tables, pooled argument arrays, and one JS function per .NET method for `Callback` / `Action` / `Func` (reuse by delegate identity).
+Where that comes from: no JSON on the default path, integer slot ids instead of `JSObject` proxy tables, and one JS function per .NET method for `Callback` / `Action` / `Func` (reuse by delegate identity) - and in 3.x, one crossing per call.
 
 On a real GPU-compute suite (SpawnDev.ILGPU, headless Node + WebGPU): **542 of 551 tests passed with zero SpawnJS interop bugs**. The remaining nine were Node-DOM, Dawn WGSL strictness, and f64 tolerance.
 
@@ -189,17 +208,19 @@ On a real GPU-compute suite (SpawnDev.ILGPU, headless Node + WebGPU): **542 of 5
 | Page | |
 |---|---|
 | [Hosting](Docs/hosting.md) | DI: `SpawnJSAppBuilder`, Blazor `WebAssemblyHost`, `IServiceCollection` |
-| [Architecture](Docs/architecture.md) | Dispatch, slots, inbound callbacks |
+| [Architecture](Docs/architecture.md) | The call tape, shapes and schemas, slots, inbound callbacks, generated codecs |
 | [Argument passing](Docs/argument-passing.md) | Fixed-arity overloads vs `params` |
-| [Writing marshallers](Docs/writing-marshallers.md) | `JSMarshaller` contract and registration |
+| [Writing marshallers](Docs/writing-marshallers.md) | `JSMarshaller` contract (`Write` / `Schema` / `Read`) and registration |
 | [API reference](Docs/api/_index.md) | Per-type reference for the JS wrappers |
-| [Roadmap](Docs/roadmap.md) | Current 2.x state |
+| [v3 design](Docs/v3-design.md) | Why 3.x crosses once per call, with the measurements behind it |
+| [Roadmap](Docs/roadmap.md) | Current 3.x state |
 
 ## This repo
 
 | Project | Purpose |
 |---|---|
 | `SpawnDev.SpawnJS` | Core runtime. No Blazor dependency. |
+| `SpawnDev.SpawnJS.Generators` | POCO codec source generator, shipped inside the `SpawnDev.SpawnJS` package |
 | `SpawnDev.SpawnJS.Blazor` | Blazor host: `ElementReference`, `ElementRef<T>`, `SpawnJSRunAsync` |
 | `SpawnDev.SpawnJS.Demo` | Live suite (`UnitTests/`) and scratch host |
 | `SpawnDev.SpawnJS.Blazor.Demo` | Blazor host demo |
@@ -209,6 +230,9 @@ On a real GPU-compute suite (SpawnDev.ILGPU, headless Node + WebGPU): **542 of 5
 dotnet run --project SpawnJS.TestRunner
 dotnet run --project SpawnJS.TestRunner -- IsSameEntry
 dotnet run --project SpawnJS.TestRunner -- --headed --verbose
+dotnet run --project SpawnJS.TestRunner -- --nocodecs    # every POCO by reflection instead of generated codecs
+dotnet run --project SpawnJS.TestRunner -- --twin        # two .NET runtimes in one page
+dotnet run --project SpawnJS.TestRunner -- --bench       # the interop benchmark, with crossing counts
 ```
 
 The runner builds and serves `SpawnDev.SpawnJS.Demo` with `?tests=[filter]` and parses `TEST:` / `RESULTS:` console lines. Navigate on `DOMContentLoaded`, not `NetworkIdle`.

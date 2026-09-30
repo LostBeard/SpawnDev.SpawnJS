@@ -1,8 +1,9 @@
 # SpawnJS v3 - one crossing per call
 
-Status: design approved by TJ 2026-09-30. Implemented on branch `v3` (local only): every call direction is one
-crossing - arguments, results, and callback arguments. Remaining: a Func callback's return value (one extra call),
-generated POCO plans, and a consumer trial.
+Status: shipped in SpawnDev.SpawnJS 3.0.0 (2026-09-30). Every call direction is one crossing - arguments, results,
+and callback arguments; a Func callback's return value costs one extra call (by choice). POCO codecs are generated at
+compile time. Consumer trial: SpawnDev.ILGPU 5.2.25 runs on it unchanged. This page is the design record; the tables
+below are the pre-3.0 measurements that motivated it.
 
 ## The problem, measured
 
