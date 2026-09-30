@@ -43,6 +43,14 @@
             return `<${proto?.constructor?.name ?? '?'}>`;
         }
         static typeOf(v) { return typeof v; }
+        // ---- call tape fixtures ----
+        static codeUnits(s) { return Array.prototype.map.call(s, c => c.charCodeAt(0).toString(16)).join(','); }
+        static argsShape(...args) { return args.map(SpawnJSTests.shape).join('|'); }
+        static callThenReturn(cb, s) { cb(); return s + '!'; }
+        static longString(n) { return 'x'.repeat(n); }
+        static nothing() { return undefined; }
+        static nul() { return null; }
+        static beyondInt32() { return 4294967301; }   // 2^32 + 5
         static isUndefined(v) { return v === undefined; }
         static isNull(v) { return v === null; }
         static same(a, b) { return a === b; }

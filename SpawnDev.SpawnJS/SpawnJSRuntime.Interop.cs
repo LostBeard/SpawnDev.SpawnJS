@@ -1,6 +1,7 @@
 using SpawnDev.SpawnJS.Marshaller;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS
 {
@@ -55,414 +56,677 @@ namespace SpawnDev.SpawnJS
         [UnconditionalSuppressMessage("Trimming", "IL2091",
             Justification = "The resolved marshaller is used only for NetToJS (write), which reads value.JSRef and never constructs the wrapper. The PublicConstructors requirement of GetMarshaller<T> is exercised solely by the read/JSToNet path.")]
         internal JSMarshaller<T> GetMarshallerForWrite<T>() => GetMarshaller<T>();
+
+        /// <summary>
+        /// This runtime's call tape. Every interop call is written here and crosses once - see <see cref="JSTape"/>.
+        /// </summary>
+        internal JSTape Tape { get; }
+        /// <summary>
+        /// Open call frames on this runtime's tape. 0 between calls; a count that never returns to 0 is a leaked frame.
+        /// </summary>
+        public int TapeDepth => Tape.Depth;
+
+        #region Method index
+        /// <summary>
+        /// SpawnJSInterop's method names, by index. A call names its target by index, never by string.
+        /// </summary>
+        internal string[] InteropMethods
+        {
+            get => _interopMethods;
+            set
+            {
+                _interopMethods = value;
+                var indexes = new Dictionary<string, int>(value.Length);
+                for (var i = 0; i < value.Length; i++) indexes.TryAdd(value[i], i);
+                _interopMethodIndexes = indexes;
+            }
+        }
+        string[] _interopMethods = System.Array.Empty<string>();
+        // name -> index, rebuilt with the map. A linear search of the names used to run on every call.
+        Dictionary<string, int> _interopMethodIndexes = new Dictionary<string, int>();
+        int InteropMethodIndex(string methodName)
+        {
+            if (_interopMethodIndexes.TryGetValue(methodName, out var index)) return index;
+            throw new Exception($"Unknown SpawnJSInterop method. Index not found: {_interopMethods.Length} {methodName}");
+        }
+        #endregion
+
+        #region Scratch arrays - TRANSITIONAL
+        // Marshallers not yet moved to the tape build their value into a pooled JS array (see
+        // JSTape.WriteViaScratch). Javascript empties the array in place of reading it, so the same held array is
+        // reused. Goes away with the last NetToJS.
+        readonly Queue<SpawnJSObjectReference> _scratchArrays = new Queue<SpawnJSObjectReference>();
+        internal SpawnJSObjectReference RentScratchArray() => _scratchArrays.TryDequeue(out var array) ? array : NewJSArray();
+        internal void ReturnScratchArray(SpawnJSObjectReference array) => _scratchArrays.Enqueue(array);
+        #endregion
+
+        #region Sync calls
         /// <summary>
         /// Call any SpawnJSInterop static method that returns nothing (void).
         /// </summary>
         internal void InteropCallApplyVoid(string methodName, object?[]? args = null) => InteropCallApply<VoidType>(methodName, args);
         /// <summary>
-        /// Pool of reusable JS argument arrays so each call does not have to allocate a new one. The JS side
-        /// empties the array's slot after consuming it (spawnJSObjectGetAndReplace), so the same held
-        /// reference can be handed back out on the next call.
-        /// </summary>
-        Queue<SpawnJSObjectReference> _callArrays = new Queue<SpawnJSObjectReference>();
-        /// <summary>
-        /// Calls a SpawnJSInterop static method synchronously, marshalling <paramref name="args"/> into a JS
-        /// array and reading the result back as <typeparamref name="T"/>.
+        /// Calls a SpawnJSInterop static method synchronously with arguments whose types are only known at run
+        /// time, reading the result back as <typeparamref name="T"/>.
         /// </summary>
         internal T InteropCallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, object?[]? args = null)
         {
-            var returnType = typeof(T);
-            var inMarshaller = GetMarshaller<T>();
-            // The JS side empties this array's slot after the call, so it can be returned to the pool.
-            SpawnJSObjectReference? jsArgs = null;
-            if (args != null && args.Length > 0)
-            {
-                if (!_callArrays.TryDequeue(out jsArgs))
-                {
-                    jsArgs = NewJSArray();
-                }
-                for (var i = 0; i < args.Length; i++)
-                {
-                    var item = args[i];
-                    var itemType = item?.GetType()!;
-                    if (itemType == null)
-                    {
-                        jsArgs.PropertySetNull(i);
-                        continue;
-                    }
-                    // The Type -> <T> trick: each arg's runtime Type is bridged back into a compile-time
-                    // generic via InvokeGeneric, so writeTyped<T1> runs the strongly-typed marshaller path
-                    // (JSMarshaller<T1>.NetToJS) with NO boxing of the value. GetMarshaller<T1> matches on
-                    // T1's exact type, and the value is written straight into the JS array by index.
-                    ((Delegate)writeTyped<object>).InvokeGeneric(itemType, item);
-                    void writeTyped<T1>(T1 value)
-                    {
-                        var marshaller = GetMarshallerForWrite<T1>();
-                        if (marshaller == null) jsArgs.PropertySetNull(i);
-                        else marshaller.NetToJS(jsArgs!, i, value!);
-                    }
-                }
-            }
-            return _InteropCallApply<T>(methodName, jsArgs);
-        }
-        internal T _InteropCallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(int methodIndex, SpawnJSObjectReference? jsArgs = null)
-        {
-            if (methodIndex < 0) throw new Exception($"Unknown SpawnJSInterop method. Index not found: {InteropMethods.Length} {methodIndex}");
-            var returnType = typeof(T);
-            var inMarshaller = GetMarshaller<T>();
-            var returnTypeIndex = inMarshaller?.ReturnType ?? ReturnType.Void;
-            T ret = default!;
-            var argsId = jsArgs?.Id ?? UndefinedId;
+            var argCount = args?.Length ?? 0;
+            Tape.BeginCall(InteropMethodIndex(methodName), argCount);
             try
             {
-                switch (returnTypeIndex)
+                for (var i = 0; i < argCount; i++) WriteRuntimeTyped(args![i]);
+            }
+            catch
+            {
+                Tape.EndCall();
+                throw;
+            }
+            return EndCall<T>();
+        }
+        /// <summary>
+        /// Writes a value typed by what it IS: the runtime Type is bridged back into a compile-time generic, so the
+        /// value's own strongly typed marshaller writes it with no boxing on its side.
+        /// </summary>
+        void WriteRuntimeTyped(object? value)
+        {
+            if (value == null) { Tape.WriteNull(); return; }
+            ((Delegate)writeTyped<object>).InvokeGeneric(value.GetType(), value);
+            void writeTyped<T1>(T1 value) => GetMarshallerForWrite<T1>().Write(Tape, value);
+        }
+        /// <summary>
+        /// Sends the innermost frame, reads the result off the tape, and closes the frame - one crossing.
+        /// </summary>
+        T EndCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
+        {
+            try
+            {
+                var marshaller = GetMarshaller<T>();
+                var returnType = marshaller?.ReturnType ?? ReturnType.Void;
+                var (address, length, capacity) = Tape.Send(returnType, out _);
+                var written = _spawnJSInteropCall(DotnetInstance.Id, address, length, capacity);
+                if (returnType == ReturnType.Void) return default!;
+                if (written >= 0) return ReadResult(marshaller!, returnType, Tape.Result(written));
+                // the result did not fit behind the frame: Javascript kept it and reports the bytes it needs
+                var (overflowAddress, overflowCapacity, cells) = Tape.OverflowArea(-written);
+                written = _spawnJSInteropCallResult(DotnetInstance.Id, overflowAddress, overflowCapacity);
+                return ReadResult(marshaller!, returnType, cells.AsSpan(0, (written + 7) >> 3));
+            }
+            finally
+            {
+                Tape.EndCall();
+            }
+        }
+        /// <summary>
+        /// Reads a result Javascript wrote in <see cref="ReturnType"/> form. Scalars mirror what the runtime's own
+        /// marshallers produced for the typed returns this replaces: null and undefined read as 0 / false.
+        /// </summary>
+        static T ReadResult<T>(JSMarshaller<T> marshaller, ReturnType returnType, ReadOnlySpan<double> cells)
+        {
+            switch (returnType)
+            {
+                case ReturnType.Double:
+                    return marshaller.JSToNet(cells[0]);
+                case ReturnType.Int32:
+                    // written through an Int32Array, so it carries ToInt32's wrap, exactly as a typed int return did
+                    return marshaller.JSToNet(MemoryMarshal.Cast<double, int>(cells)[0]);
+                case ReturnType.Boolean:
+                    return marshaller.JSToNet(cells[0] != 0);
+                case ReturnType.DoubleNullable:
+                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (double?)null : cells[1]);
+                case ReturnType.Int32Nullable:
+                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (int?)null : MemoryMarshal.Cast<double, int>(cells)[2]);
+                case ReturnType.BooleanNullable:
+                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (bool?)null : cells[1] != 0);
+                case ReturnType.String:
+                case ReturnType.Json:
+                    return marshaller.JSToNet(ReadString(cells)!);
+                case ReturnType.SpawnJSObjectReference:
+                    return marshaller.JSToNet(SpawnJSObjectReference.FromID(cells[0], false)!);
+                case ReturnType.SpawnJSObjectReferenceNonNullable:
+                    return marshaller.JSToNet(SpawnJSObjectReference.FromID(cells[0], true)!);
+                default:
+                    throw new Exception($"Invalid ReturnType for marshaller: {marshaller?.GetType().Name} {returnType}");
+            }
+        }
+        static string? ReadString(ReadOnlySpan<double> cells)
+        {
+            if (cells[0] == JSTape.TagNull) return null;
+            var length = (int)cells[1];
+            return new string(MemoryMarshal.Cast<double, char>(cells.Slice(2)).Slice(0, length));
+        }
+        #endregion
+
+        #region Async calls
+        /// <summary>
+        /// Calls a SpawnJSInterop static method asynchronously with arguments whose types are only known at run time.
+        /// </summary>
+        internal Task<T> InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, object?[]? args = null)
+        {
+            var argCount = args?.Length ?? 0;
+            Tape.BeginCall(InteropMethodIndex(methodName), argCount);
+            try
+            {
+                for (var i = 0; i < argCount; i++) WriteRuntimeTyped(args![i]);
+            }
+            catch
+            {
+                Tape.EndCall();
+                throw;
+            }
+            return EndCallAsync<T>();
+        }
+        /// <summary>
+        /// Sends the innermost frame as an async call. Javascript reads every argument before its first await, so
+        /// the frame is closed as soon as the call returns; the result arrives later through a resolver, keyed by
+        /// a per-call id matched to a TaskCompletionSource.
+        /// </summary>
+        Task<T> EndCallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
+        {
+            TaskCompletionSource<T> tcs;
+            double asyncCallbackId;
+            try
+            {
+                var returnMarshaller = GetMarshaller<T>();
+                var returnType = returnMarshaller.ReturnType;
+                tcs = new TaskCompletionSource<T>();
+                asyncCallbackId = ++_asyncCallbackId;
+                RegisterAsyncCompletion(returnMarshaller, returnType, tcs, asyncCallbackId);
+                var (address, length, _) = Tape.Send(returnType, out _);
+                try
                 {
-                    case ReturnType.Void:
-                        {
-                            _spawnJSInteropCallVoid((int)returnTypeIndex, methodIndex, argsId);
-                        }
-                        break;
-                    case ReturnType.Double:
-                        {
-                            var fromJS = _spawnJSInteropCallDouble((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.Boolean:
-                        {
-                            var fromJS = _spawnJSInteropCallBoolean((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.Int32:
-                        {
-                            var fromJS = _spawnJSInteropCallInt32((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.Int32Nullable:
-                        {
-                            var fromJS = _spawnJSInteropCallInt32Nullable((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.DoubleNullable:
-                        {
-                            var fromJS = _spawnJSInteropCallDoubleNullable((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.BooleanNullable:
-                        {
-                            var fromJS = _spawnJSInteropCallBooleanNullable((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.String:
-                        {
-                            var fromJS = _spawnJSInteropCallString((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    case ReturnType.SpawnJSObjectReference:
-                        {
-                            var fromJS = _spawnJSInteropCallDouble((int)returnTypeIndex, methodIndex, argsId);
-                            var spawnJSObjectReference = SpawnJSObjectReference.FromID(fromJS, false);
-                            ret = inMarshaller!.JSToNet(spawnJSObjectReference!);
-                        }
-                        break;
-                    case ReturnType.SpawnJSObjectReferenceNonNullable:
-                        {
-                            var fromJS = _spawnJSInteropCallDouble((int)returnTypeIndex, methodIndex, argsId);
-                            var spawnJSObjectReference = SpawnJSObjectReference.FromID(fromJS, true);
-                            ret = inMarshaller!.JSToNet(spawnJSObjectReference!);
-                        }
-                        break;
-                    case ReturnType.Json:
-                        {
-                            var fromJS = _spawnJSInteropCallString((int)returnTypeIndex, methodIndex, argsId);
-                            ret = inMarshaller!.JSToNet(fromJS);
-                        }
-                        break;
-                    default:
-                        throw new Exception($"Invalid ReturnType for marshaller: {inMarshaller?.GetType().Name} {returnTypeIndex}");
+                    _spawnJSInteropCallAsync(DotnetInstance.Id, asyncCallbackId, address, length);
+                }
+                catch
+                {
+                    // the call never started, so no resolver will ever run for this id
+                    RemoveAsyncCompletion(asyncCallbackId);
+                    throw;
                 }
             }
             finally
             {
-                if (jsArgs != null)
-                {
-                    // returen the array to the usable call queue. it has already been reset by js
-                    _callArrays.Enqueue(jsArgs);
-                }
+                Tape.EndCall();
             }
-            return ret;
+            return tcs.Task;
         }
-        async Task<T> _InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(double methodIndex, SpawnJSObjectReference? jsArgs = null)
+        void RegisterAsyncCompletion<T>(JSMarshaller<T> returnMarshaller, ReturnType returnType, TaskCompletionSource<T> tcs, double asyncCallbackId)
         {
-            var typeOfT = typeof(T);
-            var returnMarshaller = GetMarshaller<T>();
-            var returnTypeIndex = returnMarshaller.ReturnType;
-            var tcs = new TaskCompletionSource<T>();
-            var asyncCallbackId = ++_asyncCallbackId;
-            switch (returnTypeIndex)
+            switch (returnType)
             {
                 case ReturnType.Void:
+                    _voidCallbacks.TryAdd(asyncCallbackId, (error) =>
                     {
-                        _voidCallbacks.TryAdd(asyncCallbackId, (error) =>
-                        {
-                            if (error == null) tcs.TrySetResult(default!);
-                            else tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                        });
-                    }
+                        if (error == null) tcs.TrySetResult(default!);
+                        else tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                    });
                     break;
                 case ReturnType.Double:
                     _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
                         if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                        else
-                        {
-                            var ret = returnMarshaller.JSToNet(value!);
-                            tcs.TrySetResult(ret);
-                        }
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value!));
                     });
                     break;
                 case ReturnType.Boolean:
+                    _booleanCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        _booleanCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var ret = returnMarshaller.JSToNet(value);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value));
+                    });
                     break;
                 case ReturnType.Int32:
                     _int32Callbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
                         if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                        else
-                        {
-                            var ret = returnMarshaller.JSToNet(value!);
-                            tcs.TrySetResult(ret);
-                        }
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value!));
                     });
                     break;
                 case ReturnType.Int32Nullable:
                     _int32NullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
                         if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                        else
-                        {
-                            var ret = returnMarshaller.JSToNet(value!);
-                            tcs.TrySetResult(ret);
-                        }
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value!));
                     });
                     break;
                 case ReturnType.DoubleNullable:
                     _doubleNullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
                         if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                        else
-                        {
-                            var ret = returnMarshaller.JSToNet(value!);
-                            tcs.TrySetResult(ret);
-                        }
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value!));
                     });
                     break;
                 case ReturnType.BooleanNullable:
+                    _booleanNullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        _booleanNullableCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var ret = returnMarshaller.JSToNet(value);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value));
+                    });
                     break;
                 case ReturnType.String:
+                case ReturnType.Json:
+                    _stringCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        _stringCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var ret = returnMarshaller.JSToNet(value!);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(value!));
+                    });
                     break;
                 case ReturnType.SpawnJSObjectReference:
-                    {
-                        _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var spawnJSObjectReference = SpawnJSObjectReference.FromID(value, false);
-                                var ret = returnMarshaller.JSToNet(spawnJSObjectReference!);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
-                    break;
                 case ReturnType.SpawnJSObjectReferenceNonNullable:
+                    var nonNullable = returnType == ReturnType.SpawnJSObjectReferenceNonNullable;
+                    _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
                     {
-                        _doubleCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var spawnJSObjectReference = SpawnJSObjectReference.FromID(value, true);
-                                var ret = returnMarshaller.JSToNet(spawnJSObjectReference!);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
-                    break;
-                case ReturnType.Json:
-                    {
-                        _stringCallbacks.TryAdd(asyncCallbackId, (value, error) =>
-                        {
-                            if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
-                            else
-                            {
-                                var ret = returnMarshaller.JSToNet(value!);
-                                tcs.TrySetResult(ret);
-                            }
-                        });
-                    }
+                        if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                        else tcs.TrySetResult(returnMarshaller.JSToNet(SpawnJSObjectReference.FromID(value, nonNullable)!));
+                    });
                     break;
                 default:
-                    return default!;
+                    throw new Exception($"Invalid ReturnType for marshaller: {returnMarshaller?.GetType().Name} {returnType}");
             }
+        }
+        void RemoveAsyncCompletion(double asyncCallbackId)
+        {
+            _voidCallbacks.TryRemove(asyncCallbackId, out _);
+            _doubleCallbacks.TryRemove(asyncCallbackId, out _);
+            _doubleNullableCallbacks.TryRemove(asyncCallbackId, out _);
+            _booleanCallbacks.TryRemove(asyncCallbackId, out _);
+            _booleanNullableCallbacks.TryRemove(asyncCallbackId, out _);
+            _stringCallbacks.TryRemove(asyncCallbackId, out _);
+            _int32Callbacks.TryRemove(asyncCallbackId, out _);
+            _int32NullableCallbacks.TryRemove(asyncCallbackId, out _);
+        }
+        #endregion
+
+        #region Typed InteropCall
+        // InteropCall methods write each argument through its compile-time type's marshaller, so there is no
+        // runtime Type bridge at all. The method is named by index, never by string.
+        internal T InteropCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName)
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 0);
+            return EndCall<T>();
+        }
+        internal T InteropCall<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1)
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 1);
             try
             {
-                var argsId = jsArgs?.Id ?? UndefinedId;
-                _spawnJSInteropCallAsync((int)returnMarshaller.ReturnType, DotnetInstance.Id, asyncCallbackId, methodIndex, argsId);
-                // wait for the tcs to complete or throw
-                return await tcs.Task.ConfigureAwait(false);
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
             }
-            finally
-            {
-                if (jsArgs != null)
-                {
-                    // returen the array to the usable call queue. it has already been reset by js
-                    _callArrays.Enqueue(jsArgs);
-                }
-            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
         }
-        /// <summary>
-        /// Calls a SpawnJSInterop static method asynchronously. A per-call id is registered against a
-        /// TaskCompletionSource; the JS side runs the underlying promise then invokes an AsyncCallResolved*
-        /// [JSExport] with that id, which completes the task. The assembly export table is loaded once on
-        /// the first async call.
-        /// </summary>
-        internal async Task<T> InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, object?[]? args = null)
-        {
-            // The JS side empties this array's slot after the call, so it can be returned to the pool.
-            SpawnJSObjectReference? jsArgs = null;
-            if (args != null && args.Length > 0)
-            {
-                if (!_callArrays.TryDequeue(out jsArgs))
-                {
-                    jsArgs = NewJSArray();
-                }
-                for (var i = 0; i < args.Length; i++)
-                {
-                    var item = args[i];
-                    // Type -> <T> trick (see InteropCallApply): marshal each arg with no boxing.
-                    var itemType = item?.GetType()!;
-                    if (itemType == null)
-                    {
-                        jsArgs.PropertySetNull(i);
-                        continue;
-                    }
-                    ((Delegate)writeTyped<object>).InvokeGeneric(itemType, item);
-                    void writeTyped<T1>(T1 value)
-                    {
-                        var marshaller = GetMarshallerForWrite<T1>();
-                        if (marshaller == null) jsArgs.PropertySetNull(i);
-                        else marshaller.NetToJS(jsArgs!, i, value!);
-                    }
-                }
-            }
-            return await _InteropCallApplyAsync<T>(methodName, jsArgs);
-        }
-        /// <summary>
-        /// InteropCall methods are efficient callers into SpawnJSInterop because instead of passing the methodName to JS for teh call, they pass the method index
-        /// </summary>
-        internal T InteropCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName)
-            => _InteropCallApply<T>(methodName);
-        internal T InteropCall<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1));
         internal T InteropCall<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 2);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 3);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 4);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 5);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 6);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 7);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 8);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 9);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 10);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 11);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+                GetMarshallerForWrite<T11>().Write(Tape, arg11);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
         internal T InteropCall<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
-            => _InteropCallApply<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 12);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+                GetMarshallerForWrite<T11>().Write(Tape, arg11);
+                GetMarshallerForWrite<T12>().Write(Tape, arg12);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCall<T>();
+        }
+        #endregion
+
+        #region Typed InteropCallAsync
         internal Task<T> InteropCallAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName)
-            => _InteropCallApplyAsync<T>(methodName);
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 0);
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 1);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 2);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 3);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 4);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 5);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 6);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 7);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 8);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 9);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 10);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11));
+        {
+            Tape.BeginCall(InteropMethodIndex(methodName), 11);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+                GetMarshallerForWrite<T11>().Write(Tape, arg11);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
+        }
         internal Task<T> InteropCallAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
-            => _InteropCallApplyAsync<T>(methodName, NewJSArray(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12));
-        Task<T> _InteropCallApplyAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, SpawnJSObjectReference? jsArgs = null)
         {
-            var methodIndex = InteropMethods.IndexOf(methodName);
-            if (methodIndex == -1) throw new Exception($"Unknown SpawnJSInterop method. Index not found: {InteropMethods.Length} {methodName}");
-            return _InteropCallApplyAsync<T>(methodIndex, jsArgs);
+            Tape.BeginCall(InteropMethodIndex(methodName), 12);
+            try
+            {
+                GetMarshallerForWrite<T1>().Write(Tape, arg1);
+                GetMarshallerForWrite<T2>().Write(Tape, arg2);
+                GetMarshallerForWrite<T3>().Write(Tape, arg3);
+                GetMarshallerForWrite<T4>().Write(Tape, arg4);
+                GetMarshallerForWrite<T5>().Write(Tape, arg5);
+                GetMarshallerForWrite<T6>().Write(Tape, arg6);
+                GetMarshallerForWrite<T7>().Write(Tape, arg7);
+                GetMarshallerForWrite<T8>().Write(Tape, arg8);
+                GetMarshallerForWrite<T9>().Write(Tape, arg9);
+                GetMarshallerForWrite<T10>().Write(Tape, arg10);
+                GetMarshallerForWrite<T11>().Write(Tape, arg11);
+                GetMarshallerForWrite<T12>().Write(Tape, arg12);
+            }
+            catch { Tape.EndCall(); throw; }
+            return EndCallAsync<T>();
         }
-        internal T _InteropCallApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(string methodName, SpawnJSObjectReference? jsArgs = null)
-        {
-            var methodIndex = InteropMethods.IndexOf(methodName);
-            if (methodIndex == -1) throw new Exception($"Unknown SpawnJSInterop method. Index not found: {InteropMethods.Length} {methodName}");
-            return _InteropCallApply<T>(methodIndex, jsArgs);
-        }
+        #endregion
+
         // Monotonic id handed to JS with each async call and echoed back to match the completion to its task.
         double _asyncCallbackId = 0;
         // Pending async completions, keyed by asyncCallbackId, one dictionary per JS result shape. The

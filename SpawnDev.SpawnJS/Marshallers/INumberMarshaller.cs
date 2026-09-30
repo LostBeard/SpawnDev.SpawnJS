@@ -27,6 +27,8 @@ namespace SpawnDev.SpawnJS.Marshallers
             return TNumber.CreateChecked(value);
         }
 
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, TNumber value) => tape.WriteNumber(double.CreateChecked(value));
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TNumber value)
         {
             double doubleValue = double.CreateChecked(value);

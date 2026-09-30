@@ -140,7 +140,6 @@ namespace SpawnDev.SpawnJS
             }
         }
         bool _verbose = false;
-        internal string[] InteropMethods;
         /// <summary>
         /// Creates the runtime. The base id is GlobalThisId so the instance addresses JS
         /// <c>globalThis</c> directly. Registers the built-in marshallers in priority order (last wins).
@@ -148,6 +147,7 @@ namespace SpawnDev.SpawnJS
         private SpawnJSRuntime() : base(GlobalThisId)
         {
             _instance = this;
+            Tape = new JSTape(this);
             var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
             var chunkSize = 4;
             InstanceId = string.Join("-", Enumerable.Range(0, id.Length / chunkSize).Select(i => id.Substring(i * chunkSize, chunkSize)));
@@ -156,7 +156,7 @@ namespace SpawnDev.SpawnJS
             if (!IsBrowser)
             {
                 DotnetInstance = default!;
-                InteropMethods = new string[0];
+                InteropMethods = System.Array.Empty<string>();
                 GlobalScope = GlobalScope.NonBrowser;
                 return;
             }

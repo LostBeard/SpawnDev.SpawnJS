@@ -13,6 +13,8 @@ namespace SpawnDev.SpawnJS.Marshallers
         // Enum.ToObject coerces to TEnum's underlying type before boxing (a direct unbox throws for any
         // non-Int32-backed enum). A null JS value maps to a null nullable-enum.
         public override TEnum? JSToNet(int? value) => value.HasValue ? (TEnum)Enum.ToObject(typeof(TEnum), value.Value) : null;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, TEnum? value) { if (value.HasValue) tape.WriteNumber(Convert.ToInt32(value.Value)); else tape.WriteNull(); }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TEnum? value)
             => jsParent.PropertySet(jsKey, value.HasValue ? (int?)Convert.ToInt32(value.Value) : null);
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TEnum? value)

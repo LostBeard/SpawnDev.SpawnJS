@@ -197,6 +197,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             await TaskMarshallerTests();
             await PocoPolymorphismTests();
             RuntimeTypedMemberTests();
+            TapeTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();
             DelegateMarshallerTests();
@@ -719,6 +720,108 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 object boxed = new object[] { 1, "x", new RtInner { A = 1, B = "y" } };
                 JS.Set(K, boxed);
                 AssertEqual(ShapeKey(), "[number(1),string(\"x\"),{a:number(1),b:string(\"y\")}]", "shape");
+            });
+        }
+
+        // ==========================================================================================
+        // The call tape - every call crosses once through JSTape; these exercise its edges
+        // ==========================================================================================
+        public enum TapeColor { Red = 1, Green = 2 }
+
+        static void TapeTests()
+        {
+            Test("Tape.LargeStringArgumentAndResult", () =>
+            {
+                // bigger than a whole segment: the frame moves while it is written, and the result overflows it
+                var s = new string('a', 300_000) + "end";
+                JS.Set(K, s);
+                var back = JS.Get<string>(K);
+                Assert(back == s, $"round trip lost the string: got length {back?.Length}");
+                AssertEqual(JS.TapeDepth, 0, "open frames after the calls");
+            });
+
+            Test("Tape.StringResultLargerThanTheSegment", () =>
+            {
+                var back = JS.Call<int, string>("SpawnJSTests.longString", 200_000);
+                Assert(back != null && back.Length == 200_000 && back.All(c => c == 'x'), $"got length {back?.Length}");
+            });
+
+            Test("Tape.LoneSurrogatesSurvive", () =>
+            {
+                // UTF-16 code units cross as they are; a decoder would turn these into U+FFFD
+                var s = "a\ud800b\udc00c";
+                AssertEqual(Js("codeUnits", s), "61,d800,62,dc00,63", "code units Javascript received");
+                JS.Set(K, s);
+                AssertEqual(JS.Get<string>(K), s, "round trip");
+            });
+
+            Test("Tape.EmptyAndNullStrings", () =>
+            {
+                JS.Set(K, "");
+                AssertEqual(ShapeKey(), "string(\"\")", "empty string out");
+                AssertEqual(JS.Get<string>(K), "", "empty string back");
+                JS.Set(K, (string?)null);
+                AssertEqual(ShapeKey(), "null", "null string out");
+                AssertEqual(JS.Get<string?>(K), null, "null string back");
+            });
+
+            Test("Tape.ScalarResultsOfUndefinedAndNull", () =>
+            {
+                // what the runtime's own typed returns produced: undefined/null read as 0 / false, or null when nullable
+                AssertEqual(JS.Call<double>("SpawnJSTests.nothing"), 0d, "double");
+                AssertEqual(JS.Call<int>("SpawnJSTests.nothing"), 0, "int");
+                AssertEqual(JS.Call<bool>("SpawnJSTests.nothing"), false, "bool");
+                AssertEqual(JS.Call<double?>("SpawnJSTests.nul"), null, "double?");
+                AssertEqual(JS.Call<int?>("SpawnJSTests.nul"), null, "int?");
+                AssertEqual(JS.Call<bool?>("SpawnJSTests.nul"), null, "bool?");
+                AssertEqual(JS.Call<string?>("SpawnJSTests.nothing"), null, "string");
+            });
+
+            Test("Tape.Int32ResultWrapsLikeToInt32", () =>
+            {
+                AssertEqual(JS.Call<int>("SpawnJSTests.beyondInt32"), 5, "2^32 + 5 as int");
+                AssertEqual(JS.Call<int?>("SpawnJSTests.beyondInt32"), 5, "2^32 + 5 as int?");
+            });
+
+            Test("Tape.TenArgumentsOfMixedTypes", () =>
+            {
+                using var map = new SpawnJSObject(JS.New<SpawnJSObjectReference>("Map")!);
+                var shape = JS.Call<int, string, bool, string?, double, TapeColor, int?, double?, SpawnJSObject, VoidType, string>(
+                    "SpawnJSTests.argsShape", 1, "two", true, null, 4.5, TapeColor.Green, null, 7.25, map, new VoidType());
+                AssertEqual(shape, "number(1)|string(\"two\")|boolean(true)|null|number(4.5)|number(2)|null|number(7.25)|<Map>|undefined", "arguments");
+            });
+
+            Test("Tape.ReentrantCallNeverMovesTheOuterFrame", () =>
+            {
+                // A callback runs while the outer call is in Javascript's hands, and Javascript will write the outer
+                // result at the address it was sent with. The outer argument is swept so the frame ends at every
+                // position near the end of its segment: when the nested call's header does not fit, the nested frame
+                // must start in a new segment, never move the outer one.
+                for (var n = 32_660; n <= 32_760; n++)
+                {
+                    var outer = new string('o', n);
+                    string? inner = null;
+                    using var callback = new ActionCallback(() =>
+                    {
+                        JS.Set(K, "inner");
+                        inner = JS.Get<string>(K);
+                    });
+                    var result = JS.Call<ActionCallback, string, string>("SpawnJSTests.callThenReturn", callback, outer);
+                    Assert(result != null && result.Length == n + 1 && result.EndsWith("o!"), $"outer result wrong at n={n}: length {result?.Length}");
+                    AssertEqual(inner, "inner", $"nested call at n={n}");
+                }
+                AssertEqual(JS.TapeDepth, 0, "open frames after the calls");
+            });
+
+            Test("Tape.ArgumentThatThrowsReleasesTheFrame", () =>
+            {
+                // a bare object has no marshaller that can write it
+                var threw = false;
+                try { JS.Call<object, string>("SpawnJSTests.typeOf", new object()); }
+                catch (NotImplementedException) { threw = true; }
+                Assert(threw, "writing a bare object should throw");
+                AssertEqual(JS.TapeDepth, 0, "the failed call's frame is still open");
+                AssertEqual(JS.Call<int, string>("SpawnJSTests.typeOf", 1), "number", "the next call");
             });
         }
 

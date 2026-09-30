@@ -86,6 +86,16 @@ namespace SpawnDev.SpawnJS.Marshaller
         /// </summary>
         public virtual TType JSToNet(SpawnJSObjectReference value) => throw new NotImplementedException(this.GetType().Name);
         /// <summary>
+        /// .Net to JS: append <paramref name="value"/> to the call's <see cref="JSTape"/>. Nothing crosses here - the
+        /// whole call crosses once, when it is sent.
+        /// <para>
+        /// TRANSITIONAL default, for marshallers not moved to the tape yet: the value is built the v2 way by this
+        /// marshaller's own <see cref="NetToJS(SpawnJSObjectReference, int, TType)"/> into the call's scratch array,
+        /// and the tape carries its index. It becomes abstract, and NetToJS goes, once every marshaller overrides it.
+        /// </para>
+        /// </summary>
+        public virtual void Write(JSTape tape, TType value) => tape.WriteViaScratch(this, value);
+        /// <summary>
         /// Given a JS parent object, the JS property key, and the .Net value: write the value.<br/>
         /// </summary>
         public abstract void NetToJS(SpawnJSObjectReference jsParent, string jsKey, TType value);

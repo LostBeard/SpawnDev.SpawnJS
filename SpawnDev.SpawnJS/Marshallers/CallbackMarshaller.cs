@@ -21,6 +21,8 @@ namespace SpawnDev.SpawnJS.Marshallers
         {
             throw new NotImplementedException();
         }
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, TCallback? value) => tape.WriteCallback(value);
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TCallback? value)
         {
             jsParent.PropertySet(jsKey, value);

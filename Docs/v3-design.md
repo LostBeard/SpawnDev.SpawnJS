@@ -26,11 +26,15 @@ Reproduce: `?bench=` in SpawnDev.SpawnJS.Demo, `SpawnJS.TestRunner --bench` (see
 ```csharp
 public abstract class JSMarshaller<T>
 {
-    public abstract void Write(ref TapeWriter w, T value);   // .NET -> JS: append to the tape, no crossing
+    public abstract void Write(JSTape tape, T value);         // .NET -> JS: append to the tape, no crossing
     public abstract JSSchema Schema { get; }                  // what JS must produce when .NET reads a T
     public abstract T Read(ref TapeReader r);                 // JS -> .NET: read what JS wrote, no crossing
 }
 ```
+
+The writer is the runtime's `JSTape` object, not a `ref` struct: a marshaller writing an argument can itself make
+an interop call (a v2 marshaller calls `JS.New("Object")`), so the write position has to live on the tape for the
+nested call to stack above it.
 
 **The tape.** A buffer in .NET memory, owned by the SpawnJSRuntime instance. .NET fills it with plain stores;
 JS reads it through the WASM heap views. A call is: fill the tape, ONE JSImport, read the result off the tape.

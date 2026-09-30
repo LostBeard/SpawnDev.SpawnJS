@@ -6,6 +6,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class VoidTypeMarshaller : JSMarshallerFromVoid<VoidType>
     {
         public override VoidType JSToNet() => null!;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, VoidType value) => tape.WriteUndefined();
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, VoidType value) { }
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, VoidType value) { }
     }

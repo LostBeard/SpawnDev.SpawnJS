@@ -6,6 +6,15 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class ObjectMarshaller : JSMarshallerFromSpawnJSObjectReference<object>
     {
         public override object JSToNet(SpawnJSObjectReference value) => value;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, object value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            var valueType = value.GetType();
+            if (valueType == typeof(object)) throw new NotImplementedException("TODO");
+            ((Delegate)writeTyped<object>).InvokeGeneric(valueType, value);
+            void writeTyped<T>(T value) => JS.GetMarshallerForWrite<T>().Write(tape, value);
+        }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, object value)
         {
             if (value == null)

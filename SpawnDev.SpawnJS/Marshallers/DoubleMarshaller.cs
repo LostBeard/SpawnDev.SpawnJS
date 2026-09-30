@@ -6,6 +6,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class DoubleMarshaller : JSMarshallerFromDouble<double>
     {
         public override double JSToNet(double value) => value;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, double value) => tape.WriteNumber(value);
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, double value) => jsParent.PropertySet(jsKey, value);
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, double value) => jsParent.PropertySet(jsKey, value);
     }

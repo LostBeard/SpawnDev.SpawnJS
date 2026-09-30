@@ -11,8 +11,11 @@
 // Negative ids are reserved sentinels resolved without a table lookup:
 //   -1 globalThis, -2 undefined, -3 null, -4 the spawnJSObjects table, SpawnJSInterop.
 //
-// Calls flow through _spawnJSInteropCall (sync) / _spawnJSInteropCallAsync (async): .Net names a static
-// method here plus a returnType code (see ReturnType.cs), and _serializeToNet shapes the result to match.
+// Calls flow through _spawnJSInteropCall (sync) / _spawnJSInteropCallAsync (async). The whole call - which static
+// method here, the returnType code (see ReturnType.cs), every argument - is written by .Net onto its call tape
+// (JSTape.cs) in .Net memory and crosses ONCE: the call reads it straight off the WASM heap and writes the result
+// back over the same frame. Each call carries its dotnetId and frame address, so nothing here is shared between
+// .Net instances beyond this class.
 (function () {
     if (globalThis.SpawnJSInterop) return;
     class SpawnJSInterop {
@@ -126,64 +129,56 @@
             if (SpawnJSInterop.verbose) console.log('[SpawnJSInterop] Instance registered', instanceInfo);
             return dotnetId;
         }
+        // Call tape value tags - JSTape.Tag* in JSTape.cs must match
+        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7 };
+
         // Main .Net to JS entrypoint (synchronous)
-        // The args array is fetched AND replaced with a fresh empty [] in the same slot, so the .Net side's
-        // pooled argument-array reference (same id) comes back emptied and ready to reuse on the next call.
+        // The frame at address holds the whole call (see JSTape.cs). The result is written back over the frame and
+        // the return value is its byte length - or minus the bytes it needs when it does not fit in capacity, in
+        // which case it is kept on the instance for _spawnJSInteropCallResult.
         // JSImport
-        // bool? _spawnJSInteropCallBooleanNullable(int returnType, int methodIndex, double argsId);
-        // double? _spawnJSInteropCallDoubleNullable(int returnType, int methodIndex, double argsId);
-        // bool _spawnJSInteropCallBoolean(int returnType, int methodIndex, double argsId);
-        // int _spawnJSInteropCallInt32(int returnType, int methodIndex, double argsId);
-        // int? _spawnJSInteropCallInt32Nullable(int returnType, int methodIndex, double argsId);
-        // double _spawnJSInteropCallDouble(int returnType, int methodIndex, double argsId);
-        // string _spawnJSInteropCallString(int returnType, int methodIndex, double argsId);
-        // void _spawnJSInteropCallVoid(int returnType, int methodIndex, double argsId);
-        static _spawnJSInteropCall(returnType, methodName, argsId, replacerId, replacerConfig) {
+        // int _spawnJSInteropCall(double dotnetId, double address, int length, int capacity);
+        static _spawnJSInteropCall(dotnetId, address, length, capacity) {
             SpawnJSInterop.detachedEventCheck();
-            var target = typeof methodName === 'string' ? SpawnJSInterop[methodName] : SpawnJSInterop._methodMap[methodName];
-            var args = argsId === null || argsId === undefined ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(argsId, []);
-            // iterate _revivers to process args if needed
-            if (args) {
-                for (let i = 0; i < args.length; i++) {
-                    args[i] = SpawnJSInterop.reviveValue(i, args[i], false);
-                }
-            }
-            var ret = !args ? target() : target(...args);
-            // run replacers
-            var replacer = !replacerId ? null : typeof replacerId === 'string' ? SpawnJSInterop[replacerId] : SpawnJSInterop._methodMap[replacerId];
-            if (replacer) ret = replacer(null, ret, true, replacerConfig);
-            else ret = SpawnJSInterop.replaceValue(null, ret, false);
-            // shape the result to match the .Net side's expected returnType
-            ret = SpawnJSInterop._serializeToNet(returnType, ret);
-            return ret;
+            var instance = SpawnJSInterop.getInstace(dotnetId);
+            var call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
+            var ret = call.target(...call.args);
+            ret = SpawnJSInterop.replaceValue(null, ret, false);
+            // views again: the call may have grown the heap
+            var views = SpawnJSInterop._tapeViews(instance, address + capacity);
+            return SpawnJSInterop._tapeWriteResult(instance, views, call.returnType, ret, address, capacity);
+        }
+        // The result that did not fit behind its frame
+        // JSImport
+        // int _spawnJSInteropCallResult(double dotnetId, double address, int capacity);
+        static _spawnJSInteropCallResult(dotnetId, address, capacity) {
+            var instance = SpawnJSInterop.getInstace(dotnetId);
+            var value = instance.tapePendingResult;
+            instance.tapePendingResult = undefined;
+            var views = SpawnJSInterop._tapeViews(instance, address + capacity);
+            return SpawnJSInterop._tapeWriteString(instance, views, value, address, capacity);
         }
         // Main .Net to JS entrypoint (asynchronous)
+        // The frame is read before the first await - .Net releases it as soon as this returns. The result goes back
+        // through the resolvers registered with _registerInstance.
         // JSImport
-        // void _spawnJSInteropCallAsync(int returnType, double dotnetId, double asyncCallId, double methodIndex, double argsId);
-        static async _spawnJSInteropCallAsync(returnType, dotnetId, asyncCallId, methodName, argsId, replacerId, replacerConfig) {
+        // void _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
+        static async _spawnJSInteropCallAsync(dotnetId, asyncCallId, address, length) {
             SpawnJSInterop.detachedEventCheck();
-            var target = typeof methodName === 'string' ? SpawnJSInterop[methodName] : SpawnJSInterop._methodMap[methodName];
             var instance = SpawnJSInterop.getInstace(dotnetId);
-            var dotnet = SpawnJSInterop.spawnJSObjectGet(dotnetId);
-            var args = argsId === null || argsId === undefined ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(argsId, []);
-            if (args) {
-                for (let i = 0; i < args.length; i++) {
-                    args[i] = SpawnJSInterop.reviveValue(i, args[i], false);
-                }
-            }
+            var returnType = SpawnJSInterop._tapeViews(instance, address + length).f64[(address >>> 3) + 1];
             var error = null;
             var ret = null;
             try {
-                ret = !args ? target() : target(...args);
+                // inside the try: a frame that cannot be read must reach .Net as an error, not as a rejected
+                // promise nobody observes - that would leave the awaiting Task hanging forever
+                var call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
+                ret = call.target(...call.args);
                 ret = await ret;
-                // run replacers
-                var replacer = !replacerId ? null : typeof replacerId === 'string' ? SpawnJSInterop[replacerId] : SpawnJSInterop._methodMap[replacerId];
-                if (replacer) ret = replacer(null, ret, true, replacerConfig);
-                else ret = SpawnJSInterop.replaceValue(null, ret, false);
+                ret = SpawnJSInterop.replaceValue(null, ret, false);
                 // prepare using returnType
                 ret = SpawnJSInterop._serializeToNet(returnType, ret);
             } catch (ex) {
-                // call the exceptionCallbackId
                 error = SpawnJSInterop.errorToString(ex);
                 ret = null;
             }
@@ -225,6 +220,148 @@
                     throw new Error(`Unsupported returnType ${returnType}`);
                     break;
             }
+        }
+        // The heap views a tape is read through. Kept on the instance - never a page global - and rebuilt when the
+        // heap buffer changes: growth detaches it, and a shared (threaded) heap's buffer does not detach but can be
+        // shorter than the memory, so end is checked too.
+        static _tapeViews(instance, end) {
+            var buffer = instance.getHeap();
+            if (buffer.byteLength < end) {
+                buffer = instance.heapBuffer = SpawnJSInterop.wasmMemoryBuffer(instance.dotnet);
+                instance.heapBufferSize = buffer.byteLength;
+            }
+            var views = instance.tapeViews;
+            if (!views || views.buffer !== buffer) {
+                views = instance.tapeViews = { buffer, f64: new Float64Array(buffer), i32: new Int32Array(buffer), u16: new Uint16Array(buffer) };
+            }
+            return views;
+        }
+        // Reads a call frame: header, then one tagged value per argument, each passed through the revivers as the
+        // v2 argument array was.
+        static _tapeReadCall(instance, address, length, dotnetId) {
+            var views = SpawnJSInterop._tapeViews(instance, address + length);
+            var f64 = views.f64;
+            var p = address >>> 3;
+            var methodIndex = f64[p];
+            var returnType = f64[p + 1];
+            var argCount = f64[p + 2];
+            var scratchId = f64[p + 3];
+            // TRANSITIONAL: values built by the v2 per-value path, emptied in place so .Net reuses the array
+            var scratch = scratchId === -2 ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(scratchId, []);
+            var cursor = { p: p + 4 };
+            var args = new Array(argCount);
+            for (var i = 0; i < argCount; i++) {
+                // a reviver can run .Net (a heap view refresh reports the detach), which can grow the heap
+                if (views.buffer.detached) views = SpawnJSInterop._tapeViews(instance, address + length);
+                args[i] = SpawnJSInterop.reviveValue(i, SpawnJSInterop._tapeRead(views, cursor, dotnetId, scratch), false);
+            }
+            var target = SpawnJSInterop._methodMap[methodIndex];
+            if (!target) throw new Error(`SpawnJSInterop: no method at index ${methodIndex}`);
+            return { target, returnType, args };
+        }
+        // Reads one tagged value at cursor.p and advances it
+        static _tapeRead(views, cursor, dotnetId, scratch) {
+            var f64 = views.f64;
+            var p = cursor.p;
+            var tag = f64[p++];
+            var value;
+            switch (tag) {
+                case 0: value = undefined; break;
+                case 1: value = null; break;
+                case 2: value = f64[p++]; break;
+                case 3: value = f64[p++] !== 0; break;
+                case 4: {
+                    var length = f64[p++];
+                    value = SpawnJSInterop._tapeString(views.u16, p * 4, length);
+                    p += (length + 3) >>> 2;
+                    break;
+                }
+                case 5: value = SpawnJSInterop.spawnJSObjectGet(f64[p++]); break;
+                case 6: {
+                    var callbackId = f64[p++];
+                    var once = f64[p++] !== 0;
+                    value = SpawnJSInterop._callbackFunction(dotnetId, callbackId, once);
+                    break;
+                }
+                case 7: value = scratch[f64[p++]]; break;
+                default: throw new Error(`SpawnJSInterop: unknown tape tag ${tag} at cell ${p - 1}`);
+            }
+            cursor.p = p;
+            return value;
+        }
+        // String.fromCharCode keeps every UTF-16 code unit exactly - a lone surrogate included, which a TextDecoder
+        // would replace. Chunked, because apply() has an argument count limit.
+        static _tapeString(u16, index, length) {
+            if (length <= 1024) return String.fromCharCode.apply(null, u16.subarray(index, index + length));
+            var parts = [];
+            for (var i = 0; i < length; i += 1024) {
+                parts.push(String.fromCharCode.apply(null, u16.subarray(index + i, index + Math.min(i + 1024, length))));
+            }
+            return parts.join('');
+        }
+        // Writes a result over its own frame in the form SpawnJSRuntime.ReadResult reads for that returnType. The
+        // scalar forms are what the runtime's own typed returns produced: null/undefined -> 0 / false, a number
+        // stored through a Float64Array (ToNumber) and an int through an Int32Array (ToInt32).
+        static _tapeWriteResult(instance, views, returnType, ret, address, capacity) {
+            var f64 = views.f64;
+            var p = address >>> 3;
+            var isNull = ret === null || ret === undefined;
+            switch (returnType) {
+                case 0:  // void
+                    return 0;
+                case 1:  // Double
+                    f64[p] = isNull ? 0 : ret;
+                    return 8;
+                case 2:  // Boolean
+                    f64[p] = ret ? 1 : 0;
+                    return 8;
+                case 3:  // DoubleNullable
+                    if (isNull) { f64[p] = 1; return 8; }
+                    f64[p] = 2;
+                    f64[p + 1] = ret;
+                    return 16;
+                case 4:  // BooleanNullable
+                    if (isNull) { f64[p] = 1; return 8; }
+                    f64[p] = 3;
+                    f64[p + 1] = ret ? 1 : 0;
+                    return 16;
+                case 5:  // String
+                    if (!isNull && typeof ret !== 'string') ret = Object(ret).toString();
+                    return SpawnJSInterop._tapeWriteString(instance, views, ret, address, capacity);
+                case 6:  // SpawnJSObject
+                case 7:  // SpawnJSObjectNonNullable
+                    f64[p] = SpawnJSInterop.spawnJSObjectHold(ret);
+                    return 8;
+                case 8:  // Json
+                    return SpawnJSInterop._tapeWriteString(instance, views, JSON.stringify(ret), address, capacity);
+                case 9:  // Int32
+                    views.i32[p * 2] = isNull ? 0 : ret;
+                    return 8;
+                case 10: // Int32Nullable
+                    if (isNull) { f64[p] = 1; return 8; }
+                    f64[p] = 2;
+                    views.i32[(p + 1) * 2] = ret;
+                    return 16;
+            }
+            throw new Error(`Unsupported returnType ${returnType}`);
+        }
+        // tag, length, UTF-16 code units - or keeps the value and returns minus the bytes needed
+        static _tapeWriteString(instance, views, value, address, capacity) {
+            var f64 = views.f64;
+            var p = address >>> 3;
+            if (value === null || value === undefined) { f64[p] = 1; return 8; }
+            var length = value.length;
+            var bytes = 16 + (((length + 3) >>> 2) << 3);
+            if (bytes > capacity) {
+                instance.tapePendingResult = value;
+                return -bytes;
+            }
+            f64[p] = 4;
+            f64[p + 1] = length;
+            var u16 = views.u16;
+            var index = (p + 2) * 4;
+            for (var i = 0; i < length; i++) u16[index + i] = value.charCodeAt(i);
+            return bytes;
         }
         // creates a new Array, adds it to the hold and returns it
         // JSImport 
@@ -522,6 +659,12 @@
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
             var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
             if (shortCircuit) return;
+            var value = SpawnJSInterop._callbackFunction(dotnetId, callbackId, once);
+            if (!value) return null;
+            parent[propertyName] = value;
+        }
+        // The Javascript function that invokes a .Net Callback, created once per callback and reused
+        static _callbackFunction(dotnetId, callbackId, once) {
             if (!callbackId || !dotnetId) {
                 return null;
             }
@@ -565,7 +708,7 @@
                 };
                 SpawnJSInterop._callbacks[callbackIdPair] = value;
             }
-            parent[propertyName] = value;
+            return value;
         }
         // set property to using a SpawnJSInterop[methodName](value) call
         // methodName can be a SpawnJSInterop methodName or a methodIndex

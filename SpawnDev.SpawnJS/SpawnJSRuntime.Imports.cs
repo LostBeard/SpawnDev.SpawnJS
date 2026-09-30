@@ -23,34 +23,29 @@ namespace SpawnDev.SpawnJS
             [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.Number>>] Action<double, double, double> onCallback);
 
         #region _spawnJSInteropCall
+        /// <summary>
+        /// THE .Net to JS call. The whole call - method, return type, every argument - is on this runtime's
+        /// <see cref="JSTape"/> at <paramref name="address"/>; Javascript reads it, runs it, and writes the result
+        /// back over the frame. Returns the result's byte length, or minus the bytes it needs when the result does
+        /// not fit in <paramref name="capacity"/> (then read it with <see cref="_spawnJSInteropCallResult"/>).
+        /// </summary>
         [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial bool? _spawnJSInteropCallBooleanNullable(int returnType, int methodIndex, double argsId);
+        internal static partial int _spawnJSInteropCall(double dotnetId, double address, int length, int capacity);
 
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial double? _spawnJSInteropCallDoubleNullable(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial bool _spawnJSInteropCallBoolean(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial int _spawnJSInteropCallInt32(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial int? _spawnJSInteropCallInt32Nullable(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial double _spawnJSInteropCallDouble(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial string _spawnJSInteropCallString(int returnType, int methodIndex, double argsId);
-
-        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCall")]
-        internal static partial void _spawnJSInteropCallVoid(int returnType, int methodIndex, double argsId);
+        /// <summary>
+        /// Writes the result Javascript kept back because it did not fit behind its frame.
+        /// </summary>
+        [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCallResult")]
+        internal static partial int _spawnJSInteropCallResult(double dotnetId, double address, int capacity);
         #endregion
 
         #region _spawnJSInteropCallAsync
+        /// <summary>
+        /// The async form of <see cref="_spawnJSInteropCall"/>. Javascript reads the frame before its first await;
+        /// the result arrives through the resolvers registered with _registerInstance.
+        /// </summary>
         [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCallAsync")]
-        internal static partial void _spawnJSInteropCallAsync(int returnType, double dotnetId, double asyncCallId, double methodIndex, double argsId);
+        internal static partial void _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
         #endregion
 
         /// <summary>

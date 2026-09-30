@@ -6,6 +6,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class DoubleNullableMarshaller : JSMarshallerFromDoubleNullable<double?>
     {
         public override double? JSToNet(double? value) => value;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, double? value) { if (value is null) tape.WriteNull(); else tape.WriteNumber(value.Value); }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, double? value) => jsParent.PropertySet(jsKey, value);
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, double? value) => jsParent.PropertySet(jsKey, value);
     }

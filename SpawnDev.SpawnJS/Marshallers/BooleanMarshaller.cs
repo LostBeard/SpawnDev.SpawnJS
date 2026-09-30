@@ -6,6 +6,8 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class BooleanMarshaller : JSMarshallerFromBoolean<bool>
     {
         public override bool JSToNet(bool value) => value;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, bool value) => tape.WriteBoolean(value);
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, bool value) => jsParent.PropertySet(jsKey, value);
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, bool value) => jsParent.PropertySet(jsKey, value);
     }
