@@ -27,6 +27,21 @@
             try { ctor = Object.getPrototypeOf(v)?.constructor?.name ?? ''; } catch { ctor = '?'; }
             return `${typeof v}:${ctor || 'null-prototype'}`;
         }
+        // A deep, typed picture of a value: primitives as type(value), plain arrays and plain objects walked,
+        // anything else by constructor name. Two values with the same shape() crossed identically.
+        static shape(v) {
+            if (v === null) return 'null';
+            if (v === undefined) return 'undefined';
+            switch (typeof v) {
+                case 'string': return `string(${JSON.stringify(v)})`;
+                case 'number': case 'boolean': case 'bigint': return `${typeof v}(${String(v)})`;
+            }
+            if (Array.isArray(v)) return '[' + v.map(SpawnJSTests.shape).join(',') + ']';
+            var proto = Object.getPrototypeOf(v);
+            if (proto === Object.prototype || proto === null) return '{' + Object.keys(v).map(k => `${k}:${SpawnJSTests.shape(v[k])}`).join(',') + '}';
+            if (ArrayBuffer.isView(v)) return `${proto.constructor.name}(${v.length})`;
+            return `<${proto?.constructor?.name ?? '?'}>`;
+        }
         static typeOf(v) { return typeof v; }
         static isUndefined(v) { return v === undefined; }
         static isNull(v) { return v === null; }

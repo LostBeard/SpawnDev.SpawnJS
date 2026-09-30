@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Marshaller;
+﻿using SpawnDev.SpawnJS.Marshaller;
 using System.Diagnostics.CodeAnalysis;
 
 namespace SpawnDev.SpawnJS.Marshallers
@@ -138,16 +138,13 @@ namespace SpawnDev.SpawnJS.Marshallers
                 if (!member.GetShouldWrite(memberValue)) continue; // honours [JsonIgnore] Always/WhenWritingNull/WhenWritingDefault
                 var name = member.GetJsonName();
                 if (memberValue == null) { outObj.PropertySetNull(name); continue; }
-                // Prefer the DECLARED member type when it is an interface/abstract that the value satisfies.
-                // Collection expressions into IEnumerable<> produce <>z__ReadOnlySingleElementList<E>; asking
-                // for a marshaller of that concrete type used to InvalidCast inside IEnumerableMarshaller
-                // (Serial.requestPort / USB.requestDevice filter POCOs). Declared IEnumerable<E> specializes cleanly.
-                var declaredType = member.PropertyInfo?.PropertyType ?? member.FieldInfo!.FieldType;
-                var runtimeType = memberValue.GetType();
-                var writeType = (declaredType.IsInterface || declaredType.IsAbstract) && declaredType.IsAssignableFrom(runtimeType)
-                    ? declaredType
-                    : runtimeType;
-                ((Delegate)writeTyped<object>).InvokeGeneric(writeType, memberValue);
+                // The VALUE decides, never the declared member type. A member declared object, an interface or an
+                // abstract base holds some concrete type, and only that type has a marshaller: picking the declared
+                // type for every interface/abstract threw "GetMarshaller failed" for a custom interface or abstract
+                // class. A collection expression's compiler-synthesized list (<>z__ReadOnlySingleElementList<E>,
+                // the Serial.requestPort / USB.requestDevice filter case) is a concrete IEnumerable, which
+                // IEnumerableMarshaller writes through IEnumerableConcreteWriteMarshaller.
+                ((Delegate)writeTyped<object>).InvokeGeneric(memberValue.GetType(), memberValue);
                 void writeTyped<TMember>(TMember v)
                 {
                     // When the member's runtime type is fixed (value type or sealed), resolve its marshaller

@@ -2,9 +2,15 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.1)
+## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.3)
 
 ### Fixed
+- **A POCO member declared as a custom interface or an abstract class could not be marshalled.** `IShape Shape`
+  holding a `Circle`, or `Animal Pet` holding a `Dog`, threw `GetMarshaller failed: IShape` before JavaScript ran.
+  `PocoMarshaller` used the member's DECLARED type whenever it was an interface or abstract (added in 2.1.19 for
+  collection expressions), and only `IEnumerable<>` has a marshaller for that. Members are written by the VALUE's
+  runtime type again; the 2.1.19 collection-expression case (`Filters = [filter]`, a compiler-synthesized list) is
+  handled by `IEnumerableMarshaller`'s concrete-collection writer, which is what actually fixed it.
 - **WebGPU optional enum members crossed as `null` or as numbers.** `GPUCopyExternalImageDestInfo.ColorSpace`
   (`PredefinedColorSpace?`, no WhenWritingNull) sent `colorSpace: null`, so EVERY `copyExternalImageToTexture` threw
   "not a valid enum value of type PredefinedColorSpace"; when set it crossed as a NUMBER (bare enums marshal as
@@ -21,6 +27,13 @@ All notable changes to SpawnDev.SpawnJS.
   `[Obsolete]` alias that forwards to `FlipY` and is not serialized. Same fix in SpawnDev.BlazorJS.
 
 ### Tests
+- 16 `RuntimeTyped.*` cases: members declared `object` (int, string, bool, POCO, array, live JS object), mixed
+  `object[]`, `IEnumerable<int>` and `IEnumerable<POCO>` from single and multi element collection expressions,
+  `IList<object>`, a custom interface, an abstract base, and top-level `object` values. Checked through a new
+  `SpawnJSTests.shape()` fixture helper (a deep, typed picture of what JavaScript received). Red-checked: the old
+  `PocoMarshaller` fails the interface and abstract cases with the exact error; restoring the pre-2.1.19
+  `IEnumerableMarshaller` cast fails the four collection-expression cases with `InvalidCastException` (2.1.19 had
+  shipped with no test). Full suite 228/228.
 - `PocoMarshaller.WebGPUOptionalEnumMembersOmittedWhenUnset` (red-checked: fails "unset colorSpace was written").
 - `PocoMarshaller.DerivedValueThroughBaseDeclaredType` + `PocoMarshaller.SubtleCryptoDeriveKeyPbkdf2` (a real
   PBKDF2 -> AES-GCM deriveKey). Red-checked against the old marshaller: both fail with the exact browser error.
