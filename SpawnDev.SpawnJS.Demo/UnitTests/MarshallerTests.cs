@@ -154,6 +154,12 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             return JS.Call<SpawnJSObjectReference?, string>("SpawnJSTests.ownKeys", raw);
         }
         static string Js<T1>(string fn, T1 arg1) => JS.Call<T1, string>($"SpawnJSTests.{fn}", arg1);
+        // SpawnJSTests.shape of the value at a key: a deep, typed picture of what Javascript received
+        static string ShapeKey(string key = K)
+        {
+            using var raw = JS.Get(key);
+            return JS.Call<SpawnJSObjectReference?, string>("SpawnJSTests.shape", raw);
+        }
         #endregion
 
         /// <param name="filter">
@@ -190,6 +196,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             ByteArrayMarshallerTests();
             await TaskMarshallerTests();
             await PocoPolymorphismTests();
+            RuntimeTypedMemberTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();
             DelegateMarshallerTests();
@@ -561,6 +568,143 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 // is marshalled into stays undefined
                 JS.Set(K, new VoidType());
                 AssertEqual(TypeOfKey(), "undefined", "VoidType must not carry a value across");
+            });
+        }
+
+        // ==========================================================================================
+        // Runtime-typed members - the value decides, not the declared type
+        // ==========================================================================================
+        // The data a call carries is often not known until the call goes through: a POCO member declared
+        // object, object[], an interface or an abstract base must cross as what the VALUE is. v2 fixed this
+        // piecemeal (PocoMarshaller c2d6da6, IEnumerable 85d95d2 - the latter with no test); these pin it
+        // down so a marshaller redesign cannot quietly lose it.
+        public class RtInner
+        {
+            public int A { get; set; }
+            public string? B { get; set; }
+        }
+        public interface IRtShape { }
+        public class RtCircle : IRtShape
+        {
+            public double Radius { get; set; }
+        }
+        public abstract class RtAnimal
+        {
+            public string? Name { get; set; }
+        }
+        public class RtDog : RtAnimal
+        {
+            public bool Barks { get; set; }
+        }
+        public class RtHolder
+        {
+            public object? Value { get; set; }
+            public object?[]? Items { get; set; }
+            public IEnumerable<int>? Seq { get; set; }
+            public IList<object>? Mixed { get; set; }
+            public IRtShape? Shape { get; set; }
+            public RtAnimal? Pet { get; set; }
+        }
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtInner))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtCircle))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtAnimal))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtDog))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(RtHolder))]
+        static void RuntimeTypedMemberTests()
+        {
+            // only one member is set per case; the rest cross as null
+            static string Holder(string value = "null", string items = "null", string seq = "null", string mixed = "null", string shape = "null", string pet = "null")
+                => $"{{value:{value},items:{items},seq:{seq},mixed:{mixed},shape:{shape},pet:{pet}}}";
+
+            Test("RuntimeTyped.ObjectMemberHoldingInt", () =>
+            {
+                JS.Set(K, new RtHolder { Value = 5 });
+                AssertEqual(ShapeKey(), Holder(value: "number(5)"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectMemberHoldingString", () =>
+            {
+                JS.Set(K, new RtHolder { Value = "five" });
+                AssertEqual(ShapeKey(), Holder(value: "string(\"five\")"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectMemberHoldingBool", () =>
+            {
+                JS.Set(K, new RtHolder { Value = true });
+                AssertEqual(ShapeKey(), Holder(value: "boolean(true)"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectMemberHoldingPoco", () =>
+            {
+                JS.Set(K, new RtHolder { Value = new RtInner { A = 1, B = "b" } });
+                AssertEqual(ShapeKey(), Holder(value: "{a:number(1),b:string(\"b\")}"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectMemberHoldingIntArray", () =>
+            {
+                JS.Set(K, new RtHolder { Value = new[] { 1, 2 } });
+                AssertEqual(ShapeKey(), Holder(value: "[number(1),number(2)]"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectMemberHoldingWrapper", () =>
+            {
+                // a live JS object passes by reference, whatever the member is declared as
+                using var map = new SpawnJSObject(JS.New<SpawnJSObjectReference>("Map")!);
+                JS.Set(K, new RtHolder { Value = map });
+                AssertEqual(ShapeKey(), Holder(value: "<Map>"), "shape");
+            });
+
+            Test("RuntimeTyped.ObjectArrayMemberMixed", () =>
+            {
+                JS.Set(K, new RtHolder { Items = new object?[] { 1, "two", true, null, new RtInner { A = 3, B = null }, new[] { 4, 5 } } });
+                AssertEqual(ShapeKey(), Holder(items: "[number(1),string(\"two\"),boolean(true),null,{a:number(3),b:null},[number(4),number(5)]]"), "shape");
+            });
+
+            Test("RuntimeTyped.IEnumerableMemberCollectionExpressionSingle", () =>
+            {
+                // [x] into IEnumerable<T> is a compiler-synthesized single element list, not an array
+                JS.Set(K, new RtHolder { Seq = [7] });
+                AssertEqual(ShapeKey(), Holder(seq: "[number(7)]"), "shape");
+            });
+
+            Test("RuntimeTyped.IEnumerableMemberCollectionExpressionMany", () =>
+            {
+                JS.Set(K, new RtHolder { Seq = [1, 2, 3] });
+                AssertEqual(ShapeKey(), Holder(seq: "[number(1),number(2),number(3)]"), "shape");
+            });
+
+            Test("RuntimeTyped.IListOfObjectMemberMixed", () =>
+            {
+                JS.Set(K, new RtHolder { Mixed = new List<object> { 1, "a", new RtInner { A = 2, B = "c" } } });
+                AssertEqual(ShapeKey(), Holder(mixed: "[number(1),string(\"a\"),{a:number(2),b:string(\"c\")}]"), "shape");
+            });
+
+            Test("RuntimeTyped.InterfaceMemberCrossesAsItsImplementation", () =>
+            {
+                JS.Set(K, new RtHolder { Shape = new RtCircle { Radius = 2.5 } });
+                AssertEqual(ShapeKey(), Holder(shape: "{radius:number(2.5)}"), "shape");
+            });
+
+            Test("RuntimeTyped.AbstractBaseMemberCrossesAsTheDerivedType", () =>
+            {
+                // reflection lists the derived type's own members first
+                JS.Set(K, new RtHolder { Pet = new RtDog { Name = "Rex", Barks = true } });
+                AssertEqual(ShapeKey(), Holder(pet: "{barks:boolean(true),name:string(\"Rex\")}"), "shape");
+            });
+
+            Test("RuntimeTyped.TopLevelObjectHoldingPoco", () =>
+            {
+                object boxed = new RtInner { A = 9, B = "z" };
+                JS.Set(K, boxed);
+                AssertEqual(ShapeKey(), "{a:number(9),b:string(\"z\")}", "shape");
+            });
+
+            Test("RuntimeTyped.TopLevelObjectArrayMixed", () =>
+            {
+                object boxed = new object[] { 1, "x", new RtInner { A = 1, B = "y" } };
+                JS.Set(K, boxed);
+                AssertEqual(ShapeKey(), "[number(1),string(\"x\"),{a:number(1),b:string(\"y\")}]", "shape");
             });
         }
 
