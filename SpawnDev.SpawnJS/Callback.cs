@@ -119,7 +119,9 @@ namespace SpawnDev.SpawnJS
             // only need to notify JS if the Callabck was actually sent
             // and Javascript has not already released it (it auto-releases Callbacks with Once == true)
             var jsSideReleasedIt = Once && HasBeenCalled;
-            if (Sent && !jsSideReleasedIt) SpawnJSRuntime._releaseCallback(SpawnJSRuntime.Instance.Id, Id);
+            // DotnetInstance.Id: the Javascript function was registered under this runtime's instance id. Instance.Id is
+            // the globalThis sentinel (-1), which matched nothing, so no Callback was ever released Javascript side.
+            if (Sent && !jsSideReleasedIt) SpawnJSRuntime._releaseCallback(SpawnJSRuntime.Instance.DotnetInstance.Id, Id);
             Id = 0;
         }
     }

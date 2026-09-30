@@ -1367,6 +1367,18 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         // ==========================================================================================
         static void CallbackMarshallerTests()
         {
+            Test("CallbackMarshaller.DisposeReleasesTheJavascriptFunction", () =>
+            {
+                // a Callback that was sent has a Javascript function; disposing it must release that function, or
+                // every disposed callback stays in SpawnJSInterop._callbacks for the life of the page
+                var before = JS.Call<int>("SpawnJSTests.callbackFunctionCount");
+                var callback = new ActionCallback(() => { });
+                JS.Set(K, callback);
+                AssertEqual(JS.Call<int>("SpawnJSTests.callbackFunctionCount"), before + 1, "after sending");
+                callback.Dispose();
+                AssertEqual(JS.Call<int>("SpawnJSTests.callbackFunctionCount"), before, "after Dispose");
+            });
+
             Test("CallbackMarshaller.OutIsCallableFromJavascript", () =>
             {
                 var called = false;

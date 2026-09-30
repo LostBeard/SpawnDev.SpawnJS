@@ -2,9 +2,15 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.3)
+## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.4)
 
 ### Fixed
+- **Disposing a Callback never released its Javascript function.** `Callback.Dispose` asked Javascript to release
+  `${dotnetId}_${callbackId}` using `SpawnJSRuntime.Instance.Id` - the globalThis sentinel (-1) - instead of the
+  runtime's `DotnetInstance.Id`, which the function was registered under, so the key never matched. Every Callback
+  ever sent stayed in `SpawnJSInterop._callbacks` for the life of the page (a disposed one was still callable from
+  Javascript; .Net just ignored it). Test `CallbackMarshaller.DisposeReleasesTheJavascriptFunction` fails before the
+  fix (1 function left after Dispose) and passes after.
 - **A POCO member declared as a custom interface or an abstract class could not be marshalled.** `IShape Shape`
   holding a `Circle`, or `Animal Pet` holding a `Dog`, threw `GetMarshaller failed: IShape` before JavaScript ran.
   `PocoMarshaller` used the member's DECLARED type whenever it was an interface or abstract (added in 2.1.19 for
