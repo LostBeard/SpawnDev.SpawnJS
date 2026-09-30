@@ -12,8 +12,7 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             var valueType = value.GetType();
             if (valueType == typeof(object)) throw new NotImplementedException("TODO");
-            ((Delegate)writeTyped<object>).InvokeGeneric(valueType, value);
-            void writeTyped<T>(T value) => JS.GetMarshallerForWrite<T>().Write(tape, value);
+            tape.WriteValue(value);
         }
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, object value)
         {

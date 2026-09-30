@@ -92,6 +92,26 @@ namespace SpawnDev.SpawnJS.Marshallers
             object? readTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TMember>(string key) => value.Get<TMember>(key);
         }
 
+        PocoWritePlan<T>? _plan;
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Written as what the value IS: a subclass of T is walked as the subclass (a Pbkdf2Params passed as its
+        /// KeyDeriveParams base keeps salt / hash / iterations), and a boxed Nullable&lt;TStruct&gt; as its struct.
+        /// </remarks>
+        public override void Write(JSTape tape, T? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            // a plain struct cannot be anything else, and asking would box it
+            if (typeof(T).IsValueType && Nullable.GetUnderlyingType(typeof(T)) == null)
+            {
+                (_plan ??= (PocoWritePlan<T>)PocoWritePlan.For(typeof(T))).Write(tape, value);
+                return;
+            }
+            var type = value.GetType();
+            if (type == typeof(T)) (_plan ??= (PocoWritePlan<T>)PocoWritePlan.For(type)).Write(tape, value);
+            else PocoWritePlan.For(type).WriteBoxed(tape, value);
+        }
+
         /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, string jsKey, T? value)
         {

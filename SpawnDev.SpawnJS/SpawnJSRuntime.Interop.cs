@@ -129,12 +129,7 @@ namespace SpawnDev.SpawnJS
         /// Writes a value typed by what it IS: the runtime Type is bridged back into a compile-time generic, so the
         /// value's own strongly typed marshaller writes it with no boxing on its side.
         /// </summary>
-        void WriteRuntimeTyped(object? value)
-        {
-            if (value == null) { Tape.WriteNull(); return; }
-            ((Delegate)writeTyped<object>).InvokeGeneric(value.GetType(), value);
-            void writeTyped<T1>(T1 value) => GetMarshallerForWrite<T1>().Write(Tape, value);
-        }
+        void WriteRuntimeTyped(object? value) => Tape.WriteValue(value);
         /// <summary>
         /// Sends the innermost frame, reads the result off the tape, and closes the frame - one crossing.
         /// </summary>
@@ -146,6 +141,7 @@ namespace SpawnDev.SpawnJS
                 var returnType = marshaller?.ReturnType ?? ReturnType.Void;
                 var (address, length, capacity) = Tape.Send(returnType, out _);
                 var written = _spawnJSInteropCall(DotnetInstance.Id, address, length, capacity);
+                Tape.ConfirmShapes();
                 if (returnType == ReturnType.Void) return default!;
                 if (written >= 0) return ReadResult(marshaller!, returnType, Tape.Result(written));
                 // the result did not fit behind the frame: Javascript kept it and reports the bytes it needs
@@ -236,7 +232,8 @@ namespace SpawnDev.SpawnJS
                 var (address, length, _) = Tape.Send(returnType, out _);
                 try
                 {
-                    _spawnJSInteropCallAsync(DotnetInstance.Id, asyncCallbackId, address, length);
+                    // 1: the frame was read, and the call is running. 0: it could not be read; the resolver has the error.
+                    if (_spawnJSInteropCallAsync(DotnetInstance.Id, asyncCallbackId, address, length) == 1) Tape.ConfirmShapes();
                 }
                 catch
                 {

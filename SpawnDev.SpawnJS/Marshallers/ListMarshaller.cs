@@ -49,6 +49,13 @@ namespace SpawnDev.SpawnJS.Marshallers
             return retArray;
         }
         /// <inheritdoc/>
+        public override void Write(JSTape tape, List<TElement>? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            TapeCollections.Write(tape, value, _elements ??= new ValueWriter<TElement>());
+        }
+        ValueWriter<TElement>? _elements;
+        /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, List<TElement>? objects)
         {
             // Build a fresh JS array, write each element into it, then assign it to the parent property.

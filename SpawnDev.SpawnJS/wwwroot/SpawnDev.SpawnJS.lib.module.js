@@ -130,7 +130,11 @@
             return dotnetId;
         }
         // Call tape value tags - JSTape.Tag* in JSTape.cs must match
-        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7 };
+        static TapeTag = { Undefined: 0, Null: 1, Number: 2, Boolean: 3, String: 4, Ref: 5, Callback: 6, Scratch: 7, Absent: 8, Object: 9, Shape: 10, Array: 11, Numbers: 12 };
+        // TagNumbers kinds - JSTape.NumberKind must match
+        static TapeNumberCtors = [Int8Array, Uint8Array, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array];
+        // what a member written as TagAbsent reads as: the property is not assigned
+        static _tapeAbsent = Object.freeze({});
 
         // Main .Net to JS entrypoint (synchronous)
         // The frame at address holds the whole call (see JSTape.cs). The result is written back over the frame and
@@ -160,19 +164,28 @@
             return SpawnJSInterop._tapeWriteString(instance, views, value, address, capacity);
         }
         // Main .Net to JS entrypoint (asynchronous)
-        // The frame is read before the first await - .Net releases it as soon as this returns. The result goes back
-        // through the resolvers registered with _registerInstance.
+        // Reads the frame and starts the call before returning, because .Net releases the frame as soon as this returns.
+        // Returns 1 when the frame was read and the call started, 0 when it could not be read - that failure has already
+        // gone to the resolver, so the awaiting Task fails rather than hanging.
         // JSImport
-        // void _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
-        static async _spawnJSInteropCallAsync(dotnetId, asyncCallId, address, length) {
+        // int _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
+        static _spawnJSInteropCallAsync(dotnetId, asyncCallId, address, length) {
             var instance = SpawnJSInterop.getInstace(dotnetId);
             var returnType = SpawnJSInterop._tapeViews(instance, address + length).f64[(address >>> 3) + 1];
+            var call;
+            try {
+                call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
+            } catch (ex) {
+                SpawnJSInterop._resolveAsync(instance, returnType, asyncCallId, null, SpawnJSInterop.errorToString(ex));
+                return 0;
+            }
+            SpawnJSInterop._runAsync(instance, returnType, asyncCallId, call);
+            return 1;
+        }
+        static async _runAsync(instance, returnType, asyncCallId, call) {
             var error = null;
             var ret = null;
             try {
-                // inside the try: a frame that cannot be read must reach .Net as an error, not as a rejected
-                // promise nobody observes - that would leave the awaiting Task hanging forever
-                var call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
                 ret = call.target(...call.args);
                 ret = await ret;
                 ret = SpawnJSInterop.replaceValue(null, ret, false);
@@ -182,6 +195,9 @@
                 error = SpawnJSInterop.errorToString(ex);
                 ret = null;
             }
+            SpawnJSInterop._resolveAsync(instance, returnType, asyncCallId, ret, error);
+        }
+        static _resolveAsync(instance, returnType, asyncCallId, ret, error) {
             switch (returnType) {
                 case 0: // void
                     instance.resolveVoid(asyncCallId, error);
@@ -246,47 +262,88 @@
             var returnType = f64[p + 1];
             var argCount = f64[p + 2];
             var scratchId = f64[p + 3];
-            // TRANSITIONAL: values built by the v2 per-value path, emptied in place so .Net reuses the array
-            var scratch = scratchId === -2 ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(scratchId, []);
-            var cursor = { p: p + 4 };
+            // one reader per call: a nested call (a reviver can run .Net) gets its own
+            var reader = {
+                instance, dotnetId, address, length, views, p: p + 4,
+                // TRANSITIONAL: values built by the v2 per-value path, emptied in place so .Net reuses the array
+                scratch: scratchId === -2 ? null : SpawnJSInterop.spawnJSObjectGetAndReplace(scratchId, []),
+            };
             var args = new Array(argCount);
             for (var i = 0; i < argCount; i++) {
-                // a reviver can run .Net (a heap view refresh reports the detach), which can grow the heap
-                if (views.buffer.detached) views = SpawnJSInterop._tapeViews(instance, address + length);
-                args[i] = SpawnJSInterop.reviveValue(i, SpawnJSInterop._tapeRead(views, cursor, dotnetId, scratch), false);
+                var value = SpawnJSInterop._tapeRead(reader);
+                args[i] = SpawnJSInterop.reviveValue(i, value === SpawnJSInterop._tapeAbsent ? undefined : value, false);
             }
             var target = SpawnJSInterop._methodMap[methodIndex];
             if (!target) throw new Error(`SpawnJSInterop: no method at index ${methodIndex}`);
             return { target, returnType, args };
         }
-        // Reads one tagged value at cursor.p and advances it
-        static _tapeRead(views, cursor, dotnetId, scratch) {
-            var f64 = views.f64;
-            var p = cursor.p;
-            var tag = f64[p++];
-            var value;
+        // Reads one tagged value at reader.p and advances it. Object members and array elements go through the
+        // revivers with their key, as v2's per-property set did.
+        static _tapeRead(reader) {
+            // a reviver can run .Net (a heap view refresh reports the detach), which can grow the heap
+            if (reader.views.buffer.detached) reader.views = SpawnJSInterop._tapeViews(reader.instance, reader.address + reader.length);
+            var f64 = reader.views.f64;
+            var tag = f64[reader.p++];
             switch (tag) {
-                case 0: value = undefined; break;
-                case 1: value = null; break;
-                case 2: value = f64[p++]; break;
-                case 3: value = f64[p++] !== 0; break;
-                case 4: {
-                    var length = f64[p++];
-                    value = SpawnJSInterop._tapeString(views.u16, p * 4, length);
-                    p += (length + 3) >>> 2;
-                    break;
-                }
-                case 5: value = SpawnJSInterop.spawnJSObjectGet(f64[p++]); break;
+                case 0: return undefined;
+                case 1: return null;
+                case 2: return f64[reader.p++];
+                case 3: return f64[reader.p++] !== 0;
+                case 4: return SpawnJSInterop._tapeReadChars(reader);
+                case 5: return SpawnJSInterop.spawnJSObjectGet(f64[reader.p++]);
                 case 6: {
-                    var callbackId = f64[p++];
-                    var once = f64[p++] !== 0;
-                    value = SpawnJSInterop._callbackFunction(dotnetId, callbackId, once);
-                    break;
+                    var callbackId = f64[reader.p++];
+                    var once = f64[reader.p++] !== 0;
+                    return SpawnJSInterop._callbackFunction(reader.dotnetId, callbackId, once);
                 }
-                case 7: value = scratch[f64[p++]]; break;
-                default: throw new Error(`SpawnJSInterop: unknown tape tag ${tag} at cell ${p - 1}`);
+                case 7: return reader.scratch[f64[reader.p++]];
+                case 8: return SpawnJSInterop._tapeAbsent;
+                case 9: {
+                    var names = reader.instance.tapeShapes?.[f64[reader.p]];
+                    if (!names) throw new Error(`SpawnJSInterop: unknown tape shape ${f64[reader.p]}`);
+                    reader.p++;
+                    var obj = {};
+                    for (var i = 0; i < names.length; i++) {
+                        var value = SpawnJSInterop._tapeRead(reader);
+                        if (value !== SpawnJSInterop._tapeAbsent) obj[names[i]] = SpawnJSInterop.reviveValue(names[i], value, false);
+                    }
+                    return obj;
+                }
+                case 10: {
+                    // a shape definition - kept per instance, since each runtime numbers its own - then the value it
+                    // precedes. The same definition can arrive again until .Net knows a call carrying it completed.
+                    var shapeId = f64[reader.p++];
+                    var count = f64[reader.p++];
+                    var names = new Array(count);
+                    for (var i = 0; i < count; i++) names[i] = SpawnJSInterop._tapeReadChars(reader);
+                    (reader.instance.tapeShapes ??= [])[shapeId] = names;
+                    return SpawnJSInterop._tapeRead(reader);
+                }
+                case 11: {
+                    var count = f64[reader.p++];
+                    var array = new Array(count);
+                    for (var i = 0; i < count; i++) {
+                        var value = SpawnJSInterop._tapeRead(reader);
+                        array[i] = SpawnJSInterop.reviveValue(i, value === SpawnJSInterop._tapeAbsent ? undefined : value, false);
+                    }
+                    return array;
+                }
+                case 12: {
+                    var ctor = SpawnJSInterop.TapeNumberCtors[f64[reader.p++]];
+                    var count = f64[reader.p++];
+                    var view = new ctor(reader.views.buffer, reader.p * 8, count);
+                    reader.p += (count * ctor.BYTES_PER_ELEMENT + 7) >>> 3;
+                    // a plain Array, as element-by-element writing produced; a TypedArray stays opt in
+                    return Array.from(view);
+                }
+                default: throw new Error(`SpawnJSInterop: unknown tape tag ${tag} at cell ${reader.p - 1}`);
             }
-            cursor.p = p;
+        }
+        // length, then UTF-16 code units padded to a cell
+        static _tapeReadChars(reader) {
+            var length = reader.views.f64[reader.p++];
+            var value = SpawnJSInterop._tapeString(reader.views.u16, reader.p * 4, length);
+            reader.p += (length + 3) >>> 2;
             return value;
         }
         // String.fromCharCode keeps every UTF-16 code unit exactly - a lone surrogate included, which a TextDecoder

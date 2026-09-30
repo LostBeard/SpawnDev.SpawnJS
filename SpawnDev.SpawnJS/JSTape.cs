@@ -19,6 +19,8 @@ namespace SpawnDev.SpawnJS
     /// header:  methodIndex | returnType | argCount | scratchId
     /// value:   tag [payload cells]      (tags below; must match SpawnJSInterop.TapeTag)
     /// string:  TagString | length | UTF-16 code units, 4 per cell
+    /// object:  [TagShape | id | count | names]  TagObject | id | one value per name (TagAbsent = not assigned)
+    /// array:   TagArray | count | values          numbers: TagNumbers | kind | count | raw, padded to a cell
     /// </code>
     /// Frames form a stack. A call can re-enter .Net (a callback) which calls Javascript again, and a
     /// marshaller writing an argument can itself make an interop call, so a nested frame always starts where
@@ -38,6 +40,16 @@ namespace SpawnDev.SpawnJS
         // TRANSITIONAL: the value was built by a marshaller's per-value NetToJS into the call's scratch array.
         // Goes away with JSMarshaller.Write's default, once every marshaller writes the tape itself.
         internal const double TagScratch = 7;
+        // a member skipped by [JsonIgnore(WhenWritingNull/WhenWritingDefault)] - the property is not assigned
+        internal const double TagAbsent = 8;
+        // shapeId, then one value per shape member
+        internal const double TagObject = 9;
+        // shapeId, name count, names (length + UTF-16) - a JSShape's definition, ahead of its first object
+        internal const double TagShape = 10;
+        // count, then that many values
+        internal const double TagArray = 11;
+        // kind, count, then the raw numbers - a primitive array in one copy. Javascript builds a plain Array.
+        internal const double TagNumbers = 12;
 
         const int HeaderCells = 4;
         const int InitialSegmentCells = 8 * 1024;
@@ -66,6 +78,10 @@ namespace SpawnDev.SpawnJS
             public int OuterPosition;
             public SpawnJSObjectReference? Scratch;
             public int ScratchCount;
+            // unique per frame; a shape carries its definition once per frame
+            public long Serial;
+            // shapes whose definitions this frame carries - confirmed if the call completes
+            public List<JSShape>? Defined;
         }
 
         readonly SpawnJSRuntime _js;
@@ -75,6 +91,8 @@ namespace SpawnDev.SpawnJS
         int _depth;
         int _segmentIndex;
         int _position;
+        long _frameSerial;
+        int _nextShapeId;
 
         internal JSTape(SpawnJSRuntime js)
         {
@@ -146,6 +164,131 @@ namespace SpawnDev.SpawnJS
             cells[_position + 2] = callback.Once ? 1 : 0;
             _position += 3;
         }
+        /// <summary>A member that is not written: Javascript does not assign the property at all.</summary>
+        public void WriteAbsent() { EnsureCells(1); Current.Cells[_position++] = TagAbsent; }
+
+        /// <summary>
+        /// Starts an object of <paramref name="shape"/>. Exactly one value per shape member must follow, in order -
+        /// <see cref="WriteAbsent"/> for a member that is not written.
+        /// </summary>
+        public void WriteObject(JSShape shape)
+        {
+            if (shape.Id < 0) shape.Id = _nextShapeId++;
+            var serial = _frames[_depth - 1].Serial;
+            if (!shape.Confirmed && shape.Frame != serial)
+            {
+                var names = shape.Names;
+                EnsureCells(3);
+                var cells = Current.Cells;
+                cells[_position] = TagShape;
+                cells[_position + 1] = shape.Id;
+                cells[_position + 2] = names.Count;
+                _position += 3;
+                for (var i = 0; i < names.Count; i++) WriteChars(names[i]);
+                shape.Frame = serial;
+                (_frames[_depth - 1].Defined ??= new List<JSShape>()).Add(shape);
+            }
+            EnsureCells(2);
+            Current.Cells[_position] = TagObject;
+            Current.Cells[_position + 1] = shape.Id;
+            _position += 2;
+        }
+
+        /// <summary>
+        /// Writes a value whose type is only known at run time, through that type's own marshaller - what a member or
+        /// argument declared object, an interface or a base class does.
+        /// </summary>
+        public void WriteValue(object? value)
+        {
+            if (value == null) { WriteNull(); return; }
+            Marshaller.BoxedWriter.For(value.GetType()).Write(this, value);
+        }
+
+        /// <summary>
+        /// Starts an array whose length is only known once its values are written (an IEnumerable). Pass the token to
+        /// <see cref="EndArray"/> with the count. The token is an offset within the frame, so it survives the frame
+        /// moving to a bigger segment while the values are written.
+        /// </summary>
+        public int BeginArray()
+        {
+            EnsureCells(2);
+            var cells = Current.Cells;
+            cells[_position] = TagArray;
+            cells[_position + 1] = 0;
+            var token = _position + 1 - _frames[_depth - 1].Start;
+            _position += 2;
+            return token;
+        }
+        /// <summary>Sets the count of an array started with <see cref="BeginArray"/>.</summary>
+        public void EndArray(int token, int count)
+        {
+            ref var frame = ref _frames[_depth - 1];
+            _segments[frame.SegmentIndex].Cells[frame.Start + token] = count;
+        }
+
+        /// <summary>Starts an array. Exactly <paramref name="count"/> values must follow.</summary>
+        public void WriteArray(int count)
+        {
+            EnsureCells(2);
+            var cells = Current.Cells;
+            cells[_position] = TagArray;
+            cells[_position + 1] = count;
+            _position += 2;
+        }
+
+        /// <summary>
+        /// Writes a whole array of numbers in one copy; Javascript receives a plain Array of numbers, exactly as it
+        /// did element by element. Types a Javascript number cannot view directly (long, ulong, decimal ...) cross
+        /// as float64, which is what each element became anyway.
+        /// </summary>
+        public void WriteNumbers<T>(ReadOnlySpan<T> values) where T : unmanaged, System.Numerics.INumber<T>
+        {
+            var kind = NumberKind<T>.Value;
+            var count = values.Length;
+            if (kind < 0)
+            {
+                // widen to float64 as it is copied
+                EnsureCells(3 + count);
+                var cells = Current.Cells;
+                cells[_position] = TagNumbers;
+                cells[_position + 1] = NumberKindFloat64;
+                cells[_position + 2] = count;
+                for (var i = 0; i < count; i++) cells[_position + 3 + i] = double.CreateChecked(values[i]);
+                _position += 3 + count;
+                return;
+            }
+            var bytes = MemoryMarshal.AsBytes(values);
+            var dataCells = (bytes.Length + 7) >> 3;
+            EnsureCells(3 + dataCells);
+            var target = Current.Cells;
+            target[_position] = TagNumbers;
+            target[_position + 1] = kind;
+            target[_position + 2] = count;
+            bytes.CopyTo(MemoryMarshal.AsBytes(target.AsSpan(_position + 3, dataCells)));
+            _position += 3 + dataCells;
+        }
+        // SpawnJSInterop.TapeNumberCtors index; -1 = widen to float64
+        const int NumberKindFloat64 = 7;
+        static class NumberKind<T>
+        {
+            public static readonly int Value =
+                typeof(T) == typeof(sbyte) ? 0 : typeof(T) == typeof(byte) ? 1 :
+                typeof(T) == typeof(short) ? 2 : typeof(T) == typeof(ushort) ? 3 :
+                typeof(T) == typeof(int) ? 4 : typeof(T) == typeof(uint) ? 5 :
+                typeof(T) == typeof(float) ? 6 : typeof(T) == typeof(double) ? NumberKindFloat64 : -1;
+        }
+
+        // length and UTF-16 code units, no tag (a shape's names)
+        void WriteChars(string value)
+        {
+            var charCells = (value.Length + 3) >> 2;
+            EnsureCells(1 + charCells);
+            var cells = Current.Cells;
+            cells[_position] = value.Length;
+            value.AsSpan().CopyTo(MemoryMarshal.Cast<double, char>(cells.AsSpan(_position + 1, charCells)));
+            _position += 1 + charCells;
+        }
+
         /// <summary>
         /// TRANSITIONAL - the seam for marshallers that do not write the tape yet (see
         /// <see cref="JSMarshaller{TType}.Write"/>). The value is built the v2 way, by the marshaller's own NetToJS,
@@ -189,6 +332,7 @@ namespace SpawnDev.SpawnJS
                 Start = _position,
                 OuterSegmentIndex = outerSegmentIndex,
                 OuterPosition = outerPosition,
+                Serial = ++_frameSerial,
             };
             var cells = Current.Cells;
             cells[_position] = methodIndex;
@@ -233,6 +377,17 @@ namespace SpawnDev.SpawnJS
             var index = FreeSegmentIndex(Math.Max(_segmentIndex, _frames[_depth - 1].SegmentIndex) + 1, (bytes + 7) >> 3);
             var segment = _segments[index];
             return ((double)segment.Address, segment.Cells.Length * 8, segment.Cells);
+        }
+
+        /// <summary>
+        /// Javascript has read the innermost frame: the shape definitions it carried are known there now. Not called
+        /// for a call that failed before or while its frame was read, so those definitions are sent again.
+        /// </summary>
+        internal void ConfirmShapes()
+        {
+            var defined = _frames[_depth - 1].Defined;
+            if (defined == null) return;
+            for (var i = 0; i < defined.Count; i++) defined[i].Confirmed = true;
         }
 
         /// <summary>Closes the innermost frame, returns its scratch array, and restores the enclosing frame's position.</summary>

@@ -198,6 +198,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             await PocoPolymorphismTests();
             RuntimeTypedMemberTests();
             TapeTests();
+            JsonIgnoreTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();
             DelegateMarshallerTests();
@@ -727,6 +728,12 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         // The call tape - every call crosses once through JSTape; these exercise its edges
         // ==========================================================================================
         public enum TapeColor { Red = 1, Green = 2 }
+        // used by exactly one test, so its shape is new to the runtime when that test runs
+        public class TapeShapeProbe
+        {
+            public int A { get; set; }
+            public string? B { get; set; }
+        }
 
         static void TapeTests()
         {
@@ -813,6 +820,18 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 AssertEqual(JS.TapeDepth, 0, "open frames after the calls");
             });
 
+            Test("Tape.ShapeOfAnAbandonedCallIsSentAgain", () =>
+            {
+                // the first object of a type carries its shape. When the call is abandoned before it crosses - here a
+                // later argument cannot be written - Javascript never saw that shape, so the next call must carry it again
+                var threw = false;
+                try { JS.Call<TapeShapeProbe, object, string>("SpawnJSTests.argsShape", new TapeShapeProbe { A = 1, B = "x" }, new object()); }
+                catch (NotImplementedException) { threw = true; }
+                Assert(threw, "writing a bare object should throw");
+                JS.Set(K, new TapeShapeProbe { A = 2, B = "y" });
+                AssertEqual(ShapeKey(), "{a:number(2),b:string(\"y\")}", "the shape after an abandoned call");
+            });
+
             Test("Tape.ArgumentThatThrowsReleasesTheFrame", () =>
             {
                 // a bare object has no marshaller that can write it
@@ -822,6 +841,112 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 Assert(threw, "writing a bare object should throw");
                 AssertEqual(JS.TapeDepth, 0, "the failed call's frame is still open");
                 AssertEqual(JS.Call<int, string>("SpawnJSTests.typeOf", 1), "number", "the next call");
+            });
+        }
+
+        // ==========================================================================================
+        // [JsonIgnore] - which members are written, per condition. A skipped member is NOT ASSIGNED
+        // ('key' in obj is false), which is different from writing null or undefined.
+        // ==========================================================================================
+        public enum JiColor { None = 0, Red = 1 }
+        public class JiBase
+        {
+            [JsonIgnore]
+            public string? BaseSecret { get; set; } = "hidden";
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? BaseOptional { get; set; }
+        }
+        public class JiAll : JiBase
+        {
+            [JsonIgnore]
+            public string? Always { get; set; } = "never sent";
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? WhenNull { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public int WhenDefaultInt { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public bool WhenDefaultBool { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public JiColor WhenDefaultEnum { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public double? WhenDefaultNullable { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+            public string? NeverIgnored { get; set; }
+            [JsonPropertyName("renamed_optional")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? RenamedOptional { get; set; }
+            [JsonInclude]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? IncludedField;
+        }
+        public struct JiStruct
+        {
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public int Count { get; set; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? Label { get; set; }
+            public int Always { get; set; }
+        }
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(TapeShapeProbe))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiBase))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiAll))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(JiStruct))]
+        static void JsonIgnoreTests()
+        {
+            // every conditional member at its skip value: only the Never member (null) remains
+            Test("JsonIgnore.SkippedMembersAreNotAssigned", () =>
+            {
+                JS.Set(K, new JiAll());
+                using var raw = JS.Get(K)!;
+                foreach (var key in new[] { "baseSecret", "baseOptional", "always", "whenNull", "whenDefaultInt", "whenDefaultBool", "whenDefaultEnum", "whenDefaultNullable", "renamed_optional", "includedField" })
+                    Assert(!raw.Has(key), $"'{key}' was assigned; a skipped member must not be");
+                Assert(raw.Has("neverIgnored"), "[JsonIgnore(Never)] member was not written");
+                AssertEqual(ShapeKey(), "{neverIgnored:null}", "shape");
+            });
+
+            Test("JsonIgnore.ConditionalMembersAreWrittenWhenSet", () =>
+            {
+                JS.Set(K, new JiAll
+                {
+                    BaseOptional = "b", WhenNull = "w", WhenDefaultInt = 5, WhenDefaultBool = true, WhenDefaultEnum = JiColor.Red,
+                    WhenDefaultNullable = 0.5, NeverIgnored = "n", RenamedOptional = "r", IncludedField = "f",
+                });
+                using var raw = JS.Get(K)!;
+                Assert(!raw.Has("always") && !raw.Has("baseSecret"), "an [JsonIgnore] Always member was written");
+                AssertEqual(raw.Get<string>("baseOptional"), "b", "inherited WhenWritingNull member");
+                AssertEqual(raw.Get<string>("whenNull"), "w", "WhenWritingNull member");
+                AssertEqual(raw.Get<int>("whenDefaultInt"), 5, "WhenWritingDefault int");
+                AssertEqual(raw.Get<bool>("whenDefaultBool"), true, "WhenWritingDefault bool");
+                AssertEqual(raw.Get<int>("whenDefaultEnum"), 1, "WhenWritingDefault enum");
+                AssertEqual(raw.Get<double>("whenDefaultNullable"), 0.5, "WhenWritingDefault double?");
+                AssertEqual(raw.Get<string>("neverIgnored"), "n", "Never member");
+                AssertEqual(raw.Get<string>("renamed_optional"), "r", "JsonPropertyName + WhenWritingNull");
+                AssertEqual(raw.Get<string>("includedField"), "f", "[JsonInclude] field + WhenWritingNull");
+            });
+
+            Test("JsonIgnore.NullableDefaultIsNullNotZero", () =>
+            {
+                // the default of double? is null: a 0 is a real value and is written
+                JS.Set(K, new JiAll { WhenDefaultNullable = 0 });
+                using var raw = JS.Get(K)!;
+                Assert(raw.Has("whenDefaultNullable"), "a double? holding 0 is not its default and must be written");
+                AssertEqual(raw.Get<double>("whenDefaultNullable"), 0d, "value");
+            });
+
+            Test("JsonIgnore.StructMembers", () =>
+            {
+                JS.Set(K, new JiStruct { Count = 0, Label = null, Always = 0 });
+                AssertEqual(ShapeKey(), "{always:number(0)}", "skipped struct members");
+                JS.Set(K, new JiStruct { Count = 3, Label = "x", Always = 1 });
+                AssertEqual(ShapeKey(), "{count:number(3),label:string(\"x\"),always:number(1)}", "written struct members");
+            });
+
+            Test("JsonIgnore.ElementsOfOneArraySkipDifferentMembers", () =>
+            {
+                // one shape, two objects, different members absent in each - in the same call
+                JS.Set(K, new[] { new JiAll { WhenNull = "first" }, new JiAll { WhenDefaultInt = 2 } });
+                AssertEqual(ShapeKey(), "[{whenNull:string(\"first\"),neverIgnored:null},{whenDefaultInt:number(2),neverIgnored:null}]", "elements");
             });
         }
 

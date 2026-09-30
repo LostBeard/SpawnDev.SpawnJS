@@ -41,11 +41,12 @@ namespace SpawnDev.SpawnJS
 
         #region _spawnJSInteropCallAsync
         /// <summary>
-        /// The async form of <see cref="_spawnJSInteropCall"/>. Javascript reads the frame before its first await;
-        /// the result arrives through the resolvers registered with _registerInstance.
+        /// The async form of <see cref="_spawnJSInteropCall"/>. Javascript reads the frame before it returns; the
+        /// result arrives through the resolvers registered with _registerInstance. Returns 1 when the frame was read and
+        /// the call started, 0 when it could not be read (the resolver has already been given the error).
         /// </summary>
         [JSImport("globalThis.SpawnJSInterop._spawnJSInteropCallAsync")]
-        internal static partial void _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
+        internal static partial int _spawnJSInteropCallAsync(double dotnetId, double asyncCallId, double address, int length);
         #endregion
 
         /// <summary>

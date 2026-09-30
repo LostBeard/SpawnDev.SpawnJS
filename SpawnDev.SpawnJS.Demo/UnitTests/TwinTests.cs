@@ -9,10 +9,15 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
     /// runtime has its own call tape; these prove the two never read or write each other's, including while both
     /// have calls in flight at once.
     /// </summary>
+    public class TwinLeft { public int Left { get; set; } }
+    public class TwinRight { public string? Right { get; set; } public bool Extra { get; set; } }
+
     public static class TwinTests
     {
         static SpawnJSRuntime JS => SpawnJSRuntime.Instance;
 
+        [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties, typeof(TwinLeft))]
+        [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicProperties, typeof(TwinRight))]
         public static async Task Run(string name)
         {
             var other = name == "A" ? "B" : "A";
@@ -42,17 +47,42 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
 
             await Test(name, "InterleavedCallsStayOnTheirOwnTape", async () =>
             {
+                await Rendezvous(name, other, "interleaved");
                 var key = $"__twinKey_{name}";
-                for (var i = 0; i < 300; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     var payload = $"{name}{i}" + (i % 10 == 0 ? new string('p', 100_000) : "");
                     JS.Set(key, payload);
-                    // let the other runtime run between the write and the read
-                    await Task.Yield();
+                    JS.CallVoid("__twinMark", "interleaved", name);
+                    // a timer, not Task.Yield: a yield resumes as a microtask, before the other runtime gets a turn
+                    await Task.Delay(1);
                     var back = JS.Get<string>(key);
                     if (back != payload) throw new Exception($"iteration {i}: got length {back?.Length} starting '{back?.Substring(0, Math.Min(8, back?.Length ?? 0))}'");
                 }
                 if (JS.TapeDepth != 0) throw new Exception($"TapeDepth {JS.TapeDepth} after the calls");
+                await ProveInterleaved(name, other, "interleaved");
+            });
+
+            await Test(name, "EachRuntimeHasItsOwnShapes", async () =>
+            {
+                await Rendezvous(name, other, "shapes");
+                // A's first shape is TwinLeft, B's is TwinRight: both are shape 0 in their own runtime. Yielding each
+                // iteration interleaves the two runtimes, so a shape table shared between them would mix the names.
+                object first = name == "A" ? new TwinLeft { Left = 1 } : new TwinRight { Right = "r", Extra = true };
+                object second = name == "A" ? new TwinRight { Right = "r", Extra = true } : new TwinLeft { Left = 1 };
+                for (var i = 0; i < 50; i++)
+                {
+                    foreach (var value in new[] { first, second })
+                    {
+                        JS.Set($"__twinShape_{name}", value);
+                        var shape = JS.Call<SpawnJSObjectReference?, string>("SpawnJSTests.shape", JS.Get<SpawnJSObjectReference>($"__twinShape_{name}"));
+                        var expected = value is TwinLeft ? "{left:number(1)}" : "{right:string(\"r\"),extra:boolean(true)}";
+                        if (shape != expected) throw new Exception($"iteration {i}: got {shape}, expected {expected}");
+                    }
+                    JS.CallVoid("__twinMark", "shapes", name);
+                    await Task.Delay(1);
+                }
+                await ProveInterleaved(name, other, "shapes");
             });
 
             await Test(name, "CallBouncesBetweenTheRuntimes", () =>
@@ -68,6 +98,22 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             // the other runtime may still be bouncing calls through this one's callback
             JS.Set($"__twinDone_{name}", true);
             await Test(name, "OtherRuntimeFinished", () => WaitFor($"__twinDone_{other}"));
+        }
+
+        // both runtimes enter a test together, or the faster one finishes before the other starts
+        static async Task Rendezvous(string name, string other, string test)
+        {
+            JS.Set($"__twinAt_{test}_{name}", true);
+            await WaitFor($"__twinAt_{test}_{other}");
+        }
+
+        // the log of steps must switch runtime many times - the test only proves isolation if it interleaved
+        static async Task ProveInterleaved(string name, string other, string test)
+        {
+            JS.Set($"__twinFinished_{test}_{name}", true);
+            await WaitFor($"__twinFinished_{test}_{other}");
+            var switches = JS.Call<string, int>("__twinSwitches", test);
+            if (switches < 20) throw new Exception($"the runtimes barely interleaved ({switches} switches) - this test proved nothing");
         }
 
         static async Task WaitFor(string global)

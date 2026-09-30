@@ -9,6 +9,15 @@
     <script>
         // test fixture: hands a call to the OTHER runtime's callback, so a call can bounce A -> B -> A -> B
         globalThis.__twinBounce = (target, s, depth) => globalThis['__twinCallback_' + target](s, depth);
+        // test fixture: each runtime logs its steps here, so a test can PROVE the two ran interleaved
+        globalThis.__twinLog = {};
+        globalThis.__twinMark = (test, name) => (globalThis.__twinLog[test] ??= []).push(name);
+        globalThis.__twinSwitches = (test) => {
+            const log = globalThis.__twinLog[test] ?? [];
+            let switches = 0;
+            for (let i = 1; i < log.length; i++) if (log[i] !== log[i - 1]) switches++;
+            return switches;
+        };
         // test fixture: are there really two runtimes, each with its own WebAssembly memory?
         globalThis.__twinSeparate = () => {
             const infos = Object.values(globalThis.SpawnJSInterop._instances);

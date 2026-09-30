@@ -48,6 +48,14 @@ namespace SpawnDev.SpawnJS.Marshallers
             value1.Dispose();
             return retArray;
         }
+        ValueWriter<TElement>? _elements;
+        /// <inheritdoc/>
+        /// <remarks>A number array crosses in one copy; anything else element by element, each by what it IS.</remarks>
+        public override void Write(JSTape tape, TElement[]? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            TapeCollections.Write(tape, value, _elements ??= new ValueWriter<TElement>());
+        }
         /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TElement[]? objects)
         {

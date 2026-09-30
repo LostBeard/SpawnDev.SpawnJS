@@ -62,6 +62,14 @@ namespace SpawnDev.SpawnJS.Marshallers
             throw new NotImplementedException();
         }
 
+        ValueWriter<TElement>? _elements;
+        /// <inheritdoc/>
+        public override void Write(JSTape tape, IEnumerable<TElement>? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            TapeCollections.WriteEnumerable(tape, value, _elements ??= new ValueWriter<TElement>());
+        }
+
         /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, IEnumerable<TElement>? value)
         {
@@ -114,6 +122,21 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// <inheritdoc/>
         public override TCollection? JSToNet(SpawnJSObjectReference? value)
             => throw new NotImplementedException($"{nameof(IEnumerableConcreteWriteMarshaller<TCollection>)} is write-only.");
+
+        /// <inheritdoc/>
+        /// <remarks>Each element by what it IS, as the element-by-element v2 path wrote it.</remarks>
+        public override void Write(JSTape tape, TCollection? value)
+        {
+            if (value == null) { tape.WriteNull(); return; }
+            var token = tape.BeginArray();
+            var count = 0;
+            foreach (var item in (IEnumerable)value)
+            {
+                tape.WriteValue(item);
+                count++;
+            }
+            tape.EndArray(token, count);
+        }
 
         /// <inheritdoc/>
         public override void NetToJS(SpawnJSObjectReference jsParent, int jsKey, TCollection? value)
