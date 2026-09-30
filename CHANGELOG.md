@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 2.1.20 - Unreleased (staged as 2.1.20-local.4)
+## SpawnDev.SpawnJS 2.1.20 - 2026-09-30
 
 ### Fixed
 - **Disposing a Callback never released its Javascript function.** `Callback.Dispose` asked Javascript to release
