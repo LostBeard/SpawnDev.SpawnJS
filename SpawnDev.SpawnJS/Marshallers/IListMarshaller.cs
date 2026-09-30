@@ -56,19 +56,5 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             TapeCollections.WriteEnumerable(tape, value, _elements ??= new ValueWriter<TElement>());
         }
-        /// <inheritdoc/>
-        public override IList<TElement>? JSToNet(SpawnJSObjectReference value1)
-        {
-            if (value1 == null) return null;
-            var elementType = RegisteredType.GetElementType()!;
-            // Read the JS array length, then pull each element back through the typed Get<TElement> path.
-            var length = (int)value1.PropertyGetDouble("length");
-            var retArray = new List<TElement>();
-            for (var i = 0; i < length; i++)
-            {
-                retArray.Add(value1.Get<TElement>(i));
-            }
-            return retArray;
-        }
     }
 }

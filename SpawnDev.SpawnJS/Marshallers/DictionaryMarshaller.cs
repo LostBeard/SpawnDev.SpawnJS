@@ -97,24 +97,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             }
             return (TDictionary)result;
         }
-        public override TDictionary? JSToNet(SpawnJSObjectReference value)
-        {
-            if (value == null) return default;
-            var typeArgs = typeof(TDictionary).GetGenericArguments();
-            var keyType = typeArgs[0];
-            var valueType = typeArgs[1];
-            var result = (IDictionary)Activator.CreateInstance(
-                typeof(Dictionary<,>).MakeGenericType(keyType, valueType))!;
-            // Own enumerable keys only - inherited keys belong to the prototype chain, not the record.
-            foreach (var key in value.Keys(true))
-            {
-                result[KeyFromString(key, keyType)] = ((Delegate)readTyped<object>).InvokeGeneric(valueType, key);
-            }
-            value.Dispose();
-            return (TDictionary)result;
-
-            object? readTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TValue>(string k) => value.Get<TValue>(k);
-        }
 
         /// <summary>Invariant string form of a dictionary key, matching how Javascript coerces object keys.</summary>
         static string KeyToString(object key)

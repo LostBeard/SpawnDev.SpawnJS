@@ -4,6 +4,8 @@ namespace SpawnDev.SpawnJS
 {
     public partial class SpawnJSRuntime
     {
+        // Single-crossing primitives behind SpawnJSObjectReference.Has / Delete / TypeInfo with a string key.
+        // Everything else - Get, Set, Call, New - goes through the call tape (_spawnJSInteropCall).
         [JSImport("globalThis.SpawnJSInterop.propertyTypeInfo")]
         internal static partial string _propertyTypeInfo(double sjsId, string key);
 
@@ -12,108 +14,5 @@ namespace SpawnDev.SpawnJS
 
         [JSImport("globalThis.SpawnJSInterop.propertyIn")]
         internal static partial bool _propertyIn(double sjsId, string key);
-
-
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial string _propertyGetString(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial double _propertyGetDouble(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial double? _propertyGetDoubleNullable(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial bool _propertyGetBoolean(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial bool? _propertyGetBooleanNullable(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial int _propertyGetInt32(double sjsId, string key);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGet")]
-        internal static partial int? _propertyGetInt32Nullable(double sjsId, string key);
-
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetSpawnJSObjectReference")]
-        internal static partial double _propertyGetSpawnJSObjectReference(double sjsId, string key, bool force);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetJson")]
-        internal static partial string? _propertyGetJson(double sjsId, string key);
-
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex);
-
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex, double replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex, double replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex, double replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex, double replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex, double replacerConfig);
-
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex, string replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex, string replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex, string replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex, string replacerConfig);
-
-        [JSImport("globalThis.SpawnJSInterop.propertyGetWithReplacer")]
-        internal static partial bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex, string replacerConfig);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

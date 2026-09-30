@@ -48,20 +48,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             for (var i = 0; i < markers.Length; i++) items[i] = markers[i].ReadBoxed(ref reader);
             return (TTuple)Activator.CreateInstance(TypeT, items)!;
         }
-        public override TTuple JSToNet(SpawnJSObjectReference value)
-        {
-            if (value == null) return default!;
-            var items = new object?[GenericTypes.Length];
-            for (var i = 0; i < GenericTypes.Length; i++)
-            {
-                // Read slot i back through the typed Get<T> path, closed over the item's runtime type.
-                items[i] = ((Delegate)readTyped<object>).InvokeGeneric(GenericTypes[i]);
-                T readTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>() => value.Get<T>(i);
-            }
-            var tuple = Activator.CreateInstance(TypeT, items)!;
-            value.Dispose();
-            return (TTuple)tuple;
-        }
         /// <inheritdoc/>
         /// <remarks>A Javascript array, positional; each item by what it IS.</remarks>
         public override void Write(JSTape tape, TTuple value)
@@ -89,11 +75,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             // the inner read returns default for null; null has to stay null here
             if (reader.PeekNull()) { reader.SkipNull(); return null; }
             return inner.Read(ref reader);
-        }
-        public override TTuple? JSToNet(SpawnJSObjectReference value)
-        {
-            if (value == null) return null;
-            return inner.JSToNet(value);
         }
         /// <inheritdoc/>
         public override void Write(JSTape tape, TTuple? value)

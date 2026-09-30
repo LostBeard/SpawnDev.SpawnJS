@@ -779,14 +779,7 @@
             return SpawnJSInterop._in(propertyName, parent);
         }
         // get a property
-        // JSImport
-        // string _propertyGetString(double sjsId, string key);
-        // double _propertyGetDouble(double sjsId, string key);
-        // double? _propertyGetDoubleNullable(double sjsId, string key);
-        // bool _propertyGetBoolean(double sjsId, string key);
-        // bool? _propertyGetBooleanNullable(double sjsId, string key);
-        // int _propertyGetInt32(double sjsId, string key);
-        // int? _propertyGetInt32(double sjsId, string key);
+        // InteropCall (dispatched through the call tape)
         static propertyGet(sjsId, key) {
             var ret = undefined;
             var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
@@ -799,66 +792,8 @@
             }
             return ret;
         }
-        // get a property as a SpawnJSObjectReference
-        // JSImport
-        // double _propertyGetSpawnJSObjectReference(double sjsId, string key, bool force);
-        static propertyGetSpawnJSObjectReference(sjsId, key, force) {
-            var ret = SpawnJSInterop.propertyGet(sjsId, key);
-            if (force) {
-                ret = SpawnJSInterop.spawnJSObjectHold(ret);
-            } else {
-                ret = ret === null || ret === undefined ? null : SpawnJSInterop.spawnJSObjectHold(ret);
-            }
-            return ret;
-        }
-        // get a property as json
-        // JSImport
-        // string? _propertyGetJson(double sjsId, string key);
-        static propertyGetJson(sjsId, key) {
-            var ret = SpawnJSInterop.propertyGet(sjsId, key);
-            ret = JSON.stringify(ret);
-            return ret;
-        }
-        // get a property
-        // JSImport
-        // string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex);
-        // double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex);
-        // double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex);
-        // bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex);
-        // bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex);
-        // string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex, double replacerConfig);
-        // double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex, double replacerConfig);
-        // double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex, double replacerConfig);
-        // bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex, double replacerConfig);
-        // bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex, double replacerConfig);
-        // string _propertyGetWithReplacerString(double sjsId, string key, double methodIndex, string replacerConfig);
-        // double _propertyGetWithReplacerDouble(double sjsId, string key, double methodIndex, string replacerConfig);
-        // double? _propertyGetWithReplacerDoubleNullable(double sjsId, string key, double methodIndex, string replacerConfig);
-        // bool _propertyGetWithReplacerBoolean(double sjsId, string key, double methodIndex, string replacerConfig);
-        // bool? _propertyGetWithReplacerBooleanNullable(double sjsId, string key, double methodIndex, string replacerConfig);
-        static propertyGetWithReplacer(sjsId, key, methodIndex, replacerConfig) {
-            var ret = undefined;
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            var pathInfo = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (pathInfo.shortCircuit) return ret;
-            if (typeof pathInfo.target === 'function') {
-                ret = pathInfo.target.bind(pathInfo.parent);
-            } else {
-                ret = pathInfo.target;
-            }
-            var replacer = typeof methodIndex === 'string' ? SpawnJSInterop[methodIndex] : SpawnJSInterop._methodMap[methodIndex];
-            if (!replacer) throw new Error(`Reviver not found: ${methodName}`);
-            ret = !replacer ? ret : replacer(pathInfo.propertyName, ret, true, replacerConfig);
-            return ret;
-        }
         // set property
-        // JSImport
-        // void _propertySet(double sjsId, string key, string value);
-        // void _propertySet(double sjsId, string key, bool value);
-        // void _propertySet(double sjsId, string key, double value);
-        // void _propertySet(double sjsId, string key, int value);
-        // void _propertySet(double sjsId, string key, bool? value);
-        // void _propertySet(double sjsId, string key, double? value);
+        // InteropCall (dispatched through the call tape)
         static propertySet(sjsId, key, value) {
             var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
             if (obj === void 0 || obj === null) throw new Error('obj null or undefined');

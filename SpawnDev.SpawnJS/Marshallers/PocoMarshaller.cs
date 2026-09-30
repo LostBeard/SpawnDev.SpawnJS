@@ -65,32 +65,6 @@ namespace SpawnDev.SpawnJS.Marshallers
         /// </remarks>
         [UnconditionalSuppressMessage("Trimming", "IL2072",
             Justification = "The Nullable<> branch constructs the underlying type, which is always a value type. A value type needs no constructor to be created (the runtime zero-initializes it), so there is nothing for the trimmer to have removed. The non-nullable branch uses typeof(T), which carries the PublicConstructors requirement.")]
-        public override T? JSToNet(SpawnJSObjectReference value)
-        {
-            if (value == null) return default;
-            var underlying = Nullable.GetUnderlyingType(typeof(T));
-            var targetType = underlying ?? typeof(T);
-            // Build into a BOXED instance. PropertyInfo/FieldInfo.SetValue take their target as object, so
-            // for a struct they box whatever is passed, mutate that temporary box, and discard it - setting
-            // members on an unboxed local would throw every write away and hand back an all-defaults struct
-            // with no error anywhere. Boxing once here and unboxing at the end is also exactly what the
-            // class path was already doing, so one walk serves both.
-            var obj = underlying == null ? Activator.CreateInstance(typeof(T))! : Activator.CreateInstance(underlying)!;
-            foreach (var member in targetType.GetTypeJsonProperties())
-            {
-                var name = member.GetJsonName();
-                var memberType = member.PropertyInfo?.PropertyType ?? member.FieldInfo!.FieldType;
-                // runtime Type -> <TMember> so the value goes back through its own strongly typed marshaller
-                var read = ((Delegate)readTyped<object>).InvokeGeneric(memberType, name);
-                if (read == null) continue;
-                member.PropertyInfo?.SetValue(obj, read);
-                member.FieldInfo?.SetValue(obj, read);
-            }
-            // unboxing a boxed TStruct into Nullable<TStruct> is a legal unbox, so this covers both shapes
-            return (T)obj;
-
-            object? readTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TMember>(string key) => value.Get<TMember>(key);
-        }
 
         PocoReadPlan? _readPlan;
         PocoReadPlan ReadPlan => _readPlan ??= PocoReadPlan.For(Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T));

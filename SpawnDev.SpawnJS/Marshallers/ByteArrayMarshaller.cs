@@ -4,22 +4,6 @@ namespace SpawnDev.SpawnJS.Marshallers
 {
     public class ByteArrayMarshaller : JSMarshallerFromSpawnJSObjectReference<byte[]?>
     {
-        public override byte[]? JSToNet(SpawnJSObjectReference value)
-        {
-            if (value == null) return null;
-            var byteLength = (long)value.PropertyGetDouble("byteLength");
-            var ret = new byte[byteLength];
-            if (byteLength == 0) return ret;
-            unsafe
-            {
-                fixed (byte* ptr = ret)
-                {
-                    var address = (double)(IntPtr)ptr;
-                    JS.InteropCall<double, SpawnJSObjectReference, double, double, double, VoidType>(InteropMethod.WriteArrayBufferViewToHeap, JS.DotnetInstance.Id, value, 0, address, byteLength);
-                }
-            }
-            return ret;
-        }
         static readonly JSSchema _bytes = JSSchema.Bytes();
         /// <inheritdoc/>
         /// <remarks>The bytes of an ArrayBuffer or any ArrayBufferView, in one copy.</remarks>

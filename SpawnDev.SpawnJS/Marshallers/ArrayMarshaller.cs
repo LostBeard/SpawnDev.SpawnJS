@@ -33,21 +33,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             Type tyepdArrayMarshaller = openType.MakeGenericType(elementType!);
             return (JSMarshaller<T>)Activator.CreateInstance(tyepdArrayMarshaller)!;
         }
-        /// <inheritdoc/>
-        public override TElement[]? JSToNet(SpawnJSObjectReference value1)
-        {
-            if (value1 == null) return null;
-            var elementType = RegisteredType.GetElementType()!;
-            // Read the JS array length, then pull each element back through the typed Get<TElement> path.
-            var length = (int)value1.PropertyGetDouble("length");
-            var retArray = new TElement[length];
-            for (var i = 0; i < length; i++)
-            {
-                retArray[i] = value1.Get<TElement>(i);
-            }
-            value1.Dispose();
-            return retArray;
-        }
         JSMarshaller<TElement>? _elementMarshaller;
         JSSchema? _schema;
         JSMarshaller<TElement> ElementMarshaller => _elementMarshaller ??= JS.GetMarshaller<TElement>();

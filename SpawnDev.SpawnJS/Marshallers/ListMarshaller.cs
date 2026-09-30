@@ -34,21 +34,6 @@ namespace SpawnDev.SpawnJS.Marshallers
             return (JSMarshaller<T>)Activator.CreateInstance(typedMarshaller)!;
         }
         /// <inheritdoc/>
-        public override List<TElement>? JSToNet(SpawnJSObjectReference value1)
-        {
-            if (value1 == null) return null;
-            var elementType = RegisteredType.GetElementType()!;
-            // Read the JS array length, then pull each element back through the typed Get<TElement> path.
-            var length = (int)value1.PropertyGetDouble("length");
-            var retArray = new List<TElement>();
-            for (var i = 0; i < length; i++)
-            {
-                retArray.Add(value1.Get<TElement>(i));
-            }
-            value1.Dispose();
-            return retArray;
-        }
-        /// <inheritdoc/>
         public override void Write(JSTape tape, List<TElement>? value)
         {
             if (value == null) { tape.WriteNull(); return; }
