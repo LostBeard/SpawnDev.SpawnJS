@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>2.1.20-local.4</Version>
-		<PackageReleaseNotes>v2.1.18 - A rejected async call or Promise now throws JSException with the JS error NAME (DOMException NotFoundError / NotAllowedError, OverconstrainedError with its constraint) - it was a plain Exception with the message only, and an empty-message OverconstrainedError was blank. FileSystemHandle.IsSameEntry awaits its Promise. AudioScheduledSourceNode double Start/Stop overloads.</PackageReleaseNotes>
+		<Version>2.1.20</Version>
+		<PackageReleaseNotes>v2.1.20 - WebGPU: copyExternalImageToTexture works (optional enum members were sent as null / numbers), GPUCopyExternalImageSourceInfo.FlipY. PocoMarshaller: a derived POCO passed as its base type keeps its members (PBKDF2 DeriveKey), interface/abstract members marshal by runtime type. Callback.Dispose releases its JS function. See CHANGELOG.md.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
