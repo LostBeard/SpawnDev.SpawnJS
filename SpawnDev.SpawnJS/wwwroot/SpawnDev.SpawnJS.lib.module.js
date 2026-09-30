@@ -436,14 +436,6 @@
             for (var i = 0; i < length; i++) u16[index + i] = value.charCodeAt(i);
             return bytes;
         }
-        // creates a new Array, adds it to the hold and returns it
-        // JSImport 
-        // double _spawnJSObjectNewArray();
-        static spawnJSObjectNewArray() {
-            var sjsId = SpawnJSInterop.spawnJSObjectHold([]);
-            if (SpawnJSInterop.verbose) console.log('spawnJSObjectNewArray', sjsId);
-            return sjsId;
-        }
         // refreshes the method map by looking for any new methods and adds them
         // JSImport
         // string[] _refreshMethodMap();
@@ -659,41 +651,8 @@
             value = SpawnJSInterop.reviveValue(propertyName, value, false);
             parent[propertyName] = value;
         }
-        // This is where SpawnJSObjectReference revives itself into JS via its sjsId
-        // set property to a SpawnJSObjectReference
-        // JSImport
-        // void _propertySetSpawnJSObject(double sjsId, string key, double value);
-        static propertySetSpawnJSObject(sjsId, key, valueId) {
-            var value = SpawnJSInterop.spawnJSObjectGet(valueId);
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            parent[propertyName] = value;
-        }
-        // set property to a Json
-        // JSImport
-        // void _propertySetJson(double sjsId, string key, string value);
-        static propertySetJson(sjsId, key, json) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            var value = JSON.parse(json);
-            parent[propertyName] = value;
-        }
-        // set property to a HeapView
-        // JSImport
-        // void _propertySetHeapView(double sjsId, string key, double dotnetId, double viewType, double offset, double length, bool copy);
-        static propertySetHeapView(sjsId, key, dotnetId, viewType, offset, length, copy) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            parent[propertyName] = SpawnJSInterop._heapView(dotnetId, viewType, offset, length, copy);
-        }
         // A view of - or with copy, a copy of - .Net memory. A live view carries its _heapViewInfo so the heap view
-        // reviver can rebuild it after the heap grows. Used by propertySetHeapView and the tape (TagHeapView).
+        // reviver can rebuild it after the heap grows. Built when the tape reads a TagHeapView.
         static _heapView(dotnetId, viewType, offset, length, copy) {
             // create the heapView meta data
             var heapViewInfo = { dotnetId, viewType, offset, length, copy };
@@ -707,37 +666,6 @@
             heapViewInfo.ctor = SpawnJSInterop.getArrayBufferViewConstructor(heapViewInfo.viewType);
             // refresh the heapView
             return SpawnJSInterop.heapViewRefresh(heapViewInfo);
-        }
-        // set property null
-        // JSImport
-        // void _propertySetNull(double sjsId, string key);
-        static propertySetNull(sjsId, key) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            parent[propertyName] = null;
-        }
-        // set property undefined
-        // JSImport
-        // void _propertySetUndefined(double sjsId, string key);
-        static propertySetUndefined(sjsId, key) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            parent[propertyName] = undefined;
-        }
-        // JSImport
-        // void _propertySetCallback(double sjsId, string key, double dotnetId, double callbackId, bool once);
-        static propertySetCallback(sjsId, key, dotnetId, callbackId, once) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            var value = SpawnJSInterop._callbackFunction(dotnetId, callbackId, once);
-            if (!value) return null;
-            parent[propertyName] = value;
         }
         // The Javascript function that invokes a .Net Callback, created once per callback and reused
         static _callbackFunction(dotnetId, callbackId, once) {
@@ -785,30 +713,6 @@
                 SpawnJSInterop._callbacks[callbackIdPair] = value;
             }
             return value;
-        }
-        // set property to using a SpawnJSInterop[methodName](value) call
-        // methodName can be a SpawnJSInterop methodName or a methodIndex
-        // revivers are Javascript methods
-        // JSImport
-        // void _propertySetWithReviver(double sjsId, string key, string value, double reviverIndex);
-        // void _propertySetWithReviver(double sjsId, string key, double value, double reviverIndex);
-        // void _propertySetWithReviver(double sjsId, string key, string value, double reviverIndex, string reviverConfig);
-        // void _propertySetWithReviver(double sjsId, string key, double value, double reviverIndex, string reviverConfig);
-        // void _propertySetWithReviver(double sjsId, string key, string value, double reviverIndex, double reviverConfig);
-        // void _propertySetWithReviver(double sjsId, string key, double value, double reviverIndex, double reviverConfig);
-        // void _propertySetWithReviver(double sjsId, string key, string value, double reviverIndex, bool reviverConfig);
-        // void _propertySetWithReviver(double sjsId, string key, double value, double reviverIndex, bool reviverConfig);
-        static propertySetWithReviver(sjsId, key, value, methodName, reviverConfig) {
-            var obj = SpawnJSInterop.spawnJSObjectGet(sjsId);
-            if (obj === void 0 || obj === null) throw new Error('obj null or undefined');
-            var { parent, propertyName, shortCircuit } = SpawnJSInterop.pathObjectInfo(obj, key);
-            if (shortCircuit) return;
-            var reviver = typeof methodName === 'string' ? SpawnJSInterop[methodName] : SpawnJSInterop._methodMap[methodName];
-            // if SpawnJSInterop does not have the reviver, try the glboalThis. This allows global types to be used
-            if (!reviver) reviver = globalThis[methodName];
-            if (!reviver) throw new Error(`Reviver not found: ${methodName}`);
-            value = reviver(propertyName, value, true, reviverConfig);
-            parent[propertyName] = value;
         }
 
         // Interop Calls
@@ -1156,7 +1060,7 @@
         }
         // Reviver used by BigIntegerMarshaller: a BigInteger crosses as its decimal string, because a JS
         // number cannot hold one exactly, and is revived into a real BigInt here.
-        // Revivers are called as (key, value, directCall, config) by propertySetWithReviver - a plain
+        // Revivers are called as (key, value, directCall) by the tape (TagRevive, JSTape.WriteRevived) - a plain
         // (value) signature would silently revive the PROPERTY NAME instead of the value.
         static stringToBigInt(key, value) {
             if (!globalThis.BigInt) throw new Error('BigInt not supported on this platform');
