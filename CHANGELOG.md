@@ -10,6 +10,8 @@ per-instance **call tape** of 8-byte cells in pinned .NET memory. Javascript rea
 and writes the result back by a schema in the same crossing. Design and measurements: [Docs/v3-design.md](Docs/v3-design.md),
 [Docs/architecture.md](Docs/architecture.md).
 
+**Upgrading: build clean.** If the browser reports `SpawnJSInterop.<name> must be a Function but was undefined` after a version change, the app is running the previous SpawnDev.SpawnJS assembly against the new Javascript module. Delete `bin` and `obj` and rebuild. Seen while testing this release: the WebAssembly SDK's incremental webcil step kept the old `SpawnDev.SpawnJS.wasm` although `bin` held the new DLL (the package DLL in the NuGet cache was older than the last build).
+
 ### Changed
 - **Calls:** `Get` / `Set` / `Call` / `New` and their async forms are one crossing whatever the arguments - a
   `GPUBindGroupDescriptor` with 3 entries was 104, a 16-member POCO 55, an `int[1000]` 4,006. The public call surface is
