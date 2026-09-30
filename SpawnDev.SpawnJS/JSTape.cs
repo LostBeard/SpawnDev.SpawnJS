@@ -54,6 +54,8 @@ namespace SpawnDev.SpawnJS
         internal const double TagRecord = 14;
         // methodIndex, then one value - Javascript passes the value through that SpawnJSInterop function
         internal const double TagRevive = 15;
+        // after the arguments: a JSSchema definition (id, kind, then per kind) for the result Javascript writes back
+        internal const double TagSchema = 16;
 
         const int HeaderCells = 3;
         const int InitialSegmentCells = 8 * 1024;
@@ -82,8 +84,8 @@ namespace SpawnDev.SpawnJS
             public int OuterPosition;
             // unique per frame; a shape carries its definition once per frame
             public long Serial;
-            // shapes whose definitions this frame carries - confirmed if the call completes
-            public List<JSShape>? Defined;
+            // shapes and schemas whose definitions this frame carries - confirmed if the call completes
+            public List<JSDefinition>? Defined;
             // arrays pinned for this frame, because Javascript reads them by address when the call runs
             public List<GCHandle>? Pins;
         }
@@ -97,6 +99,8 @@ namespace SpawnDev.SpawnJS
         int _position;
         long _frameSerial;
         int _nextShapeId;
+        // composite schema ids start above the built-in ReturnType kinds
+        int _nextSchemaId = 16;
 
         internal JSTape(SpawnJSRuntime js)
         {
@@ -190,7 +194,7 @@ namespace SpawnDev.SpawnJS
                 _position += 3;
                 for (var i = 0; i < names.Count; i++) WriteChars(names[i]);
                 shape.Frame = serial;
-                (_frames[_depth - 1].Defined ??= new List<JSShape>()).Add(shape);
+                (_frames[_depth - 1].Defined ??= new List<JSDefinition>()).Add(shape);
             }
             EnsureCells(2);
             Current.Cells[_position] = TagObject;
@@ -394,11 +398,11 @@ namespace SpawnDev.SpawnJS
         /// Finishes the innermost frame's header and hands its location to Javascript. The frame stays open, and its
         /// cells stay put, until <see cref="EndCall"/> - the result is written back over it.
         /// </summary>
-        internal (double Address, int Length, int Capacity) Send(ReturnType returnType)
+        internal (double Address, int Length, int Capacity) Send(JSSchema schema)
         {
             ref var frame = ref _frames[_depth - 1];
             var segment = _segments[frame.SegmentIndex];
-            segment.Cells[frame.Start + 1] = (int)returnType;
+            segment.Cells[frame.Start + 1] = schema.Id;
             var address = (double)(segment.Address + frame.Start * 8);
             var length = (_position - frame.Start) * 8;
             var capacity = (segment.Cells.Length - frame.Start) * 8;
@@ -406,30 +410,71 @@ namespace SpawnDev.SpawnJS
         }
 
         /// <summary>
-        /// The result area of the innermost frame, which Javascript wrote over the frame's own cells.
+        /// The result area of the innermost frame, which Javascript wrote over the frame's own cells. The result can
+        /// be longer than the arguments were, and reading it can re-enter interop (a wrapper's constructor may call
+        /// Javascript), so the write position moves past it first: a nested frame must not start inside a result that
+        /// is still being read.
         /// </summary>
         internal ReadOnlySpan<double> Result(int length)
         {
             ref var frame = ref _frames[_depth - 1];
-            return _segments[frame.SegmentIndex].Cells.AsSpan(frame.Start, (length + 7) >> 3);
+            var cells = (length + 7) >> 3;
+            if (_segmentIndex == frame.SegmentIndex && _position < frame.Start + cells) _position = frame.Start + cells;
+            return _segments[frame.SegmentIndex].Cells.AsSpan(frame.Start, cells);
         }
 
         /// <summary>
-        /// A result too big for the frame's segment: a free segment of at least <paramref name="bytes"/> bytes
-        /// above every open frame, for Javascript to write the result into.
+        /// Writes the definitions Javascript needs to write the result back by <paramref name="schema"/> - after the
+        /// arguments, since it only needs them once the call has run. A schema this runtime has confirmed, or this frame
+        /// already carries, is not written again; a schema that contains itself stops there.
         /// </summary>
-        internal (double Address, int Capacity, double[] Cells) OverflowArea(int bytes)
+        internal void WriteSchemaDefinitions(JSSchema schema)
         {
-            var index = FreeSegmentIndex(Math.Max(_segmentIndex, _frames[_depth - 1].SegmentIndex) + 1, (bytes + 7) >> 3);
-            var segment = _segments[index];
-            return ((double)segment.Address, segment.Cells.Length * 8, segment.Cells);
+            if (schema.IsBuiltin) return;
+            if (schema.Id < 0) schema.Id = _nextSchemaId++;
+            var serial = _frames[_depth - 1].Serial;
+            if (schema.Confirmed || schema.Frame == serial) return;
+            schema.Frame = serial;
+            (_frames[_depth - 1].Defined ??= new List<JSDefinition>()).Add(schema);
+            var members = schema.Members;
+            if (members != null) foreach (var member in members) AssignId(member!);
+            if (schema.Element != null) AssignId(schema.Element);
+            EnsureCells(3);
+            var cells = Current.Cells;
+            cells[_position] = TagSchema;
+            cells[_position + 1] = schema.Id;
+            cells[_position + 2] = (int)schema.Kind;
+            _position += 3;
+            switch (schema.Kind)
+            {
+                case JSSchemaKind.Object:
+                    WriteDefinitionCell(members!.Length);
+                    foreach (var name in schema.Names!) WriteChars(name);
+                    foreach (var member in members) WriteDefinitionCell(member!.Id);
+                    break;
+                case JSSchemaKind.Tuple:
+                    WriteDefinitionCell(members!.Length);
+                    foreach (var member in members) WriteDefinitionCell(member!.Id);
+                    break;
+                case JSSchemaKind.Array:
+                case JSSchemaKind.Record:
+                    WriteDefinitionCell(schema.Element!.Id);
+                    break;
+                case JSSchemaKind.Numbers:
+                    WriteDefinitionCell((int)schema.NumberKind);
+                    break;
+            }
+            if (members != null) foreach (var member in members) WriteSchemaDefinitions(member!);
+            if (schema.Element != null) WriteSchemaDefinitions(schema.Element);
         }
+        void AssignId(JSSchema schema) { if (!schema.IsBuiltin && schema.Id < 0) schema.Id = _nextSchemaId++; }
+        void WriteDefinitionCell(double value) { EnsureCells(1); Current.Cells[_position++] = value; }
 
         /// <summary>
-        /// Javascript has read the innermost frame: the shape definitions it carried are known there now. Not called
-        /// for a call that failed before or while its frame was read, so those definitions are sent again.
+        /// Javascript has read the innermost frame: the shape and schema definitions it carried are known there now. Not
+        /// called for a call that failed before or while its frame was read, so those definitions are sent again.
         /// </summary>
-        internal void ConfirmShapes()
+        internal void ConfirmDefinitions()
         {
             var defined = _frames[_depth - 1].Defined;
             if (defined == null) return;

@@ -199,6 +199,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             RuntimeTypedMemberTests();
             TapeTests();
             JsonIgnoreTests();
+            await ReadTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();
             DelegateMarshallerTests();
@@ -1009,6 +1010,133 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 // one shape, two objects, different members absent in each - in the same call
                 JS.Set(K, new[] { new JiAll { WhenNull = "first" }, new JiAll { WhenDefaultInt = 2 } });
                 AssertEqual(ShapeKey(), "[{whenNull:string(\"first\"),neverIgnored:null},{whenDefaultInt:number(2),neverIgnored:null}]", "elements");
+            });
+        }
+
+        // ==========================================================================================
+        // Reads by schema - Javascript writes the whole value back in the call's one crossing
+        // ==========================================================================================
+        public class RdInner { public int A { get; set; } public string? B { get; set; } }
+        public class RdPoco
+        {
+            public int Number { get; set; }
+            public string? Text { get; set; }
+            public RdInner? Inner { get; set; }
+            public int[]? Numbers { get; set; }
+            public List<string>? Words { get; set; }
+            public object? Anything { get; set; }
+            public string Initialized { get; set; } = "kept";
+            public int GetOnly => 42;
+        }
+        public class RdNode
+        {
+            public int Value { get; set; }
+            public RdNode? Next { get; set; }
+            public RdNode[]? Children { get; set; }
+        }
+        // a wrapper whose constructor makes interop calls - reading one re-enters interop in the middle of a result
+        public class RdReentrantWrapper : SpawnJSObject
+        {
+            public static int Constructed;
+            public RdReentrantWrapper(SpawnJSObjectReference _ref) : base(_ref)
+            {
+                Constructed++;
+                var big = new string('r', 70_000);
+                JS.Set("__rdScratch", big);
+                if (JS.Get<string>("__rdScratch")?.Length != big.Length) throw new Exception("the nested round trip failed");
+                JS.Delete("__rdScratch");
+            }
+        }
+        public class RdWithWrapper
+        {
+            public RdReentrantWrapper? First { get; set; }
+            public string? After { get; set; }
+            public int[]? AfterNumbers { get; set; }
+        }
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdInner))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdPoco))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdNode))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdWithWrapper))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(RdReentrantWrapper))]
+        static async Task ReadTests()
+        {
+            Test("Read.PocoWithEveryKindOfMember", () =>
+            {
+                Js<string>("readFixturePoco", "");
+                var poco = JS.Get<RdPoco>(K)!;
+                AssertEqual(poco.Number, 7, "Number");
+                AssertEqual(poco.Text, "seven", "Text");
+                AssertEqual(poco.Inner?.A, 1, "Inner.A");
+                AssertEqual(poco.Inner?.B, "one", "Inner.B");
+                AssertEqual(string.Join(",", poco.Numbers!), "1,2,3", "Numbers");
+                AssertEqual(string.Join(",", poco.Words!), "a,b", "Words");
+                Assert(poco.Anything is SpawnJSObjectReference, $"an object member reads as a held reference, got {poco.Anything?.GetType().Name}");
+                (poco.Anything as IDisposable)?.Dispose();
+                AssertEqual(poco.Initialized, "kept", "a member Javascript does not have keeps its initializer");
+                AssertEqual(poco.GetOnly, 42, "get-only property");
+            });
+
+            Test("Read.RecursiveType", () =>
+            {
+                Js<string>("readFixtureNode", "");
+                var node = JS.Get<RdNode>(K)!;
+                AssertEqual(node.Value, 1, "root");
+                AssertEqual(node.Next?.Value, 2, "next");
+                AssertEqual(node.Next?.Next?.Value, 3, "next.next");
+                AssertEqual(node.Next?.Next?.Next, null, "end of the chain");
+                AssertEqual(node.Children?.Length, 2, "children");
+                AssertEqual(node.Children?[1].Children?[0].Value, 6, "grandchild");
+            });
+
+            Test("Read.ResultLargerThanTheSegment", () =>
+            {
+                // ~800 KB of numbers: written into Javascript memory, held, and fetched into its own array
+                var values = JS.Call<int, double[]>("SpawnJSTests.numbers", 100_000)!;
+                AssertEqual(values.Length, 100_000, "count");
+                for (var i = 0; i < values.Length; i++) if (values[i] != i * 0.5) throw new Exception($"element {i}: {values[i]}");
+                var ints = JS.Call<int, int[]>("SpawnJSTests.numbers", 100_000)!;
+                AssertEqual(ints[99_999], 49_999, "int elements through ToInt32");
+            });
+
+            Test("Read.ByteArrayFromAViewAndAnArrayBuffer", () =>
+            {
+                // a subarray has a byteOffset; an ArrayBuffer is not a view at all
+                AssertEqual(string.Join(",", JS.Call<byte[]>("SpawnJSTests.bytesView")!), "2,3,4", "subarray");
+                AssertEqual(string.Join(",", JS.Call<byte[]>("SpawnJSTests.bytesBuffer")!), "9,8,7", "ArrayBuffer");
+            });
+
+            Test("Read.ReentrantConstructorDoesNotOverwriteTheResult", () =>
+            {
+                // reading First runs a constructor that makes interop calls; After and AfterNumbers are still unread
+                // on the tape at that moment and must not be written over
+                RdReentrantWrapper.Constructed = 0;
+                Js<string>("readFixtureWithWrapper", "");
+                var value = JS.Get<RdWithWrapper>(K)!;
+                AssertEqual(RdReentrantWrapper.Constructed, 1, "the wrapper was read");
+                value.First?.Dispose();
+                AssertEqual(value.After, new string('a', 3000), "the string after the wrapper");
+                AssertEqual(value.AfterNumbers?.Length, 2000, "the array after the wrapper");
+                AssertEqual(value.AfterNumbers?[1999], 1999, "its last element");
+            });
+
+            await TestAsync("Read.AsyncCompositeResult", async () =>
+            {
+                Js<string>("readFixturePoco", "");
+                var poco = await JS.CallAsync<string, RdPoco>("SpawnJSTests.resolveLater", K);
+                AssertEqual(poco?.Text, "seven", "Text");
+                AssertEqual(string.Join(",", poco!.Numbers!), "1,2,3", "Numbers");
+                (poco.Anything as IDisposable)?.Dispose();
+                var numbers = await JS.CallAsync<int, double[]>("SpawnJSTests.numbersLater", 100_000);
+                AssertEqual(numbers?.Length, 100_000, "a large async result");
+            });
+
+            await TestAsync("Read.AsyncCompositeRejection", async () =>
+            {
+                var threw = false;
+                try { await JS.CallAsync<string, RdPoco>("SpawnJSTests.rejectLater", "no"); }
+                catch (Exception ex) { threw = ex.Message.Contains("no"); }
+                Assert(threw, "a rejected async composite call must fail its Task with the reason");
             });
         }
 

@@ -122,23 +122,24 @@ namespace SpawnDev.SpawnJS
         /// </summary>
         void WriteRuntimeTyped(object? value) => Tape.WriteValue(value);
         /// <summary>
-        /// Sends the innermost frame, reads the result off the tape, and closes the frame - one crossing.
+        /// Sends the innermost frame, reads the result off the tape, and closes the frame - one crossing. The result is
+        /// read by the return marshaller's <see cref="JSMarshaller.Schema"/>: a whole object or array comes back in the
+        /// same crossing, not a property at a time.
         /// </summary>
         T EndCall<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
         {
             try
             {
                 var marshaller = GetMarshaller<T>();
-                var returnType = marshaller?.ReturnType ?? ReturnType.Void;
-                var (address, length, capacity) = Tape.Send(returnType);
+                var schema = marshaller.Schema;
+                Tape.WriteSchemaDefinitions(schema);
+                var (address, length, capacity) = Tape.Send(schema);
                 var written = _spawnJSInteropCall(DotnetInstance.Id, address, length, capacity);
-                Tape.ConfirmShapes();
-                if (returnType == ReturnType.Void) return default!;
-                if (written >= 0) return ReadResult(marshaller!, returnType, Tape.Result(written));
-                // the result did not fit behind the frame: Javascript kept it and reports the bytes it needs
-                var (overflowAddress, overflowCapacity, cells) = Tape.OverflowArea(-written);
-                written = _spawnJSInteropCallResult(DotnetInstance.Id, overflowAddress, overflowCapacity);
-                return ReadResult(marshaller!, returnType, cells.AsSpan(0, (written + 7) >> 3));
+                Tape.ConfirmDefinitions();
+                if (schema.Kind == JSSchemaKind.Void) return default!;
+                if (written < 0) return ReadHeldResult(marshaller, -written);
+                var reader = new JSTapeReader(Tape.Result(written));
+                return marshaller.Read(ref reader);
             }
             finally
             {
@@ -146,42 +147,25 @@ namespace SpawnDev.SpawnJS
             }
         }
         /// <summary>
-        /// Reads a result Javascript wrote in <see cref="ReturnType"/> form. Scalars mirror what the runtime's own
-        /// marshallers produced for the typed returns this replaces: null and undefined read as 0 / false.
+        /// A result Javascript kept back - too big for the frame's segment, or an async result - fetched into its own
+        /// array: pinned only while Javascript copies into it, and never shared with the tape, so a call made while it
+        /// is being read cannot write over it.
         /// </summary>
-        static T ReadResult<T>(JSMarshaller<T> marshaller, ReturnType returnType, ReadOnlySpan<double> cells)
+        T ReadHeldResult<T>(JSMarshaller<T> marshaller, int bytes)
         {
-            switch (returnType)
+            var cells = new double[(bytes + 7) >> 3];
+            var handle = GCHandle.Alloc(cells, GCHandleType.Pinned);
+            int written;
+            try
             {
-                case ReturnType.Double:
-                    return marshaller.JSToNet(cells[0]);
-                case ReturnType.Int32:
-                    // written through an Int32Array, so it carries ToInt32's wrap, exactly as a typed int return did
-                    return marshaller.JSToNet(MemoryMarshal.Cast<double, int>(cells)[0]);
-                case ReturnType.Boolean:
-                    return marshaller.JSToNet(cells[0] != 0);
-                case ReturnType.DoubleNullable:
-                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (double?)null : cells[1]);
-                case ReturnType.Int32Nullable:
-                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (int?)null : MemoryMarshal.Cast<double, int>(cells)[2]);
-                case ReturnType.BooleanNullable:
-                    return marshaller.JSToNet(cells[0] == JSTape.TagNull ? (bool?)null : cells[1] != 0);
-                case ReturnType.String:
-                case ReturnType.Json:
-                    return marshaller.JSToNet(ReadString(cells)!);
-                case ReturnType.SpawnJSObjectReference:
-                    return marshaller.JSToNet(SpawnJSObjectReference.FromID(cells[0], false)!);
-                case ReturnType.SpawnJSObjectReferenceNonNullable:
-                    return marshaller.JSToNet(SpawnJSObjectReference.FromID(cells[0], true)!);
-                default:
-                    throw new Exception($"Invalid ReturnType for marshaller: {marshaller?.GetType().Name} {returnType}");
+                written = _spawnJSInteropCallResult(DotnetInstance.Id, (double)handle.AddrOfPinnedObject(), cells.Length * 8);
             }
-        }
-        static string? ReadString(ReadOnlySpan<double> cells)
-        {
-            if (cells[0] == JSTape.TagNull) return null;
-            var length = (int)cells[1];
-            return new string(MemoryMarshal.Cast<double, char>(cells.Slice(2)).Slice(0, length));
+            finally
+            {
+                handle.Free();
+            }
+            var reader = new JSTapeReader(cells.AsSpan(0, (written + 7) >> 3));
+            return marshaller.Read(ref reader);
         }
         #endregion
 
@@ -216,15 +200,16 @@ namespace SpawnDev.SpawnJS
             try
             {
                 var returnMarshaller = GetMarshaller<T>();
-                var returnType = returnMarshaller.ReturnType;
+                var schema = returnMarshaller.Schema;
                 tcs = new TaskCompletionSource<T>();
                 asyncCallbackId = ++_asyncCallbackId;
-                RegisterAsyncCompletion(returnMarshaller, returnType, tcs, asyncCallbackId);
-                var (address, length, _) = Tape.Send(returnType);
+                RegisterAsyncCompletion(returnMarshaller, schema, tcs, asyncCallbackId);
+                Tape.WriteSchemaDefinitions(schema);
+                var (address, length, _) = Tape.Send(schema);
                 try
                 {
                     // 1: the frame was read, and the call is running. 0: it could not be read; the resolver has the error.
-                    if (_spawnJSInteropCallAsync(DotnetInstance.Id, asyncCallbackId, address, length) == 1) Tape.ConfirmShapes();
+                    if (_spawnJSInteropCallAsync(DotnetInstance.Id, asyncCallbackId, address, length) == 1) Tape.ConfirmDefinitions();
                 }
                 catch
                 {
@@ -239,8 +224,19 @@ namespace SpawnDev.SpawnJS
             }
             return tcs.Task;
         }
-        void RegisterAsyncCompletion<T>(JSMarshaller<T> returnMarshaller, ReturnType returnType, TaskCompletionSource<T> tcs, double asyncCallbackId)
+        void RegisterAsyncCompletion<T>(JSMarshaller<T> returnMarshaller, JSSchema schema, TaskCompletionSource<T> tcs, double asyncCallbackId)
         {
+            if (!schema.IsBuiltin)
+            {
+                // a composite result: Javascript holds its bytes and reports their length; they are fetched and read here
+                _tapeCallbacks.TryAdd(asyncCallbackId, (bytes, error) =>
+                {
+                    if (error != null) tcs.TrySetException(JSObjects.JSException.FromInteropError(error));
+                    else tcs.TrySetResult(ReadHeldResult(returnMarshaller, bytes));
+                });
+                return;
+            }
+            var returnType = (ReturnType)schema.Kind;
             switch (returnType)
             {
                 case ReturnType.Void:
@@ -323,6 +319,7 @@ namespace SpawnDev.SpawnJS
             _stringCallbacks.TryRemove(asyncCallbackId, out _);
             _int32Callbacks.TryRemove(asyncCallbackId, out _);
             _int32NullableCallbacks.TryRemove(asyncCallbackId, out _);
+            _tapeCallbacks.TryRemove(asyncCallbackId, out _);
         }
         #endregion
 
@@ -728,6 +725,7 @@ namespace SpawnDev.SpawnJS
         static ConcurrentDictionary<double, Action<string?, string?>> _stringCallbacks = new ConcurrentDictionary<double, Action<string?, string?>>();
         static ConcurrentDictionary<double, Action<int, string?>> _int32Callbacks = new ConcurrentDictionary<double, Action<int, string?>>();
         static ConcurrentDictionary<double, Action<int?, string?>> _int32NullableCallbacks = new ConcurrentDictionary<double, Action<int?, string?>>();
+        static ConcurrentDictionary<double, Action<int, string?>> _tapeCallbacks = new ConcurrentDictionary<double, Action<int, string?>>();
 
         private void MappedMethodsChanged()
         {
@@ -763,6 +761,11 @@ namespace SpawnDev.SpawnJS
         void ResolveDoubleNullable(double asyncCallId, object? value, string? error)
         {
             if (_doubleNullableCallbacks.TryRemove(asyncCallId, out var waitingTask)) waitingTask((double?)value, error);
+        }
+        // an async result read by a composite schema: Javascript holds `bytes` of it for _spawnJSInteropCallResult
+        void ResolveTape(double asyncCallId, int bytes, string? error)
+        {
+            if (_tapeCallbacks.TryRemove(asyncCallId, out var waitingTask)) waitingTask(bytes, error);
         }
         void ResolveBooleanNullable(double asyncCallId, object? value, string? error)
         {

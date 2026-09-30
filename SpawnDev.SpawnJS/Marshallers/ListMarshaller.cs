@@ -54,6 +54,18 @@ namespace SpawnDev.SpawnJS.Marshallers
             if (value == null) { tape.WriteNull(); return; }
             TapeCollections.Write(tape, value, _elements ??= new ValueWriter<TElement>());
         }
+        JSMarshaller<TElement>? _elementMarshaller;
+        JSSchema? _schema;
+        JSMarshaller<TElement> ElementMarshaller => _elementMarshaller ??= JS.GetMarshaller<TElement>();
+        /// <inheritdoc/>
+        /// <remarks>Numbers in one copy when each element is an Int32 or Double; an Array of the element schema otherwise.</remarks>
+        public override JSSchema Schema => _schema ??= TapeReads.CollectionSchema(ElementMarshaller.Schema);
+        /// <inheritdoc/>
+        public override List<TElement>? Read(ref JSTapeReader reader)
+        {
+            var count = reader.ReadCount();
+            return count < 0 ? null : TapeReads.ReadList(ref reader, Schema, ElementMarshaller, count);
+        }
         ValueWriter<TElement>? _elements;
     }
 }

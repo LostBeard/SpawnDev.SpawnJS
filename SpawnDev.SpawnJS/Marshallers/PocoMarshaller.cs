@@ -92,6 +92,21 @@ namespace SpawnDev.SpawnJS.Marshallers
             object? readTyped<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TMember>(string key) => value.Get<TMember>(key);
         }
 
+        PocoReadPlan? _readPlan;
+        PocoReadPlan ReadPlan => _readPlan ??= PocoReadPlan.For(Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T));
+        /// <inheritdoc/>
+        /// <remarks>An Object schema: every member, by its declared type, in the call's one crossing.</remarks>
+        public override JSSchema Schema => ReadPlan.Schema;
+        /// <inheritdoc/>
+        public override T? Read(ref JSTapeReader reader)
+        {
+            var plan = ReadPlan;
+            if (plan is PocoReadPlan<T> typed) return typed.Read(ref reader, out var value) ? value : default;
+            // Nullable<TStruct>: read the struct, then unbox it into the nullable
+            var boxed = plan.ReadBoxed(ref reader);
+            return boxed == null ? default : (T)boxed;
+        }
+
         PocoWritePlan<T>? _plan;
         /// <inheritdoc/>
         /// <remarks>

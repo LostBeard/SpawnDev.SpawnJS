@@ -9,6 +9,14 @@ namespace SpawnDev.SpawnJS.Marshaller
     {
         public virtual ReturnType ReturnType => throw new NotImplementedException();
         /// <summary>
+        /// What Javascript writes back for a value this marshaller reads. By default the <see cref="ReturnType"/>'s own
+        /// built-in schema; a marshaller that reads a whole object, array or dictionary returns a composite schema, so the
+        /// value is read in the call's single crossing.
+        /// </summary>
+        public virtual JSSchema Schema => JSSchema.Builtin(ReturnType);
+        /// <summary>Reads a value written by <see cref="Schema"/>, boxed - for callers that only have a runtime Type.</summary>
+        public virtual object? ReadBoxed(ref JSTapeReader reader) => throw new NotImplementedException(GetType().Name);
+        /// <summary>
         /// SpawnJSRuntime
         /// </summary>
         protected SpawnJSRuntime JS => SpawnJSRuntime.Instance ?? throw new InvalidOperationException("SpawnJSRuntime has not been created.");
@@ -35,6 +43,27 @@ namespace SpawnDev.SpawnJS.Marshaller
     public abstract class JSMarshaller<TType> : JSMarshaller
     {
         public virtual Type RegisteredType => typeof(TType);
+        /// <summary>
+        /// JS to .Net: reads the value Javascript wrote by <see cref="JSMarshaller.Schema"/>. The default reads the
+        /// <see cref="JSMarshaller.ReturnType"/> form and hands it to the matching <c>JSToNet</c> overload - exactly what
+        /// the typed return of v2's dispatcher produced.
+        /// </summary>
+        public virtual TType Read(ref JSTapeReader reader) => ReturnType switch
+        {
+            ReturnType.Void => JSToNet(),
+            ReturnType.Double => JSToNet(reader.ReadDouble()),
+            ReturnType.Int32 => JSToNet(reader.ReadInt32()),
+            ReturnType.Boolean => JSToNet(reader.ReadBoolean()),
+            ReturnType.DoubleNullable => JSToNet(reader.ReadDoubleNullable()),
+            ReturnType.Int32Nullable => JSToNet(reader.ReadInt32Nullable()),
+            ReturnType.BooleanNullable => JSToNet(reader.ReadBooleanNullable()),
+            ReturnType.String or ReturnType.Json => JSToNet(reader.ReadString()!),
+            ReturnType.SpawnJSObjectReference => JSToNet(reader.ReadRef(false)!),
+            ReturnType.SpawnJSObjectReferenceNonNullable => JSToNet(reader.ReadRef(true)!),
+            _ => throw new Exception($"Invalid ReturnType for marshaller: {GetType().Name} {ReturnType}"),
+        };
+        /// <inheritdoc/>
+        public override object? ReadBoxed(ref JSTapeReader reader) => Read(ref reader);
         /// <summary>
         /// Returns true if the data type can be marshalled
         /// </summary>

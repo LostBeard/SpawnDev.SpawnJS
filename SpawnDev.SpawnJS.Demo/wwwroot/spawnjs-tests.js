@@ -47,6 +47,25 @@
         static codeUnits(s) { return Array.prototype.map.call(s, c => c.charCodeAt(0).toString(16)).join(','); }
         static argsShape(...args) { return args.map(SpawnJSTests.shape).join('|'); }
         static callThenReturn(cb, s) { cb(); return s + '!'; }
+        // ---- read-by-schema fixtures ----
+        static readFixturePoco() {
+            globalThis.__mt = { number: 7, text: 'seven', inner: { a: 1, b: 'one' }, numbers: [1, 2, 3], words: ['a', 'b'], anything: { x: 1 }, getOnly: 99 };
+            return '';
+        }
+        static readFixtureNode() {
+            globalThis.__mt = { value: 1, next: { value: 2, next: { value: 3 } }, children: [{ value: 4 }, { value: 5, children: [{ value: 6 }] }] };
+            return '';
+        }
+        static readFixtureWithWrapper() {
+            globalThis.__mt = { first: {}, after: 'a'.repeat(3000), afterNumbers: Array.from({ length: 2000 }, (_, i) => i) };
+            return '';
+        }
+        static numbers(n) { return Array.from({ length: n }, (_, i) => i * 0.5); }
+        static bytesView() { return new Uint8Array([1, 2, 3, 4, 5]).subarray(1, 4); }
+        static bytesBuffer() { return new Uint8Array([9, 8, 7]).buffer; }
+        static resolveLater(key) { return new Promise(r => setTimeout(() => r(globalThis[key]), 1)); }
+        static numbersLater(n) { return new Promise(r => setTimeout(() => r(SpawnJSTests.numbers(n)), 1)); }
+        static rejectLater(reason) { return new Promise((_, reject) => setTimeout(() => reject(new Error(reason)), 1)); }
         static bytesSumOf(o) { return SpawnJSTests.bytesSum(o.data); }
         static bytesSum(bytes, ignored) { let s = 0; for (const b of bytes) s = (s * 31 + b) >>> 0; return `${bytes.constructor.name}:${bytes.length}:${s}`; }
         static longString(n) { return 'x'.repeat(n); }

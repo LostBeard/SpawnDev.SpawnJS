@@ -73,6 +73,30 @@ namespace SpawnDev.SpawnJS.Marshallers
             Justification = "MakeGenericType(Dictionary<,>, keyType, valueType) builds the concrete result dictionary; Dictionary<,> is a framework type whose public constructors are always preserved.")]
         [UnconditionalSuppressMessage("Trimming", "IL2072",
             Justification = "Activator over the closed Dictionary<keyType, valueType> (framework type, parameterless ctor always preserved).")]
+        JSMarshaller? _valueMarshaller;
+        JSSchema? _schema;
+        JSMarshaller ValueMarshaller => _valueMarshaller ??= JS.GetMarshaller(typeof(TDictionary).GetGenericArguments()[1]);
+        /// <inheritdoc/>
+        /// <remarks>A Record: the object's own keys, each value by the value type's schema.</remarks>
+        public override JSSchema Schema => _schema ??= JSSchema.Record(ValueMarshaller.Schema);
+        /// <inheritdoc/>
+        [UnconditionalSuppressMessage("Trimming", "IL2055", Justification = "As JSToNet: Dictionary<,> over TDictionary's own generic arguments.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "As JSToNet.")]
+        public override TDictionary? Read(ref JSTapeReader reader)
+        {
+            var count = reader.ReadCount();
+            if (count < 0) return default;
+            var typeArgs = typeof(TDictionary).GetGenericArguments();
+            var keyType = typeArgs[0];
+            var result = (IDictionary)Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(keyType, typeArgs[1]))!;
+            var valueMarshaller = ValueMarshaller;
+            for (var i = 0; i < count; i++)
+            {
+                var key = reader.ReadKey();
+                result[KeyFromString(key, keyType)] = valueMarshaller.ReadBoxed(ref reader);
+            }
+            return (TDictionary)result;
+        }
         public override TDictionary? JSToNet(SpawnJSObjectReference value)
         {
             if (value == null) return default;

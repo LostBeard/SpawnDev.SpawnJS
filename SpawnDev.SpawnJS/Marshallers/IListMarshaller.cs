@@ -37,6 +37,18 @@ namespace SpawnDev.SpawnJS.Marshallers
             Type typedMarshaller = openType.MakeGenericType(elementType!);
             return (JSMarshaller<T>)Activator.CreateInstance(typedMarshaller)!;
         }
+        JSMarshaller<TElement>? _elementMarshaller;
+        JSSchema? _schema;
+        JSMarshaller<TElement> ElementMarshaller => _elementMarshaller ??= JS.GetMarshaller<TElement>();
+        /// <inheritdoc/>
+        /// <remarks>Numbers in one copy when each element is an Int32 or Double; an Array of the element schema otherwise.</remarks>
+        public override JSSchema Schema => _schema ??= TapeReads.CollectionSchema(ElementMarshaller.Schema);
+        /// <inheritdoc/>
+        public override IList<TElement>? Read(ref JSTapeReader reader)
+        {
+            var count = reader.ReadCount();
+            return count < 0 ? null : TapeReads.ReadList(ref reader, Schema, ElementMarshaller, count);
+        }
         ValueWriter<TElement>? _elements;
         /// <inheritdoc/>
         public override void Write(JSTape tape, IList<TElement>? value)

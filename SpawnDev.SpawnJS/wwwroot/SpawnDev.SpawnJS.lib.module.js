@@ -85,7 +85,8 @@
         //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.String>>] Action<double, int, string> onAsyncResolvedInt32,
         //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Any, JSType.String>>] Action<double, object, string> onAsyncResolvedInt32Nullable,
         //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number>>] Action<long, long> onDetachedHeap,
-        //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.Number>>] Action<double, double, double> onCallback)
+        //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.Number>>] Action<double, double, double> onCallback,
+        //   [JSMarshalAs<JSType.Function<JSType.Number, JSType.Number, JSType.String>>] Action<double, int, string> onAsyncResolvedTape)
         static _registerInstance(
             dotnet,
             onMethodAdded,
@@ -98,7 +99,8 @@
             resolveInt32,
             resolveInt32Nullable,
             onDetachedHeap,
-            handleCallback
+            handleCallback,
+            resolveTape
             ) {
             if (!dotnet) throw new Error('dotnet not set');
             var instanceInfo = SpawnJSInterop._getInstaceFromDotNet(dotnet);
@@ -109,7 +111,7 @@
             // attach the heap buffer to instanceInfo so it can be monitored for detach events
             var heapBuffer = SpawnJSInterop.wasmMemoryBuffer(dotnet);
 
-            var instanceInfo = { heapBuffer, dotnet, dotnetId, onMethodAdded, resolveVoid, resolveDouble, resolveBoolean, resolveString, resolveDoubleNullable, resolveBooleanNullable, resolveInt32, resolveInt32Nullable, handleCallback, onDetachedHeap };
+            var instanceInfo = { heapBuffer, dotnet, dotnetId, onMethodAdded, resolveVoid, resolveDouble, resolveBoolean, resolveString, resolveDoubleNullable, resolveBooleanNullable, resolveInt32, resolveInt32Nullable, handleCallback, onDetachedHeap, resolveTape };
             SpawnJSInterop._instances[dotnetId] = instanceInfo;
 
             instanceInfo.heapBufferSize = heapBuffer.byteLength;
@@ -149,19 +151,20 @@
             var call = SpawnJSInterop._tapeReadCall(instance, address, length, dotnetId);
             var ret = call.target(...call.args);
             ret = SpawnJSInterop.replaceValue(null, ret, false);
-            // views again: the call may have grown the heap
-            var views = SpawnJSInterop._tapeViews(instance, address + capacity);
-            return SpawnJSInterop._tapeWriteResult(instance, views, call.returnType, ret, address, capacity);
+            return SpawnJSInterop._tapeWriteResult(instance, call.returnType, ret, address, capacity);
         }
         // The result that did not fit behind its frame
         // JSImport
         // int _spawnJSInteropCallResult(double dotnetId, double address, int capacity);
         static _spawnJSInteropCallResult(dotnetId, address, capacity) {
             var instance = SpawnJSInterop.getInstace(dotnetId);
-            var value = instance.tapePendingResult;
+            var bytes = instance.tapePendingResult;
             instance.tapePendingResult = undefined;
-            var views = SpawnJSInterop._tapeViews(instance, address + capacity);
-            return SpawnJSInterop._tapeWriteString(instance, views, value, address, capacity);
+            if (!bytes) throw new Error('SpawnJSInterop: no tape result is being held');
+            if (bytes.byteLength > capacity) throw new Error(`SpawnJSInterop: a held tape result of ${bytes.byteLength} bytes does not fit in ${capacity}`);
+            var views = SpawnJSInterop._tapeViews(instance, address + bytes.byteLength);
+            new Uint8Array(views.buffer, address, bytes.byteLength).set(bytes);
+            return bytes.byteLength;
         }
         // Main .Net to JS entrypoint (asynchronous)
         // Reads the frame and starts the call before returning, because .Net releases the frame as soon as this returns.
@@ -185,19 +188,31 @@
         static async _runAsync(instance, returnType, asyncCallId, call) {
             var error = null;
             var ret = null;
+            var heldBytes = -1;
             try {
                 ret = call.target(...call.args);
                 ret = await ret;
                 ret = SpawnJSInterop.replaceValue(null, ret, false);
-                // prepare using returnType
-                ret = SpawnJSInterop._serializeToNet(returnType, ret);
+                if (returnType > 10) {
+                    // a composite schema: encoded here and held; .Net fetches it with _spawnJSInteropCallResult
+                    heldBytes = SpawnJSInterop._tapeHoldResult(instance, SpawnJSInterop._tapeSchema(instance, returnType), ret);
+                } else {
+                    // prepare using returnType
+                    ret = SpawnJSInterop._serializeToNet(returnType, ret);
+                }
             } catch (ex) {
                 error = SpawnJSInterop.errorToString(ex);
                 ret = null;
             }
-            SpawnJSInterop._resolveAsync(instance, returnType, asyncCallId, ret, error);
+            if (heldBytes >= 0) instance.resolveTape(asyncCallId, heldBytes, null);
+            else SpawnJSInterop._resolveAsync(instance, returnType, asyncCallId, ret, error);
         }
         static _resolveAsync(instance, returnType, asyncCallId, ret, error) {
+            if (returnType > 10) {
+                // a composite schema that failed: nothing is held
+                instance.resolveTape(asyncCallId, 0, error ?? 'SpawnJSInterop: the call produced no result');
+                return;
+            }
             switch (returnType) {
                 case 0: // void
                     instance.resolveVoid(asyncCallId, error);
@@ -268,6 +283,9 @@
                 var value = SpawnJSInterop._tapeRead(reader);
                 args[i] = SpawnJSInterop.reviveValue(i, value === SpawnJSInterop._tapeAbsent ? undefined : value, false);
             }
+            // then the definitions of any schema the result is written by (JSTape.WriteSchemaDefinitions)
+            var end = (address + length) >>> 3;
+            while (reader.p < end) SpawnJSInterop._tapeReadSchemaDefinition(reader);
             var target = SpawnJSInterop._methodMap[methodIndex];
             if (!target) throw new Error(`SpawnJSInterop: no method at index ${methodIndex}`);
             return { target, returnType, args };
@@ -372,69 +390,264 @@
             }
             return parts.join('');
         }
-        // Writes a result over its own frame in the form SpawnJSRuntime.ReadResult reads for that returnType. The
-        // scalar forms are what the runtime's own typed returns produced: null/undefined -> 0 / false, a number
-        // stored through a Float64Array (ToNumber) and an int through an Int32Array (ToInt32).
-        static _tapeWriteResult(instance, views, returnType, ret, address, capacity) {
-            var f64 = views.f64;
-            var p = address >>> 3;
-            var isNull = ret === null || ret === undefined;
-            switch (returnType) {
-                case 0:  // void
-                    return 0;
-                case 1:  // Double
-                    f64[p] = isNull ? 0 : ret;
-                    return 8;
-                case 2:  // Boolean
-                    f64[p] = ret ? 1 : 0;
-                    return 8;
-                case 3:  // DoubleNullable
-                    if (isNull) { f64[p] = 1; return 8; }
-                    f64[p] = 2;
-                    f64[p + 1] = ret;
-                    return 16;
-                case 4:  // BooleanNullable
-                    if (isNull) { f64[p] = 1; return 8; }
-                    f64[p] = 3;
-                    f64[p + 1] = ret ? 1 : 0;
-                    return 16;
-                case 5:  // String
-                    if (!isNull && typeof ret !== 'string') ret = Object(ret).toString();
-                    return SpawnJSInterop._tapeWriteString(instance, views, ret, address, capacity);
-                case 6:  // SpawnJSObject
-                case 7:  // SpawnJSObjectNonNullable
-                    f64[p] = SpawnJSInterop.spawnJSObjectHold(ret);
-                    return 8;
-                case 8:  // Json
-                    return SpawnJSInterop._tapeWriteString(instance, views, JSON.stringify(ret), address, capacity);
-                case 9:  // Int32
-                    views.i32[p * 2] = isNull ? 0 : ret;
-                    return 8;
-                case 10: // Int32Nullable
-                    if (isNull) { f64[p] = 1; return 8; }
-                    f64[p] = 2;
-                    views.i32[(p + 1) * 2] = ret;
-                    return 16;
-            }
-            throw new Error(`Unsupported returnType ${returnType}`);
+        // ---- results: written back by the schema .Net reads them with (JSSchema.cs, JSTapeReader.cs) ----
+        // Ids 0-10 are the built-in ReturnType kinds; composite schemas are defined per instance, after a call's arguments.
+        static _builtinSchemas = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(kind => Object.freeze({ kind }));
+        // thrown by a writer over .Net memory that is out of room (only a string can be; it is written again)
+        static _tapeOverflow = Object.freeze({ tapeOverflow: true });
+        static _tapeSchema(instance, id) {
+            if (id <= 10) return SpawnJSInterop._builtinSchemas[id];
+            var schema = instance.tapeSchemas?.[id];
+            if (!schema) throw new Error(`SpawnJSInterop: unknown tape schema ${id}`);
+            return schema;
         }
-        // tag, length, UTF-16 code units - or keeps the value and returns minus the bytes needed
-        static _tapeWriteString(instance, views, value, address, capacity) {
-            var f64 = views.f64;
-            var p = address >>> 3;
-            if (value === null || value === undefined) { f64[p] = 1; return 8; }
-            var length = value.length;
-            var bytes = 16 + (((length + 3) >>> 2) << 3);
-            if (bytes > capacity) {
-                instance.tapePendingResult = value;
-                return -bytes;
+        // TagSchema, id, kind, then per kind - member / element schemas are ids, resolved when a value is written, so a
+        // schema can refer to one defined after it, or to itself
+        static _tapeReadSchemaDefinition(reader) {
+            if (reader.views.buffer.detached) reader.views = SpawnJSInterop._tapeViews(reader.instance, reader.address + reader.length);
+            var f64 = reader.views.f64;
+            var tag = f64[reader.p++];
+            if (tag !== 16) throw new Error(`SpawnJSInterop: expected a tape schema definition, found tag ${tag}`);
+            var id = f64[reader.p++];
+            var schema = { kind: f64[reader.p++] };
+            switch (schema.kind) {
+                case 16: {
+                    var count = f64[reader.p++];
+                    schema.names = new Array(count);
+                    for (var i = 0; i < count; i++) schema.names[i] = SpawnJSInterop._tapeReadChars(reader);
+                    schema.members = new Array(count);
+                    for (var i = 0; i < count; i++) schema.members[i] = reader.views.f64[reader.p++];
+                    break;
+                }
+                case 20: {
+                    var count = f64[reader.p++];
+                    schema.members = new Array(count);
+                    for (var i = 0; i < count; i++) schema.members[i] = f64[reader.p++];
+                    break;
+                }
+                case 17: case 19: schema.element = f64[reader.p++]; break;
+                case 18: schema.numberKind = f64[reader.p++]; break;
             }
-            f64[p] = 4;
-            f64[p + 1] = length;
-            var u16 = views.u16;
-            var index = (p + 2) * 4;
+            (reader.instance.tapeSchemas ??= [])[id] = schema;
+        }
+        // Writes a call's result back over its own frame. A built-in kind goes straight into .Net memory (only a string
+        // can outgrow the frame's segment); a composite is written into Javascript memory first, then copied - it can
+        // hold references and run getters, so it is written exactly once. A result that does not fit is held for
+        // _spawnJSInteropCallResult, and the return value is minus its size.
+        static _tapeWriteResult(instance, schemaId, ret, address, capacity) {
+            var schema = SpawnJSInterop._tapeSchema(instance, schemaId);
+            if (schema.kind === 0) return 0;
+            if (schemaId <= 10) {
+                var views = SpawnJSInterop._tapeViews(instance, address + capacity);
+                var w = { buffer: views.buffer, f64: views.f64, i32: views.i32, u16: views.u16, p: address >>> 3, end: (address + capacity) >>> 3, scratch: false };
+                try {
+                    SpawnJSInterop._tapeEncode(instance, w, schema, ret);
+                    return (w.p - (address >>> 3)) * 8;
+                } catch (ex) {
+                    if (ex !== SpawnJSInterop._tapeOverflow) throw ex;
+                }
+            }
+            var s = SpawnJSInterop._tapeScratchWriter(instance);
+            try {
+                SpawnJSInterop._tapeEncode(instance, s, schema, ret);
+                var bytes = s.p * 8;
+                if (bytes <= capacity) {
+                    var heap = SpawnJSInterop._tapeViews(instance, address + bytes);
+                    new Uint8Array(heap.buffer, address, bytes).set(new Uint8Array(s.buffer, 0, bytes));
+                    return bytes;
+                }
+                instance.tapePendingResult = new Uint8Array(s.buffer.slice(0, bytes));
+                return -bytes;
+            } finally {
+                SpawnJSInterop._tapeScratchRelease(instance, s);
+            }
+        }
+        // encodes a result and holds it for _spawnJSInteropCallResult; returns its size
+        static _tapeHoldResult(instance, schema, value) {
+            var s = SpawnJSInterop._tapeScratchWriter(instance);
+            try {
+                SpawnJSInterop._tapeEncode(instance, s, schema, value);
+                instance.tapePendingResult = new Uint8Array(s.buffer.slice(0, s.p * 8));
+                return s.p * 8;
+            } finally {
+                SpawnJSInterop._tapeScratchRelease(instance, s);
+            }
+        }
+        // Javascript-side result buffers, pooled per instance (a nested call's result uses its own)
+        static _tapeScratchWriter(instance) {
+            var w = instance.tapeScratch?.pop();
+            if (!w) {
+                w = { scratch: true, p: 0 };
+                SpawnJSInterop._tapeScratchResize(w, 512);
+            }
+            w.p = 0;
+            return w;
+        }
+        static _tapeScratchRelease(instance, w) {
+            // a very large one is dropped rather than kept for the life of the page
+            if (w.end <= 1 << 20) (instance.tapeScratch ??= []).push(w);
+        }
+        static _tapeScratchResize(w, cells) {
+            var buffer = new ArrayBuffer(cells * 8);
+            if (w.buffer) new Uint8Array(buffer).set(new Uint8Array(w.buffer, 0, w.p * 8));
+            w.buffer = buffer;
+            w.f64 = new Float64Array(buffer);
+            w.i32 = new Int32Array(buffer);
+            w.u16 = new Uint16Array(buffer);
+            w.end = cells;
+        }
+        static _tapeNeed(w, cells) {
+            if (w.p + cells <= w.end) return;
+            if (!w.scratch) throw SpawnJSInterop._tapeOverflow;
+            SpawnJSInterop._tapeScratchResize(w, Math.max(w.end * 2, w.p + cells));
+        }
+        // One value by its schema. The built-in kinds convert exactly as v2's typed returns did: null/undefined read
+        // as 0 / false, a number is stored through a Float64Array (ToNumber) and an int through an Int32Array (ToInt32).
+        // A composite reads each member / element with that member's schema - what v2's per-property Get<T> read.
+        static _tapeEncode(instance, w, schema, v) {
+            var isNull = v === null || v === undefined;
+            switch (schema.kind) {
+                case 0: return;
+                case 1:
+                    SpawnJSInterop._tapeNeed(w, 1);
+                    w.f64[w.p++] = isNull ? 0 : v;
+                    return;
+                case 2:
+                    SpawnJSInterop._tapeNeed(w, 1);
+                    w.f64[w.p++] = v ? 1 : 0;
+                    return;
+                case 3:
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p++] = 2;
+                    w.f64[w.p++] = v;
+                    return;
+                case 4:
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p++] = 3;
+                    w.f64[w.p++] = v ? 1 : 0;
+                    return;
+                case 5:
+                    if (!isNull && typeof v !== 'string') v = Object(v).toString();
+                    SpawnJSInterop._tapeEncodeString(w, isNull ? null : v);
+                    return;
+                case 6: case 7:
+                    SpawnJSInterop._tapeNeed(w, 1);
+                    w.f64[w.p++] = SpawnJSInterop.spawnJSObjectHold(v);
+                    return;
+                case 8:
+                    SpawnJSInterop._tapeEncodeString(w, JSON.stringify(v));
+                    return;
+                case 9:
+                    SpawnJSInterop._tapeNeed(w, 1);
+                    w.i32[w.p * 2] = isNull ? 0 : v;
+                    w.p++;
+                    return;
+                case 10:
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p] = 2;
+                    w.i32[(w.p + 1) * 2] = v;
+                    w.p += 2;
+                    return;
+                case 16: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    SpawnJSInterop._tapeNeed(w, 1);
+                    w.f64[w.p++] = 9;
+                    var names = schema.names, members = schema.members;
+                    for (var i = 0; i < names.length; i++) SpawnJSInterop._tapeEncode(instance, w, SpawnJSInterop._tapeSchema(instance, members[i]), v[names[i]]);
+                    return;
+                }
+                case 17: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    var count = Number(v.length) || 0;
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p++] = 11;
+                    w.f64[w.p++] = count;
+                    var element = SpawnJSInterop._tapeSchema(instance, schema.element);
+                    for (var i = 0; i < count; i++) SpawnJSInterop._tapeEncode(instance, w, element, v[i]);
+                    return;
+                }
+                case 18: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    var count = Number(v.length) || 0;
+                    var int32 = schema.numberKind === 9;
+                    var cells = int32 ? (count + 1) >>> 1 : count;
+                    SpawnJSInterop._tapeNeed(w, 2 + cells);
+                    w.f64[w.p++] = 12;
+                    w.f64[w.p++] = count;
+                    // element by element, not typedArray.set(): an undefined element must read as 0, as Get<T> read it
+                    if (int32) {
+                        var view = new Int32Array(w.buffer, w.p * 8, count);
+                        for (var i = 0; i < count; i++) { var e = v[i]; view[i] = e === null || e === undefined ? 0 : e; }
+                    } else {
+                        var view = new Float64Array(w.buffer, w.p * 8, count);
+                        for (var i = 0; i < count; i++) { var e = v[i]; view[i] = e === null || e === undefined ? 0 : e; }
+                    }
+                    w.p += cells;
+                    return;
+                }
+                case 19: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    // own enumerable keys - inherited ones belong to the prototype chain, not the record
+                    var keys = Object.keys(v);
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p++] = 14;
+                    w.f64[w.p++] = keys.length;
+                    var element = SpawnJSInterop._tapeSchema(instance, schema.element);
+                    for (var i = 0; i < keys.length; i++) {
+                        SpawnJSInterop._tapeEncodeChars(w, keys[i]);
+                        SpawnJSInterop._tapeEncode(instance, w, element, v[keys[i]]);
+                    }
+                    return;
+                }
+                case 20: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    var members = schema.members;
+                    SpawnJSInterop._tapeNeed(w, 2);
+                    w.f64[w.p++] = 11;
+                    w.f64[w.p++] = members.length;
+                    for (var i = 0; i < members.length; i++) SpawnJSInterop._tapeEncode(instance, w, SpawnJSInterop._tapeSchema(instance, members[i]), v[i]);
+                    return;
+                }
+                case 21: {
+                    if (isNull) { SpawnJSInterop._tapeNeed(w, 1); w.f64[w.p++] = 1; return; }
+                    var bytes = v instanceof ArrayBuffer ? new Uint8Array(v)
+                        : ArrayBuffer.isView(v) ? new Uint8Array(v.buffer, v.byteOffset, v.byteLength)
+                        : null;
+                    if (!bytes) throw new TypeError('SpawnJSInterop: expected an ArrayBuffer or ArrayBufferView');
+                    var cells = (bytes.length + 7) >>> 3;
+                    SpawnJSInterop._tapeNeed(w, 2 + cells);
+                    w.f64[w.p++] = 12;
+                    w.f64[w.p++] = bytes.length;
+                    new Uint8Array(w.buffer, w.p * 8, bytes.length).set(bytes);
+                    w.p += cells;
+                    return;
+                }
+            }
+            throw new Error(`SpawnJSInterop: unsupported tape schema kind ${schema.kind}`);
+        }
+        // null, or tag, length, UTF-16 code units
+        static _tapeEncodeString(w, value) {
+            if (value === null || value === undefined) {
+                SpawnJSInterop._tapeNeed(w, 1);
+                w.f64[w.p++] = 1;
+                return;
+            }
+            SpawnJSInterop._tapeNeed(w, 1);
+            w.f64[w.p++] = 4;
+            SpawnJSInterop._tapeEncodeChars(w, value);
+        }
+        // length, UTF-16 code units padded to a cell
+        static _tapeEncodeChars(w, value) {
+            var length = value.length;
+            SpawnJSInterop._tapeNeed(w, 1 + ((length + 3) >>> 2));
+            w.f64[w.p++] = length;
+            var u16 = w.u16;
+            var index = w.p * 4;
             for (var i = 0; i < length; i++) u16[index + i] = value.charCodeAt(i);
-            return bytes;
+            w.p += (length + 3) >>> 2;
         }
         // refreshes the method map by looking for any new methods and adds them
         // JSImport

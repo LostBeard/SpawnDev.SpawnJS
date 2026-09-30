@@ -256,7 +256,8 @@ namespace SpawnDev.SpawnJS
                 ResolveInt32,
                 ResolveInt32Nullable,
                 OnDetachedHeap,
-                Callback.HandleCallback));
+                Callback.HandleCallback,
+                ResolveTape!));
             // load method names to enable indexed based interop calling (vs string)
             InteropMethods = _refreshMethodMap();
             HeapSize = GetHeapSize();

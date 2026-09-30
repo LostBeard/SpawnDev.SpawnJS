@@ -48,6 +48,21 @@ namespace SpawnDev.SpawnJS.Marshallers
             value1.Dispose();
             return retArray;
         }
+        JSMarshaller<TElement>? _elementMarshaller;
+        JSSchema? _schema;
+        JSMarshaller<TElement> ElementMarshaller => _elementMarshaller ??= JS.GetMarshaller<TElement>();
+        /// <inheritdoc/>
+        /// <remarks>Numbers in one copy when each element is an Int32 or Double; an Array of the element schema otherwise.</remarks>
+        public override JSSchema Schema => _schema ??= TapeReads.CollectionSchema(ElementMarshaller.Schema);
+        /// <inheritdoc/>
+        public override TElement[]? Read(ref JSTapeReader reader)
+        {
+            var count = reader.ReadCount();
+            if (count < 0) return null;
+            var array = new TElement[count];
+            TapeReads.ReadElements(ref reader, Schema, ElementMarshaller, array);
+            return array;
+        }
         ValueWriter<TElement>? _elements;
         /// <inheritdoc/>
         /// <remarks>A number array crosses in one copy; anything else element by element, each by what it IS.</remarks>

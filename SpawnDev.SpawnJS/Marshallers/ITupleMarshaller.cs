@@ -21,6 +21,33 @@ namespace SpawnDev.SpawnJS.Marshallers
             TypeT = typeof(TTuple);
             GenericTypes = TypeT.GenericTypeArguments;
         }
+        JSMarshaller[]? _itemMarshallers;
+        JSSchema? _schema;
+        JSMarshaller[] ItemMarshallers => _itemMarshallers ??= GenericTypes.Select(t => JS.GetMarshaller(t)).ToArray();
+        /// <inheritdoc/>
+        /// <remarks>A Tuple: read positionally, each item by its own type's schema.</remarks>
+        public override JSSchema Schema
+        {
+            get
+            {
+                if (_schema != null) return _schema;
+                var schema = JSSchema.Tuple(GenericTypes.Length);
+                var items = ItemMarshallers;
+                for (var i = 0; i < items.Length; i++) schema.Members![i] = items[i].Schema;
+                return _schema = schema;
+            }
+        }
+        /// <inheritdoc/>
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "As JSToNet: the tuple's own constructor.")]
+        public override TTuple Read(ref JSTapeReader reader)
+        {
+            var count = reader.ReadCount();
+            if (count < 0) return default!;
+            var markers = ItemMarshallers;
+            var items = new object?[markers.Length];
+            for (var i = 0; i < markers.Length; i++) items[i] = markers[i].ReadBoxed(ref reader);
+            return (TTuple)Activator.CreateInstance(TypeT, items)!;
+        }
         public override TTuple JSToNet(SpawnJSObjectReference value)
         {
             if (value == null) return default!;
@@ -54,6 +81,15 @@ namespace SpawnDev.SpawnJS.Marshallers
     public class ITupleNullableMarshaller<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TTuple> : JSMarshallerFromSpawnJSObjectReference<TTuple?> where TTuple : struct, ITuple
     {
         readonly ITupleMarshaller<TTuple> inner = new();
+        /// <inheritdoc/>
+        public override JSSchema Schema => inner.Schema;
+        /// <inheritdoc/>
+        public override TTuple? Read(ref JSTapeReader reader)
+        {
+            // the inner read returns default for null; null has to stay null here
+            if (reader.PeekNull()) { reader.SkipNull(); return null; }
+            return inner.Read(ref reader);
+        }
         public override TTuple? JSToNet(SpawnJSObjectReference value)
         {
             if (value == null) return null;
