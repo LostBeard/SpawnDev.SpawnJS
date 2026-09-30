@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS;
+﻿using SpawnDev.SpawnJS;
 using SpawnDev.SpawnJS.Demo.UnitTests;
 using SpawnDev.SpawnJS.JSObjects;
 
@@ -10,6 +10,13 @@ JS.Verbose = false;
 using var location = JS.Get<Location>("location")!;
 using var pageUrl = new URL(location.Href);
 using var query = pageUrl.SearchParams;
+// ?bench=[filter] runs the interop benchmark instead of the suite
+var benchFilter = query.Get("bench");
+if (benchFilter != null)
+{
+    SpawnDev.SpawnJS.Demo.Bench.InteropBench.Run(benchFilter);
+    return;
+}
 await MarshallerTests.Run(query.Get("tests") ?? "");
 
 //await ToddsMiscTests.Run();

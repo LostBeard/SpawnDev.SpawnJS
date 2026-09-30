@@ -1,4 +1,4 @@
-using Microsoft.Playwright;
+﻿using Microsoft.Playwright;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- JSToNet           run tests whose name contains "JSToNet"
 //   dotnet run --project SpawnJS.TestRunner -- --headed          watch it in a real browser window
 //   dotnet run --project SpawnJS.TestRunner -- --url http://...  use an already running dev server
+//   dotnet run --project SpawnJS.TestRunner -- --bench [filter]   run the interop benchmark instead
 //
 // Exit code is the number of failed tests, so it is usable as a gate.
 
@@ -15,17 +16,19 @@ var filter = "";
 var headed = false;
 var externalUrl = "";
 var verbose = false;
+var bench = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
     {
         case "--headed": headed = true; break;
         case "--verbose": verbose = true; break;
+        case "--bench": bench = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -61,7 +64,8 @@ try
     // suite lives in is also TJ's scratch host, and whatever sits at the top of its Program.cs may
     // return before reaching the tests. The parameter makes the suite unconditional instead of
     // dependent on that. The app runs everything when the value is empty.
-    var target = $"{url.TrimEnd('/')}/?tests={Uri.EscapeDataString(filter)}";
+    // --bench runs the interop benchmark (?bench=) instead of the suite; same TEST:/RESULTS: contract
+    var target = $"{url.TrimEnd('/')}/?{(bench ? "bench" : "tests")}={Uri.EscapeDataString(filter)}";
     return await RunAsync(target, headed, verbose);
 }
 finally
