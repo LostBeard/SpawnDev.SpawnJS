@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- --twin             two runtimes in one page (TwinTests)
 //   dotnet run --project SpawnJS.TestRunner -- --nocodecs         the suite with every POCO by reflection, not generated codecs
 //   dotnet run --project SpawnJS.TestRunner -- --bench <case> --profile   CPU profile of the run, self time by function
+//   dotnet run --project SpawnJS.TestRunner -- --blazor           PUBLISHED SpawnDev.SpawnJS.Blazor.Demo: ElementReference.As<T>()
 //
 // Exit code is the number of failed tests, so it is usable as a gate.
 
@@ -23,6 +24,7 @@ var bench = false;
 var twin = false;
 var profile = false;
 var noCodecs = false;
+var blazor = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -33,11 +35,12 @@ for (var i = 0; i < args.Length; i++)
         case "--twin": twin = true; break;
         case "--profile": profile = true; break;
         case "--nocodecs": noCodecs = true; break;
+        case "--blazor": blazor = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile] [--nocodecs]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile] [--nocodecs] [--blazor]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -49,6 +52,8 @@ for (var i = 0; i < args.Length; i++)
 // TEST:/RESULTS: lines this harness parses. (It used to be WasmBrowserDemo, which still targets the
 // SpawnJS 1.0 API through TestsShared and no longer compiles.)
 var repoRoot = FindRepoRoot();
+// --blazor: the Blazor host layer, which the live suite (a non-Blazor app) cannot reach
+if (blazor) return await RunBlazorAsync(repoRoot, headed);
 var demoProject = Path.Combine(repoRoot, "SpawnDev.SpawnJS.Demo", "SpawnDev.SpawnJS.Demo.csproj");
 if (!File.Exists(demoProject))
 {
@@ -86,6 +91,64 @@ finally
     if (server != null && !server.HasExited)
     {
         try { server.Kill(entireProcessTree: true); } catch { }
+    }
+}
+
+// --blazor: publishes SpawnDev.SpawnJS.Blazor.Demo in Release (trimmed, the way it ships) and checks the
+// SpawnDev.SpawnJS.Blazor surface a real Blazor app uses. Its Home page turns a @ref ElementReference into an
+// HTMLDivElement with ElementReference.As<T>() and sets its text. That threw a NullReferenceException in every
+// published app until 3.0.1 and nothing covered it: the live suite is not a Blazor app, and a dev-server run
+// is not what ships. The published files are served by request interception, so no port or server is needed.
+static async Task<int> RunBlazorAsync(string repoRoot, bool headed)
+{
+    var project = Path.Combine(repoRoot, "SpawnDev.SpawnJS.Blazor.Demo", "SpawnDev.SpawnJS.Blazor.Demo.csproj");
+    var outDir = Path.Combine(Path.GetTempPath(), $"spawnjs-blazor-demo-{Environment.ProcessId}");
+    Console.WriteLine($"publishing {Path.GetFileNameWithoutExtension(project)} (Release) to {outDir}...");
+    var publish = Process.Start(new ProcessStartInfo("dotnet", $"publish \"{project}\" -c Release -o \"{outDir}\"") { UseShellExecute = false })!;
+    await publish.WaitForExitAsync();
+    if (publish.ExitCode != 0) { Console.WriteLine($"FAIL  publish exited {publish.ExitCode}"); return 1; }
+    var wwwroot = Path.Combine(outDir, "wwwroot");
+    try
+    {
+        const string origin = "http://spawnjs-blazor.test";
+        var types = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [".html"] = "text/html", [".js"] = "text/javascript", [".mjs"] = "text/javascript", [".css"] = "text/css",
+            [".json"] = "application/json", [".wasm"] = "application/wasm", [".ico"] = "image/x-icon", [".png"] = "image/png",
+        };
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await LaunchAsync(playwright, headed);
+        var page = await browser.NewPageAsync();
+        var errors = new List<string>();
+        page.Console += (_, msg) => { if (msg.Type == "error") errors.Add(msg.Text); };
+        page.PageError += (_, err) => errors.Add(err);
+        await page.RouteAsync(origin + "/**", async route =>
+        {
+            var path = Uri.UnescapeDataString(new Uri(route.Request.Url).AbsolutePath).TrimStart('/');
+            var file = Path.Combine(wwwroot, path.Replace('/', Path.DirectorySeparatorChar));
+            if (path.Length == 0 || !File.Exists(file)) file = Path.Combine(wwwroot, "index.html"); // SPA fallback
+            await route.FulfillAsync(new() { Status = 200, BodyBytes = await File.ReadAllBytesAsync(file), ContentType = types.GetValueOrDefault(Path.GetExtension(file), "application/octet-stream") });
+        });
+        Console.WriteLine($"running {origin}/");
+        await page.GotoAsync(origin + "/", new() { WaitUntil = WaitUntilState.DOMContentLoaded, Timeout = 60000 });
+        // the page sets "Hello world!" on its <div @ref> through As<HTMLDivElement>() in OnAfterRender
+        var passed = true;
+        try { await page.GetByText("Hello world!", new() { Exact = true }).WaitForAsync(new() { Timeout = 60000 }); }
+        catch (TimeoutException) { passed = false; }
+        var errorUiVisible = await page.Locator("#blazor-error-ui").IsVisibleAsync();
+        foreach (var e in errors) Console.WriteLine($"  [error] {e}");
+        Console.WriteLine();
+        if (passed && !errorUiVisible && errors.Count == 0)
+        {
+            Console.WriteLine("  PASS  ElementReference.As<HTMLDivElement>() in a published Blazor app");
+            return 0;
+        }
+        Console.WriteLine($"  FAIL  ElementReference.As<HTMLDivElement>() in a published Blazor app (text set: {passed}, error UI: {errorUiVisible}, errors: {errors.Count})");
+        return 1;
+    }
+    finally
+    {
+        try { Directory.Delete(outDir, true); } catch { }
     }
 }
 

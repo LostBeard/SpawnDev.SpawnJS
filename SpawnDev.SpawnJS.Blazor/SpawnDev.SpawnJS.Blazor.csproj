@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.0</Version>
-		<PackageReleaseNotes>v3.0.0 - Built on SpawnDev.SpawnJS 3.0.0 (one crossing per call). No API change in this package.</PackageReleaseNotes>
+		<Version>3.0.1</Version>
+		<PackageReleaseNotes>v3.0.1 - Fix: ElementReference.As&lt;T&gt;() threw NullReferenceException in published apps (internal JSRuntime lookup by reflection found nothing). Now an UnsafeAccessor.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

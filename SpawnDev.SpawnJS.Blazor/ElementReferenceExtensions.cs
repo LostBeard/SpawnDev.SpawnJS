@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {
     public static class ElementReferenceExtensions
     {
-        static PropertyInfo? _webElementReferenceContext_JSRuntimePropertyInfo;
         extension (ElementReference elementReference)
         {
             /// <summary>
@@ -53,6 +52,7 @@ namespace SpawnDev.SpawnJS.JSObjects
             /// </summary>
             /// <returns>The ElementReference as a SpawnJSObjectReference</returns>
             [SupportedOSPlatform("browser")]
+            [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The only argument is an ElementReference, which Blazor serializes with its own built-in converter, and the result is a double. Covered by SpawnJS.TestRunner --blazor against a trimmed publish.")]
             public SpawnJSObjectReference? AsSpawnJSObjectReference()
             {
                 SpawnJSObjectReference? ret = default!;
@@ -68,12 +68,24 @@ namespace SpawnDev.SpawnJS.JSObjects
             {
                 if (elementReference.Context is WebElementReferenceContext ctx)
                 {
-                    _webElementReferenceContext_JSRuntimePropertyInfo ??= ctx.GetType().GetProperty("JSRuntime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-                    var jsRuntime = _webElementReferenceContext_JSRuntimePropertyInfo.GetValue(ctx);
-                    if (jsRuntime is IJSInProcessRuntime js) return js;
+                    if (GetWebElementReferenceContextJSRuntime(ctx) is IJSInProcessRuntime js) return js;
                 }
                 return default;
             }
         }
+
+        /// <summary>
+        /// The internal <c>WebElementReferenceContext.JSRuntime</c> getter, called directly.
+        /// </summary>
+        /// <remarks>
+        /// 🔴 THIS USED TO BE <c>GetType().GetProperty("JSRuntime", NonPublic | Instance)!.GetValue(ctx)</c>.
+        /// MEASURED 2026-10-01 (SpawnDev.MultiMedia.Demo, published, .NET 10): <c>WebElementReferenceContext</c>
+        /// reflected ZERO properties at run time - also with PublishTrimmed=false - so the lookup returned null
+        /// and every <c>As&lt;T&gt;()</c> threw a bare NullReferenceException from here. UnsafeAccessor binds to
+        /// the getter METHOD itself (Blazor calls it, and the trimmer keeps an UnsafeAccessor target), so it
+        /// does not depend on property metadata being present.
+        /// </remarks>
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_JSRuntime")]
+        static extern IJSRuntime GetWebElementReferenceContextJSRuntime(WebElementReferenceContext context);
     }
 }

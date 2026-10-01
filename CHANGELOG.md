@@ -2,6 +2,21 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS.Blazor 3.0.1 - 2026-10-01
+
+### Fixed
+- **`ElementReference.As<T>()` threw `NullReferenceException` in published apps.** It read Blazor's internal
+  `WebElementReferenceContext.JSRuntime` with `GetType().GetProperty("JSRuntime", NonPublic | Instance)!`, and in a
+  published .NET 10 Blazor WebAssembly app that type reflected no properties at all (measured in
+  SpawnDev.MultiMedia.Demo, also with `PublishTrimmed=false`), so the `PropertyInfo` was null and every call failed
+  inside `GetRuntime()`. It now calls the getter through `[UnsafeAccessor]`, which needs no property metadata and
+  whose target the trimmer keeps. `SpawnDev.SpawnJS` itself is unchanged (3.0.0).
+
+### Tests
+- `SpawnJS.TestRunner --blazor` publishes `SpawnDev.SpawnJS.Blazor.Demo` in Release and checks the Home page's
+  `_div.As<HTMLDivElement>()` sets the div text, with no console errors. The live suite is not a Blazor app, so
+  nothing covered this before.
+
 ## SpawnDev.SpawnJS 3.0.0 / SpawnDev.SpawnJS.Blazor 3.0.0 - 2026-09-30
 
 **One crossing per call.** 2.x crossed the .NET/JS boundary once per value: each argument, each POCO member, each array
