@@ -2,6 +2,20 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS.Blazor 3.0.1 - unreleased
+
+### Fixed
+- **`ElementReference.As<T>()` in a trimmed app** threw a bare `NullReferenceException`. It found Blazor's internal
+  `WebElementReferenceContext.JSRuntime` with `ctx.GetType().GetProperty("JSRuntime", NonPublic | Instance)`, which the
+  trimmer cannot follow, so a trimmed publish removed the property and the lookup returned null. Every trimmed or AOT
+  Blazor app that called `As<T>()` failed on its first use (SpawnScene's AOT publish, 2026-10-02: the linked
+  `Microsoft.AspNetCore.Components.Web.dll` kept only the type's constructor). The getter is now an `[UnsafeAccessor]`,
+  which the trimmer keeps and which is a direct call instead of reflection. Verified: the trimmed DLL keeps
+  `get_JSRuntime`, and SpawnScene trimmed runs end to end.
+- **Trim safety is enforced:** the trim analyzer runs on every build of this package, and the IL2xxx codes are errors
+  (as in SpawnDev.SpawnJS.WebWorkers). It reported this bug as IL2075.
+
+
 ## SpawnDev.SpawnJS 3.0.0 / SpawnDev.SpawnJS.Blazor 3.0.0 - 2026-09-30
 
 **One crossing per call.** 2.x crossed the .NET/JS boundary once per value: each argument, each POCO member, each array

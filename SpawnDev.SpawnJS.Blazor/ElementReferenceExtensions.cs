@@ -1,14 +1,24 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 
 namespace SpawnDev.SpawnJS.JSObjects
 {
     public static class ElementReferenceExtensions
     {
-        static PropertyInfo? _webElementReferenceContext_JSRuntimePropertyInfo;
+        /// <summary>
+        /// Blazor's internal <c>WebElementReferenceContext.JSRuntime</c> getter. 🔴 3.0.0 looked it up by name with
+        /// <c>ctx.GetType().GetProperty("JSRuntime", NonPublic | Instance)</c>, which the trimmer cannot follow: a trimmed
+        /// publish removed the property, <c>GetProperty</c> returned null, and every <see cref="As{T}"/> threw a bare
+        /// NullReferenceException (MEASURED 2026-10-02, SpawnScene's AOT publish: the linked Components.Web.dll kept only
+        /// the type's constructor). An UnsafeAccessor names its target statically, so ILLink keeps it, and it is a
+        /// direct call instead of reflection.
+        /// </summary>
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_JSRuntime")]
+        static extern IJSRuntime WebElementReferenceContextJSRuntime(WebElementReferenceContext context);
+
         extension (ElementReference elementReference)
         {
             /// <summary>
@@ -53,6 +63,8 @@ namespace SpawnDev.SpawnJS.JSObjects
             /// </summary>
             /// <returns>The ElementReference as a SpawnJSObjectReference</returns>
             [SupportedOSPlatform("browser")]
+            [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The only argument is an ElementReference, "
+                + "which Blazor's ElementReferenceJsonConverter writes (its Id, no member reflection), and the result is a double.")]
             public SpawnJSObjectReference? AsSpawnJSObjectReference()
             {
                 SpawnJSObjectReference? ret = default!;
@@ -66,12 +78,9 @@ namespace SpawnDev.SpawnJS.JSObjects
             }
             internal IJSInProcessRuntime? GetRuntime()
             {
-                if (elementReference.Context is WebElementReferenceContext ctx)
-                {
-                    _webElementReferenceContext_JSRuntimePropertyInfo ??= ctx.GetType().GetProperty("JSRuntime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-                    var jsRuntime = _webElementReferenceContext_JSRuntimePropertyInfo.GetValue(ctx);
-                    if (jsRuntime is IJSInProcessRuntime js) return js;
-                }
+                if (elementReference.Context is WebElementReferenceContext ctx
+                    && WebElementReferenceContextJSRuntime(ctx) is IJSInProcessRuntime js)
+                    return js;
                 return default;
             }
         }
