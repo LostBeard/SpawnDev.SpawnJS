@@ -2,6 +2,21 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.1 - unreleased
+
+### Fixed
+- **A POCO with no parameterless constructor read back as an exception (or null through a worker).** `PocoReadPlan`
+  built every object with `Activator.CreateInstance(type)`, so a positional record (`record Stats(float Fps, int Count)`)
+  or a class whose get-only properties are set only by its constructor threw `MissingMethodException: Arg_NoDefCTor`.
+  System.Text.Json - and so BlazorJS - builds them through their constructor; a BlazorJS app ported to SpawnJS lost
+  them (AubsCraft's `RenderStats`, returned from its render-worker service, came back null and the map's stats line
+  went blank, 2026-10-02). Now the same rule as System.Text.Json: no public parameterless constructor -> the
+  `[JsonConstructor]` or the only public constructor; each parameter binds to the member of the same name (ignoring
+  case) and is read under that member's JSON name (`[property: JsonPropertyName]` on a record parameter works); a null
+  or absent member passes the parameter's default; settable members that are not parameters are set after
+  construction. Tests: `PocoMarshaller.RecordRoundTrip`, `.RecordFromJavascriptObject`, `.GetOnlyConstructorClass`
+  (red-checked: `Arg_NoDefCTor` without the fix). Suite 271/271 untrimmed and TRIMMED, with and without `?nocodecs`.
+
 ## SpawnDev.SpawnJS.Blazor 3.0.1 - unreleased
 
 ### Fixed

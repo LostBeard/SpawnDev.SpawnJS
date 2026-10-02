@@ -57,14 +57,65 @@ namespace SpawnDev.SpawnJS.Marshallers
     {
         readonly List<ClassMemberJsonInfo> _memberInfos;
         MemberReader<TObj>[] _members = System.Array.Empty<MemberReader<TObj>>();
+        // A class with no public parameterless constructor (a positional record, a class whose get-only properties are
+        // set only by its constructor) is built through a constructor, as System.Text.Json builds it - and so as
+        // BlazorJS read it. Before this the read threw MissingMethodException: a record returned from a worker service
+        // came back null (AubsCraft's RenderStats, 2026-10-02).
+        readonly ConstructorInfo? _ctor;
+        readonly CtorArg[] _ctorArgs = System.Array.Empty<CtorArg>();
 
+        sealed class CtorArg
+        {
+            public required Type Type;
+            public required string JsonName;
+            public required object? Default;
+            public JSMarshaller Marshaller = null!;
+        }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2087", Justification = "TObj is PocoMarshaller<T>'s T, which carries PublicConstructors; the plan is closed over it by reflection, so the annotation cannot flow here.")]
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "A constructor parameter's type comes from reflection; GetUninitializedObject only zeroes a struct for a missing argument and runs no constructor.")]
         public PocoReadPlan()
         {
-            // members that can be set: fields, and properties with a setter and no index parameters
-            _memberInfos = typeof(TObj).GetTypeJsonProperties()
+            var allMembers = typeof(TObj).GetTypeJsonProperties();
+            _ctor = FindConstructor();
+            var covered = new HashSet<ClassMemberJsonInfo>();
+            if (_ctor != null)
+            {
+                var args = new List<CtorArg>();
+                foreach (var p in _ctor.GetParameters())
+                {
+                    // System.Text.Json binds a parameter to the member of the same name, ignoring case, and reads it
+                    // under that member's JSON name
+                    var member = allMembers.FirstOrDefault(m => string.Equals(m.PropertyInfo?.Name ?? m.FieldInfo?.Name, p.Name, StringComparison.OrdinalIgnoreCase));
+                    if (member != null) covered.Add(member);
+                    object? dflt = p.HasDefaultValue ? p.DefaultValue
+                        : p.ParameterType.IsValueType && Nullable.GetUnderlyingType(p.ParameterType) == null
+                            ? System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(p.ParameterType)
+                            : null;
+                    args.Add(new CtorArg { Type = p.ParameterType, JsonName = member?.GetJsonName() ?? p.Name!, Default = dflt });
+                }
+                _ctorArgs = args.ToArray();
+            }
+            // members that can be set: fields, and properties with a setter and no index parameters (a member the
+            // constructor already takes is not read a second time)
+            _memberInfos = allMembers
+                .Where(m => !covered.Contains(m))
                 .Where(m => m.FieldInfo != null || (m.PropertyInfo!.GetSetMethod(true) != null && m.PropertyInfo.GetIndexParameters().Length == 0))
                 .ToList();
-            Schema = JSSchema.Object(_memberInfos.Select(m => m.GetJsonName()).ToArray());
+            Schema = JSSchema.Object(_ctorArgs.Select(a => a.JsonName).Concat(_memberInfos.Select(m => m.GetJsonName())).ToArray());
+        }
+
+        /// <summary>System.Text.Json's choice: none when a public parameterless constructor exists (or for a struct);
+        /// otherwise a public constructor marked [JsonConstructor], else the only public constructor.</summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "TObj is PocoMarshaller<T>'s T, which carries PublicConstructors; the plan is closed over it by reflection, so the annotation cannot flow here.")]
+        static ConstructorInfo? FindConstructor()
+        {
+            if (typeof(TObj).IsValueType || typeof(TObj).IsAbstract) return null;
+            var ctors = typeof(TObj).GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+            if (ctors.Any(c => c.GetParameters().Length == 0)) return null;
+            var marked = ctors.Where(c => c.IsDefined(typeof(System.Text.Json.Serialization.JsonConstructorAttribute), true)).ToArray();
+            if (marked.Length == 1) return marked[0];
+            return ctors.Length == 1 ? ctors[0] : null;
         }
 
         [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "See PocoReadPlan.For.")]
@@ -74,6 +125,12 @@ namespace SpawnDev.SpawnJS.Marshallers
         [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "See PocoReadPlan.For.")]
         protected override void ResolveMembers()
         {
+            // constructor arguments first: the schema lists them before the settable members
+            for (var i = 0; i < _ctorArgs.Length; i++)
+            {
+                _ctorArgs[i].Marshaller = SpawnJSRuntime.Instance.GetMarshaller(_ctorArgs[i].Type);
+                Schema.Members![i] = _ctorArgs[i].Marshaller.Schema;
+            }
             var members = new MemberReader<TObj>[_memberInfos.Count];
             for (var i = 0; i < members.Length; i++)
             {
@@ -81,7 +138,7 @@ namespace SpawnDev.SpawnJS.Marshallers
                 members[i] = info.PropertyInfo != null
                     ? (MemberReader<TObj>)Activator.CreateInstance(typeof(PropertyReader<,>).MakeGenericType(typeof(TObj), info.PropertyInfo.PropertyType), info.PropertyInfo.GetSetMethod(true)!)!
                     : new FieldReader<TObj>(info.FieldInfo!);
-                Schema.Members![i] = members[i].Schema;
+                Schema.Members![_ctorArgs.Length + i] = members[i].Schema;
             }
             _members = members;
         }
@@ -94,8 +151,20 @@ namespace SpawnDev.SpawnJS.Marshallers
                 value = default!;
                 return false;
             }
-            // v2 built the same way: a parameterless constructor, or a zeroed struct
-            var obj = typeof(TObj).IsValueType ? default! : (TObj)Activator.CreateInstance(typeof(TObj))!;
+            TObj obj;
+            if (_ctor != null)
+            {
+                // the constructor's arguments, read under their members' names (null or absent: the parameter's default)
+                var args = new object?[_ctorArgs.Length];
+                for (var i = 0; i < args.Length; i++)
+                    args[i] = _ctorArgs[i].Marshaller.ReadBoxed(ref reader) ?? _ctorArgs[i].Default;
+                obj = (TObj)_ctor.Invoke(args);
+            }
+            else
+            {
+                // v2 built the same way: a parameterless constructor, or a zeroed struct
+                obj = typeof(TObj).IsValueType ? default! : (TObj)Activator.CreateInstance(typeof(TObj))!;
+            }
             var members = _members;
             for (var i = 0; i < members.Length; i++) members[i].Read(ref reader, ref obj);
             value = obj;

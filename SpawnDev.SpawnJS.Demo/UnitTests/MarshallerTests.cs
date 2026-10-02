@@ -251,6 +251,18 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             public string? City { get; set; }
         }
 
+        // Types with NO parameterless constructor are built through their constructor, as System.Text.Json builds them
+        // (so BlazorJS read them). A record a worker service returned came back null before (AubsCraft's RenderStats,
+        // 2026-10-02): PocoReadPlan only knew Activator.CreateInstance(type).
+        public record PocoRecord(float Fps, int VisibleChunks, string? Label, [property: JsonPropertyName("cam_x")] double CamX);
+        public class PocoGetOnly
+        {
+            public PocoGetOnly(int width, string name) { Width = width; Name = name; }
+            public int Width { get; }           // get-only: only the constructor can set it
+            public string Name { get; }
+            public int Extra { get; set; }      // not a constructor parameter: set after construction
+        }
+
         // A POCO passed where its BASE type is declared must marshal as what it IS. Typed calls marshal by the
         // declared parameter type: SubtleCrypto.DeriveKey(KeyDeriveParams algorithm, ...) handed a Pbkdf2Params used
         // to write only { name } - salt/hash/iterations were dropped and deriveKey threw
@@ -304,6 +316,8 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         //
         // [DynamicDependency] is the documented fix. These tests exist to keep proving it works.
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Person))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(PocoRecord))]
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors, typeof(PocoGetOnly))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Extent3D))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicFields, typeof(Vec2))]
         [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Texture))]
@@ -402,6 +416,38 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                     using var raw = JS.Get(K)!;
                     AssertEqual(raw.Get<string>("colorSpace"), "display-p3", "GPUExternalTextureDescriptor.colorSpace must be marshalled (was a field)");
                 }
+            });
+
+            Test("PocoMarshaller.RecordRoundTrip", () =>
+            {
+                JS.Set(K, new PocoRecord(59.5f, 12, "map", -3.25));
+                using (var raw = JS.Get(K)!) AssertEqual(raw.Get<double>("cam_x"), -3.25, "[property: JsonPropertyName] on a record parameter is the member name");
+                var back = JS.Get<PocoRecord>(K);
+                Assert(back != null, "a record (no parameterless constructor) must read back, not as null");
+                AssertEqual(back!, new PocoRecord(59.5f, 12, "map", -3.25), "record values");
+                JS.Set(K, new PocoRecord(1f, 2, null, 0));
+                AssertEqual(JS.Get<PocoRecord>(K)!.Label, null, "a null member reaches the constructor as null");
+            });
+
+            Test("PocoMarshaller.RecordFromJavascriptObject", () =>
+            {
+                // built by Javascript, not by a .Net write
+                var back = JS.Call<PocoRecord>("SpawnJSTests.recordShapedObject");
+                AssertEqual(back, new PocoRecord(59.5f, 12, "map", -3.25), "record read from a JS object");
+            });
+
+            Test("PocoMarshaller.GetOnlyConstructorClass", () =>
+            {
+                JS.Set(K, new PocoGetOnly(640, "canvas") { Extra = 7 });
+                var back = JS.Get<PocoGetOnly>(K)!;
+                AssertEqual(back.Width, 640, "get-only Width comes through the constructor");
+                AssertEqual(back.Name, "canvas", "get-only Name comes through the constructor");
+                AssertEqual(back.Extra, 7, "a settable member that is not a constructor parameter is set after construction");
+                // absent members: the constructor gets the parameter's default
+                JS.Set(K, JS.Call<SpawnJSObjectReference>("SpawnJSTests.newObject"));
+                var empty = JS.Get<PocoGetOnly>(K)!;
+                AssertEqual(empty.Width, 0, "absent int -> default");
+                AssertEqual(empty.Name, null, "absent string -> null");
             });
 
             Test("PocoMarshaller.InFromJavascriptObject", () =>
