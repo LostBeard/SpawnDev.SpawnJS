@@ -2,6 +2,24 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.1 / SpawnDev.SpawnJS.Blazor 3.0.2 - 2026-10-04
+
+### Added
+- **`ReadableStream.PipeThrough` takes `CompressionStream`, `DecompressionStream`, `TextDecoderStream` and
+  `TextEncoderStream`**, each with and without `PipeThroughOptions`. Javascript's `pipeThrough()` takes any
+  `{ writable, readable }` pair, and those four are pairs but not `TransformStream`s, while the wrapper only had the
+  `TransformStream` overloads. So `blob.Stream().PipeThrough(new CompressionStream("gzip"))` did not compile, and a
+  consumer had to view the codec's reference as a `TransformStream` to gzip a Blob (SpawnScene's compressed scene
+  export).
+- **`TextEncoderStream`** (`Encoding`, `Readable`, `Writable`), the streaming `TextEncoder`. `TextDecoderStream` was
+  already wrapped.
+- `SpawnDev.SpawnJS.Blazor` 3.0.2 has no change of its own; it is rebuilt so Blazor apps get the 3.0.1 core.
+
+### Tests
+- `StreamPipeThroughTests`: gzip round trip (and the output starts with the gzip magic), deflate-raw round trip through
+  the `PipeThroughOptions` overloads, and UTF-8 text with non-ASCII characters through `TextDecoderStream` then
+  `TextEncoderStream`. Each checks the bytes that come back.
+
 ## SpawnDev.SpawnJS.Blazor 3.0.1 - 2026-10-01
 
 ### Fixed

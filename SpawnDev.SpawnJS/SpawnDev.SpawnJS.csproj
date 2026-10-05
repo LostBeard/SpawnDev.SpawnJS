@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.0</Version>
-		<PackageReleaseNotes>v3.0.0 - One crossing per call: arguments, POCOs, arrays and results travel in a per-instance call tape in .NET memory, read by Javascript in a single JSImport. Callback arguments reach .NET memory before the call. POCO codecs are generated at compile time (SpawnDev.SpawnJS.Generators ships in this package; [SpawnJSPoco] for runtime-only types). Breaking for custom marshallers only: the contract is Write(JSTape, T) / Schema / Read(ref JSTapeReader) - NetToJS is gone. See CHANGELOG.md.</PackageReleaseNotes>
+		<Version>3.0.1</Version>
+		<PackageReleaseNotes>v3.0.1 - ReadableStream.PipeThrough takes CompressionStream, DecompressionStream, TextDecoderStream and the new TextEncoderStream (with or without PipeThroughOptions); before, only a TransformStream compiled. See CHANGELOG.md.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>

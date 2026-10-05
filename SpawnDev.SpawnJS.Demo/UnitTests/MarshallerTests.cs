@@ -219,6 +219,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             // Wrapper behaviour against the live browser API rather than the marshaller graph; async, so
             // it takes TestAsync instead of Test.
             await FileSystemHandleTests.Run(TestAsync);
+            await StreamPipeThroughTests.Run(TestAsync);
 
             Console.WriteLine($"RESULTS: Failed: {_fail} Passed: {_pass} Skipped: {_skip} Ran: {_pass + _fail + _skip}");
             if (_fail > 0)
