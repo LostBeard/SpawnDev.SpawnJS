@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.2 - unreleased (3.0.2-local.1 on the local feed)
+## SpawnDev.SpawnJS 3.0.2 / SpawnDev.SpawnJS.Blazor 3.0.3 - 2026-10-06
 
 ### Fixed
 - **`PointerEvent.Width` / `Height` are `double`** (were `int`). They are doubles in the DOM, in CSS px, and a touch
@@ -17,6 +17,7 @@ All notable changes to SpawnDev.SpawnJS.
 - `EventWrapperTests`: a real `PointerEvent` built with width 23.5 / height 7.25 reads both back exactly (failed with
   23 before the fix), and `DataTransfer.Types` lists `text/plain`, `text/uri-list` in the order they were set.
   Full suite 273/273.
+- `SpawnDev.SpawnJS.Blazor` 3.0.3 has no change of its own; it is rebuilt so Blazor apps get the 3.0.2 core.
 
 ## SpawnDev.SpawnJS 3.0.1 / SpawnDev.SpawnJS.Blazor 3.0.2 - 2026-10-04
 

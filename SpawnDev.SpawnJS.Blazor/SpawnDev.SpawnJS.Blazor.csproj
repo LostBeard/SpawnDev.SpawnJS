@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.2</Version>
+		<Version>3.0.3</Version>
 		<PackageReleaseNotes>v3.0.2 - Built on SpawnDev.SpawnJS 3.0.1 (ReadableStream.PipeThrough for CompressionStream, DecompressionStream, TextDecoderStream, TextEncoderStream). No change of its own; 3.0.1: ElementReference.As&lt;T&gt;() works in published apps.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
