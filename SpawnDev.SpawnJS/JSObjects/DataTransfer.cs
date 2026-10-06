@@ -35,6 +35,10 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// </summary>
         public string EffectAllowed { get => JSRef!.Get<string>("effectAllowed"); set => JSRef!.Set("effectAllowed", value); }
         /// <summary>
+        /// The formats that were set in dragstart, in the order they were added ("Files" when files are being dragged).
+        /// </summary>
+        public string[] Types => JSRef!.Get<string[]>("types");
+        /// <summary>
         /// Set the image to be used for dragging if a custom one is desired.
         /// </summary>
         /// <param name="imgElement"></param>

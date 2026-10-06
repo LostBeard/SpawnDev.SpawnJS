@@ -2,6 +2,22 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.2 - unreleased (3.0.2-local.1 on the local feed)
+
+### Fixed
+- **`PointerEvent.Width` / `Height` are `double`** (were `int`). They are doubles in the DOM, in CSS px, and a touch
+  contact is fractional: `int` read a 23.5 px contact as 23 (measured in the new test). Source-breaking for a caller
+  that stored them in an `int`.
+
+### Added
+- **`DataTransfer.Types`** (`string[]`), the formats set in dragstart in order ("Files" when files are dragged).
+  SpawnDev.SpawnJS.RazorRenderer builds Blazor's `DragEventArgs.DataTransfer.Types` from it.
+
+### Tests
+- `EventWrapperTests`: a real `PointerEvent` built with width 23.5 / height 7.25 reads both back exactly (failed with
+  23 before the fix), and `DataTransfer.Types` lists `text/plain`, `text/uri-list` in the order they were set.
+  Full suite 273/273.
+
 ## SpawnDev.SpawnJS 3.0.1 / SpawnDev.SpawnJS.Blazor 3.0.2 - 2026-10-04
 
 ### Added

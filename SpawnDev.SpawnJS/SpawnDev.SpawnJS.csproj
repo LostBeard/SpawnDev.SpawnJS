@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.1</Version>
+		<Version>3.0.2-local.1</Version>
 		<PackageReleaseNotes>v3.0.1 - ReadableStream.PipeThrough takes CompressionStream, DecompressionStream, TextDecoderStream and the new TextEncoderStream (with or without PipeThroughOptions); before, only a TransformStream compiled. See CHANGELOG.md.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

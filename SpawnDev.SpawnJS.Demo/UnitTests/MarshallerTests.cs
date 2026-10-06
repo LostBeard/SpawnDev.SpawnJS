@@ -220,6 +220,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             // it takes TestAsync instead of Test.
             await FileSystemHandleTests.Run(TestAsync);
             await StreamPipeThroughTests.Run(TestAsync);
+            await EventWrapperTests.Run(TestAsync);
 
             Console.WriteLine($"RESULTS: Failed: {_fail} Passed: {_pass} Skipped: {_skip} Ran: {_pass + _fail + _skip}");
             if (_fail > 0)
