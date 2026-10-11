@@ -84,7 +84,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// unsigned int	4	8	vec4&lt;u32>
         /// </summary>
         [JsonPropertyName("uint16x4")]
-        nt16x4,
+        UInt16x4,
         /// <summary>
         /// signed int	1	2	i32
         /// </summary>

@@ -2,6 +2,12 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## Unreleased
+
+### Fixed
+- **`GPUVertexFormat.UInt16x4`** was named `nt16x4` (a truncated `UInt16x4`). It always serialized correctly
+  (`"uint16x4"`); only the C# name was wrong. Code that used `nt16x4` must use `UInt16x4`.
+
 ## SpawnDev.SpawnJS 3.0.2 / SpawnDev.SpawnJS.Blazor 3.0.3 - 2026-10-06
 
 ### Fixed
