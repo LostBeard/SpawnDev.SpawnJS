@@ -4,6 +4,17 @@ All notable changes to SpawnDev.SpawnJS.
 
 ## Unreleased
 
+### Added
+- **`HTMLTextAreaElement`** wrapper - it was missing entirely (Gemineachy needed it to drive a chat site's
+  `<textarea>` compose box). `Value`, `DefaultValue`, `TextLength`, `Name`, `Placeholder`, `Rows`, `Cols`,
+  `Wrap`, `Disabled`, `ReadOnly`, `Required`, `MinLength`, `MaxLength`, `Autocomplete`, `Form`, the selection
+  members, `Select`, `SetSelectionRange`, both `SetRangeText` overloads and the constraint-validation members.
+
+### Tests
+- `FormElementTests` (new group): value round-trips exactly (newlines, `<tags>`, quotes, backslash, `$` patterns,
+  emoji), attributes round-trip, selection + `SetRangeText` with `selectMode`, `Form` null when detached.
+  Red-checked: a misspelled property name fails the round-trip case. Full suite 277/277.
+
 ### Fixed
 - **`GPUVertexFormat.UInt16x4`** was named `nt16x4` (a truncated `UInt16x4`). It always serialized correctly
   (`"uint16x4"`); only the C# name was wrong. Code that used `nt16x4` must use `UInt16x4`.
