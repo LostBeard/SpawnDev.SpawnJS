@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## Unreleased
+## SpawnDev.SpawnJS 3.0.3 / SpawnDev.SpawnJS.Blazor 3.0.4 - 2026-10-12
 
 ### Added
 - **`HTMLTextAreaElement`** wrapper - it was missing entirely (Gemineachy needed it to drive a chat site's
@@ -18,6 +18,10 @@ All notable changes to SpawnDev.SpawnJS.
 ### Fixed
 - **`GPUVertexFormat.UInt16x4`** was named `nt16x4` (a truncated `UInt16x4`). It always serialized correctly
   (`"uint16x4"`); only the C# name was wrong. Code that used `nt16x4` must use `UInt16x4`.
+
+### Release
+- `SpawnDev.SpawnJS.Blazor` 3.0.4 has no change of its own; it is rebuilt so Blazor apps get the 3.0.3 core.
+- Release gate: full suite 277/277 (SpawnJS.TestRunner, Release).
 
 ## SpawnDev.SpawnJS 3.0.2 / SpawnDev.SpawnJS.Blazor 3.0.3 - 2026-10-06
 

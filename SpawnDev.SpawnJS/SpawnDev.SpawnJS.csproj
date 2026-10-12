@@ -6,8 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.3-local.1</Version>
-		<PackageReleaseNotes>v3.0.1 - ReadableStream.PipeThrough takes CompressionStream, DecompressionStream, TextDecoderStream and the new TextEncoderStream (with or without PipeThroughOptions); before, only a TransformStream compiled. See CHANGELOG.md.</PackageReleaseNotes>
+		<Version>3.0.3</Version>
+		<PackageReleaseNotes>v3.0.3 - Added the HTMLTextAreaElement wrapper (value, selection, SetRangeText, constraint validation). Fixed: GPUVertexFormat.UInt16x4 was named nt16x4 in C# (it always serialized correctly as uint16x4). Full history: CHANGELOG.md</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
