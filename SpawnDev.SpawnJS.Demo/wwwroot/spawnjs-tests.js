@@ -166,6 +166,8 @@
         // a member that is PRESENT but undefined, next to one that is simply absent
         static objectWithUndefinedMember() { return { present: 1, absent: undefined }; }
         static objectWithNullMember() { return { present: 1, absent: null }; }
+        // a stats object as a worker service returns it (see PocoMarshaller.RecordFromJavascriptObject)
+        static recordShapedObject() { return { fps: 59.5, visibleChunks: 12, label: 'map', cam_x: -3.25 }; }
         static errorOf(kind, message) { return new (globalThis[kind] ?? Error)(message); }
         static identityFunction() { return (v) => v; }
         // invokes a function .Net handed to Javascript, with Javascript-native arguments - the only way
