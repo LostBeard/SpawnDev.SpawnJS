@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.4-local.1 - unreleased
+## SpawnDev.SpawnJS 3.0.4 - 2026-10-15
 
 ### Fixed
 - **A POCO with no parameterless constructor read back as an exception (or null through a worker).** `PocoReadPlan`
