@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.5 - unreleased (3.0.5-local.1 in the local feed)
+## SpawnDev.SpawnJS 3.0.5 - 2026-10-26
 
 ### Fixed
 - **A call whose arguments outgrew one tape segment allocated memory quadratic in its size, and a big one ran the
