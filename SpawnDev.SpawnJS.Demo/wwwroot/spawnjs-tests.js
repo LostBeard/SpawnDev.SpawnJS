@@ -76,6 +76,12 @@
         static bytesSumOf(o) { return SpawnJSTests.bytesSum(o.data); }
         static bytesSum(bytes, ignored) { let s = 0; for (const b of bytes) s = (s * 31 + b) >>> 0; return `${bytes.constructor.name}:${bytes.length}:${s}`; }
         static longString(n) { return 'x'.repeat(n); }
+        // a big string, then many small objects: what each argument arrived as (Tape.BigMessageThenManySmallValues)
+        static bigMessage(s, items) {
+            let a = 0, b = 0, c = 0;
+            for (const it of items) { a += it.a; b += it.b ? 1 : 0; c += it.c; }
+            return `${s.length}:${s.charAt(s.length - 1)}:${items.length}:${a}:${b}:${c}`;
+        }
         static nothing() { return undefined; }
         static nul() { return null; }
         static beyondInt32() { return 4294967301; }   // 2^32 + 5

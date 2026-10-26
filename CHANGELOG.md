@@ -2,6 +2,19 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.5 - unreleased (3.0.5-local.1 in the local feed)
+
+### Fixed
+- **A call whose arguments outgrew one tape segment allocated memory quadratic in its size, and a big one ran the
+  browser out of memory.** When the frame being written did not fit, `JSTape.EnsureCells` moved it to a new segment
+  sized to just fit (`used + cells`), so past the first 8192 cells (64 KB) nearly every following write moved it
+  AGAIN, into another pinned segment the size of the whole message, and none of them was freed. MEASURED on the
+  desktop (the tape driven directly): a 250,000-character string followed by 3,000 small writes allocated 1,500 MB in
+  3,002 segments; the frame now grows geometrically (at least double), and the same message allocates 1.9 MB in 3
+  segments (100,000 small writes: 7.6 MB in 5). Found through SpawnDev.ILGPU's WebGL backend (Geordi, SpawnDev.Codecs):
+  42 tests died with `OutOfMemoryException` in `JSTape.Segment..ctor` on the first `Worker.PostMessage` of a dispatch
+  that carried a 6,816-line shader and 158 small objects. Test: `Tape.BigMessageThenManySmallValues`.
+
 ## SpawnDev.SpawnJS 3.0.4 - 2026-10-15
 
 ### Fixed

@@ -1,4 +1,4 @@
-using SpawnDev.SpawnJS.Marshaller;
+﻿using SpawnDev.SpawnJS.Marshaller;
 using System.Runtime.InteropServices;
 
 namespace SpawnDev.SpawnJS
@@ -521,7 +521,11 @@ namespace SpawnDev.SpawnJS
             if (_position + cells <= Current.Cells.Length) return;
             ref var frame = ref _frames[_depth - 1];
             var used = _position - frame.Start;
-            var index = FreeSegmentIndex(_segmentIndex + 1, used + cells);
+            // Grow geometrically. Sized to just fit (used + cells), every later small write overflowed again and moved
+            // the frame into yet another new segment the size of the whole message: O(n^2) pinned bytes, never freed
+            // (2026-10-26: a 250K-char string then 3,000 small writes = 1.5 GB; ILGPU's WebGL dispatch ran out of memory).
+            var grown = (int)Math.Min((long)Current.Cells.Length * 2, Array.MaxLength);
+            var index = FreeSegmentIndex(_segmentIndex + 1, Math.Max(used + cells, grown));
             System.Array.Copy(Current.Cells, frame.Start, _segments[index].Cells, 0, used);
             frame.SegmentIndex = index;
             frame.Start = 0;

@@ -779,6 +779,13 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
         // The call tape - every call crosses once through JSTape; these exercise its edges
         // ==========================================================================================
         public enum TapeColor { Red = 1, Green = 2 }
+        // lower-case members, like the ILGPU WebGL dispatch's GLOutputEntry: Javascript reads them by these names
+        public class TapeItem
+        {
+            public int a { get; set; }
+            public bool b { get; set; }
+            public double c { get; set; }
+        }
         // reading Churn allocates and forces a compacting collection, in the middle of writing a call
         public class TapeGcChurn
         {
@@ -825,6 +832,28 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 var back = JS.Get<string>(K);
                 Assert(back == s, $"round trip lost the string: got length {back?.Length}");
                 AssertEqual(JS.TapeDepth, 0, "open frames after the calls");
+            });
+
+            Test("Tape.BigMessageThenManySmallValues", () =>
+            {
+                // 2026-10-26: a moved frame got a new segment sized to just fit (used + cells), so after a big string
+                // every small write moved it again into another segment the size of the whole message: O(n^2) pinned
+                // bytes. ILGPU's WebGL dispatch (a 6,816-line GLSL string, then 158 objects of 17 members) ran out of
+                // memory. This message allocated 1.5 GB of segments on the desktop with 3.0.4.
+                var s = new string('g', 250_000) + "z";
+                var items = new TapeItem[3000];
+                long sumA = 0, countB = 0; double sumC = 0;
+                for (int i = 0; i < items.Length; i++)
+                {
+                    items[i] = new TapeItem { a = i, b = (i % 3) == 0, c = i * 0.25 };
+                    sumA += i; countB += (i % 3) == 0 ? 1 : 0; sumC += i * 0.25;
+                }
+                long before = GC.GetTotalAllocatedBytes(true);
+                var got = JS.Call<string, TapeItem[], string>("SpawnJSTests.bigMessage", s, items);
+                long allocated = GC.GetTotalAllocatedBytes(true) - before;
+                AssertEqual(got, $"{s.Length}:z:{items.Length}:{sumA}:{countB}:{sumC.ToString(System.Globalization.CultureInfo.InvariantCulture)}", "what Javascript received");
+                Assert(allocated < 64L * 1024 * 1024, $"the call allocated {allocated / 1048576.0:F1} MB (geometric growth needs a few MB)");
+                AssertEqual(JS.TapeDepth, 0, "open frames after the call");
             });
 
             Test("Tape.StringResultLargerThanTheSegment", () =>
