@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.6 - unreleased (local feed 3.0.6-local.1)
+## SpawnDev.SpawnJS 3.0.6 / SpawnDev.SpawnJS.Blazor 3.0.6 - 2026-10-27
 
 ### Fixed
 - **With `EnableIDisposableWatcher` on, every wrapper paid for formatting a stack trace.** `SpawnJSObject`,
@@ -15,6 +15,10 @@ All notable changes to SpawnDev.SpawnJS.
   0.27 ms per wrapper with the watcher on. New overload `IDisposableFinalizerAlert(obj, StackTrace)`; the `string`
   one stays. Tests: `DisposableWatcher cost per wrapper` (fails over 1 ms per wrapper; 6.5 ms before the fix) and
   `DisposableWatcher names the creation site of a leaked wrapper` (both red on the old code). Full suite 283/283.
+
+### Release
+- `SpawnDev.SpawnJS.Blazor` 3.0.6 has no change of its own; it is rebuilt so Blazor apps get the 3.0.6 core.
+- The other SpawnJS-based packages are not re-released: the fix only matters with the watcher on, and an app that turns it on can reference SpawnJS 3.0.6 directly.
 
 ## SpawnDev.SpawnJS.Blazor 3.0.5 - 2026-10-27
 

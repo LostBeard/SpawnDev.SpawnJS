@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.5</Version>
+		<Version>3.0.6</Version>
 		<PackageReleaseNotes>v3.0.4 - Built on SpawnDev.SpawnJS 3.0.3 (HTMLTextAreaElement; GPUVertexFormat.UInt16x4 name fix). No change of its own. Full history: CHANGELOG.md</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
