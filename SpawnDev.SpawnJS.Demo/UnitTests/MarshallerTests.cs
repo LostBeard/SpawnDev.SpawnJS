@@ -222,6 +222,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             await StreamPipeThroughTests.Run(TestAsync);
             await EventWrapperTests.Run(TestAsync);
             await FormElementTests.Run(TestAsync);
+            await DisposableWatcherTests.Run(TestAsync);
 
             Console.WriteLine($"RESULTS: Failed: {_fail} Passed: {_pass} Skipped: {_skip} Ran: {_pass + _fail + _skip}");
             if (_fail > 0)

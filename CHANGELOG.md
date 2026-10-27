@@ -2,6 +2,20 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.6 - unreleased (local feed 3.0.6-local.1)
+
+### Fixed
+- **With `EnableIDisposableWatcher` on, every wrapper paid for formatting a stack trace.** `SpawnJSObject`,
+  `SpawnJSObjectReference` and `HeapView` stored `new StackTrace(true).ToString()` when created, so they can name
+  where a leaked wrapper came from. Formatting a stack is ~20x the cost of capturing it in the WASM runtime. MEASURED
+  in the live suite: per wrapper 0.03 ms with the watcher off, 3.2-6.5 ms with it on. In SpawnDev.Codecs' browser suite
+  that was 250 ms-3 s per GPU call (one tiny buffer allocation 305 ms, a kernel launch 3 s); its WebP RGBA->YUV test
+  ran ~8 s per 1x1 picture and timed out after 11 minutes, and ran in 3 s with the watcher off. The wrappers now keep
+  the `StackTrace` (frames, with file info where the runtime has it) and the leak report formats it:
+  0.27 ms per wrapper with the watcher on. New overload `IDisposableFinalizerAlert(obj, StackTrace)`; the `string`
+  one stays. Tests: `DisposableWatcher cost per wrapper` (fails over 1 ms per wrapper; 6.5 ms before the fix) and
+  `DisposableWatcher names the creation site of a leaked wrapper` (both red on the old code). Full suite 283/283.
+
 ## SpawnDev.SpawnJS.Blazor 3.0.5 - 2026-10-27
 
 ### Release

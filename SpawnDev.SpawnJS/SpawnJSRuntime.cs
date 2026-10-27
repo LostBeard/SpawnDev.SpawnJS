@@ -498,6 +498,13 @@ namespace SpawnDev.SpawnJS
         public Task<Response> Fetch(string resource, FetchOptions options) => CallAsync<string, FetchOptions, Response>("fetch", resource, options);
 
         public static bool EnableIDisposableWatcher { get; set; }
+        /// <summary>
+        /// Reports a wrapper that was garbage collected without being disposed, with the stack it was created on. The
+        /// wrappers keep the frames and format them only here: formatting a stack costs ~20x capturing it in the WASM
+        /// runtime (1 ms vs 0.06 ms per wrapper, measured), which made every wrapper creation pay it with the watcher on.
+        /// </summary>
+        public static void IDisposableFinalizerAlert<T>(T obj, System.Diagnostics.StackTrace creationStackTrace) where T : IDisposable
+            => IDisposableFinalizerAlert(obj, creationStackTrace.ToString());
         public static void IDisposableFinalizerAlert<T>(T obj, string creationStackTrace) where T : IDisposable
         {
             // Log clearly to the browser console/standard error

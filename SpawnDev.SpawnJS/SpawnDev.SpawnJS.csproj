@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.5</Version>
+		<Version>3.0.6-local.1</Version>
 		<PackageReleaseNotes>v3.0.4-local.1 - Fixed: a POCO with no parameterless constructor (a positional record, a class with get-only properties set by its constructor) is read through its constructor, as System.Text.Json does; it read back as null through a worker before. v3.0.3 - Added the HTMLTextAreaElement wrapper (value, selection, SetRangeText, constraint validation). Fixed: GPUVertexFormat.UInt16x4 was named nt16x4 in C# (it always serialized correctly as uint16x4). Full history: CHANGELOG.md</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

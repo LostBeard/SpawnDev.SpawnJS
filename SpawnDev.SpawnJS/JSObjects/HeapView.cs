@@ -582,6 +582,7 @@ namespace SpawnDev.SpawnJS.JSObjects
                 catch { }
             }
         }
-        private readonly string? _creationStackTrace = SpawnJSRuntime.EnableIDisposableWatcher ? new StackTrace(true).ToString() : null;
+        // The frames only: formatting them costs ~20x the capture in the WASM runtime, and only a leak report needs the text
+        private readonly StackTrace? _creationStackTrace = SpawnJSRuntime.EnableIDisposableWatcher ? new StackTrace(true) : null;
     }
 }
