@@ -2,6 +2,12 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS.Blazor 3.0.5 - 2026-10-27
+
+### Release
+- No change of its own; it is rebuilt so Blazor apps get the 3.0.5 core (the JSTape fix below). 3.0.4 depended on
+  SpawnJS 3.0.4.
+
 ## SpawnDev.SpawnJS 3.0.5 - 2026-10-26
 
 ### Fixed
