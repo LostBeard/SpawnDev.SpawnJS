@@ -2,7 +2,7 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.7 / SpawnDev.SpawnJS.Blazor 3.0.7 - unreleased (3.0.7-local.1)
+## SpawnDev.SpawnJS 3.0.7 / SpawnDev.SpawnJS.Blazor 3.0.7 - 2026-10-30
 
 ### Fixed
 - **`MediaDevices.GetUserMedia(bool video, bool audio)` never opened a camera or microphone in a trimmed app.**
@@ -13,7 +13,10 @@ All notable changes to SpawnDev.SpawnJS.
   runner mode publishes the Blazor demo trimmed, launches Chrome with a fake camera, and checks that
   `GetUserMedia(true, false)` returns one video track. That check failed with this exact message before the fix.
   Live suite 283/283.
-- `SpawnDev.SpawnJS.Blazor` 3.0.7-local.1 has no change of its own; it is rebuilt so Blazor apps get the 3.0.7 core.
+### Release
+- `SpawnDev.SpawnJS.Blazor` 3.0.7 has no change of its own; it is rebuilt so Blazor apps get the 3.0.7 core.
+- The other SpawnJS-based packages are not re-released: an app that calls `GetUserMedia(bool, bool)` can reference
+  SpawnJS 3.0.7 directly. SpawnDev.ILGPU 5.4.13 depends on it.
 
 ## SpawnDev.SpawnJS 3.0.6 / SpawnDev.SpawnJS.Blazor 3.0.6 - 2026-10-27
 
