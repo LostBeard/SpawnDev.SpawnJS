@@ -2,6 +2,19 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.7 / SpawnDev.SpawnJS.Blazor 3.0.7 - unreleased (3.0.7-local.1)
+
+### Fixed
+- **`MediaDevices.GetUserMedia(bool video, bool audio)` never opened a camera or microphone in a trimmed app.**
+  It passed an anonymous `new { video, audio }`. The library is trimmable, so in a published (trimmed) app the
+  object reached the browser without its members, and `getUserMedia` rejected it ("At least one of audio and video
+  must be requested"). It now passes a `MediaStreamConstraints`. Found by Tuvok: SpawnDev.ILGPU.ML's
+  `MediaStreamCapture.StartWebcamAsync` had never opened a camera in its published demo. Test: the `--blazor`
+  runner mode publishes the Blazor demo trimmed, launches Chrome with a fake camera, and checks that
+  `GetUserMedia(true, false)` returns one video track. That check failed with this exact message before the fix.
+  Live suite 283/283.
+- `SpawnDev.SpawnJS.Blazor` 3.0.7-local.1 has no change of its own; it is rebuilt so Blazor apps get the 3.0.7 core.
+
 ## SpawnDev.SpawnJS 3.0.6 / SpawnDev.SpawnJS.Blazor 3.0.6 - 2026-10-27
 
 ### Fixed

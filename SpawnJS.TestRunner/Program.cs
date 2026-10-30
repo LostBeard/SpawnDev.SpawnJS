@@ -117,7 +117,13 @@ static async Task<int> RunBlazorAsync(string repoRoot, bool headed)
             [".json"] = "application/json", [".wasm"] = "application/wasm", [".ico"] = "image/x-icon", [".png"] = "image/png",
         };
         using var playwright = await Playwright.CreateAsync();
-        await using var browser = await LaunchAsync(playwright, headed);
+        // a fake camera for the page's MediaDevices.GetUserMedia(true, false) check; the test origin is plain http,
+        // which has no navigator.mediaDevices unless it is treated as secure
+        await using var browser = await LaunchAsync(playwright, headed, new[]
+        {
+            "--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream",
+            $"--unsafely-treat-insecure-origin-as-secure={origin}",
+        });
         var page = await browser.NewPageAsync();
         var errors = new List<string>();
         page.Console += (_, msg) => { if (msg.Type == "error") errors.Add(msg.Text); };
@@ -135,15 +141,25 @@ static async Task<int> RunBlazorAsync(string repoRoot, bool headed)
         var passed = true;
         try { await page.GetByText("Hello world!", new() { Exact = true }).WaitForAsync(new() { Timeout = 60000 }); }
         catch (TimeoutException) { passed = false; }
+        // the page writes the outcome of MediaDevices.GetUserMedia(true, false) into #user-media. In a trimmed app it
+        // once sent an anonymous { video, audio } object whose properties the trimmer removed, so the browser got {}
+        // and rejected it ("At least one of audio and video must be requested").
+        var userMedia = page.Locator("#user-media");
+        var userMediaText = "";
+        try
+        {
+            await page.WaitForFunctionAsync("() => document.getElementById('user-media')?.textContent?.length > 0", null, new() { Timeout = 60000 });
+            userMediaText = await userMedia.TextContentAsync() ?? "";
+        }
+        catch (TimeoutException) { userMediaText = "(never written)"; }
+        var userMediaPassed = userMediaText == "getUserMedia video tracks: 1";
         var errorUiVisible = await page.Locator("#blazor-error-ui").IsVisibleAsync();
         foreach (var e in errors) Console.WriteLine($"  [error] {e}");
         Console.WriteLine();
-        if (passed && !errorUiVisible && errors.Count == 0)
-        {
-            Console.WriteLine("  PASS  ElementReference.As<HTMLDivElement>() in a published Blazor app");
-            return 0;
-        }
-        Console.WriteLine($"  FAIL  ElementReference.As<HTMLDivElement>() in a published Blazor app (text set: {passed}, error UI: {errorUiVisible}, errors: {errors.Count})");
+        Console.WriteLine($"  {(passed ? "PASS" : "FAIL")}  ElementReference.As<HTMLDivElement>() in a published Blazor app");
+        Console.WriteLine($"  {(userMediaPassed ? "PASS" : "FAIL")}  MediaDevices.GetUserMedia(true, false) in a published Blazor app: {userMediaText}");
+        if (passed && userMediaPassed && !errorUiVisible && errors.Count == 0) return 0;
+        Console.WriteLine($"  FAIL  published Blazor app (error UI: {errorUiVisible}, errors: {errors.Count})");
         return 1;
     }
     finally
@@ -290,13 +306,13 @@ static void PrintProfile(System.Text.Json.JsonElement? result)
         Console.WriteLine($"  {100.0 * count / total,5:F1}%  {key}");
 }
 
-static async Task<IBrowser> LaunchAsync(IPlaywright playwright, bool headed)
+static async Task<IBrowser> LaunchAsync(IPlaywright playwright, bool headed, IEnumerable<string>? args = null)
 {
-    var options = new BrowserTypeLaunchOptions { Headless = !headed };
+    var options = new BrowserTypeLaunchOptions { Headless = !headed, Args = args };
     try
     {
         // prefer installed Chrome - the bundled chromium build often lags the package version
-        return await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = !headed, Channel = "chrome" });
+        return await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = !headed, Channel = "chrome", Args = args });
     }
     catch
     {

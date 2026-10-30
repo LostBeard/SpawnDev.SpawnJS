@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using SpawnDev.SpawnJS
 @using SpawnDev.SpawnJS.JSObjects
 
 <PageTitle>Home</PageTitle>
@@ -9,14 +10,34 @@ Welcome to your new app.
 
 <div @ref="_div">My Div</div>
 
+<div id="user-media">@_userMedia</div>
+
 @code{
+    [Inject] SpawnJSRuntime JS { get; set; } = default!;
     ElementReference _div;
-    protected override void OnAfterRender(bool firstRender)
+    string _userMedia = "";
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             using var div = _div.As<HTMLDivElement>();
             div.TextContent = "Hello world!";
+            StateHasChanged();
+            // MediaDevices.GetUserMedia(bool video, bool audio) in a TRIMMED app: the runner launches Chrome with a fake
+            // camera, so the stream must carry one video track
+            try
+            {
+                using var navigator = JS.Get<Navigator>("navigator");
+                using var mediaDevices = navigator.MediaDevices;
+                using var stream = await mediaDevices.GetUserMedia(true, false);
+                using var tracks = stream!.GetVideoTracks();
+                _userMedia = $"getUserMedia video tracks: {tracks.Length}";
+                foreach (var track in tracks.ToArray()) { track.Stop(); track.Dispose(); }
+            }
+            catch (Exception ex)
+            {
+                _userMedia = $"getUserMedia failed: {ex.Message}";
+            }
             StateHasChanged();
         }
     }
