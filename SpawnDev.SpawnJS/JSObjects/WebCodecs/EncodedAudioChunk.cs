@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a string indicating whether this chunk is a key chunk or a delta chunk.
         /// </summary>
-        public EncodedAudioChunkType Type => JSRef!.Get<EncodedAudioChunkType>("type");
+        public EncodedAudioChunkType Type => JSRef!.Get<EnumString<EncodedAudioChunkType>>("type");
 
         /// <summary>
         /// Returns an integer indicating the timestamp of the audio in microseconds.

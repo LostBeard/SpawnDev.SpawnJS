@@ -8,7 +8,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// <summary>
     /// The type of the chunk.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum EncodedVideoChunkType
     {
         /// <summary>

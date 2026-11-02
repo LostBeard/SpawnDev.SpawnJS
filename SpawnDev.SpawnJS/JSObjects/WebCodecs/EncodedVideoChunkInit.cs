@@ -14,7 +14,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// The type of the chunk.
         /// </summary>
         [JsonPropertyName("type")]
-        public EncodedVideoChunkType? Type { get; set; }
+        public EnumString<EncodedVideoChunkType>? Type { get; set; }
 
         /// <summary>
         /// The timestamp of the chunk in microseconds.

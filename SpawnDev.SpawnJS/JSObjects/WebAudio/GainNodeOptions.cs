@@ -24,11 +24,11 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// Represents an enumerated value describing the way channels must be matched between the node's inputs and outputs. (See AudioNode.channelCountMode for more information including default values.)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ChannelCountMode? ChannelCountMode { get; set; }
+        public EnumString<ChannelCountMode>? ChannelCountMode { get; set; }
         /// <summary>
         /// Represents an enumerated value describing the meaning of the channels. This interpretation will define how audio up-mixing and down-mixing will happen. The possible values are "speakers" or "discrete". (See AudioNode.channelCountMode for more information including default values.)
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public ChannelInterpretation? ChannelInterpretation { get; set; }
+        public EnumString<ChannelInterpretation>? ChannelInterpretation { get; set; }
     }
 }

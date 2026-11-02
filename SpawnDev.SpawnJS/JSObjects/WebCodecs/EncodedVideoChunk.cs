@@ -21,7 +21,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <summary>
         /// Returns a string indicating whether this chunk is a key chunk or a delta chunk.
         /// </summary>
-        public EncodedVideoChunkType Type => JSRef!.Get<EncodedVideoChunkType>("type");
+        public EncodedVideoChunkType Type => JSRef!.Get<EnumString<EncodedVideoChunkType>>("type");
 
         /// <summary>
         /// Returns an integer indicating the timestamp of the video in microseconds.

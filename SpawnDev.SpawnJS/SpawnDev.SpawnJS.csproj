@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.7</Version>
+		<Version>3.0.8-local.1</Version>
 		<PackageReleaseNotes>v3.0.7 - Fixed: MediaDevices.GetUserMedia(bool video, bool audio) opened no camera or microphone in a trimmed app (it sent an anonymous object, which arrived as {}). Full history: CHANGELOG.md</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

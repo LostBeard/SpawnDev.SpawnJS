@@ -8,7 +8,6 @@ namespace SpawnDev.SpawnJS.JSObjects
     /// <summary>
     /// https://www.w3.org/TR/webgpu/#enumdef-gpustenciloperation
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum GPUStencilOperation
     {
         /// <summary>

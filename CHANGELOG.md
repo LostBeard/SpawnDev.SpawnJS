@@ -2,6 +2,24 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.8-local.1 / SpawnDev.SpawnJS.Blazor 3.0.8-local.1 - 2026-11-02 (local feed)
+
+### Fixed
+- **WebCodecs chunk types and two Web Audio options crossed to Javascript as NUMBERS.** `EncodedAudioChunkInit.Type`,
+  `EncodedVideoChunkInit.Type` and `GainNodeOptions.ChannelCountMode` / `ChannelInterpretation` were plain enums, which
+  SpawnJS writes as their number, so `new EncodedAudioChunk(init)` threw ("The provided value '0' is not a valid enum value
+  of type EncodedAudioChunkType") and a GainNode got `channelCountMode: 1`. They are now `EnumString<T>?`, the library's
+  way for an enum that is a Javascript string (as `AudioNodeOptions` already was). `EncodedAudioChunk.Type` /
+  `EncodedVideoChunk.Type` read through `EnumString<T>` and still return the enum. Assigning an enum value
+  (`Type = EncodedAudioChunkType.Key`) compiles as before.
+- The `[JsonConverter(typeof(JsonStringEnumConverter))]` attributes on `EncodedAudioChunkType`, `EncodedVideoChunkType` and
+  `GPUStencilOperation` are removed: SpawnJS enums carry no converter (SpawnJS does not marshal through JSON, and
+  System.Text.Json's converter ignores `[JsonPropertyName]` on enum members anyway, so it would have sent "Key", not "key").
+  Found by Geordi: AubsCraft's voice chat had to build its own init class to send "key".
+- Test: `EnumStringWrapperTests` (live suite): an audio and a video chunk built from an init for both types, the browser's
+  `chunk.type` and `.Type` read back; `GainNodeOptions` as Javascript sees it, and an unset value left out. All three fail on
+  the 3.0.7 wrappers with the errors above. Live suite 286/286.
+
 ## SpawnDev.SpawnJS 3.0.7 / SpawnDev.SpawnJS.Blazor 3.0.7 - 2026-10-30
 
 ### Fixed
