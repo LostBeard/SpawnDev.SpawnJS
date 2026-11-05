@@ -66,6 +66,26 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 finally { js.Delete(key); }
                 return Task.CompletedTask;
             });
+
+            await testAsync("EnumString.DisplayMediaStreamOptions windowAudio strings", () =>
+            {
+                // getDisplayMedia needs a user gesture and a picker, so this checks what the options object carries to Javascript.
+                const string key = "__enumStringDisplayMediaOptions";
+                try
+                {
+                    foreach (var (value, expected) in new[] { (WindowAudioPreferenceEnum.Window, "window"), (WindowAudioPreferenceEnum.System, "system"), (WindowAudioPreferenceEnum.Exclude, "exclude") })
+                    {
+                        js.Set(key, new DisplayMediaStreamOptions { WindowAudio = value, SystemAudio = SystemAudioPreferenceEnum.Include });
+                        var seen = js.Get<string>($"{key}.windowAudio");
+                        if (seen != expected) throw new Exception($"windowAudio is '{seen}', expected '{expected}'");
+                        if (js.Get<string>($"{key}.systemAudio") != "include") throw new Exception("systemAudio did not cross as 'include'");
+                    }
+                    js.Set(key, new DisplayMediaStreamOptions());
+                    if (js.Get<string?>($"{key}.windowAudio") != null) throw new Exception("an unset WindowAudio reached Javascript");
+                }
+                finally { js.Delete(key); }
+                return Task.CompletedTask;
+            });
         }
     }
 }

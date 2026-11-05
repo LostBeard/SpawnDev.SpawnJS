@@ -2,6 +2,14 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.8-local.2 - 2026-11-05 (local feed)
+
+### Added
+- **`DisplayMediaStreamOptions.WindowAudio`** (`WindowAudioPreferenceEnum`: `exclude` / `system` / `window`): which audio
+  getDisplayMedia offers with a WINDOW capture (Chromium, about Chrome 141). `window` keeps other applications' sound (voice
+  chat, music) out of a shared game window. Asked by Riker for AssistZ. Live suite: `EnumString.DisplayMediaStreamOptions
+  windowAudio strings` (each value crosses as its string; unset stays absent). SpawnDev.BlazorJS has the same member (041a72f).
+
 ## SpawnDev.SpawnJS 3.0.8-local.1 / SpawnDev.SpawnJS.Blazor 3.0.8-local.1 - 2026-11-02 (local feed)
 
 ### Fixed
