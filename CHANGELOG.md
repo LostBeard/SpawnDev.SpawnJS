@@ -2,7 +2,14 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.8-local.2 - 2026-11-05 (local feed)
+## SpawnDev.SpawnJS 3.0.8 - 2026-11-05
+
+Released to nuget.org: the two 3.0.8-local entries below (SpawnDev.SpawnJS.Blazor stays 3.0.7: no code change since).
+`WindowAudio` verified in Chrome on Windows 11 (10.0.26200, Chrome 156): with `WindowAudio = Window` the share picker offers
+"Also share app audio", and with only that on, an app sharing a window heard that window's own pulses 16/16 and another
+process's 0/17 (AssistZ lab test). Chrome on Windows 10 (19045) does not offer it, so there the option does not isolate.
+
+### 3.0.8-local.2
 
 ### Added
 - **`DisplayMediaStreamOptions.WindowAudio`** (`WindowAudioPreferenceEnum`: `exclude` / `system` / `window`): which audio
@@ -10,7 +17,7 @@ All notable changes to SpawnDev.SpawnJS.
   chat, music) out of a shared game window. Asked by Riker for AssistZ. Live suite: `EnumString.DisplayMediaStreamOptions
   windowAudio strings` (each value crosses as its string; unset stays absent). SpawnDev.BlazorJS has the same member (041a72f).
 
-## SpawnDev.SpawnJS 3.0.8-local.1 / SpawnDev.SpawnJS.Blazor 3.0.8-local.1 - 2026-11-02 (local feed)
+### 3.0.8-local.1 (2026-11-02)
 
 ### Fixed
 - **WebCodecs chunk types and two Web Audio options crossed to Javascript as NUMBERS.** `EncodedAudioChunkInit.Type`,
