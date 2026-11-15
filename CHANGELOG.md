@@ -2,6 +2,20 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.9 - unreleased
+
+### 3.0.9-local.1
+
+- **NEW: WebAuthn JSON converters** (for spawndev.com passkeys with Fido2NetLib; any server speaking the standard base64url
+  JSON). `PublicKeyCredential.ParseCreationOptionsFromJSON(string json)` / `ParseRequestOptionsFromJSON(string json)` (and
+  overloads taking a parsed SpawnJSObject) return `ParsedPublicKeyCredentialCreationOptions` / `...RequestOptions`, JS-held
+  objects whose ArrayBuffers never cross into .NET; `CredentialsContainer.Create(parsed, signal)` and
+  `Get(parsed, mediation, signal)` take them; `PublicKeyCredential.ToJSON()` / `ToJSONString()` give the response JSON to
+  POST; `PublicKeyCredential.IsJSONSupported`. `PublicKeyCredential<TResponse>` now derives from a new non-generic
+  `PublicKeyCredential` holding RawId, AuthenticatorAttachment and the statics (no change for existing callers).
+- Tests: `WebAuthnTests` (4), including a real registration + authentication through these calls; SpawnJS.TestRunner adds
+  a CDP virtual authenticator (ctap2, internal, resident key, user verification) to its page. Full suite 291/0.
+
 ## SpawnDev.SpawnJS 3.0.8 - 2026-11-05
 
 Released to nuget.org: the two 3.0.8-local entries below (SpawnDev.SpawnJS.Blazor stays 3.0.7: no code change since).

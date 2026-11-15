@@ -214,6 +214,22 @@ static async Task<int> RunAsync(string url, bool headed, bool verbose, bool prof
     using var playwright = await Playwright.CreateAsync();
     await using var browser = await LaunchAsync(playwright, headed);
     var page = await browser.NewPageAsync();
+    // A CDP virtual authenticator, so the WebAuthn cases run real create() / get() ceremonies without a person:
+    // a platform (internal) CTAP2 device with resident keys and user verification that always passes.
+    var webAuthn = await page.Context.NewCDPSessionAsync(page);
+    await webAuthn.SendAsync("WebAuthn.enable");
+    await webAuthn.SendAsync("WebAuthn.addVirtualAuthenticator", new Dictionary<string, object>
+    {
+        ["options"] = new Dictionary<string, object>
+        {
+            ["protocol"] = "ctap2",
+            ["transport"] = "internal",
+            ["hasResidentKey"] = true,
+            ["hasUserVerification"] = true,
+            ["isUserVerified"] = true,
+            ["automaticPresenceSimulation"] = true,
+        },
+    });
     // --profile: Chrome's sampling CPU profiler over CDP for the whole run. Interpreted .Net runs inside wasm
     // functions, so the split between those and the named Javascript functions is the first thing it shows.
     ICDPSession? cdp = null;
