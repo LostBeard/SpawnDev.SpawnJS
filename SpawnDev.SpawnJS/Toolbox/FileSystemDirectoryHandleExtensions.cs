@@ -672,7 +672,7 @@ namespace SpawnDev.SpawnJS.Toolbox
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
-            Justification = "T is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their .ctor(ArrayBuffer) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
+            Justification = "T is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their .ctor(ArrayBuffer) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper).")]
         public static async Task<T> ReadTypedArray<T>(this FileSystemDirectoryHandle _this, string path) where T : TypedArray
         {
             using var fileHandle = await _this.GetPathFileHandle(path, false);

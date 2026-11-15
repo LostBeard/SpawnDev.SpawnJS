@@ -104,7 +104,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="length"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067",
-            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
+            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper).")]
         public TypedArray ReCast(Type typedArray, long byteOffset, long length) => Buffer.Using(o => (TypedArray)Activator.CreateInstance(typedArray, o, ByteOffset + byteOffset, length)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset
@@ -112,7 +112,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="typedArray"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067",
-            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
+            Justification = "typedArray is a TypedArray subclass; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper).")]
         public TypedArray ReCast(Type typedArray) => Buffer.Using(o => (TypedArray)Activator.CreateInstance(typedArray, o, ByteOffset, ByteLength)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset, returning length number of items in the resulting typed array
@@ -122,7 +122,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <param name="length"></param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
-            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
+            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper).")]
         public TTypedArray ReCast<TTypedArray>(long byteOffset, long length) where TTypedArray : TypedArray => Buffer.Using(o => (TTypedArray)Activator.CreateInstance(typeof(TTypedArray), o, ByteOffset + byteOffset, length)!);
         /// <summary>
         /// Create a new typed array starting at this typed array's ByteOffset + byteOffset
@@ -130,7 +130,7 @@ namespace SpawnDev.SpawnJS.JSObjects
         /// <typeparam name="TTypedArray"></typeparam>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
-            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods).")]
+            Justification = "TTypedArray is constrained to TypedArray; those live in SpawnDev.SpawnJS.JSObjects and their view .ctor(ArrayBuffer, long, long) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper).")]
         public TTypedArray ReCast<TTypedArray>() where TTypedArray : TypedArray => Buffer.Using(o => (TTypedArray)Activator.CreateInstance(typeof(TTypedArray), o, ByteOffset, ByteLength)!);
         /// <summary>
         /// Deserialization constructor

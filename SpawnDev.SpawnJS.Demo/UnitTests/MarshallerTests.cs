@@ -200,6 +200,7 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             TapeTests();
             JsonIgnoreTests();
             CodecTests();
+            TrimmingTests();
             await ReadTests();
             BigIntegerMarshallerTests();
             UnionMarshallerTests();

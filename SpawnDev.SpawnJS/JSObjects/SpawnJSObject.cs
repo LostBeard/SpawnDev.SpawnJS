@@ -41,7 +41,7 @@ namespace SpawnDev.SpawnJS
         /// If type T is a SpawnJSObject the JSRef is moved instead of copied.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2087",
-            Justification = "The Activator path runs only when T is a SpawnJSObject subclass; built-in wrappers' .ctor(SpawnJSObjectReference) is preserved by the embedded ILLink.Descriptors.xml (preserve=methods) in SpawnDev.SpawnJS.JSObjects. A consumer-defined wrapper subclass is responsible for preserving its own deserialization ctor under trimming.")]
+            Justification = "The Activator path runs only when T is a SpawnJSObject subclass; built-in wrappers' .ctor(SpawnJSObjectReference) is preserved by the embedded ILLink.Descriptors.xml (the public constructors of every kept wrapper). A consumer-defined wrapper subclass is responsible for preserving its own deserialization ctor under trimming.")]
         public T JSRefMove<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>()
         {
             if (IsWrapperDisposed) throw new ObjectDisposedException(nameof(JSRef));

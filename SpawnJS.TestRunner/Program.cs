@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 //   dotnet run --project SpawnJS.TestRunner -- --bench [filter]   run the interop benchmark instead
 //   dotnet run --project SpawnJS.TestRunner -- --twin             two runtimes in one page (TwinTests)
 //   dotnet run --project SpawnJS.TestRunner -- --nocodecs         the suite with every POCO by reflection, not generated codecs
+//   dotnet run --project SpawnJS.TestRunner -- --trimmed          the suite against a Release PUBLISH of the demo (trimmed)
 //   dotnet run --project SpawnJS.TestRunner -- --bench <case> --profile   CPU profile of the run, self time by function
 //   dotnet run --project SpawnJS.TestRunner -- --blazor           PUBLISHED SpawnDev.SpawnJS.Blazor.Demo: ElementReference.As<T>()
 //
@@ -25,6 +26,7 @@ var twin = false;
 var profile = false;
 var noCodecs = false;
 var blazor = false;
+var trimmed = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -36,11 +38,12 @@ for (var i = 0; i < args.Length; i++)
         case "--profile": profile = true; break;
         case "--nocodecs": noCodecs = true; break;
         case "--blazor": blazor = true; break;
+        case "--trimmed": trimmed = true; break;
         case "--url": externalUrl = ++i < args.Length ? args[i] : ""; break;
         case "--filter": filter = ++i < args.Length ? args[i] : ""; break;
         case "-h":
         case "--help":
-            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile] [--nocodecs] [--blazor]");
+            Console.WriteLine("usage: [filter] [--filter <text>] [--headed] [--verbose] [--url <url>] [--bench] [--twin] [--profile] [--nocodecs] [--blazor] [--trimmed]");
             return 0;
         default:
             if (!args[i].StartsWith("-")) filter = args[i];
@@ -62,9 +65,23 @@ if (!File.Exists(demoProject))
 }
 
 Process? server = null;
+StaticFolderServer? staticServer = null;
+string? publishDir = null;
 var url = externalUrl;
 try
 {
+    // --trimmed: the library is trim safe only if the suite passes against what an app ships, a Release publish
+    // (the WebAssembly SDK trims on publish); a dev server run never trims
+    if (string.IsNullOrEmpty(url) && trimmed)
+    {
+        publishDir = Path.Combine(Path.GetTempPath(), $"spawnjs-trimmed-{Environment.ProcessId}");
+        Console.WriteLine($"publishing {Path.GetFileNameWithoutExtension(demoProject)} (Release, trimmed) to {publishDir}...");
+        var publish = Process.Start(new ProcessStartInfo("dotnet", $"publish \"{demoProject}\" -c Release -o \"{publishDir}\"") { UseShellExecute = false })!;
+        await publish.WaitForExitAsync();
+        if (publish.ExitCode != 0) { Console.Error.WriteLine($"publish exited {publish.ExitCode}"); return 1; }
+        staticServer = new StaticFolderServer(Path.Combine(publishDir, "wwwroot"));
+        url = staticServer.Url;
+    }
     if (string.IsNullOrEmpty(url))
     {
         (server, url) = await StartServerAsync(demoProject);
@@ -88,6 +105,11 @@ try
 }
 finally
 {
+    staticServer?.Dispose();
+    if (publishDir != null)
+    {
+        try { Directory.Delete(publishDir, true); } catch { }
+    }
     if (server != null && !server.HasExited)
     {
         try { server.Kill(entireProcessTree: true); } catch { }
