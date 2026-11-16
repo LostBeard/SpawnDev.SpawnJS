@@ -2,7 +2,11 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
-## SpawnDev.SpawnJS 3.0.9 - unreleased
+## SpawnDev.SpawnJS 3.0.9 - 2026-11-16
+
+Released to nuget.org: the two 3.0.9-local entries below (SpawnDev.SpawnJS.Blazor stays 3.0.8: no change since). Final
+suite on the released code: 295 / 0 default, 295 / 0 with ?nocodecs, 294 / 0 / 1 trimmed (the descriptor check skips).
+Bones' spawndev.com on 3.0.9-local.2: trimmed SpawnDev.SpawnJS.wasm 1,533 -> 1,325 KB brotli, site tests 50 / 50.
 
 ### 3.0.9-local.2
 
