@@ -53,6 +53,18 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 got.Item?.Dispose();
             });
 
+            // A library POCO the library never names at a call site: SubtleCrypto.ImportKey takes Union<CryptoImportParams,
+            // ...>, so EcKeyImportParams crosses typed by its RUNTIME type and is written by reflection. Its getters are
+            // called by nobody statically; the descriptor keeps them (3.0.9 did not: Arg_GetMethNotFnd, trimmed only).
+            // Passed as object here, which erases the static type the same way the Union does.
+            Test("Trimming.LibraryPocoAsObject", () =>
+            {
+                object p = new EcKeyImportParams { Name = "ECDH", NamedCurve = "P-256" };
+                JS.Set(K, p);
+                AssertEqual(JS.Get<string>(K + ".name"), "ECDH", "name");
+                AssertEqual(JS.Get<string>(K + ".namedCurve"), "P-256", "namedCurve");
+            });
+
             Test("Trimming.DescriptorListsEveryWrapper", DescriptorListsEveryWrapper);
         }
 
@@ -67,12 +79,26 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
             var listed = Regex.Matches(new StreamReader(stream!).ReadToEnd(), "<type fullname=\"([^\"]+)\"")
                 .Select(m => m.Groups[1].Value).ToHashSet();
             var missing = assembly.GetTypes()
-                .Where(IsWrapper)
+                .Where(t => IsWrapper(t) || IsPoco(t))
                 .Select(t => t.FullName!.Replace('+', '/'))
                 .Where(n => !listed.Contains(n))
                 .OrderBy(n => n, StringComparer.Ordinal)
                 .ToList();
-            Assert(missing.Count == 0, $"{missing.Count} wrapper(s) not in ILLink.Descriptors.xml (run Tools/GenerateTrimDescriptor.cs): {string.Join(", ", missing.Take(20))}");
+            Assert(missing.Count == 0, $"{missing.Count} wrapper / POCO type(s) not in ILLink.Descriptors.xml (run Tools/GenerateTrimDescriptor.cs): {string.Join(", ", missing.Take(20))}");
+        }
+
+        // the generator's POCO rule: a class or struct of the wrapper namespaces, not a wrapper, not static, not a
+        // delegate, that declares public instance properties
+        [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Untrimmed comparison only, see DescriptorListsEveryWrapper.")]
+        static bool IsPoco(Type t)
+        {
+            if (!(t.IsClass || (t.IsValueType && !t.IsEnum)) || (t.IsAbstract && t.IsSealed)) return false;
+            if (t.FullName == null || t.FullName.Contains('<') || t.Name.Contains('<')) return false;
+            if (t.Namespace == null || !t.Namespace.StartsWith("SpawnDev.SpawnJS.JSObjects", StringComparison.Ordinal)) return false;
+            if (typeof(Delegate).IsAssignableFrom(t) || typeof(SpawnJSObject).IsAssignableFrom(t)) return false;
+            for (var b = t.BaseType; b != null; b = b.BaseType)
+                if (b.IsGenericType && b.GetGenericTypeDefinition() == typeof(SpawnJSObject)) return false;
+            return t.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly).Length > 0;
         }
 
         // the generator's rule: a non-abstract SpawnJSObject subclass (open generics included) with a public constructor

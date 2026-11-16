@@ -2,6 +2,21 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.10 - 2026-11-16
+
+- **FIX (trimmed apps, 3.0.9 only): `ArgumentException: Arg_GetMethNotFnd` writing an options class.** 3.0.9's trim
+  descriptor kept only wrapper constructors, on the assumption that the generated codecs name every POCO accessor. They
+  name only the types this library passes at its own call sites. A derived options class passed where its base or a
+  Union is declared is named by nobody: `SubtleCrypto.ImportKey` takes a Union of `CryptoImportParams`, so
+  `EcKeyImportParams` was written by reflection with its getters trimmed (SpawnDev.SpawnJS.Cryptography's ECDH import,
+  found re-releasing it on 3.0.9). The descriptor now also keeps the accessors and constructors (`preserve="methods"`,
+  `required="false"`) of the 362 POCOs of the wrapper namespaces. Demo's trimmed SpawnDev.SpawnJS.wasm: 1,963,797 ->
+  1,981,717 bytes (+18 KB; 3.0.8 was 2,613,017), 0 trim warnings.
+- Tests: `Trimming.LibraryPocoAsObject` (an EcKeyImportParams passed as object, which erases the static type the way the
+  Union does; red-checked: Arg_GetMethNotFnd trimmed with the 3.0.9 descriptor) and `Trimming.DescriptorListsEveryWrapper`
+  now also requires every POCO (red-checked: 362 missing). Suite 296 / 0 untrimmed and 295 / 0 / 1 trimmed, each with
+  and without generated codecs.
+
 ## SpawnDev.SpawnJS 3.0.9 - 2026-11-16
 
 Released to nuget.org: the two 3.0.9-local entries below (SpawnDev.SpawnJS.Blazor stays 3.0.8: no change since). Final

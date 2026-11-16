@@ -41,6 +41,19 @@ var wrappers = assembly.GetTypes()
     .OrderBy(n => n, StringComparer.Ordinal)
     .ToList();
 
+// The POCOs (options / dictionary classes) of the wrapper namespaces: classes and structs that are not wrappers and
+// declare public instance properties. Abstract bases too: an inherited property's accessors belong to the base.
+var pocos = assembly.GetTypes()
+    .Where(t => (t.IsClass || (t.IsValueType && !t.IsEnum)) && !(t.IsAbstract && t.IsSealed))
+    .Where(t => !t.Name.Contains('<') && !t.FullName!.Contains('<'))
+    .Where(t => t.Namespace != null && t.Namespace.StartsWith("SpawnDev.SpawnJS.JSObjects", StringComparison.Ordinal))
+    .Where(t => t != baseType && !IsSubclassOf(t, baseType))
+    .Where(t => !typeof(Delegate).FullName!.Equals(t.BaseType?.FullName) && t.BaseType?.FullName != "System.MulticastDelegate")
+    .Where(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length > 0)
+    .Select(t => t.FullName!.Replace('+', '/'))
+    .OrderBy(n => n, StringComparer.Ordinal)
+    .ToList();
+
 var xml = new StringBuilder();
 xml.Append("""
 <!--
@@ -54,12 +67,18 @@ xml.Append("""
   constructor statically, so without this file a trimmed app fails the first time it reads such a wrapper:
   "MissingMethodException: MissingConstructor_Name, <wrapper>".
 
-  Each entry keeps the public constructors of one wrapper (every non-abstract SpawnJSObject subclass). Nothing else:
-  the rest of a wrapper's API is trimmed like any other code. POCO members need nothing here, the generated codecs
-  (SpawnDev.SpawnJS.Generators) name every accessor they use.
+  The first list keeps the public constructors of each wrapper (every non-abstract SpawnJSObject subclass). Nothing
+  else: the rest of a wrapper's API is trimmed like any other code.
 
-  required="false" is the important part: it does NOT root these types. A wrapper the app never mentions is still
-  removed entirely. It only says that IF a wrapper is kept, its constructors are kept with it.
+  The second list keeps the methods (property accessors and constructors) of each POCO of the wrapper namespaces (the
+  options and dictionary classes). The marshaller reads and writes a POCO's properties by reflection on its RUNTIME
+  type, and the generated codecs (SpawnDev.SpawnJS.Generators) only cover the types this library names at its own call
+  sites. A derived POCO passed where a base or a Union is declared (SubtleCrypto.ImportKey(EcKeyImportParams) through
+  Union of CryptoImportParams) is named by nobody: without this its getters are trimmed and a trimmed app fails with
+  "ArgumentException: Arg_GetMethNotFnd" (SpawnDev.SpawnJS.Cryptography's ECDH test, 3.0.9).
+
+  required="false" is the important part: it does NOT root these types. A type the app never mentions is still
+  removed entirely. It only says that IF a type is kept, these members are kept with it.
 
   Embedded as a resource so it travels in the package: an app can turn on PublishTrimmed without knowing this exists.
   SpawnJS.TestRunner has a trimmed mode that runs the suite against a trimmed Release publish.
@@ -70,6 +89,9 @@ xml.Append("""
 """);
 foreach (var name in wrappers)
     xml.Append($"    <type fullname=\"{System.Security.SecurityElement.Escape(name)}\" required=\"false\"><method name=\".ctor\" /></type>\n");
+xml.Append("\n");
+foreach (var name in pocos)
+    xml.Append($"    <type fullname=\"{System.Security.SecurityElement.Escape(name)}\" required=\"false\" preserve=\"methods\" />\n");
 xml.Append("""
 
   </assembly>
@@ -85,7 +107,7 @@ _ = System.Xml.Linq.XDocument.Parse(text);
 
 var target = Path.Combine(repo, "SpawnDev.SpawnJS", "ILLink.Descriptors.xml");
 File.WriteAllText(target, xml.ToString().Replace("\r\n", "\n"), new UTF8Encoding(false));
-Console.WriteLine($"{wrappers.Count} wrapper types -> {target}");
+Console.WriteLine($"{wrappers.Count} wrapper types, {pocos.Count} POCO types -> {target}");
 return 0;
 
 static bool IsSubclassOf(Type t, Type baseType)
