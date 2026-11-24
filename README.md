@@ -1,10 +1,16 @@
+<div align="center">
+
 # SpawnDev.SpawnJS
 
-> SpawnDev libraries are built and maintained by the SpawnDev development team, which uses AI agents in its daily work.
+[![NuGet](https://img.shields.io/nuget/v/SpawnDev.SpawnJS.svg?label=nuget&logo=nuget)](https://www.nuget.org/packages/SpawnDev.SpawnJS)
+[![Downloads](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=downloads)](https://www.nuget.org/packages/SpawnDev.SpawnJS)
+[![NuGet](https://img.shields.io/nuget/v/SpawnDev.SpawnJS.Blazor.svg?label=SpawnJS.Blazor&logo=nuget)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
+[![Sponsor](https://img.shields.io/badge/sponsor-LostBeard-ea4aaa.svg?logo=githubsponsors)](https://github.com/sponsors/LostBeard)
 
-[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=SpawnDev.SpawnJS)](https://www.nuget.org/packages/SpawnDev.SpawnJS)
-[![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.Blazor.svg?label=SpawnDev.SpawnJS.Blazor)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)
-[![GitHub Sponsor](https://img.shields.io/github/sponsors/LostBeard?label=Sponsor&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/LostBeard)
+</div>
+
+> SpawnDev libraries are built and maintained by the SpawnDev development team, which uses AI agents in its daily work.
 
 JSON-free JavaScript interop for **.NET WebAssembly**. No Blazor dependency. Targets **.NET 10**.
 
