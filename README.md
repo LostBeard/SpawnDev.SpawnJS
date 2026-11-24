@@ -1,10 +1,6 @@
-> ### ⚠️ This library needs funding to survive.
-> SpawnJS is built and maintained by **one independent developer.** If you or your organization build
-> on SpawnJS, please **[sponsor its development](https://github.com/sponsors/LostBeard)**.
-> **$500/month gets us back to warp speed.** 68 MIT-licensed packages, 500,000+ NuGet downloads - your
-> sponsorship is what keeps them alive and moving.
-
 # SpawnDev.SpawnJS
+
+> SpawnDev libraries are built and maintained by the SpawnDev development team, which uses AI agents in its daily work.
 
 [![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.svg?label=SpawnDev.SpawnJS)](https://www.nuget.org/packages/SpawnDev.SpawnJS)
 [![NuGet](https://img.shields.io/nuget/dt/SpawnDev.SpawnJS.Blazor.svg?label=SpawnDev.SpawnJS.Blazor)](https://www.nuget.org/packages/SpawnDev.SpawnJS.Blazor)
@@ -245,6 +241,10 @@ Built on SpawnJS (browser) or the matching BlazorJS package (Blazor JSON interop
 - [SpawnDev.SpawnJS.RazorRenderer](https://www.nuget.org/packages/SpawnDev.SpawnJS.RazorRenderer) - Razor UI on `SpawnJSAppBuilder` (no Blazor `WebAssemblyHost`)
 - [SpawnDev.ILGPU](https://github.com/LostBeard/SpawnDev.ILGPU) / [SpawnDev.ILGPU.ML](https://github.com/LostBeard/SpawnDev.ILGPU.ML) - GPU compute and ML in the browser and on desktop
 - [SpawnDev.WebTorrent](https://www.nuget.org/packages/SpawnDev.WebTorrent), [SpawnDev.RTC](https://www.nuget.org/packages/SpawnDev.RTC)
+
+## Support
+
+SpawnJS is 100% MIT licensed and developed in public: anyone can use it, fork it and build on it. If it saves you time, you can [sponsor its development](https://github.com/sponsors/LostBeard).
 
 ## The SpawnDev Crew
 
