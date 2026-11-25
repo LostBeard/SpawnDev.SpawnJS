@@ -2,6 +2,15 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.11 - 2026-11-25
+
+- **No CA1416 warnings in a browser app that calls SpawnJS.** SpawnJS is marked browser-only, and an app's own assembly was
+  not, so a fresh `dotnet new blazorwasm` app warned at `AddSpawnJSRuntime()`, `AddSpawnJSRuntime(out var JS)` and
+  `JS.IsWindow`. The package now carries `build` / `buildTransitive` targets that mark the app's own assembly browser-only:
+  only executable projects of the two browser SDKs (`Microsoft.NET.Sdk.BlazorWebAssembly`, `Microsoft.NET.Sdk.WebAssembly`),
+  not class libraries, servers or prerender hosts. Opt out with `SpawnJSSupportedPlatformAttribute=false`; not applied with
+  `GenerateAssemblyInfo=false`. (Found and first written by Bones, 2026-11-24.)
+
 ## SpawnDev.SpawnJS 3.0.10 - 2026-11-16
 
 - **FIX (trimmed apps, 3.0.9 only): `ArgumentException: Arg_GetMethNotFnd` writing an options class.** 3.0.9's trim

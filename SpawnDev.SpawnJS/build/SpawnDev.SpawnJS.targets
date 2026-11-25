@@ -1,0 +1,14 @@
+<Project>
+  <!-- A browser app's own assembly is marked browser-only, so calling SpawnJS (which is marked browser-only) does not
+       raise CA1416 in it. Opt out: <SpawnJSSupportedPlatformAttribute>false</SpawnJSSupportedPlatformAttribute>.
+       Apps only: the two browser SDKs with OutputType Exe, so class libraries, servers and prerender hosts are left alone.
+       Not added when GenerateAssemblyInfo=false: the SDK writes no AssemblyAttribute items then. -->
+  <PropertyGroup Condition="'$(SpawnJSSupportedPlatformAttribute)' == ''">
+    <SpawnJSSupportedPlatformAttribute Condition="('$(UsingMicrosoftNETSdkBlazorWebAssembly)' == 'true' or '$(UsingMicrosoftNETSdkWebAssembly)' == 'true') and '$(OutputType)' == 'Exe'">true</SpawnJSSupportedPlatformAttribute>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SpawnJSSupportedPlatformAttribute)' == 'true' and '$(GenerateAssemblyInfo)' != 'false'">
+    <AssemblyAttribute Include="System.Runtime.Versioning.SupportedOSPlatformAttribute">
+      <_Parameter1>browser</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>
