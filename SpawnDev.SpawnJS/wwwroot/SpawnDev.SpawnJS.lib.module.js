@@ -1497,13 +1497,18 @@
             if (typeof raw !== 'string' || raw.length === 0) return '';
             if (raw.startsWith('blob:')) return '';
             var url;
-            try { url = new URL(raw, self?.location?.href); } catch (ex) { return ''; }
+            // `self` is not declared at all under Node (a .NET WebAssembly console app), and `?.` does not guard an
+            // undeclared name: read the page/worker location only where one exists.
+            var base = typeof self !== 'undefined' ? self.location?.href : undefined;
+            try { url = new URL(raw, base); } catch (ex) { return ''; }
             var segments = url.pathname.split('/');   // leading '' from the root slash
             var file = segments.pop();                // '' when the url already names a directory
             // A boot artifact is one level below the app root, whatever its folder is called. Guarded on
             // length so an artifact served from the origin root cannot walk above it.
             if (file && this.#isBootArtifact(file) && segments.length > 1) segments.pop();
-            return url.origin + segments.join('/') + '/';
+            // Resolved against the url itself, not built from url.origin: a file: url (Node loads the app from disk) has
+            // the origin "null". For http(s) this is the same string as origin + path (query and fragment dropped).
+            return new URL(segments.join('/') + '/', url).href;
         }
         // True for the runtime entry and for boot-manifest resources - the files that only ever live in
         // the app's framework folder. Deliberately does NOT match a bundled entrypoint (main.*.js), which

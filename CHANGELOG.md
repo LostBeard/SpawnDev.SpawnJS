@@ -2,6 +2,15 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS 3.0.12 - 2026-11-26
+
+- **`SpawnJSRuntime.AppBaseUri` works under Node** (a .NET WebAssembly console app). It was `""` there, so anything built on
+  it (a library's `_content/` script, a worker URL) had no base. Two causes in `SpawnJSInterop.appRootFromLoadUrl`: it read
+  `self?.location`, and `self` is not declared in Node (`?.` does not guard an undeclared name: a `ReferenceError`, caught
+  and reported as no base); and it built the root from `url.origin`, which is the string `"null"` for the `file:` URLs Node
+  loads the app from. The root is now resolved against the load URL itself (the same string as before for http and https).
+  New `AppRoot` test cases for `file:` URLs. Found by SpawnDev.ILGPU's headless Node test host.
+
 ## SpawnDev.SpawnJS 3.0.11 - 2026-11-25
 
 - **No CA1416 warnings in a browser app that calls SpawnJS.** SpawnJS is marked browser-only, and an app's own assembly was

@@ -59,6 +59,12 @@ namespace SpawnDev.SpawnJS.Demo.UnitTests
                 // Query and fragment are not part of the base.
                 ("QueryAndFragmentStripped", "http://h/app/_framework/dotnet.js?v=1#x", "http://h/app/"),
 
+                // Node (a .NET WebAssembly console app) loads the app from disk: file: urls, whose origin is the
+                // string "null", so the root must not be built from url.origin.
+                ("NodeFileUrlWindowsDrive", "file:///D:/app/AppBundle/_framework/dotnet.js", "file:///D:/app/AppBundle/"),
+                ("NodeFileUrlPosix", "file:///home/u/app/_framework/dotnet.native.abc.wasm", "file:///home/u/app/"),
+                ("NodeFileUrlEntrypointAtRoot", "file:///home/u/app/main.mjs", "file:///home/u/app/"),
+
                 // Unusable inputs resolve to '' so the caller falls through to the next candidate or its
                 // own fallback, rather than silently building worker URLs on a wrong base.
                 ("BlobUrlRejected", "blob:http://h/1234", ""),
