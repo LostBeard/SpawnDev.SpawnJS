@@ -2,6 +2,14 @@
 
 All notable changes to SpawnDev.SpawnJS.
 
+## SpawnDev.SpawnJS.Blazor 3.0.12 - 2026-11-27
+
+- **Built on SpawnDev.SpawnJS 3.0.12; no change of its own.** SpawnJS.Blazor was not released for SpawnJS 3.0.9, 3.0.10
+  or 3.0.11, so its package still declared SpawnDev.SpawnJS >= 3.0.8 and NuGet resolved 3.0.8 for every Blazor app that
+  did not reference SpawnJS directly: none of the 3.0.9-3.0.12 fixes below reached them (an app upgrade showed 3,200
+  CA1416 warnings, 45 with a direct SpawnJS 3.0.12 reference). Found by Bones upgrading SpawnScene. SpawnJS.Blazor is
+  released with every SpawnJS release from now on (comment at its `<Version>`).
+
 ## SpawnDev.SpawnJS 3.0.12 - 2026-11-26
 
 - **`SpawnJSRuntime.AppBaseUri` works under Node** (a .NET WebAssembly console app). It was `""` there, so anything built on

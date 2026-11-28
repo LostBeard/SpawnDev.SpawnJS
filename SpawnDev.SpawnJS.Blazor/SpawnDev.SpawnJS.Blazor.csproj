@@ -6,8 +6,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<Version>3.0.8</Version>
-		<PackageReleaseNotes>v3.0.8 - Built on SpawnDev.SpawnJS 3.0.8. No change of its own. Full history: CHANGELOG.md</PackageReleaseNotes>
+		<!-- Released in lockstep with SpawnDev.SpawnJS, even with no change of its own: the ProjectReference above becomes
+		     this package's SpawnDev.SpawnJS dependency floor, so a Blazor app on SpawnJS.Blazor 3.0.8 kept resolving
+		     SpawnJS 3.0.8 through 3.0.9-3.0.12 (found by Bones, 2026-11-27). -->
+		<Version>3.0.12</Version>
+		<PackageReleaseNotes>v3.0.12 - Built on SpawnDev.SpawnJS 3.0.12 (3.0.9-3.0.12: smaller trimmed apps, trim descriptor fix, no CA1416 warnings in browser apps, AppBaseUri under Node). No change of its own. 3.0.9-3.0.11 were not released for this package, so it kept apps on SpawnJS 3.0.8. Full history: CHANGELOG.md</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedAllSources>true</EmbedAllSources>
